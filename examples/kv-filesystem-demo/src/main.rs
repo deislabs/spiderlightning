@@ -16,6 +16,9 @@ fn main() -> Result<()> {
         "Hello, world! the value is: {}",
         std::str::from_utf8(&get(&resource_descriptor, "key")?)?
     );
+
+    let value = get(&resource_descriptor, "key");
+    assert_eq!(value.is_err(), true);
     Ok(())
 }
 
