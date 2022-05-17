@@ -27,6 +27,8 @@ impl kv::Kv for KvFs {
         Ok(0)
     }
 
+    /// Output the value of a set key.
+    /// If key has not been set, return empty.
     fn get(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
         if *rd != 0 {
             return Err(Error::Error);
@@ -42,6 +44,7 @@ impl kv::Kv for KvFs {
         Ok(buf)
     }
 
+    /// Create a key-value pair.
     fn set(
         &mut self,
         rd: &Self::ResourceDescriptor,
