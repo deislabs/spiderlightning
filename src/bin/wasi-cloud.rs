@@ -25,15 +25,15 @@ fn main() -> Result<()> {
     let ctx = Context {
         wasi,
         data: (
-            kv_fs::KV_FS::new(".".to_string()),
-            KvTables::<kv_fs::KV_FS>::default(),
+            kv_fs::KvFs::new(".".to_string()),
+            KvTables::<kv_fs::KvFs>::default(),
         ),
     };
 
     wasmtime_wasi::add_to_linker(&mut linker, |cx: &mut Context<_>| &mut cx.wasi)?;
     kv_fs::add_to_linker(
         &mut linker,
-        |cx: &mut Context<(kv_fs::KV_FS, KvTables<kv_fs::KV_FS>)>| (&mut cx.data.0, &mut cx.data.1),
+        |cx: &mut Context<(kv_fs::KvFs, KvTables<kv_fs::KvFs>)>| (&mut cx.data.0, &mut cx.data.1),
     )?;
 
     let mut store = Store::new(&engine, ctx);
