@@ -1,12 +1,8 @@
-enum error {
-    success,
-    error,
-}
+use * from types
+use * from resources
 
-resource kv-rd {}
 
-type payload = list<u8>
 
-get-kv: function() -> expected<kv-rd, error>
-get: function(key: string, rd: kv-rd) -> expected<payload, error> 
-set: function(key: string, value: payload, rd: kv-rd) -> expected<unit, error>
+get-kv: function() -> expected<resource-descriptor, error>
+get: function(rd: resource-descriptor, key: string) -> expected<payload, error> 
+set: function(rd: resource-descriptor, key: string, value: payload) -> expected<unit, error>

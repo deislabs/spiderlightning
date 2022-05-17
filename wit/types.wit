@@ -1,0 +1,6 @@
+enum error {
+    success,
+    error,
+}
+
+type payload = list<u8>
