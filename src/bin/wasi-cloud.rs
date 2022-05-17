@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
-use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
+use wasmtime::{Config, Engine, Linker, Module, Store};
 use wasmtime_wasi::*;
 
 use kv_fs::kv::KvTables;
@@ -23,7 +23,7 @@ fn main() -> Result<()> {
     let mut linker = Linker::new(&engine);
 
     let ctx = Context {
-        wasi: wasi,
+        wasi,
         data: (
             kv_fs::KV_FS::new(".".to_string()),
             KvTables::<kv_fs::KV_FS>::default(),

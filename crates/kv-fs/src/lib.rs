@@ -32,7 +32,7 @@ impl kv::Kv for KV_FS {
             return Err(Error::Error);
         }
 
-        let mut file = match File::open(path(&key, &self.path)?) {
+        let mut file = match File::open(path(key, &self.path)?) {
             Ok(f) => f,
             Err(_) => return Ok(Vec::new()),
         };
@@ -51,8 +51,8 @@ impl kv::Kv for KV_FS {
         if *rd != 0 {
             return Err(Error::Error);
         }
-        let mut file = File::create(path(&key, &self.path)?)?;
-        file.write_all(&value)?;
+        let mut file = File::create(path(key, &self.path)?)?;
+        file.write_all(value)?;
         Ok(())
     }
 }
