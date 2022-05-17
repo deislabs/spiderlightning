@@ -9,12 +9,15 @@ use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
+/// A Filesystem implementation for kv interface. 
 #[derive(Default)]
 pub struct KvFilesystem {
+    /// The root directory of the filesystem.
     path: String,
 }
 
 impl KvFilesystem {
+    /// Create a new KvFilesystem.
     pub fn new(path: String) -> Self {
         Self { path }
     }
