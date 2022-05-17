@@ -10,23 +10,25 @@ use kv::*;
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
 #[derive(Default)]
-pub struct KV_FS {
+pub struct KvFilesystem {
     path: String,
 }
 
-impl KV_FS {
+impl KvFilesystem {
     pub fn new(path: String) -> Self {
         Self { path }
     }
 }
 
-impl kv::Kv for KV_FS {
+impl kv::Kv for KvFilesystem {
     type ResourceDescriptor = u64;
 
     fn get_kv(&mut self) -> Result<Self::ResourceDescriptor, Error> {
         Ok(0)
     }
 
+    /// Output the value of a set key.
+    /// If key has not been set, return empty.
     fn get(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
         if *rd != 0 {
             return Err(Error::Error);
@@ -42,6 +44,7 @@ impl kv::Kv for KV_FS {
         Ok(buf)
     }
 
+    /// Create a key-value pair.
     fn set(
         &mut self,
         rd: &Self::ResourceDescriptor,

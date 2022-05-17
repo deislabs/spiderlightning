@@ -12,4 +12,4 @@ a proof of concept for a wasi-based cloud service specification
 - Run `make build`
 
 ## Run
-- Run `./target/release/wasi-cloud -m ./target/wasm32-wasi/release/file-demo.wasm`
+- Run `./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-filesystem-demo.wasm`

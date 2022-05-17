@@ -1,7 +1,7 @@
 .PHONY: build
 build:
 	cargo build --release
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/file-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-filesystem-demo/Cargo.toml
 
 .PHONY: test
 test:

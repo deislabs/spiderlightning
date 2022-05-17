@@ -5,7 +5,7 @@ use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Linker, Module, Store};
 use wasmtime_wasi::*;
 
-use kv_fs::kv::KvTables;
+use kv_filesystem::kv::KvTables;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -25,15 +25,15 @@ fn main() -> Result<()> {
     let ctx = Context {
         wasi,
         data: (
-            kv_fs::KV_FS::new(".".to_string()),
-            KvTables::<kv_fs::KV_FS>::default(),
+            kv_filesystem::KvFilesystem::new(".".to_string()),
+            KvTables::<kv_filesystem::KvFilesystem>::default(),
         ),
     };
 
     wasmtime_wasi::add_to_linker(&mut linker, |cx: &mut Context<_>| &mut cx.wasi)?;
-    kv_fs::add_to_linker(
+    kv_filesystem::add_to_linker(
         &mut linker,
-        |cx: &mut Context<(kv_fs::KV_FS, KvTables<kv_fs::KV_FS>)>| (&mut cx.data.0, &mut cx.data.1),
+        |cx: &mut Context<(kv_filesystem::KvFilesystem, KvTables<kv_filesystem::KvFilesystem>)>| (&mut cx.data.0, &mut cx.data.1),
     )?;
 
     let mut store = Store::new(&engine, ctx);

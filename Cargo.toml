@@ -17,7 +17,7 @@ wasi-common                 = "0.35"
 wasi-cap-std-sync           = "0.35"
 wit-bindgen-wasmtime        = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 clap                        = { version = "3.1.18", features = ["derive"] }
-kv-fs                       = { path = "crates/kv-fs" }
+kv-filesystem                       = { path = "crates/kv-filesystem" }
 
 [dev-dependencies]
 hyper = { version = "0.14", features = [ "full" ] }
@@ -29,8 +29,8 @@ vergen = { version = "7", default-features = false, features = [ "build", "git" 
 
 [workspace]
 members = [
-    "crates/kv-fs",
-    "examples/file-demo",
+    "crates/kv-filesystem",
+    "examples/kv-filesystem-demo",
 ]
 
 [[bin]]

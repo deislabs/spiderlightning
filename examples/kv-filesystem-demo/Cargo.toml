@@ -1,5 +1,5 @@
 [package]
-name = "file-demo"
+name = "kv-filesystem-demo"
 version = "0.1.0"
 edition = "2021"
 
