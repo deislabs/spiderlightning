@@ -1,0 +1,12 @@
+enum error {
+    success,
+    error,
+}
+
+resource kv-rd {}
+
+type payload = list<u8>
+
+get-kv: function() -> expected<kv-rd, error>
+get: function(key: string, rd: kv-rd) -> expected<payload, error> 
+set: function(key: string, value: payload, rd: kv-rd) -> expected<unit, error>
