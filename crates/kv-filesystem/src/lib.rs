@@ -10,17 +10,17 @@ use kv::*;
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
 #[derive(Default)]
-pub struct KvFs {
+pub struct KvFilesystem {
     path: String,
 }
 
-impl KvFs {
+impl KvFilesystem {
     pub fn new(path: String) -> Self {
         Self { path }
     }
 }
 
-impl kv::Kv for KvFs {
+impl kv::Kv for KvFilesystem {
     type ResourceDescriptor = u64;
 
     fn get_kv(&mut self) -> Result<Self::ResourceDescriptor, Error> {

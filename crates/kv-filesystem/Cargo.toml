@@ -1,5 +1,5 @@
 [package]
-name = "kv-fs"
+name = "kv-filesystem"
 version = "0.1.0"
 edition = "2021"
 authors = [ "DeisLabs engineering team" ]
