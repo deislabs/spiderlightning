@@ -1,9 +1,9 @@
 use anyhow::Result;
+use clap::Parser;
 use wasi_cap_std_sync::WasiCtxBuilder;
-use wasi_common::{WasiCtx, StringArrayError};
+use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
 use wasmtime_wasi::*;
-use clap::Parser;
 
 use kv_fs::kv::KvTables;
 
@@ -21,18 +21,26 @@ fn main() -> Result<()> {
     let engine = Engine::new(&default_config()?)?;
     let module = Module::from_file(&engine, args.module)?;
     let mut linker = Linker::new(&engine);
-    
+
     let ctx = Context {
         wasi: wasi,
-        data: (kv_fs::KV_FS::new(".".to_string()), KvTables::<kv_fs::KV_FS>::default()),
+        data: (
+            kv_fs::KV_FS::new(".".to_string()),
+            KvTables::<kv_fs::KV_FS>::default(),
+        ),
     };
-    
+
     wasmtime_wasi::add_to_linker(&mut linker, |cx: &mut Context<_>| &mut cx.wasi)?;
-    kv_fs::add_to_linker(&mut linker, |cx: &mut Context<(kv_fs::KV_FS, KvTables<kv_fs::KV_FS>)>| (&mut cx.data.0, &mut cx.data.1))?;
+    kv_fs::add_to_linker(
+        &mut linker,
+        |cx: &mut Context<(kv_fs::KV_FS, KvTables<kv_fs::KV_FS>)>| (&mut cx.data.0, &mut cx.data.1),
+    )?;
 
     let mut store = Store::new(&engine, ctx);
     let instance = linker.instantiate(&mut store, &module)?;
-    instance.get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?.call(&mut store, (0, 0))?;
+    instance
+        .get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?
+        .call(&mut store, (0, 0))?;
     Ok(())
 }
 
@@ -58,5 +66,5 @@ pub fn default_wasi() -> Result<WasiCtx, StringArrayError> {
 
 struct Context<T> {
     wasi: WasiCtx,
-    data: T
+    data: T,
 }

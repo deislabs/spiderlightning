@@ -4,8 +4,8 @@ use std::{
     path::PathBuf,
 };
 
-use kv::*;
 pub use kv::add_to_linker;
+use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
@@ -23,11 +23,11 @@ impl KV_FS {
 impl kv::Kv for KV_FS {
     type ResourceDescriptor = u64;
 
-    fn get_kv(&mut self) -> Result<Self::ResourceDescriptor,Error> {
+    fn get_kv(&mut self) -> Result<Self::ResourceDescriptor, Error> {
         Ok(0)
     }
-    
-    fn get(&mut self,rd: & Self::ResourceDescriptor,key: & str,) -> Result<PayloadResult,Error> {
+
+    fn get(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
         if *rd != 0 {
             return Err(Error::Error);
         }
@@ -41,8 +41,13 @@ impl kv::Kv for KV_FS {
         file.read_to_end(&mut buf)?;
         Ok(buf)
     }
-    
-    fn set(&mut self,rd: & Self::ResourceDescriptor,key: & str,value: PayloadParam<'_,>,) -> Result<(),Error> {
+
+    fn set(
+        &mut self,
+        rd: &Self::ResourceDescriptor,
+        key: &str,
+        value: PayloadParam<'_>,
+    ) -> Result<(), Error> {
         if *rd != 0 {
             return Err(Error::Error);
         }
