@@ -7,10 +7,14 @@ fn main() -> Result<()> {
     let resource_descriptor = get_kv()?;
     let value = "wasi-cloud".as_bytes();
     set(&resource_descriptor, "key", value)?;
-    let value = get(&resource_descriptor, "key")?;
     println!(
         "Hello, world! the value is: {}",
-        std::str::from_utf8(&value)?
+        std::str::from_utf8(&get(&resource_descriptor, "key")?)?
+    );
+    delete(&resource_descriptor, "key")?;
+    println!(
+        "Hello, world! the value is: {}",
+        std::str::from_utf8(&get(&resource_descriptor, "key")?)?
     );
     Ok(())
 }

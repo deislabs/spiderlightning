@@ -6,3 +6,4 @@ use * from resources
 get-kv: function() -> expected<resource-descriptor, error>
 get: function(rd: resource-descriptor, key: string) -> expected<payload, error> 
 set: function(rd: resource-descriptor, key: string, value: payload) -> expected<unit, error>
+delete: function(rd: resource-descriptor, key:string) -> expected<unit, error>

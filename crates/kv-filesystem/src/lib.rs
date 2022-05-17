@@ -1,5 +1,5 @@
 use std::{
-    fs::File,
+    fs::{File, self},
     io::{Read, Write},
     path::PathBuf,
 };
@@ -56,6 +56,19 @@ impl kv::Kv for KvFilesystem {
         }
         let mut file = File::create(path(key, &self.path)?)?;
         file.write_all(value)?;
+        Ok(())
+    }
+
+    /// Delete a key-value pair.
+    fn delete(
+        &mut self,
+        rd: &Self::ResourceDescriptor,
+        key: &str
+    ) -> Result<(), Error> {
+        if *rd != 0 {
+            return Err(Error::Error);
+        }
+        fs::remove_file(path(key, &self.path)?)?;
         Ok(())
     }
 }
