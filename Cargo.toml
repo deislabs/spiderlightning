@@ -30,6 +30,7 @@ vergen = { version = "7", default-features = false, features = [ "build", "git" 
 [workspace]
 members = [
     "crates/kv-filesystem",
+    "crates/wasmtime",
     "examples/kv-filesystem-demo",
 ]
 

@@ -4,3 +4,4 @@ enum error {
 }
 
 type payload = list<u8>
+type map = list<tuple<string, string>>

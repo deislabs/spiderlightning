@@ -1,1 +1,3 @@
+// resource descriptor, represented as a opaque resource type and 
+// relies on the host to interpret the resource type.
 resource resource-descriptor {}

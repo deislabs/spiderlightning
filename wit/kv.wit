@@ -1,9 +1,16 @@
-use * from types
+// A key-value store interface.
+use {error, payload } from types
 use * from resources
 
 
-
+// get a key-value store resource descriptor.
 get-kv: function() -> expected<resource-descriptor, error>
+
+// get the payload for a given key.
 get: function(rd: resource-descriptor, key: string) -> expected<payload, error> 
+
+// set the payload for a given key.
 set: function(rd: resource-descriptor, key: string, value: payload) -> expected<unit, error>
+
+// delete the payload for a given key.
 delete: function(rd: resource-descriptor, key:string) -> expected<unit, error>

@@ -1792,7 +1792,7 @@ dependencies = [
  "vergen",
  "wasi-cap-std-sync",
  "wasi-common",
- "wasmtime",
+ "wasmtime 0.35.3",
  "wasmtime-wasi",
  "wit-bindgen-wasmtime",
 ]
@@ -1819,6 +1819,17 @@ name = "wasmparser"
 version = "0.83.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "718ed7c55c2add6548cca3ddd6383d738cd73b892df400e96b9aa876f0141d7a"
+
+[[package]]
+name = "wasmtime"
+version = "0.1.0"
+dependencies = [
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime 0.35.3",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime",
+]
 
 [[package]]
 name = "wasmtime"
@@ -2013,7 +2024,7 @@ dependencies = [
  "anyhow",
  "wasi-cap-std-sync",
  "wasi-common",
- "wasmtime",
+ "wasmtime 0.35.3",
  "wiggle",
 ]
 
@@ -2057,7 +2068,7 @@ dependencies = [
  "bitflags",
  "thiserror",
  "tracing",
- "wasmtime",
+ "wasmtime 0.35.3",
  "wiggle-macro",
 ]
 
@@ -2240,7 +2251,7 @@ dependencies = [
  "anyhow",
  "bitflags",
  "thiserror",
- "wasmtime",
+ "wasmtime 0.35.3",
  "wit-bindgen-wasmtime-impl",
 ]
 
