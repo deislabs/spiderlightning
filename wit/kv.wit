@@ -2,7 +2,6 @@
 use {error, payload } from types
 use * from resources
 
-
 // get a key-value store resource descriptor.
 get-kv: function() -> expected<resource-descriptor, error>
 

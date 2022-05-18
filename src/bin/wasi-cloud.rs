@@ -5,7 +5,8 @@ use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Linker, Module, Store};
 use wasmtime_wasi::*;
 
-use kv_filesystem::kv::KvTables;
+// use kv_filesystem::kv::KvTables;
+use mq::mq::MqTables;
 
 wit_bindgen_wasmtime::import!("wit/config.wit");
 
@@ -26,39 +27,52 @@ fn main() -> Result<()> {
 
     let ctx = Context {
         wasi,
-        config_data: config::ConfigData::default(),
+        // config_data: config::ConfigData::default(),
         data: None,
     };
 
     wasmtime_wasi::add_to_linker(&mut linker, |cx: &mut Context<_>| &mut cx.wasi)?;
-    kv_filesystem::add_to_linker(
+    // kv_filesystem::add_to_linker(
+    //     &mut linker,
+    //     |cx: &mut Context<
+    //         Option<(
+    //             kv_filesystem::KvFilesystem,
+    //             KvTables<kv_filesystem::KvFilesystem>,
+    //         )>,
+    //     >| {
+    //         let data = cx.data.as_mut().unwrap();
+    //         (&mut data.0, &mut data.1)
+    //     },
+    // )?;
+    mq::add_to_linker(
         &mut linker,
-        |cx: &mut Context<
-            Option<(
-                kv_filesystem::KvFilesystem,
-                KvTables<kv_filesystem::KvFilesystem>,
-            )>,
-        >| {
+        |cx: &mut Context<Option<(mq::MessageQueue, MqTables<mq::MessageQueue>)>>| {
             let data = cx.data.as_mut().unwrap();
             (&mut data.0, &mut data.1)
         },
     )?;
+
     let mut store = Store::new(&engine, ctx);
 
-    let (config, _) = config::Config::instantiate(&mut store, &module, &mut linker, |host| {
-        &mut host.config_data
-    })?;
-    let config = config.get_capability(&mut store).unwrap()?;
-    let default = ("".to_string(), ".".to_string());
-    let path = &config
-        .iter()
-        .find(|(name, _)| name == "path")
-        .unwrap_or(&default)
-        .1;
+    // let (config, _) = config::Config::instantiate(&mut store, &module, &mut linker, |host| {
+    //     &mut host.config_data
+    // })?;
+    // let config = config.get_capability(&mut store).unwrap()?;
+    // let default = ("".to_string(), ".".to_string());
+    // let path = &config
+    //     .iter()
+    //     .find(|(name, _)| name == "path")
+    //     .unwrap_or(&default)
+    //     .1;
+
+    // store.data_mut().data = Some((
+    //     kv_filesystem::KvFilesystem::new(path.to_string()),
+    //     KvTables::<kv_filesystem::KvFilesystem>::default(),
+    // ));
 
     store.data_mut().data = Some((
-        kv_filesystem::KvFilesystem::new(path.to_string()),
-        KvTables::<kv_filesystem::KvFilesystem>::default(),
+        mq::MessageQueue::new(),
+        MqTables::<mq::MessageQueue>::default(),
     ));
 
     let instance = linker.instantiate(&mut store, &module)?;
@@ -90,7 +104,7 @@ pub fn default_wasi() -> Result<WasiCtx, StringArrayError> {
 
 struct Context<T> {
     wasi: WasiCtx,
-    config_data: config::ConfigData,
+    // config_data: config::ConfigData,
     data: T,
 }
 
