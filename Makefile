@@ -11,4 +11,4 @@ test:
 
 .PHONY: run
 run:
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/file-demo.wasm
+	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-filesystem-demo.wasm
