@@ -1,6 +1,5 @@
 enum error {
-    success,
-    error,
+    generic-error
 }
 
 type payload = list<u8>

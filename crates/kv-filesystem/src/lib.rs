@@ -34,7 +34,7 @@ impl kv::Kv for KvFilesystem {
     /// If key has not been set, return empty.
     fn get(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
         if *rd != 0 {
-            return Err(Error::Error);
+            return Err(Error::GenericError);
         }
 
         let mut file = File::open(path(key, &self.path)?)?;
@@ -52,7 +52,7 @@ impl kv::Kv for KvFilesystem {
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
         if *rd != 0 {
-            return Err(Error::Error);
+            return Err(Error::GenericError);
         }
         let mut file = File::create(path(key, &self.path)?)?;
         file.write_all(value)?;
@@ -62,7 +62,7 @@ impl kv::Kv for KvFilesystem {
     /// Delete a key-value pair.
     fn delete(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<(), Error> {
         if *rd != 0 {
-            return Err(Error::Error);
+            return Err(Error::GenericError);
         }
         fs::remove_file(path(key, &self.path)?)?;
         Ok(())
@@ -76,12 +76,12 @@ fn path(name: &str, base: &str) -> Result<PathBuf, anyhow::Error> {
 
 impl From<anyhow::Error> for Error {
     fn from(_: anyhow::Error) -> Self {
-        Self::Error
+        Self::GenericError
     }
 }
 
 impl From<std::io::Error> for Error {
     fn from(_: std::io::Error) -> Self {
-        Self::Error
+        Self::GenericError
     }
 }

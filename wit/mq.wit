@@ -1,0 +1,12 @@
+// A Message Queue Interface
+use {error, payload } from types
+use * from resources
+
+// get the resource-descriptor for the message queue
+get-mq: function() -> expected<resource-descriptor, error>
+
+// send a message to the queue
+send: function(rd: resource-descriptor, msg: payload) -> expected<unit, error> 
+
+// receive a message from the queue
+receive: function(rd: resource-descriptor) -> expected<payload, error>
