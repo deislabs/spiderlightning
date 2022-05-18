@@ -1,5 +1,5 @@
 use std::{
-    fs::{File, self},
+    fs::{self, File},
     io::{Read, Write},
     path::PathBuf,
 };
@@ -9,7 +9,7 @@ use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
-/// A Filesystem implementation for kv interface. 
+/// A Filesystem implementation for kv interface.
 #[derive(Default)]
 pub struct KvFilesystem {
     /// The root directory of the filesystem.
@@ -37,10 +37,7 @@ impl kv::Kv for KvFilesystem {
             return Err(Error::Error);
         }
 
-        let mut file = match File::open(path(key, &self.path)?) {
-            Ok(f) => f,
-            Err(_) => return Ok(Vec::new()),
-        };
+        let mut file = File::open(path(key, &self.path)?)?;
 
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -63,11 +60,7 @@ impl kv::Kv for KvFilesystem {
     }
 
     /// Delete a key-value pair.
-    fn delete(
-        &mut self,
-        rd: &Self::ResourceDescriptor,
-        key: &str
-    ) -> Result<(), Error> {
+    fn delete(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<(), Error> {
         if *rd != 0 {
             return Err(Error::Error);
         }

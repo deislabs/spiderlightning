@@ -7,6 +7,4 @@ edition = "2021"
 
 [dependencies]
 wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen" }
-anyhow           = "1"
-
-
+anyhow = "1"

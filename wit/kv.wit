@@ -1,5 +1,5 @@
 // A key-value store interface.
-use * from types
+use {error, payload } from types
 use * from resources
 
 
