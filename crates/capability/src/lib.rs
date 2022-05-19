@@ -5,15 +5,17 @@ use kv_filesystem::{kv::KvTables as KvFileSystemTables, KvFilesystem};
 use url::Url;
 use wasi_common::WasiCtx;
 use wasmtime::Linker;
-// use std::any::Any;
 
 wit_bindgen_wasmtime::import!("../../wit/config.wit");
 
 type DataT = (Box<dyn Resource>, Box<dyn ResourceTables<dyn Resource>>);
 
+/// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait ResourceTables<T: ?Sized>: AsAny {}
 
+/// A trait for wit-bindgen resource.
 pub trait Resource: AsAny {
+    /// Given a resource url, return a resource.
     fn from_url(url: Url) -> Result<Self>
     where
         Self: Sized;
@@ -49,6 +51,8 @@ impl Resource for KvAzureBlob {
         // get environment var STORAGE_ACCOUNT_KEY
         let storage_account_key = std::env::var("AZURE_STORAGE_KEY")?;
 
+        // container name from the domain of url. For example, if url is
+        // "azblob://my-container, then the domain is "my-container".
         let container_name = url
             .domain()
             .expect("container name is required in the capabiloty configuration");
@@ -60,13 +64,14 @@ impl Resource for KvAzureBlob {
     }
 }
 
+/// A wasmtime runtime context to be passed to a wasm module.
 pub struct Context<T> {
     pub wasi: WasiCtx,
     pub config_data: config::ConfigData,
     pub data: Option<T>,
 }
 
-// load capability will return a trait object Resource and its Tables
+/// Load capability will return a trait object Resource and its Tables
 pub fn load_capability(
     config: Vec<(String, String)>,
     linker: &mut Linker<Context<DataT>>,
@@ -77,6 +82,10 @@ pub fn load_capability(
         .expect("url is required in the capabiloty configuration")
         .1;
     let parsed = Url::parse(url)?;
+
+    // TODO (Joe): we should have designed a better way to dynamic load capability. Maybe a
+    // plugin model like terraform. see [here](https://www.terraform.io/plugin)?
+
     if parsed.scheme() == "azblob" {
         kv_azure_blob::add_to_linker(linker, |cx: &mut Context<DataT>| {
             let data = cx.data.as_mut().unwrap();
@@ -110,7 +119,10 @@ pub fn load_capability(
             Box::new(KvFileSystemTables::<KvFilesystem>::default()),
         ))
     } else {
-        bail!("invalid url: {}", url)
+        bail!(
+            "invalid url: {}, currently wasi-cloud only support file and azblob",
+            url
+        )
     }
 }
 

@@ -16,6 +16,7 @@ struct Args {
     config: String,
 }
 
+/// The entry point for wasi-cloud CLI
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
@@ -33,14 +34,18 @@ async fn main() -> Result<()> {
     let mut store = Store::new(&engine, ctx);
     wasmtime_wasi::add_to_linker(&mut linker, |cx: &mut Context<_>| &mut cx.wasi)?;
 
+    // First instantiate the config wasm module.
     let (config, _) =
         config::Config::instantiate(&mut store, &config_module, &mut linker, |ctx| {
             &mut ctx.config_data
         })?;
+
+    // Then get the capability from config module and modify wasmtime store.
     let config = config.get_capability(&mut store).unwrap()?;
     let (resource, resource_tables) = capability::load_capability(config, &mut linker)?;
     store.data_mut().data = Some((resource, resource_tables));
 
+    // Finally instantiate the application wasm module.
     let module = Module::from_file(&engine, args.module)?;
     let instance = linker.instantiate(&mut store, &module)?;
     instance
@@ -49,6 +54,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+// TODO (Joe): expose the wasmtime config as a capability?
 pub fn default_config() -> Result<Config> {
     let mut config = Config::new();
     config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
@@ -57,6 +63,7 @@ pub fn default_config() -> Result<Config> {
     Ok(config)
 }
 
+// TODO (Joe): expose the wasmtime wasi context as a capability?
 pub fn default_wasi() -> Result<WasiCtx, StringArrayError> {
     let mut ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
     ctx = ctx
