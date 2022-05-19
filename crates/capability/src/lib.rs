@@ -21,10 +21,8 @@ pub trait Resource: AsAny {
         Self: Sized;
 }
 
-impl<T> ResourceTables<dyn Resource> for AzureBlobTables<T> where
-    T: azure_blob::blob::Blob + 'static
-{
-}
+impl<T> ResourceTables<dyn Resource> for AzureBlobTables<T> where T: azure_blob::blob::Blob + 'static
+{}
 
 impl Resource for BlobFilesystem {
     fn from_url(url: Url) -> Result<Self> {
