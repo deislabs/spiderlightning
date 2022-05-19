@@ -31,8 +31,8 @@ impl Resource for KvFilesystem {
         let path = url.to_file_path();
         match path {
             Ok(path) => {
-                let path = path.to_str()?;
-                Ok(KvFilesystem::new(path.to_string()))
+                let path = path.to_str().unwrap_or(".").to_string();
+                Ok(KvFilesystem::new(path))
             }
             Err(_) => bail!("invalid url: {}", url),
         }
