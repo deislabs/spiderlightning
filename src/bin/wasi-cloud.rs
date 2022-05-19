@@ -26,7 +26,7 @@ async fn main() -> Result<()> {
     let config_module = Module::from_file(&engine, args.config)?;
     let mut linker = Linker::new(&engine);
     let ctx = Context {
-        wasi: wasi,
+        wasi,
         config_data: config::ConfigData::default(),
         data: None,
     };
