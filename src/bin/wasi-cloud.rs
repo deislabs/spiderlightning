@@ -5,62 +5,43 @@ use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Linker, Module, Store};
 use wasmtime_wasi::*;
 
-use kv_filesystem::kv::KvTables;
-
-wit_bindgen_wasmtime::import!("wit/config.wit");
+use capability::{config, Context};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
     #[clap(short, long)]
     module: String,
+    #[clap(short, long)]
+    config: String,
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let args = Args::parse();
 
     let wasi = default_wasi()?;
     let engine = Engine::new(&default_config()?)?;
-    let module = Module::from_file(&engine, args.module)?;
+    let config_module = Module::from_file(&engine, args.config)?;
     let mut linker = Linker::new(&engine);
-
     let ctx = Context {
-        wasi,
+        wasi: wasi,
         config_data: config::ConfigData::default(),
         data: None,
     };
 
-    wasmtime_wasi::add_to_linker(&mut linker, |cx: &mut Context<_>| &mut cx.wasi)?;
-    kv_filesystem::add_to_linker(
-        &mut linker,
-        |cx: &mut Context<
-            Option<(
-                kv_filesystem::KvFilesystem,
-                KvTables<kv_filesystem::KvFilesystem>,
-            )>,
-        >| {
-            let data = cx.data.as_mut().unwrap();
-            (&mut data.0, &mut data.1)
-        },
-    )?;
     let mut store = Store::new(&engine, ctx);
+    wasmtime_wasi::add_to_linker(&mut linker, |cx: &mut Context<_>| &mut cx.wasi)?;
 
-    let (config, _) = config::Config::instantiate(&mut store, &module, &mut linker, |host| {
-        &mut host.config_data
-    })?;
+    let (config, _) =
+        config::Config::instantiate(&mut store, &config_module, &mut linker, |ctx| {
+            &mut ctx.config_data
+        })?;
     let config = config.get_capability(&mut store).unwrap()?;
-    let default = ("".to_string(), ".".to_string());
-    let path = &config
-        .iter()
-        .find(|(name, _)| name == "path")
-        .unwrap_or(&default)
-        .1;
+    let (resource, resource_tables) = capability::load_capability(config, &mut linker)?;
+    store.data_mut().data = Some((resource, resource_tables));
 
-    store.data_mut().data = Some((
-        kv_filesystem::KvFilesystem::new(path.to_string()),
-        KvTables::<kv_filesystem::KvFilesystem>::default(),
-    ));
-
+    let module = Module::from_file(&engine, args.module)?;
     let instance = linker.instantiate(&mut store, &module)?;
     instance
         .get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?
@@ -86,16 +67,4 @@ pub fn default_wasi() -> Result<WasiCtx, StringArrayError> {
         .unwrap();
 
     Ok(ctx.build())
-}
-
-struct Context<T> {
-    wasi: WasiCtx,
-    config_data: config::ConfigData,
-    data: T,
-}
-
-impl From<config::Error> for anyhow::Error {
-    fn from(_: config::Error) -> Self {
-        anyhow::anyhow!("config error")
-    }
 }

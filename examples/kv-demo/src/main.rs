@@ -1,20 +1,9 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
 
 use kv::*;
 wit_bindgen_rust::import!("../../wit/kv.wit");
-wit_bindgen_rust::export!("../../wit/config.wit");
-
-/// A Filesystem configuration
-pub struct Config {}
-
-impl config::Config for Config {
-    /// the Filesystem configuration will have a {path: String} field.
-    fn get_capability() -> Result<config::Map, config::Error> {
-        let mut map = config::Map::new();
-        map.push(("path".to_string(), ".".to_string()));
-        Ok(map)
-    }
-}
 
 fn main() -> Result<()> {
     let resource_descriptor = get_kv()?;
@@ -32,7 +21,11 @@ fn main() -> Result<()> {
 }
 
 impl From<kv::Error> for anyhow::Error {
-    fn from(_: kv::Error) -> Self {
-        anyhow::anyhow!("kv error")
+    fn from(e: kv::Error) -> Self {
+        match e {
+            kv::Error::OtherError => anyhow::anyhow!("other error"),
+            kv::Error::IoError => anyhow::anyhow!("io error"),
+            kv::Error::DescriptorError => anyhow::anyhow!("descriptor error"),
+        }
     }
 }
