@@ -31,7 +31,7 @@ impl Resource for KvFilesystem {
         let path = url.to_file_path();
         match path {
             Ok(path) => {
-                let path = path.to_str().unwrap();
+                let path = path.to_str()?;
                 Ok(KvFilesystem::new(path.to_string()))
             }
             Err(_) => bail!("invalid url: {}", url),
@@ -55,7 +55,7 @@ impl Resource for KvAzureBlob {
         // "azblob://my-container, then the domain is "my-container".
         let container_name = url
             .domain()
-            .expect("container name is required in the capabiloty configuration");
+            .expect("container name is required in the capability configuration");
         Ok(KvAzureBlob::new(
             &storage_account_name,
             &storage_account_key,
@@ -79,7 +79,7 @@ pub fn load_capability(
     let url = &config
         .iter()
         .find(|(name, _)| name == "url")
-        .expect("url is required in the capabiloty configuration")
+        .expect("url is required in the capability configuration")
         .1;
     let parsed = Url::parse(url)?;
 
@@ -88,7 +88,7 @@ pub fn load_capability(
 
     if parsed.scheme() == "azblob" {
         kv_azure_blob::add_to_linker(linker, |cx: &mut Context<DataT>| {
-            let data = cx.data.as_mut().unwrap();
+            let data = cx.data.as_mut().expect("internal error: Runtime context data is None");
             let resource = data.0.as_mut().downcast_mut::<KvAzureBlob>().unwrap();
             let resource_tables = data
                 .1
@@ -104,7 +104,7 @@ pub fn load_capability(
         ))
     } else if parsed.scheme() == "file" {
         kv_filesystem::add_to_linker(linker, |cx: &mut Context<DataT>| {
-            let data = cx.data.as_mut().unwrap();
+            let data = cx.data.as_mut().expect("internal error: Runtime context data is None");
             let resource = data.0.as_mut().downcast_mut::<KvFilesystem>().unwrap();
             let resource_tables = data
                 .1
@@ -120,7 +120,7 @@ pub fn load_capability(
         ))
     } else {
         bail!(
-            "invalid url: {}, currently wasi-cloud only support file and azblob",
+            "invalid url: {}, currently wasi-cloud only supports file blob and azblob",
             url
         )
     }
