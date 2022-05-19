@@ -12,12 +12,12 @@ wit_bindgen_wasmtime::export!("../../wit/blob.wit");
 
 /// A Azure Blob Storage binding for blob interface.
 #[derive(Default)]
-pub struct BlobAzureBlob {
+pub struct AzureBlob {
     inner: Option<Arc<ContainerClient>>,
 }
 
-impl BlobAzureBlob {
-    /// Create a new BlobAzureBlob.
+impl AzureBlob {
+    /// Create a new AzureBlob.
     pub fn new(
         storage_account_name: &str,
         storage_account_key: &str,
@@ -36,7 +36,7 @@ impl BlobAzureBlob {
     }
 }
 
-impl blob::Blob for BlobAzureBlob {
+impl blob::Blob for AzureBlob {
     type ResourceDescriptor = u64;
 
     fn get_blob(&mut self) -> Result<Self::ResourceDescriptor, Error> {

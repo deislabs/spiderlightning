@@ -18,7 +18,7 @@ wasi-cap-std-sync = "0.35"
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 clap = { version = "3.1.18", features = ["derive"] }
 blob-filesystem = { path = "crates/blob-filesystem" }
-blob-azure-blob = { path = "crates/blob-azure-blob" }
+azure-blob = { path = "crates/azure-blob" }
 capability = { path = "crates/capability" }
 
 [dev-dependencies]
@@ -36,10 +36,10 @@ vergen = { version = "7", default-features = false, features = [
 members = [
     "crates/blob-filesystem",
     "crates/wasmtime",
-    "crates/blob-azure-blob",
+    "crates/azure-blob",
     "crates/capability",
     "examples/blob-filesystem-config",
-    "examples/blob-azure-blob-config",
+    "examples/azure-blob-config",
     "examples/blob-demo",
 ]
 

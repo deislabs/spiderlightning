@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use as_any::{AsAny, Downcast};
-use blob_azure_blob::{blob::BlobTables as BlobAzureBlobTables, BlobAzureBlob};
+use azure_blob::{blob::BlobTables as AzureBlobTables, AzureBlob};
 use blob_filesystem::{blob::BlobTables as BlobFileSystemTables, BlobFilesystem};
 use url::Url;
 use wasi_common::WasiCtx;
@@ -21,8 +21,8 @@ pub trait Resource: AsAny {
         Self: Sized;
 }
 
-impl<T> ResourceTables<dyn Resource> for BlobAzureBlobTables<T> where
-    T: blob_azure_blob::blob::Blob + 'static
+impl<T> ResourceTables<dyn Resource> for AzureBlobTables<T> where
+    T: azure_blob::blob::Blob + 'static
 {
 }
 
@@ -44,7 +44,7 @@ impl<T> ResourceTables<dyn Resource> for BlobFileSystemTables<T> where
 {
 }
 
-impl Resource for BlobAzureBlob {
+impl Resource for AzureBlob {
     fn from_url(url: Url) -> Result<Self> {
         // get environment var STORAGE_ACCOUNT_NAME
         let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")?;
@@ -56,7 +56,7 @@ impl Resource for BlobAzureBlob {
         let container_name = url
             .domain()
             .expect("container name is required in the capability configuration");
-        Ok(BlobAzureBlob::new(
+        Ok(AzureBlob::new(
             &storage_account_name,
             &storage_account_key,
             container_name,
@@ -87,23 +87,23 @@ pub fn load_capability(
     // plugin model like terraform. see [here](https://www.terraform.io/plugin)?
 
     if parsed.scheme() == "azblob" {
-        blob_azure_blob::add_to_linker(linker, |cx: &mut Context<DataT>| {
+        azure_blob::add_to_linker(linker, |cx: &mut Context<DataT>| {
             let data = cx
                 .data
                 .as_mut()
                 .expect("internal error: Runtime context data is None");
-            let resource = data.0.as_mut().downcast_mut::<BlobAzureBlob>().unwrap();
+            let resource = data.0.as_mut().downcast_mut::<AzureBlob>().unwrap();
             let resource_tables = data
                 .1
                 .as_mut()
-                .downcast_mut::<BlobAzureBlobTables<BlobAzureBlob>>()
+                .downcast_mut::<AzureBlobTables<AzureBlob>>()
                 .unwrap();
             (resource, resource_tables)
         })?;
-        let blob_azure_blob = BlobAzureBlob::from_url(parsed)?;
+        let azure_blob = AzureBlob::from_url(parsed)?;
         Ok((
-            Box::new(blob_azure_blob),
-            Box::new(BlobAzureBlobTables::<BlobAzureBlob>::default()),
+            Box::new(azure_blob),
+            Box::new(AzureBlobTables::<AzureBlob>::default()),
         ))
     } else if parsed.scheme() == "file" {
         blob_filesystem::add_to_linker(linker, |cx: &mut Context<DataT>| {

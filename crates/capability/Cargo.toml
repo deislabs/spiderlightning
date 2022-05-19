@@ -15,5 +15,5 @@ wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen"
 anyhow = "1"
 url = "2.2"
 blob-filesystem = { path = "../blob-filesystem" }
-blob-azure-blob = { path = "../blob-azure-blob" }
+azure-blob = { path = "../azure-blob" }
 as-any = "0.3"

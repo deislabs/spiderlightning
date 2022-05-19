@@ -1,5 +1,5 @@
 [package]
-name = "blob-azure-blob-config"
+name = "azure-blob-config"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
