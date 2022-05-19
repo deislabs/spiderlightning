@@ -3,21 +3,21 @@ use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
 use std::sync::Arc;
 
-pub use kv::add_to_linker;
-use kv::*;
+pub use blob::add_to_linker;
+use blob::*;
 
 pub mod azure;
 
-wit_bindgen_wasmtime::export!("../../wit/kv.wit");
+wit_bindgen_wasmtime::export!("../../wit/blob.wit");
 
-/// A Azure Blob Storage binding for kv interface.
+/// A Azure Blob Storage binding for blob interface.
 #[derive(Default)]
-pub struct KvAzureBlob {
+pub struct BlobAzureBlob {
     inner: Option<Arc<ContainerClient>>,
 }
 
-impl KvAzureBlob {
-    /// Create a new KvAzureBlob.
+impl BlobAzureBlob {
+    /// Create a new BlobAzureBlob.
     pub fn new(
         storage_account_name: &str,
         storage_account_key: &str,
@@ -36,10 +36,10 @@ impl KvAzureBlob {
     }
 }
 
-impl kv::Kv for KvAzureBlob {
+impl blob::Blob for BlobAzureBlob {
     type ResourceDescriptor = u64;
 
-    fn get_kv(&mut self) -> Result<Self::ResourceDescriptor, Error> {
+    fn get_blob(&mut self) -> Result<Self::ResourceDescriptor, Error> {
         Ok(1)
     }
 

@@ -1,5 +1,5 @@
 [package]
-name = "kv-demo"
+name = "blob-filesystem-config"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
@@ -8,4 +8,6 @@ authors = ["DeisLabs Engineering Team"]
 
 [dependencies]
 wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen" }
-anyhow = "1"
+
+[lib]
+crate-type = ["cdylib"]

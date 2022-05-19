@@ -1,5 +1,5 @@
 [package]
-name = "kv-azure-blob"
+name = "blob-azure-blob"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]

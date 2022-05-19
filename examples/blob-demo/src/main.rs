@@ -1,12 +1,12 @@
 use anyhow::Result;
 
-use kv::*;
-wit_bindgen_rust::import!("../../wit/kv.wit");
+use blob::*;
+wit_bindgen_rust::import!("../../wit/blob.wit");
 
 fn main() -> Result<()> {
     // application devleoper does not need to know the host implementation details.
 
-    let resource_descriptor = get_kv()?;
+    let resource_descriptor = get_blob()?;
     let value = "wasi-cloud".as_bytes();
     set(&resource_descriptor, "key", value)?;
     println!(
@@ -20,12 +20,12 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-impl From<kv::Error> for anyhow::Error {
-    fn from(e: kv::Error) -> Self {
+impl From<blob::Error> for anyhow::Error {
+    fn from(e: blob::Error) -> Self {
         match e {
-            kv::Error::OtherError => anyhow::anyhow!("other error"),
-            kv::Error::IoError => anyhow::anyhow!("io error"),
-            kv::Error::DescriptorError => anyhow::anyhow!("descriptor error"),
+            blob::Error::OtherError => anyhow::anyhow!("other error"),
+            blob::Error::IoError => anyhow::anyhow!("io error"),
+            blob::Error::DescriptorError => anyhow::anyhow!("descriptor error"),
         }
     }
 }

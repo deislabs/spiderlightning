@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use as_any::{AsAny, Downcast};
-use kv_azure_blob::{kv::KvTables as KvAzureBlobTables, KvAzureBlob};
-use kv_filesystem::{kv::KvTables as KvFileSystemTables, KvFilesystem};
+use blob_azure_blob::{blob::BlobTables as BlobAzureBlobTables, BlobAzureBlob};
+use blob_filesystem::{blob::BlobTables as BlobFileSystemTables, BlobFilesystem};
 use url::Url;
 use wasi_common::WasiCtx;
 use wasmtime::Linker;
@@ -21,30 +21,30 @@ pub trait Resource: AsAny {
         Self: Sized;
 }
 
-impl<T> ResourceTables<dyn Resource> for KvAzureBlobTables<T> where
-    T: kv_azure_blob::kv::Kv + 'static
+impl<T> ResourceTables<dyn Resource> for BlobAzureBlobTables<T> where
+    T: blob_azure_blob::blob::Blob + 'static
 {
 }
 
-impl Resource for KvFilesystem {
+impl Resource for BlobFilesystem {
     fn from_url(url: Url) -> Result<Self> {
         let path = url.to_file_path();
         match path {
             Ok(path) => {
                 let path = path.to_str().unwrap_or(".").to_string();
-                Ok(KvFilesystem::new(path))
+                Ok(BlobFilesystem::new(path))
             }
             Err(_) => bail!("invalid url: {}", url),
         }
     }
 }
 
-impl<T> ResourceTables<dyn Resource> for KvFileSystemTables<T> where
-    T: kv_filesystem::kv::Kv + 'static
+impl<T> ResourceTables<dyn Resource> for BlobFileSystemTables<T> where
+    T: blob_filesystem::blob::Blob + 'static
 {
 }
 
-impl Resource for KvAzureBlob {
+impl Resource for BlobAzureBlob {
     fn from_url(url: Url) -> Result<Self> {
         // get environment var STORAGE_ACCOUNT_NAME
         let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")?;
@@ -56,7 +56,7 @@ impl Resource for KvAzureBlob {
         let container_name = url
             .domain()
             .expect("container name is required in the capability configuration");
-        Ok(KvAzureBlob::new(
+        Ok(BlobAzureBlob::new(
             &storage_account_name,
             &storage_account_key,
             container_name,
@@ -87,36 +87,42 @@ pub fn load_capability(
     // plugin model like terraform. see [here](https://www.terraform.io/plugin)?
 
     if parsed.scheme() == "azblob" {
-        kv_azure_blob::add_to_linker(linker, |cx: &mut Context<DataT>| {
-            let data = cx.data.as_mut().expect("internal error: Runtime context data is None");
-            let resource = data.0.as_mut().downcast_mut::<KvAzureBlob>().unwrap();
+        blob_azure_blob::add_to_linker(linker, |cx: &mut Context<DataT>| {
+            let data = cx
+                .data
+                .as_mut()
+                .expect("internal error: Runtime context data is None");
+            let resource = data.0.as_mut().downcast_mut::<BlobAzureBlob>().unwrap();
             let resource_tables = data
                 .1
                 .as_mut()
-                .downcast_mut::<KvAzureBlobTables<KvAzureBlob>>()
+                .downcast_mut::<BlobAzureBlobTables<BlobAzureBlob>>()
                 .unwrap();
             (resource, resource_tables)
         })?;
-        let kv_azure_blob = KvAzureBlob::from_url(parsed)?;
+        let blob_azure_blob = BlobAzureBlob::from_url(parsed)?;
         Ok((
-            Box::new(kv_azure_blob),
-            Box::new(KvAzureBlobTables::<KvAzureBlob>::default()),
+            Box::new(blob_azure_blob),
+            Box::new(BlobAzureBlobTables::<BlobAzureBlob>::default()),
         ))
     } else if parsed.scheme() == "file" {
-        kv_filesystem::add_to_linker(linker, |cx: &mut Context<DataT>| {
-            let data = cx.data.as_mut().expect("internal error: Runtime context data is None");
-            let resource = data.0.as_mut().downcast_mut::<KvFilesystem>().unwrap();
+        blob_filesystem::add_to_linker(linker, |cx: &mut Context<DataT>| {
+            let data = cx
+                .data
+                .as_mut()
+                .expect("internal error: Runtime context data is None");
+            let resource = data.0.as_mut().downcast_mut::<BlobFilesystem>().unwrap();
             let resource_tables = data
                 .1
                 .as_mut()
-                .downcast_mut::<KvFileSystemTables<KvFilesystem>>()
+                .downcast_mut::<BlobFileSystemTables<BlobFilesystem>>()
                 .unwrap();
             (resource, resource_tables)
         })?;
-        let kv_filesystem = KvFilesystem::from_url(parsed)?;
+        let blob_filesystem = BlobFilesystem::from_url(parsed)?;
         Ok((
-            Box::new(kv_filesystem),
-            Box::new(KvFileSystemTables::<KvFilesystem>::default()),
+            Box::new(blob_filesystem),
+            Box::new(BlobFileSystemTables::<BlobFilesystem>::default()),
         ))
     } else {
         bail!(

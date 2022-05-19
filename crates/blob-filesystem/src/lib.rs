@@ -4,29 +4,29 @@ use std::{
     path::PathBuf,
 };
 
-pub use kv::add_to_linker;
-use kv::*;
+pub use blob::add_to_linker;
+use blob::*;
 
-wit_bindgen_wasmtime::export!("../../wit/kv.wit");
+wit_bindgen_wasmtime::export!("../../wit/blob.wit");
 
-/// A Filesystem implementation for kv interface.
+/// A Filesystem implementation for blob interface.
 #[derive(Default)]
-pub struct KvFilesystem {
+pub struct BlobFilesystem {
     /// The root directory of the filesystem.
     path: String,
 }
 
-impl KvFilesystem {
-    /// Create a new KvFilesystem.
+impl BlobFilesystem {
+    /// Create a new BlobFilesystem.
     pub fn new(path: String) -> Self {
         Self { path }
     }
 }
 
-impl kv::Kv for KvFilesystem {
+impl blob::Blob for BlobFilesystem {
     type ResourceDescriptor = u64;
 
-    fn get_kv(&mut self) -> Result<Self::ResourceDescriptor, Error> {
+    fn get_blob(&mut self) -> Result<Self::ResourceDescriptor, Error> {
         Ok(0)
     }
 

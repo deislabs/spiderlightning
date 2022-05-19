@@ -195,6 +195,49 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "blob-azure-blob"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "azure_core",
+ "azure_storage",
+ "azure_storage_blobs",
+ "bytes",
+ "futures",
+ "wit-bindgen-wasmtime",
+]
+
+[[package]]
+name = "blob-azure-blob-config"
+version = "0.1.0"
+dependencies = [
+ "wit-bindgen-rust",
+]
+
+[[package]]
+name = "blob-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-rust",
+]
+
+[[package]]
+name = "blob-filesystem"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-wasmtime",
+]
+
+[[package]]
+name = "blob-filesystem-config"
+version = "0.1.0"
+dependencies = [
+ "wit-bindgen-rust",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -296,8 +339,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "as-any",
- "kv-azure-blob",
- "kv-filesystem",
+ "blob-azure-blob",
+ "blob-filesystem",
  "url",
  "wasi-cap-std-sync",
  "wasi-common",
@@ -1175,49 +1218,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "671a26f820db17c2a2750743f1dd03bafd15b98c9f30c7c2628c024c05d73397"
 dependencies = [
  "wasm-bindgen",
-]
-
-[[package]]
-name = "kv-azure-blob"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "azure_core",
- "azure_storage",
- "azure_storage_blobs",
- "bytes",
- "futures",
- "wit-bindgen-wasmtime",
-]
-
-[[package]]
-name = "kv-azure-blob-config"
-version = "0.1.0"
-dependencies = [
- "wit-bindgen-rust",
-]
-
-[[package]]
-name = "kv-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
-]
-
-[[package]]
-name = "kv-filesystem"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-wasmtime",
-]
-
-[[package]]
-name = "kv-filesystem-config"
-version = "0.1.0"
-dependencies = [
- "wit-bindgen-rust",
 ]
 
 [[package]]
@@ -2467,13 +2467,13 @@ name = "wasi-cloud-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "blob-azure-blob",
+ "blob-filesystem",
  "capability",
  "cargo-target-dep",
  "clap",
  "env_logger",
  "hyper",
- "kv-azure-blob",
- "kv-filesystem",
  "log",
  "tokio",
  "vergen",

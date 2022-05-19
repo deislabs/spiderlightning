@@ -12,7 +12,7 @@ enum error {
 }
 
 // get a key-value store resource descriptor.
-get-kv: function() -> expected<resource-descriptor, error>
+get-blob: function() -> expected<resource-descriptor, error>
 
 // get the payload for a given key.
 get: function(rd: resource-descriptor, key: string) -> expected<payload, error> 
