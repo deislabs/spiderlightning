@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     let wasi = default_wasi()?;
-    let engine = Engine::new(&default_config()?)?;    
+    let engine = Engine::new(&default_config()?)?;
     let config_module = Module::from_file(&engine, args.config)?;
     let mut linker = Linker::new(&engine);
     let ctx = Context {

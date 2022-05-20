@@ -12,7 +12,7 @@ fn main() -> Result<()> {
             "top message in the queue: {:#?}",
             std::str::from_utf8(&receive(&resource_descriptor)?)?
         );
-        sleep(Duration::from_secs(10));    
+        sleep(Duration::from_secs(10));
     }
 }
 
