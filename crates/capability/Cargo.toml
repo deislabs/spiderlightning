@@ -16,4 +16,5 @@ anyhow = "1"
 url = "2.2"
 kv-filesystem = { path = "../kv-filesystem" }
 kv-azure-blob = { path = "../kv-azure-blob" }
+mq-filesystem = { path = "../mq-filesystem" }
 as-any = "0.3"

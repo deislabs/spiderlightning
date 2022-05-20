@@ -298,6 +298,7 @@ dependencies = [
  "as-any",
  "kv-azure-blob",
  "kv-filesystem",
+ "mq-filesystem",
  "url",
  "wasi-cap-std-sync",
  "wasi-common",
@@ -1372,11 +1373,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7843ec2de400bcbc6a6328c958dc38e5359da6e93e72e37bc5246bf1ae776389"
 
 [[package]]
-name = "mq"
+name = "mq-config"
+version = "0.1.0"
+dependencies = [
+ "wit-bindgen-rust",
+]
+
+[[package]]
+name = "mq-filesystem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "wit-bindgen-wasmtime",
+]
+
+[[package]]
+name = "mq-filesystem-receiver-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-rust",
+]
+
+[[package]]
+name = "mq-filesystem-sender-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-rust",
 ]
 
 [[package]]

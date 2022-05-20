@@ -2,6 +2,7 @@ use anyhow::{bail, Result};
 use as_any::{AsAny, Downcast};
 use kv_azure_blob::{kv::KvTables as KvAzureBlobTables, KvAzureBlob};
 use kv_filesystem::{kv::KvTables as KvFileSystemTables, KvFilesystem};
+use mq_filesystem::{mq::MqTables, MqFilesystem};
 use url::Url;
 use wasi_common::WasiCtx;
 use wasmtime::Linker;
@@ -64,6 +65,21 @@ impl Resource for KvAzureBlob {
     }
 }
 
+impl<T> ResourceTables<dyn Resource> for MqTables<T> where T: mq_filesystem::mq::Mq + 'static {}
+
+impl Resource for MqFilesystem {
+    fn from_url(url: Url) -> Result<Self> {
+        let path = url.to_file_path();
+        match path {
+            Ok(path) => {
+                let path = path.to_str().unwrap_or(".").to_string();
+                Ok(MqFilesystem::new(path))
+            }
+            Err(_) => bail!("invalid url: {}", url),
+        }
+    }
+}
+
 /// A wasmtime runtime context to be passed to a wasm module.
 pub struct Context<T> {
     pub wasi: WasiCtx,
@@ -88,7 +104,10 @@ pub fn load_capability(
 
     if parsed.scheme() == "azblob" {
         kv_azure_blob::add_to_linker(linker, |cx: &mut Context<DataT>| {
-            let data = cx.data.as_mut().expect("internal error: Runtime context data is None");
+            let data = cx
+                .data
+                .as_mut()
+                .expect("internal error: Runtime context data is None");
             let resource = data.0.as_mut().downcast_mut::<KvAzureBlob>().unwrap();
             let resource_tables = data
                 .1
@@ -104,7 +123,10 @@ pub fn load_capability(
         ))
     } else if parsed.scheme() == "file" {
         kv_filesystem::add_to_linker(linker, |cx: &mut Context<DataT>| {
-            let data = cx.data.as_mut().expect("internal error: Runtime context data is None");
+            let data = cx
+                .data
+                .as_mut()
+                .expect("internal error: Runtime context data is None");
             let resource = data.0.as_mut().downcast_mut::<KvFilesystem>().unwrap();
             let resource_tables = data
                 .1
@@ -118,9 +140,25 @@ pub fn load_capability(
             Box::new(kv_filesystem),
             Box::new(KvFileSystemTables::<KvFilesystem>::default()),
         ))
+    } else if parsed.scheme() == "mq" {
+        mq_filesystem::add_to_linker(linker, |cx: &mut Context<DataT>| {
+            let data = cx
+                .data
+                .as_mut()
+                .expect("internal error: Runtime context data is None");
+            let resource = data.0.as_mut().downcast_mut::<MqFilesystem>().unwrap();
+            let resource_tables = data
+                .1
+                .as_mut()
+                .downcast_mut::<MqTables<MqFilesystem>>()
+                .unwrap();
+            (resource, resource_tables)
+        })?;
+        let mq = MqFilesystem::from_url(parsed)?;
+        Ok((Box::new(mq), Box::new(MqTables::<MqFilesystem>::default())))
     } else {
         bail!(
-            "invalid url: {}, currently wasi-cloud only supports file blob and azblob",
+            "invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes",
             url
         )
     }

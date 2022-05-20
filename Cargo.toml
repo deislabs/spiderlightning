@@ -34,7 +34,7 @@ vergen = { version = "7", default-features = false, features = [
 
 [workspace]
 members = [
-    "crates/mq",
+    "crates/mq-filesystem",
     "crates/kv-filesystem",
     "crates/wasmtime",
     "crates/kv-azure-blob",
@@ -42,6 +42,9 @@ members = [
     "examples/kv-filesystem-config",
     "examples/kv-azure-blob-config",
     "examples/kv-demo",
+    "examples/mq-filesystem-sender-demo",
+    "examples/mq-filesystem-receiver-demo",
+    "examples/mq-config",
 ]
 
 [[bin]]

@@ -4,6 +4,9 @@ build:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-filesystem-config/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-azure-blob-config/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-config/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-filesystem-sender-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-filesystem-receiver-demo/Cargo.toml
 
 .PHONY: test
 test:
@@ -15,3 +18,5 @@ test:
 run:
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c ./target/wasm32-wasi/release/kv_filesystem_config.wasm
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c ./target/wasm32-wasi/release/kv_azure_blob_config.wasm
+	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-filesystem-sender-demo.wasm -c ./target/wasm32-wasi/release/mq_config.wasm
+	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-filesystem-receiver-demo.wasm -c ./target/wasm32-wasi/release/mq_config.wasm
