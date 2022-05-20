@@ -2,30 +2,34 @@
 name = "wasi-cloud-cli"
 version = "0.1.0"
 edition = "2021"
-authors = ["DeisLabs engineering team"]
+authors = ["DeisLabs Engineering Team"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow                      = "1.0"
-env_logger                  = "0.9"
-log                         = { version = "0.4", default-features = false }
-tokio                       = { version = "1.4.0", features = [ "full" ] }
-wasmtime                    = "0.35"
-wasmtime-wasi               = "0.35"
-wasi-common                 = "0.35"
-wasi-cap-std-sync           = "0.35"
-wit-bindgen-wasmtime        = { git = "https://github.com/bytecodealliance/wit-bindgen" }
-clap                        = { version = "3.1.18", features = ["derive"] }
-kv-filesystem               = { path = "crates/kv-filesystem" }
-mq                          = { path = "crates/mq" }
+anyhow = "1.0"
+env_logger = "0.9"
+log = { version = "0.4", default-features = false }
+tokio = { version = "1.4.0", features = ["full"] }
+wasmtime = "0.35"
+wasmtime-wasi = "0.35"
+wasi-common = "0.35"
+wasi-cap-std-sync = "0.35"
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
+clap = { version = "3.1.18", features = ["derive"] }
+kv-filesystem = { path = "crates/kv-filesystem" }
+kv-azure-blob = { path = "crates/kv-azure-blob" }
+capability = { path = "crates/capability" }
 
 [dev-dependencies]
-hyper = { version = "0.14", features = [ "full" ] }
+hyper = { version = "0.14", features = ["full"] }
 
 [build-dependencies]
 cargo-target-dep = { git = "https://github.com/fermyon/cargo-target-dep", rev = "b7b1989fe0984c0f7c4966398304c6538e52fe49" }
-vergen = { version = "7", default-features = false, features = [ "build", "git" ] }
+vergen = { version = "7", default-features = false, features = [
+    "build",
+    "git",
+] }
 
 
 [workspace]
@@ -33,8 +37,11 @@ members = [
     "crates/mq",
     "crates/kv-filesystem",
     "crates/wasmtime",
-    "examples/kv-filesystem-demo",
-    "examples/mq-demo",
+    "crates/kv-azure-blob",
+    "crates/capability",
+    "examples/kv-filesystem-config",
+    "examples/kv-azure-blob-config",
+    "examples/kv-demo",
 ]
 
 [[bin]]
