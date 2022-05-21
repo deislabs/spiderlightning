@@ -1,4 +1,12 @@
-use std::{fs::{File, self, OpenOptions}, io::{Read, Write, BufReader, BufRead}, path::PathBuf, time::{SystemTime, UNIX_EPOCH}};
+use anyhow::{bail, Result};
+use capability::{Resource, ResourceTables};
+use std::{
+    fs::{self, File, OpenOptions},
+    io::{BufRead, BufReader, Read, Write},
+    path::PathBuf,
+    time::{SystemTime, UNIX_EPOCH},
+};
+use url::Url;
 
 pub use mq::add_to_linker;
 use mq::*;
@@ -15,7 +23,10 @@ pub struct MqFilesystem {
 impl MqFilesystem {
     /// Create a new MqFilesystem.
     pub fn new(path: String) -> Self {
-        Self { queue: ".queue".to_string(), path }
+        Self {
+            queue: ".queue".to_string(),
+            path,
+        }
     }
 }
 
@@ -32,11 +43,11 @@ impl mq::Mq for MqFilesystem {
         }
 
         let rand_file_name = gen_rand_name();
-        
+
         let mut file = File::create(path(&rand_file_name, &self.path))?;
         file.write_all(msg)?;
 
-        let mut queue =  fs::OpenOptions::new()
+        let mut queue = fs::OpenOptions::new()
             .write(true)
             .append(true)
             .create(true)
@@ -44,7 +55,7 @@ impl mq::Mq for MqFilesystem {
             .unwrap();
 
         writeln!(queue, "{}", rand_file_name)?;
-        
+
         Ok(())
     }
 
@@ -59,7 +70,6 @@ impl mq::Mq for MqFilesystem {
             .write(true)
             .open(path(&self.queue, &self.path))
             .expect("error opening queue");
-        
 
         if queue_pre_receive.metadata().unwrap().len() != 0 {
             let mut queue_buffer = BufReader::new(queue_pre_receive);
@@ -71,34 +81,48 @@ impl mq::Mq for MqFilesystem {
                 .write(true)
                 .open(path(&self.queue, &self.path))
                 .expect("error opening queue");
-        
-            let mut queue_re_write = BufReader::new(queue_post_receive).lines().skip(1)
+
+            let mut queue_re_write = BufReader::new(queue_post_receive)
+                .lines()
+                .skip(1)
                 .map(|x| x.unwrap())
-                .collect::<Vec<String>>().join("\n");
-            
+                .collect::<Vec<String>>()
+                .join("\n");
+
             queue_re_write = if !queue_re_write.is_empty() {
                 queue_re_write + "\n"
             } else {
                 queue_re_write
             };
-            
-            fs::write(path(&self.queue, &self.path), queue_re_write).expect("error re-writting queue");
+
+            fs::write(path(&self.queue, &self.path), queue_re_write)
+                .expect("error re-writting queue");
 
             let mut file = File::open(path(strip_newline(&to_receive), &self.path))?;
             let mut buf = Vec::new();
             file.read_to_end(&mut buf)?;
             fs::remove_file(path(strip_newline(&to_receive), &self.path))?;
-            
+
             Ok(buf)
         } else {
             Ok(Vec::new())
         }
     }
-
-    fn drop_resource_descriptor(&mut self,state:Self::ResourceDescriptor){
-  drop(state);
-  
 }
+
+impl<T> ResourceTables<dyn Resource> for MqTables<T> where T: Mq + 'static {}
+
+impl Resource for MqFilesystem {
+    fn from_url(url: Url) -> Result<Self> {
+        let path = url.to_file_path();
+        match path {
+            Ok(path) => {
+                let path = path.to_str().unwrap_or(".").to_string();
+                Ok(MqFilesystem::new(path))
+            }
+            Err(_) => bail!("invalid url: {}", url),
+        }
+    }
 }
 
 /// TODO(Dan): This fxn is used across kv-filesystem and mq-filesystem — we might want to make a utils crate.
@@ -118,9 +142,11 @@ fn strip_newline(input: &str) -> &str {
 }
 
 fn gen_rand_name() -> String {
-    format!("{:?}", SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()).to_string()
+    format!(
+        "{:?}",
+        SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+    )
+    .to_string()
 }
 
 impl From<anyhow::Error> for Error {

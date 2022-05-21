@@ -14,3 +14,5 @@ azure_storage = "0.2"
 azure_core = "0.2"
 bytes = "1"
 futures = "0.3"
+capability = { path = "../capability" }
+url = "2.2"

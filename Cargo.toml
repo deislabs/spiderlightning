@@ -11,15 +11,9 @@ anyhow = "1.0"
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
 tokio = { version = "1.4.0", features = ["full"] }
-wasmtime = "0.35"
-wasmtime-wasi = "0.35"
-wasi-common = "0.35"
-wasi-cap-std-sync = "0.35"
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 clap = { version = "3.1.18", features = ["derive"] }
-kv-filesystem = { path = "crates/kv-filesystem" }
-kv-azure-blob = { path = "crates/kv-azure-blob" }
-capability = { path = "crates/capability" }
+runtime-wasmtime = { path = "crates/runtime-wasmtime" }
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
@@ -36,7 +30,7 @@ vergen = { version = "7", default-features = false, features = [
 members = [
     "crates/mq-filesystem",
     "crates/kv-filesystem",
-    "crates/wasmtime",
+    "crates/runtime-wasmtime",
     "crates/kv-azure-blob",
     "crates/capability",
     "examples/kv-filesystem-config",

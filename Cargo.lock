@@ -296,15 +296,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "as-any",
- "kv-azure-blob",
- "kv-filesystem",
- "mq-filesystem",
  "url",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime 0.35.3",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime",
 ]
 
 [[package]]
@@ -1187,7 +1179,9 @@ dependencies = [
  "azure_storage",
  "azure_storage_blobs",
  "bytes",
+ "capability",
  "futures",
+ "url",
  "wit-bindgen-wasmtime",
 ]
 
@@ -1211,6 +1205,8 @@ name = "kv-filesystem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "capability",
+ "url",
  "wit-bindgen-wasmtime",
 ]
 
@@ -1384,6 +1380,8 @@ name = "mq-filesystem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "capability",
+ "url",
  "wit-bindgen-wasmtime",
 ]
 
@@ -1861,6 +1859,24 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "winreg",
+]
+
+[[package]]
+name = "runtime-wasmtime"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "as-any",
+ "capability",
+ "kv-azure-blob",
+ "kv-filesystem",
+ "mq-filesystem",
+ "url",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime",
 ]
 
 [[package]]
@@ -2499,20 +2515,14 @@ name = "wasi-cloud-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "capability",
  "cargo-target-dep",
  "clap",
  "env_logger",
  "hyper",
- "kv-azure-blob",
- "kv-filesystem",
  "log",
+ "runtime-wasmtime",
  "tokio",
  "vergen",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime 0.35.3",
- "wasmtime-wasi",
  "wit-bindgen-wasmtime",
 ]
 
@@ -2604,17 +2614,6 @@ name = "wasmparser"
 version = "0.83.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "718ed7c55c2add6548cca3ddd6383d738cd73b892df400e96b9aa876f0141d7a"
-
-[[package]]
-name = "wasmtime"
-version = "0.1.0"
-dependencies = [
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime 0.35.3",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime",
-]
 
 [[package]]
 name = "wasmtime"
@@ -2809,7 +2808,7 @@ dependencies = [
  "anyhow",
  "wasi-cap-std-sync",
  "wasi-common",
- "wasmtime 0.35.3",
+ "wasmtime",
  "wiggle",
 ]
 
@@ -2863,7 +2862,7 @@ dependencies = [
  "bitflags",
  "thiserror",
  "tracing",
- "wasmtime 0.35.3",
+ "wasmtime",
  "wiggle-macro",
 ]
 
@@ -3055,7 +3054,7 @@ dependencies = [
  "anyhow",
  "bitflags",
  "thiserror",
- "wasmtime 0.35.3",
+ "wasmtime",
  "wit-bindgen-wasmtime-impl",
 ]
 

@@ -1,7 +1,10 @@
+use anyhow::{bail, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
+use capability::{Resource, ResourceTables};
 use futures::executor::block_on;
 use std::sync::Arc;
+use url::Url;
 
 pub use kv::add_to_linker;
 use kv::*;
@@ -33,6 +36,26 @@ impl KvAzureBlob {
             .as_container_client(container_name),
         );
         Self { inner }
+    }
+}
+
+impl Resource for KvAzureBlob {
+    fn from_url(url: Url) -> Result<Self> {
+        // get environment var STORAGE_ACCOUNT_NAME
+        let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")?;
+        // get environment var STORAGE_ACCOUNT_KEY
+        let storage_account_key = std::env::var("AZURE_STORAGE_KEY")?;
+
+        // container name from the domain of url. For example, if url is
+        // "azblob://my-container, then the domain is "my-container".
+        let container_name = url
+            .domain()
+            .expect("container name is required in the capability configuration");
+        Ok(KvAzureBlob::new(
+            &storage_account_name,
+            &storage_account_key,
+            container_name,
+        ))
     }
 }
 
@@ -82,6 +105,8 @@ impl kv::Kv for KvAzureBlob {
         Ok(())
     }
 }
+
+impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
 
 impl From<anyhow::Error> for Error {
     fn from(_: anyhow::Error) -> Self {

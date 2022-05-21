@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 anyhow           = "1.0"
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
+capability = { path = "../capability" }
+url = "2.2"

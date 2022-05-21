@@ -1,5 +1,5 @@
 [package]
-name = "wasmtime"
+name = "runtime-wasmtime"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
@@ -12,3 +12,10 @@ wasmtime-wasi = "0.35"
 wasi-common = "0.35"
 wasi-cap-std-sync = "0.35"
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
+anyhow = "1"
+url = "2.2"
+kv-filesystem = { path = "../kv-filesystem" }
+kv-azure-blob = { path = "../kv-azure-blob" }
+mq-filesystem = { path = "../mq-filesystem" }
+capability = { path = "../capability" }
+as-any = "0.3"
