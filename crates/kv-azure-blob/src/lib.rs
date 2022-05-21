@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use capability::{Resource, ResourceTables};

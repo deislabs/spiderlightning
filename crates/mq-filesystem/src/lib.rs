@@ -134,10 +134,10 @@ fn path(name: &str, base: &str) -> PathBuf {
 fn strip_newline(input: &str) -> &str {
     input
         .strip_prefix("\r\n")
-        .or(input.strip_suffix("\n"))
+        .or(input.strip_suffix('\n'))
         .unwrap_or(input)
         .strip_suffix("\r\n")
-        .or(input.strip_suffix("\n"))
+        .or(input.strip_suffix('\n'))
         .unwrap_or(input)
 }
 
@@ -146,7 +146,7 @@ fn gen_rand_name() -> String {
         "{:?}",
         SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
     )
-    .to_string()
+    
 }
 
 impl From<anyhow::Error> for Error {

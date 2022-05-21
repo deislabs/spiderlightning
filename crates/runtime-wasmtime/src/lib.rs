@@ -7,7 +7,7 @@ use mq_filesystem::{mq::MqTables, MqFilesystem};
 use url::Url;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
-use wasmtime::{AsContextMut, Config, Engine, Instance, Linker, Module, Store};
+use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
 use wasmtime_wasi::*;
 
 wit_bindgen_wasmtime::import!("../../wit/config.wit");
