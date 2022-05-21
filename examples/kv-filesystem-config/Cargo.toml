@@ -1,5 +1,5 @@
 [package]
-name = "wasmtime"
+name = "kv-filesystem-config"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
@@ -7,8 +7,7 @@ authors = ["DeisLabs Engineering Team"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wasmtime = "0.35"
-wasmtime-wasi = "0.35"
-wasi-common = "0.35"
-wasi-cap-std-sync = "0.35"
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
+wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen" }
+
+[lib]
+crate-type = ["cdylib"]
