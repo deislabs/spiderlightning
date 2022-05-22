@@ -41,6 +41,7 @@ members = [
     "examples/kv-filesystem-config",
     "examples/kv-azure-blob-config",
     "examples/kv-demo",
+    "examples/blob-experiment"
 ]
 
 [[bin]]

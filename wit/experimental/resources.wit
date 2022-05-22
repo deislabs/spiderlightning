@@ -1,0 +1,75 @@
+variant error {
+	bucket-error(string),
+	sql-error(string),
+	event-error(string),
+}
+
+type size = u64
+type payload = list<u8>
+
+use { observer } from observer
+
+// ----------------- START of blob interface ------------------
+
+// a blob interface
+resource bucket {
+	// get a blob resource descriptor.
+	static get: function() -> expected<bucket, error>
+	
+	// close the connection to the blob.
+	close: function() -> expected<unit, error>
+	
+	// delete the blob given a key
+	delete-blob: function(key: string) -> expected<unit, error>
+
+	// list all the blobs in the bucket.
+	list-blob: function() -> expected<list<string>, error>
+
+	// get a blob reader for a given key.
+	get-reader: function(key: string) -> expected<reader, error>
+
+	// get a blob writer for a given key.
+	get-writer: function(key: string) -> expected<writer, error>
+
+	// listens on the bucket for changes.
+	on: function(key: string) -> expected<observer, error>
+}
+
+resource reader {
+	// read the blob.
+	read: function() -> expected<payload, error>
+	size: function() -> expected<size, error>
+}
+
+resource writer {
+	// write the blob.
+	write: function(buf: payload) -> expected<size, error>
+}
+
+// ----------------- END of blob interface ------------------
+
+// ----------------- START of sql database interface ------------------
+resource sql-database {
+	// get a key-value store resource descriptor.
+	static new: function() -> expected<sql-database, error>
+
+	// get the payload for a given key.
+	query: function(sql: string) -> expected<unit, error>
+
+	// set the payload for a given key.
+	exec: function() -> expected<option<payload>, error>
+
+	// listens on the database for changes.
+	on: function(table-name: string) -> expected<observer, error>
+}
+// ----------------- END of sql database interface ------------------
+
+use { event } from event
+
+resource events {
+	static get: function() -> expected<events, error>
+	listen: function(ob: observer) -> expected<events, error>
+	exec: function() -> expected<unit, error>
+}
+
+

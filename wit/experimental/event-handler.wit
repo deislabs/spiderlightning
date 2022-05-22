@@ -1,0 +1,5 @@
+type error = string
+
+use { event } from event
+
+handle-event: function(ev: event) -> expected<option<event>, error>
