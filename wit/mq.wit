@@ -1,5 +1,5 @@
 // A Message Queue Interface
-use {error, payload } from types
+use { error, payload } from types
 use * from resources
 
 // get the resource-descriptor for the message queue

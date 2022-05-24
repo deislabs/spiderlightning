@@ -1,5 +1,10 @@
 enum error {
-    generic-error
+	// getting a resource descriptor failed.
+    descriptor-error, 
+	// getting the payload failed.
+	io-error,
+	// other errors.
+	other-error,
 }
 
 type payload = list<u8>
