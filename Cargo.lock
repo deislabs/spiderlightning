@@ -291,15 +291,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "capability"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "as-any",
- "url",
-]
-
-[[package]]
 name = "cargo-target-dep"
 version = "0.1.0"
 source = "git+https://github.com/fermyon/cargo-target-dep?rev=b7b1989fe0984c0f7c4966398304c6538e52fe49#b7b1989fe0984c0f7c4966398304c6538e52fe49"
@@ -1179,8 +1170,8 @@ dependencies = [
  "azure_storage",
  "azure_storage_blobs",
  "bytes",
- "capability",
  "futures",
+ "runtime",
  "url",
  "wit-bindgen-wasmtime",
 ]
@@ -1205,7 +1196,7 @@ name = "kv-filesystem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "capability",
+ "runtime",
  "url",
  "wit-bindgen-wasmtime",
 ]
@@ -1380,7 +1371,7 @@ name = "mq-filesystem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "capability",
+ "runtime",
  "url",
  "wit-bindgen-wasmtime",
 ]
@@ -1867,10 +1858,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "as-any",
- "capability",
- "kv-azure-blob",
- "kv-filesystem",
- "mq-filesystem",
  "url",
  "wasi-cap-std-sync",
  "wasi-common",
@@ -2519,9 +2506,13 @@ dependencies = [
  "clap",
  "env_logger",
  "hyper",
+ "kv-azure-blob",
+ "kv-filesystem",
  "log",
+ "mq-filesystem",
  "runtime",
  "tokio",
+ "url",
  "vergen",
  "wit-bindgen-wasmtime",
 ]

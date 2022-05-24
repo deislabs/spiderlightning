@@ -1,13 +1,12 @@
 use anyhow::{bail, Result};
-use capability::{Resource, ResourceTables};
 use std::{
     fs::{self, File},
     io::{Read, Write},
     path::PathBuf,
 };
 use url::Url;
+use runtime::resource::{Resource, Context, Linker};
 
-pub use kv::add_to_linker;
 use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
@@ -73,7 +72,11 @@ impl kv::Kv for KvFilesystem {
 }
 
 impl Resource for KvFilesystem {
-    fn from_url(url: Url) -> Result<Self> {
+    type State = (Self, KvTables<Self>);
+
+    fn from_url(url: Url) -> Result<Self>
+    where
+            Self: Sized {
         let path = url.to_file_path();
         match path {
             Ok(path) => {
@@ -83,9 +86,20 @@ impl Resource for KvFilesystem {
             Err(_) => bail!("invalid url: {}", url),
         }
     }
-}
 
-impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
+    fn build_state(url: Url) -> Result<Self::State> {
+        Ok((Self::from_url(url)?, Default::default()))
+    }
+
+    fn add_to_linker(
+        linker: &mut Linker<Context<Self::State>>,
+    ) -> Result<()> {
+        kv::add_to_linker(linker, |ctx| {
+            let (resource, resource_type) = Self::get_state(ctx);
+            (resource, resource_type)
+        })
+    }
+}
 
 /// Return the absolute path for the file corresponding to the given key.
 fn path(name: &str, base: &str) -> PathBuf {

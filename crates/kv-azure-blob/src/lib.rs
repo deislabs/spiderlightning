@@ -1,12 +1,11 @@
 use anyhow::Result;
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
-use capability::{Resource, ResourceTables};
+use runtime::resource::{Resource, Context, Linker};
 use futures::executor::block_on;
 use std::sync::Arc;
 use url::Url;
 
-pub use kv::add_to_linker;
 use kv::*;
 
 pub mod azure;
@@ -40,7 +39,11 @@ impl KvAzureBlob {
 }
 
 impl Resource for KvAzureBlob {
-    fn from_url(url: Url) -> Result<Self> {
+    type State = (Self, KvTables<Self>);
+
+    fn from_url(url: Url) -> Result<Self>
+    where
+            Self: Sized {
         // get environment var STORAGE_ACCOUNT_NAME
         let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")?;
         // get environment var STORAGE_ACCOUNT_KEY
@@ -57,7 +60,21 @@ impl Resource for KvAzureBlob {
             container_name,
         ))
     }
+
+    fn build_state(url: Url) -> Result<Self::State> {
+        Ok((Self::from_url(url)?, Default::default()))
+    }
+
+    fn add_to_linker(
+        linker: &mut Linker<Context<Self::State>>,
+    ) -> Result<()> {
+        kv::add_to_linker(linker, |ctx| {
+            let (resource, resource_type) = Self::get_state(ctx);
+            (resource, resource_type)
+        })
+    }
 }
+
 
 impl kv::Kv for KvAzureBlob {
     type ResourceDescriptor = u64;
@@ -105,8 +122,6 @@ impl kv::Kv for KvAzureBlob {
         Ok(())
     }
 }
-
-impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
 
 impl From<anyhow::Error> for Error {
     fn from(_: anyhow::Error) -> Self {
