@@ -1,12 +1,14 @@
+use anyhow::{bail, Result};
+use capability::{Resource, ResourceTables};
+pub use mq::add_to_linker;
+use mq::*;
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
     path::PathBuf,
     time::{SystemTime, UNIX_EPOCH},
 };
-
-pub use mq::add_to_linker;
-use mq::*;
+use url::Url;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 
@@ -114,6 +116,21 @@ impl mq::Mq for MqFilesystem {
         } else {
             // if queue is empty, respond with empty string
             Ok(Vec::new())
+        }
+    }
+}
+
+impl<T> ResourceTables<dyn Resource> for MqTables<T> where T: mq::Mq + 'static {}
+
+impl Resource for MqFilesystem {
+    fn from_url(url: Url) -> Result<Self> {
+        let path = url.to_file_path();
+        match path {
+            Ok(path) => {
+                let path = path.to_str().unwrap_or(".").to_string();
+                Ok(MqFilesystem::new(path))
+            }
+            Err(_) => bail!("invalid url: {}", url),
         }
     }
 }

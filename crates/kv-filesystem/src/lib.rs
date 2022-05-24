@@ -1,8 +1,11 @@
+use anyhow::{bail, Result};
+use capability::{Resource, ResourceTables};
 use std::{
     fs::{self, File},
     io::{Read, Write},
     path::PathBuf,
 };
+use url::Url;
 
 pub use kv::add_to_linker;
 use kv::*;
@@ -68,6 +71,21 @@ impl kv::Kv for KvFilesystem {
         Ok(())
     }
 }
+
+impl Resource for KvFilesystem {
+    fn from_url(url: Url) -> Result<Self> {
+        let path = url.to_file_path();
+        match path {
+            Ok(path) => {
+                let path = path.to_str().unwrap_or(".").to_string();
+                Ok(KvFilesystem::new(path))
+            }
+            Err(_) => bail!("invalid url: {}", url),
+        }
+    }
+}
+
+impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
 
 /// Return the absolute path for the file corresponding to the given key.
 fn path(name: &str, base: &str) -> PathBuf {
