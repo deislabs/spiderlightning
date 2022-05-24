@@ -13,7 +13,7 @@ log = { version = "0.4", default-features = false }
 tokio = { version = "1.4.0", features = ["full"] }
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 clap = { version = "3.1.18", features = ["derive"] }
-runtime-wasmtime = { path = "crates/runtime-wasmtime" }
+runtime = { path = "crates/runtime" }
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
@@ -30,7 +30,7 @@ vergen = { version = "7", default-features = false, features = [
 members = [
     "crates/mq-filesystem",
     "crates/kv-filesystem",
-    "crates/runtime-wasmtime",
+    "crates/runtime",
     "crates/kv-azure-blob",
     "crates/capability",
     "examples/kv-filesystem-config",

@@ -1862,7 +1862,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "runtime-wasmtime"
+name = "runtime"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2520,7 +2520,7 @@ dependencies = [
  "env_logger",
  "hyper",
  "log",
- "runtime-wasmtime",
+ "runtime",
  "tokio",
  "vergen",
  "wit-bindgen-wasmtime",

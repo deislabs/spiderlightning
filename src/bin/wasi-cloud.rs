@@ -5,7 +5,7 @@ use clap::Parser;
 // use wasmtime::{Config, Engine, Linker, Module, Store};
 // use wasmtime_wasi::*;
 
-use runtime_wasmtime::Builder;
+use runtime::Builder;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
