@@ -26,24 +26,18 @@ async fn main() -> Result<()> {
         .link_wasi()?
         .link_config()?
         .build_config(&args.config)?;
-    let config = builder.config.as_ref().unwrap();
-    let url = &config
-        .iter()
-        .find(|(name, _)| name == "url")
-        .expect("url is required in the capability configuration")
-        .1;
-    let parsed = Url::parse(url)?;
-    match parsed.scheme() {
+    let url = extract_url(builder.config.as_ref().unwrap())?;
+    match url.scheme() {
         "azblob" => {
-            builder.link_capability::<KvAzureBlob>(parsed)?;
+            builder.link_capability::<KvAzureBlob>(url)?;
         },
         "file" => {
-            builder.link_capability::<KvFilesystem>(parsed)?;
+            builder.link_capability::<KvFilesystem>(url)?;
         },
         "mq" => {
-            builder.link_capability::<MqFilesystem>(parsed)?;
+            builder.link_capability::<MqFilesystem>(url)?;
         },
-        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", parsed),
+        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
     }
     let (mut store, instance) = builder.build(&args.module)?;
 
@@ -51,4 +45,16 @@ async fn main() -> Result<()> {
         .get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?
         .call(&mut store, (0, 0))?;
     Ok(())
+}
+
+/// Extract the URL from the configuration
+/// TODO (Joe): we should allow multiple host capabilities
+fn extract_url(config: &Vec<(String, String)>) -> Result<Url, anyhow::Error> {
+    let url = &config
+        .iter()
+        .find(|(name, _)| name == "url")
+        .expect("url is required in the capability configuration")
+        .1;
+    let parsed = Url::parse(url)?;
+    Ok(parsed)
 }

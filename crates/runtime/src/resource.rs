@@ -18,11 +18,13 @@ pub trait Resource: AsAny {
         Self: Sized;
 }
 
+/// A trait for wit-bindgen host resource composed of a resource and a resource table.
 pub trait HostResource {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()>;
-    fn build_state(url: Url) -> Result<DataT>;
+    fn build_data(url: Url) -> Result<DataT>;
 }
 
+/// dynamic dispatch to respective host resource.
 pub fn get<T, TTables>(cx: &mut Context<DataT>) -> (&mut T, &mut TTables)
 where
     T: 'static,
@@ -32,7 +34,8 @@ where
         .data
         .as_mut()
         .expect("internal error: Runtime context data is None");
-    let resource = data.0.as_mut().downcast_mut::<T>().unwrap();
-    let resource_tables = data.1.as_mut().downcast_mut::<TTables>().unwrap();
-    (resource, resource_tables)
+    (
+        data.0.as_mut().downcast_mut().unwrap(),
+        data.1.as_mut().downcast_mut().unwrap(),
+    )
 }

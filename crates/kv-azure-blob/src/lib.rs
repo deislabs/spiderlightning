@@ -65,7 +65,7 @@ impl HostResource for KvAzureBlob {
         crate::add_to_linker(linker, get::<Self, crate::KvTables<Self>>)
     }
 
-    fn build_state(url: Url) -> Result<DataT> {
+    fn build_data(url: Url) -> Result<DataT> {
         let kv_azure_blob = Self::from_url(url)?;
         Ok((
             Box::new(kv_azure_blob),

@@ -139,7 +139,7 @@ impl HostResource for MqFilesystem {
         crate::add_to_linker(linker, get::<Self, MqTables<Self>>)
     }
 
-    fn build_state(url: Url) -> Result<DataT> {
+    fn build_data(url: Url) -> Result<DataT> {
         let mq_filesystem = Self::from_url(url)?;
         Ok((
             Box::new(mq_filesystem),

@@ -17,12 +17,6 @@ pub struct Context<T> {
     pub data: Option<T>,
 }
 
-pub struct Runtime {
-    pub store: Store<Context<DataT>>,
-    pub linker: Linker<Context<DataT>>,
-    pub module: Module,
-}
-
 /// A wasmtime-based runtime builder.
 pub struct Builder {
     linker: Linker<Context<DataT>>,
@@ -52,6 +46,7 @@ impl Builder {
         })
     }
 
+    /// Link wasi to the wasmtime::Linker
     pub fn link_wasi(&mut self) -> Result<&mut Self> {
         wasmtime_wasi::add_to_linker(&mut self.linker, |cx: &mut Context<_>| {
             cx.wasi.as_mut().unwrap()
@@ -59,11 +54,13 @@ impl Builder {
         Ok(self)
     }
 
+    /// Link application configuration to the wasmtime::Linker
     pub fn link_config(&mut self) -> Result<&mut Self> {
         config::Config::add_to_linker(&mut self.linker, |cx: &mut Context<_>| &mut cx.config_data)?;
         Ok(self)
     }
 
+    /// Instantiate the configuration.
     pub fn build_config(&mut self, config: &str) -> Result<&mut Self> {
         let module = Module::from_file(&self.engine, config)?;
         let instance = self.linker.instantiate(&mut self.store, &module)?;
@@ -73,12 +70,14 @@ impl Builder {
         Ok(self)
     }
 
+    /// Link a host capability to the wasmtime::Linker
     pub fn link_capability<T: HostResource>(&mut self, url: Url) -> Result<&mut Self> {
         T::add_to_linker(&mut self.linker)?;
-        self.store.data_mut().data = Some(T::build_state(url)?);
+        self.store.data_mut().data = Some(T::build_data(url)?);
         Ok(self)
     }
 
+    /// Instantiate the guest module.
     pub fn build(mut self, module: &str) -> Result<(Store<Context<DataT>>, Instance)> {
         let module = Module::from_file(&self.engine, module)?;
         let instance = self.linker.instantiate(&mut self.store, &module)?;

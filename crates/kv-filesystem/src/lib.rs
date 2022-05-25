@@ -91,7 +91,7 @@ impl HostResource for KvFilesystem {
         crate::add_to_linker(linker, get::<Self, KvTables<Self>>)
     }
 
-    fn build_state(url: Url) -> Result<DataT> {
+    fn build_data(url: Url) -> Result<DataT> {
         let kv_filesystem = Self::from_url(url)?;
         Ok((
             Box::new(kv_filesystem),
