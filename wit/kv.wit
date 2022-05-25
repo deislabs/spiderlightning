@@ -1,15 +1,6 @@
 // A key-value store interface.
-use { payload } from types
+use { error, payload } from types
 use * from resources
-
-enum error {
-	// getting a key-value store resource descriptor failed.
-    descriptor-error, 
-	// getting the payload for a given key failed.
-	io-error,
-	// other errors.
-	other-error,
-}
 
 // get a key-value store resource descriptor.
 get-kv: function() -> expected<resource-descriptor, error>
