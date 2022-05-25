@@ -64,11 +64,7 @@ impl Builder {
         Ok(self)
     }
 
-    pub fn build_config(
-        &mut self,
-        config: &str,
-        // link_state: impl Fn(Url, &mut Linker<Context<T>>, &mut Store<Context<T>>) -> Result<()>,
-    ) -> Result<&mut Self> {
+    pub fn build_config(&mut self, config: &str) -> Result<&mut Self> {
         let module = Module::from_file(&self.engine, config)?;
         let instance = self.linker.instantiate(&mut self.store, &module)?;
         let config = config::Config::new(&mut self.store, &instance, |ctx| &mut ctx.config_data)?;
