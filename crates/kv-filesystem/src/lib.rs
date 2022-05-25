@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 use url::Url;
-use runtime::resource::{Resource, Context, Linker};
+use runtime::resource::{Resource, Context, Linker, ResourceTables, HostResource, DataT, get};
 
 use kv::*;
 
@@ -72,11 +72,7 @@ impl kv::Kv for KvFilesystem {
 }
 
 impl Resource for KvFilesystem {
-    type State = (Self, KvTables<Self>);
-
-    fn from_url(url: Url) -> Result<Self>
-    where
-            Self: Sized {
+    fn from_url(url: Url) -> Result<Self> {
         let path = url.to_file_path();
         match path {
             Ok(path) => {
@@ -86,18 +82,21 @@ impl Resource for KvFilesystem {
             Err(_) => bail!("invalid url: {}", url),
         }
     }
+}
 
-    fn build_state(url: Url) -> Result<Self::State> {
-        Ok((Self::from_url(url)?, Default::default()))
+impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
+
+impl HostResource for KvFilesystem {
+    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
+        crate::add_to_linker(linker, get::<Self, KvTables<Self>>)
     }
 
-    fn add_to_linker(
-        linker: &mut Linker<Context<Self::State>>,
-    ) -> Result<()> {
-        kv::add_to_linker(linker, |ctx| {
-            let (resource, resource_type) = Self::get_state(ctx);
-            (resource, resource_type)
-        })
+    fn build_state(url: Url) -> Result<DataT> {
+        let kv_filesystem = Self::from_url(url)?;
+        Ok((
+            Box::new(kv_filesystem),
+            Box::new(KvTables::<Self>::default()),
+        ))
     }
 }
 

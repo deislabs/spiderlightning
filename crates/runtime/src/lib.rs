@@ -1,6 +1,6 @@
 pub mod resource;
 use anyhow::Result;
-use resource::{Resource, State};
+use resource::{Resource, DataT, HostResource};
 use url::Url;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
@@ -18,23 +18,22 @@ pub struct Context<T>
     pub data: Option<T>,
 }
 
-pub struct Runtime<T> 
-{
-    pub store: Store<Context<T>>,
-    pub linker: Linker<Context<T>>,
+pub struct Runtime {
+    pub store: Store<Context<DataT>>,
+    pub linker: Linker<Context<DataT>>,
     pub module: Module,
 }
 
 /// A wasmtime-based runtime builder.
-pub struct Builder<T> 
+pub struct Builder
 {
-    linker: Linker<Context<T>>,
-    store: Store<Context<T>>,
+    linker: Linker<Context<DataT>>,
+    store: Store<Context<DataT>>,
     engine: Engine,
     pub config: Option<Vec<(String, String)>>,
 }
 
-impl<T> Builder<T> 
+impl Builder 
 {
     /// Create a new runtime builder.
     pub fn new_default() -> Result<Self> {
@@ -77,29 +76,18 @@ impl<T> Builder<T>
         let instance = self.linker.instantiate(&mut self.store, &module)?;
         let config = config::Config::new(&mut self.store, &instance, |ctx| &mut ctx.config_data)?;
         let config = config.get_capability(&mut self.store).unwrap()?;
-        // let url = &config
-        //     .iter()
-        //     .find(|(name, _)| name == "url")
-        //     .expect("url is required in the capability configuration")
-        //     .1;
-        // let parsed = Url::parse(url)?;
-        // // self.store.data_mut().data = Some(build_state(parsed, &mut self.linker)?);
-        // link_state(parsed, &mut self.linker, &mut self.store)?;
-        // Ok(self)
         self.config = Some(config);
         Ok(self)
     }
 
-    pub fn link_capability<U>(&mut self, url: Url) -> Result<&mut Self> 
-    where
-        U: Resource<State = T>,
+    pub fn link_capability<T: HostResource>(&mut self, url: Url) -> Result<&mut Self>
     {
-        U::add_to_linker(&mut self.linker)?;
-        self.store.data_mut().data = Some(U::build_state(url)?);
+        T::add_to_linker(&mut self.linker)?;
+        self.store.data_mut().data = Some(T::build_state(url)?);
         Ok(self)
     }
 
-    pub fn build(mut self, module: &str) -> Result<(Store<Context<T>>, Instance)> {
+    pub fn build(mut self, module: &str) -> Result<(Store<Context<DataT>>, Instance)> {
         let module = Module::from_file(&self.engine, module)?;
         let instance = self.linker.instantiate(&mut self.store, &module)?;
         Ok((self.store, instance))

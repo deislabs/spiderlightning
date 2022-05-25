@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use runtime::resource::{Resource, Context, Linker};
+use runtime::resource::{Resource, Context, Linker, ResourceTables, HostResource, DataT, get};
 use mq::*;
 use std::{
     fs::{self, File, OpenOptions},
@@ -122,33 +122,32 @@ impl mq::Mq for MqFilesystem {
     }
 }
 
-impl Resource for MqFilesystem {
-    type State = (Self, mq::MqTables<Self>);
+impl<T> ResourceTables<dyn Resource> for MqTables<T> where T: mq::Mq + 'static {}
 
-    fn from_url(url: Url) -> Result<Self>
-    where
-            Self: Sized {
+impl Resource for MqFilesystem {
+    fn from_url(url: Url) -> Result<Self> {
         let path = url.to_file_path();
         match path {
             Ok(path) => {
                 let path = path.to_str().unwrap_or(".").to_string();
-                Ok(MqFilesystem::new(path))
+                Ok(Self::new(path))
             }
             Err(_) => bail!("invalid url: {}", url),
         }
     }
+}
 
-    fn build_state(url: Url) -> Result<Self::State> {
-        Ok((MqFilesystem::from_url(url)?, Default::default()))
+impl HostResource for MqFilesystem {
+    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
+        crate::add_to_linker(linker, get::<Self, MqTables<Self>>)
     }
 
-    fn add_to_linker(
-        linker: &mut Linker<Context<Self::State>>,
-    ) -> Result<()> {
-        mq::add_to_linker(linker, |ctx| {
-            let (resource, resource_tables) = Self::get_state(ctx);
-            (resource, resource_tables)
-        })
+    fn build_state(url: Url) -> Result<DataT> {
+        let mq_filesystem = Self::from_url(url)?;
+        Ok((
+            Box::new(mq_filesystem),
+            Box::new(MqTables::<Self>::default()),
+        ))
     }
 }
 

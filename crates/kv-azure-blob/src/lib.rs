@@ -1,7 +1,7 @@
 use anyhow::Result;
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
-use runtime::resource::{Resource, Context, Linker};
+use runtime::resource::{Resource, Context, Linker, HostResource, DataT, ResourceTables, get};
 use futures::executor::block_on;
 use std::sync::Arc;
 use url::Url;
@@ -39,11 +39,7 @@ impl KvAzureBlob {
 }
 
 impl Resource for KvAzureBlob {
-    type State = (Self, KvTables<Self>);
-
-    fn from_url(url: Url) -> Result<Self>
-    where
-            Self: Sized {
+    fn from_url(url: Url) -> Result<Self> {
         // get environment var STORAGE_ACCOUNT_NAME
         let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")?;
         // get environment var STORAGE_ACCOUNT_KEY
@@ -60,18 +56,21 @@ impl Resource for KvAzureBlob {
             container_name,
         ))
     }
+}
 
-    fn build_state(url: Url) -> Result<Self::State> {
-        Ok((Self::from_url(url)?, Default::default()))
+impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
+
+impl HostResource for KvAzureBlob {
+    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
+        crate::add_to_linker(linker, get::<Self, crate::KvTables<Self>>)
     }
 
-    fn add_to_linker(
-        linker: &mut Linker<Context<Self::State>>,
-    ) -> Result<()> {
-        kv::add_to_linker(linker, |ctx| {
-            let (resource, resource_type) = Self::get_state(ctx);
-            (resource, resource_type)
-        })
+    fn build_state(url: Url) -> Result<DataT> {
+        let kv_azure_blob = Self::from_url(url)?;
+        Ok((
+            Box::new(kv_azure_blob),
+            Box::new(crate::KvTables::<Self>::default()),
+        ))
     }
 }
 
