@@ -1,10 +1,10 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use clap::Parser;
-use runtime::Builder;
+use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
 use mq_filesystem::MqFilesystem;
-use kv_azure_blob::KvAzureBlob;
 use runtime::resource::Resource;
+use runtime::Builder;
 use url::Url;
 
 #[derive(Parser, Debug)]
@@ -28,10 +28,10 @@ async fn main() -> Result<()> {
         .build_config(&args.config)?;
     let config = builder.config.as_ref().unwrap();
     let url = &config
-            .iter()
-            .find(|(name, _)| name == "url")
-            .expect("url is required in the capability configuration")
-            .1;
+        .iter()
+        .find(|(name, _)| name == "url")
+        .expect("url is required in the capability configuration")
+        .1;
     let parsed = Url::parse(url)?;
     match parsed.scheme() {
         "azblob" => {
@@ -52,4 +52,3 @@ async fn main() -> Result<()> {
         .call(&mut store, (0, 0))?;
     Ok(())
 }
-

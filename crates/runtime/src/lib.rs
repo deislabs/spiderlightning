@@ -1,6 +1,6 @@
 pub mod resource;
 use anyhow::Result;
-use resource::{Resource, DataT, HostResource};
+use resource::{DataT, HostResource, Resource};
 use url::Url;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
@@ -11,8 +11,7 @@ wit_bindgen_wasmtime::import!("../../wit/config.wit");
 
 /// A wasmtime runtime context to be passed to a wasm module.
 #[derive(Default)]
-pub struct Context<T> 
-{
+pub struct Context<T> {
     pub wasi: Option<WasiCtx>,
     pub config_data: config::ConfigData,
     pub data: Option<T>,
@@ -25,16 +24,14 @@ pub struct Runtime {
 }
 
 /// A wasmtime-based runtime builder.
-pub struct Builder
-{
+pub struct Builder {
     linker: Linker<Context<DataT>>,
     store: Store<Context<DataT>>,
     engine: Engine,
     pub config: Option<Vec<(String, String)>>,
 }
 
-impl Builder 
-{
+impl Builder {
     /// Create a new runtime builder.
     pub fn new_default() -> Result<Self> {
         let wasi = default_wasi()?;
@@ -68,8 +65,8 @@ impl Builder
     }
 
     pub fn build_config(
-        &mut self, 
-        config: &str, 
+        &mut self,
+        config: &str,
         // link_state: impl Fn(Url, &mut Linker<Context<T>>, &mut Store<Context<T>>) -> Result<()>,
     ) -> Result<&mut Self> {
         let module = Module::from_file(&self.engine, config)?;
@@ -80,8 +77,7 @@ impl Builder
         Ok(self)
     }
 
-    pub fn link_capability<T: HostResource>(&mut self, url: Url) -> Result<&mut Self>
-    {
+    pub fn link_capability<T: HostResource>(&mut self, url: Url) -> Result<&mut Self> {
         T::add_to_linker(&mut self.linker)?;
         self.store.data_mut().data = Some(T::build_state(url)?);
         Ok(self)

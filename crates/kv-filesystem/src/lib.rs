@@ -1,11 +1,11 @@
 use anyhow::{bail, Result};
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
 use std::{
     fs::{self, File},
     io::{Read, Write},
     path::PathBuf,
 };
 use url::Url;
-use runtime::resource::{Resource, Context, Linker, ResourceTables, HostResource, DataT, get};
 
 use kv::*;
 

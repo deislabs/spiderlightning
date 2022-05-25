@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
-use runtime::resource::{Resource, Context, Linker, ResourceTables, HostResource, DataT, get};
 use mq::*;
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},

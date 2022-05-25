@@ -1,8 +1,8 @@
 use anyhow::Result;
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
-use runtime::resource::{Resource, Context, Linker, HostResource, DataT, ResourceTables, get};
 use futures::executor::block_on;
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
 use std::sync::Arc;
 use url::Url;
 
@@ -73,7 +73,6 @@ impl HostResource for KvAzureBlob {
         ))
     }
 }
-
 
 impl kv::Kv for KvAzureBlob {
     type ResourceDescriptor = u64;

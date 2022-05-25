@@ -1,5 +1,5 @@
-use as_any::{AsAny, Downcast};
 use anyhow::Result;
+use as_any::{AsAny, Downcast};
 use url::Url;
 pub use wasmtime::Linker;
 
@@ -22,7 +22,6 @@ pub trait HostResource {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()>;
     fn build_state(url: Url) -> Result<DataT>;
 }
-
 
 pub fn get<T, TTables>(cx: &mut Context<DataT>) -> (&mut T, &mut TTables)
 where
