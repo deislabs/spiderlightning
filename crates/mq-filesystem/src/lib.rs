@@ -57,8 +57,7 @@ impl mq::Mq for MqFilesystem {
             .write(true)
             .append(true)
             .create(true)
-            .open(path(&self.queue, &self.path))
-            .expect("error opening queue");
+            .open(path(&self.queue, &self.path))?;
 
         // add queue element name to the bottom of the queue
         writeln!(queue, "{}", rand_file_name)?;
@@ -76,8 +75,7 @@ impl mq::Mq for MqFilesystem {
             .create(true)
             .read(true)
             .write(true)
-            .open(path(&self.queue, &self.path))
-            .expect("error opening queue");
+            .open(path(&self.queue, &self.path))?;
 
         if queue.metadata().unwrap().len() != 0 {
             // get top element in the queue
@@ -98,8 +96,7 @@ impl mq::Mq for MqFilesystem {
             }
 
             // update queue status
-            fs::write(path(&self.queue, &self.path), queue_post_receive)
-                .expect("error re-writting queue");
+            fs::write(path(&self.queue, &self.path), queue_post_receive)?;
 
             // remove \n char from end of queue element
             to_receive.pop();
