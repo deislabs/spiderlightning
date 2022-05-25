@@ -8,5 +8,5 @@ authors = ["DeisLabs Engineering Team"]
 [dependencies]
 anyhow = "1.0"
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
-capability = { path = "../capability" }
+runtime = { path = "../runtime" }
 url = "2.2"

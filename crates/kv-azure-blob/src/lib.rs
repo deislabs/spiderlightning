@@ -1,12 +1,11 @@
 use anyhow::Result;
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
-use capability::{Resource, ResourceTables};
 use futures::executor::block_on;
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
 use std::sync::Arc;
 use url::Url;
 
-pub use kv::add_to_linker;
 use kv::*;
 
 pub mod azure;
@@ -59,6 +58,22 @@ impl Resource for KvAzureBlob {
     }
 }
 
+impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
+
+impl HostResource for KvAzureBlob {
+    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
+        crate::add_to_linker(linker, get::<Self, crate::KvTables<Self>>)
+    }
+
+    fn build_data(url: Url) -> Result<DataT> {
+        let kv_azure_blob = Self::from_url(url)?;
+        Ok((
+            Box::new(kv_azure_blob),
+            Box::new(crate::KvTables::<Self>::default()),
+        ))
+    }
+}
+
 impl kv::Kv for KvAzureBlob {
     type ResourceDescriptor = u64;
 
@@ -105,8 +120,6 @@ impl kv::Kv for KvAzureBlob {
         Ok(())
     }
 }
-
-impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
 
 impl From<anyhow::Error> for Error {
     fn from(_: anyhow::Error) -> Self {

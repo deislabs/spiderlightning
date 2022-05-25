@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use capability::{Resource, ResourceTables};
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
 use std::{
     fs::{self, File},
     io::{Read, Write},
@@ -7,7 +7,6 @@ use std::{
 };
 use url::Url;
 
-pub use kv::add_to_linker;
 use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
@@ -86,6 +85,20 @@ impl Resource for KvFilesystem {
 }
 
 impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
+
+impl HostResource for KvFilesystem {
+    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
+        crate::add_to_linker(linker, get::<Self, KvTables<Self>>)
+    }
+
+    fn build_data(url: Url) -> Result<DataT> {
+        let kv_filesystem = Self::from_url(url)?;
+        Ok((
+            Box::new(kv_filesystem),
+            Box::new(KvTables::<Self>::default()),
+        ))
+    }
+}
 
 /// Return the absolute path for the file corresponding to the given key.
 fn path(name: &str, base: &str) -> PathBuf {
