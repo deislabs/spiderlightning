@@ -1,5 +1,0 @@
-// an interface for host to configure capabilities for the guest
-use { map, error } from types
-
-// the host will get capability configuration from the guest
-get-capability: function() -> expected<map, error>

@@ -22,11 +22,8 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     let mut builder = Builder::new_default()?;
-    builder
-        .link_wasi()?
-        .link_config()?
-        .build_config(&args.config)?;
-    let url = extract_url(builder.config.as_ref().unwrap())?;
+    builder.link_wasi()?;
+    let url = Url::parse(&args.config)?;
     match url.scheme() {
         "azblob" => {
             builder.link_capability::<KvAzureBlob>(url)?;
@@ -45,16 +42,4 @@ async fn main() -> Result<()> {
         .get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?
         .call(&mut store, (0, 0))?;
     Ok(())
-}
-
-/// Extract the URL from the configuration
-/// TODO (Joe): we should allow multiple host capabilities
-fn extract_url(config: &Vec<(String, String)>) -> Result<Url, anyhow::Error> {
-    let url = &config
-        .iter()
-        .find(|(name, _)| name == "url")
-        .expect("url is required in the capability configuration")
-        .1;
-    let parsed = Url::parse(url)?;
-    Ok(parsed)
 }

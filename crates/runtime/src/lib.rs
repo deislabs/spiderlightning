@@ -7,13 +7,10 @@ use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
 use wasmtime_wasi::*;
 
-wit_bindgen_wasmtime::import!("../../wit/config.wit");
-
 /// A wasmtime runtime context to be passed to a wasm module.
 #[derive(Default)]
 pub struct Context<T> {
     pub wasi: Option<WasiCtx>,
-    pub config_data: config::ConfigData,
     pub data: Option<T>,
 }
 
@@ -33,7 +30,6 @@ impl Builder {
         let linker = Linker::new(&engine);
         let ctx = Context {
             wasi: Some(wasi),
-            config_data: config::ConfigData::default(),
             data: None,
         };
 
@@ -51,22 +47,6 @@ impl Builder {
         wasmtime_wasi::add_to_linker(&mut self.linker, |cx: &mut Context<_>| {
             cx.wasi.as_mut().unwrap()
         })?;
-        Ok(self)
-    }
-
-    /// Link application configuration to the wasmtime::Linker
-    pub fn link_config(&mut self) -> Result<&mut Self> {
-        config::Config::add_to_linker(&mut self.linker, |cx: &mut Context<_>| &mut cx.config_data)?;
-        Ok(self)
-    }
-
-    /// Instantiate the configuration.
-    pub fn build_config(&mut self, config: &str) -> Result<&mut Self> {
-        let module = Module::from_file(&self.engine, config)?;
-        let instance = self.linker.instantiate(&mut self.store, &module)?;
-        let config = config::Config::new(&mut self.store, &instance, |ctx| &mut ctx.config_data)?;
-        let config = config.get_capability(&mut self.store).unwrap()?;
-        self.config = Some(config);
         Ok(self)
     }
 
@@ -105,10 +85,4 @@ pub fn default_wasi() -> Result<WasiCtx, StringArrayError> {
         .unwrap();
 
     Ok(ctx.build())
-}
-
-impl From<config::Error> for anyhow::Error {
-    fn from(_: config::Error) -> Self {
-        anyhow::anyhow!("config error")
-    }
 }
