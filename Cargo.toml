@@ -10,10 +10,11 @@ authors = ["DeisLabs Engineering Team"]
 anyhow = "1.0"
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
-tokio = { version = "1.4.0", features = ["full"] }
+tokio = { version = "^0.2.0", features = ["full"] }
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 clap = { version = "3.1.18", features = ["derive"] }
 runtime = { path = "crates/runtime" }
+azure_core = "0.2"
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
@@ -28,6 +29,7 @@ vergen = { version = "7", default-features = false, features = [
 
 [workspace]
 members = [
+    "crates/mq-azure-servicebus",
     "crates/mq-filesystem",
     "crates/kv-filesystem",
     "crates/runtime",
@@ -36,9 +38,10 @@ members = [
     "examples/kv-filesystem-config",
     "examples/kv-azure-blob-config",
     "examples/kv-demo",
-    "examples/mq-filesystem-sender-demo",
-    "examples/mq-filesystem-receiver-demo",
-    "examples/mq-config",
+    "examples/mq-sender-demo",
+    "examples/mq-receiver-demo",
+    "examples/mq-filesystem-config",
+    "examples/mq-azure-servicebus-config",
 ]
 
 [[bin]]

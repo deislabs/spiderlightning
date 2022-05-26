@@ -3,7 +3,8 @@ use as_any::Downcast;
 use capability::{DataT, Resource};
 use kv_azure_blob::{kv::KvTables as KvAzureBlobTables, KvAzureBlob};
 use kv_filesystem::{kv::KvTables as KvFileSystemTables, KvFilesystem};
-use mq_filesystem::{mq::MqTables, MqFilesystem};
+use mq_filesystem::{mq::MqTables as MqFileSystemTables, MqFilesystem};
+use mq_azure_servicebus::{mq::MqTables as MqAzureServiceBusTables, MqAzureServiceBus};
 use url::Url;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
@@ -121,13 +122,21 @@ pub fn load_config(
             ))
         },
         "mq" => {
-            mq_filesystem::add_to_linker(linker, get::<MqFilesystem, MqTables<MqFilesystem>>)?;
+            mq_filesystem::add_to_linker(linker, get::<MqFilesystem, MqFileSystemTables<MqFilesystem>>)?;
             let mq_filesystem = MqFilesystem::from_url(parsed)?;
             Ok((
                 Box::new(mq_filesystem),
-                Box::new(MqTables::<MqFilesystem>::default()),
+                Box::new(MqFileSystemTables::<MqFilesystem>::default()),
             ))
         },
+        "azmq" => {
+            mq_azure_servicebus::add_to_linker(linker, get::<MqAzureServiceBus, MqAzureServiceBusTables<MqAzureServiceBus>>)?;
+            let mq_azure_servicebus = MqAzureServiceBus::from_url(parsed)?;
+            Ok((
+                Box::new(mq_azure_servicebus),
+                Box::new(MqAzureServiceBusTables::<MqAzureServiceBus>::default()),
+            ))
+        }       
         scheme => bail!(
             "invalid scheme: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes",
             scheme
