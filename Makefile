@@ -1,6 +1,9 @@
 .PHONY: build
 build:
 	cargo build --release
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-filesystem-sender-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-filesystem-receiver-demo/Cargo.toml
 	
 .PHONY: test
 test:

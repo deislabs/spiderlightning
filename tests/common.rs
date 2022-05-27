@@ -1,6 +1,13 @@
-fn run(executable: &str, args: Vec<&str>) {
+use std::{
+    io::{stderr, stdout, Write},
+    process::Command,
+};
+
+pub fn run(executable: &str, args: Vec<&str>) {
     let mut cmd = Command::new(executable);
-    cmd.arg(args.into_inte().join(" "));
+    for arg in args {
+        cmd.arg(arg);
+    }
     let output = cmd
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())

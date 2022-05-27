@@ -12,20 +12,8 @@ const MQ_EXAMPLE_FILESYSTEM_RECEIVER: &str = "examples/mq-filesystem-receiver-de
 fn main() {
     println!("cargo:rerun-if-changed={}", WIT_DIRECTORY);
     println!("cargo:rerun-if-changed={}/src/main.rs", KV_TEST_PATH);
-    println!("cargo:rerun-if-changed={}/src/main.rs", KV_EXAMPLE_DEMO);
-    println!(
-        "cargo:rerun-if-changed={}/src/main.rs",
-        MQ_EXAMPLE_FILESYSTEM_SENDER
-    );
-    println!(
-        "cargo:rerun-if-changed={}/src/main.rs",
-        MQ_EXAMPLE_FILESYSTEM_RECEIVER
-    );
 
     cargo_wasi_build(KV_TEST_PATH);
-    cargo_wasi_build(KV_EXAMPLE_DEMO);
-    cargo_wasi_build(MQ_EXAMPLE_FILESYSTEM_SENDER);
-    cargo_wasi_build(MQ_EXAMPLE_FILESYSTEM_RECEIVER);
 }
 
 fn cargo_wasi_build(path: &str) {

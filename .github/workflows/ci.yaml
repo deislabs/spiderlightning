@@ -34,7 +34,7 @@ jobs:
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
       - name: Build
-        run: cargo build --verbose
+        run: make build
       - name: Test
         run: make test
       - name: Check
