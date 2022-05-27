@@ -3,3 +3,5 @@ target
 main.wasm
 key
 bindings.rs
+*.o
+examples/kv-filesystem-c/kv-filesystem-c.wasm
