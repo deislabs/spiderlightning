@@ -1,4 +1,7 @@
-use std::{io::{stdout, stderr, Write}, process::Command};
+use std::{
+    io::{stderr, stdout, Write},
+    process::Command,
+};
 
 const WIT_DIRECTORY: &str = "wit/*";
 const KV_TEST_PATH: &str = "tests/kv-test";
@@ -10,8 +13,14 @@ fn main() {
     println!("cargo:rerun-if-changed={}", WIT_DIRECTORY);
     println!("cargo:rerun-if-changed={}/src/main.rs", KV_TEST_PATH);
     println!("cargo:rerun-if-changed={}/src/main.rs", KV_EXAMPLE_DEMO);
-    println!("cargo:rerun-if-changed={}/src/main.rs", MQ_EXAMPLE_FILESYSTEM_SENDER);
-    println!("cargo:rerun-if-changed={}/src/main.rs", MQ_EXAMPLE_FILESYSTEM_RECEIVER);
+    println!(
+        "cargo:rerun-if-changed={}/src/main.rs",
+        MQ_EXAMPLE_FILESYSTEM_SENDER
+    );
+    println!(
+        "cargo:rerun-if-changed={}/src/main.rs",
+        MQ_EXAMPLE_FILESYSTEM_RECEIVER
+    );
 
     cargo_wasi_build(KV_TEST_PATH);
     cargo_wasi_build(KV_EXAMPLE_DEMO);
@@ -21,7 +30,8 @@ fn main() {
 
 fn cargo_wasi_build(path: &str) {
     let mut cmd = Command::new("cargo");
-    let output = cmd.arg("build")
+    let output = cmd
+        .arg("build")
         .arg("--target=wasm32-wasi")
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
