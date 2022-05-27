@@ -16,7 +16,6 @@ wasi-cloud is a modular and portable interface that provides distributed system 
 | sql database | [MySQL](https://www.mysql.com/), [PostgresSQL](https://www.postgresql.org/) | / | ❌ TBD |
 | blob store | [Amazon S3](https://aws.amazon.com/s3/), [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs) | / | ❌ TBD |
 | message queue | [Amazon SQS](https://aws.amazon.com/sqs/), [Azure Service Bus](https://azure.microsoft.com/services/service-bus/) | / | ✅ `mq.wit` 
-|
 | pub/sub (defined in `pubsub.wit`) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ❌ TBD |
 | custom pluggable functions | TBD | / | ❌ TBD |
 
