@@ -36,12 +36,9 @@ members = [
     "crates/kv-filesystem",
     "crates/runtime",
     "crates/kv-azure-blob",
-    "examples/kv-filesystem-config",
-    "examples/kv-azure-blob-config",
     "examples/kv-demo",
     "examples/mq-filesystem-sender-demo",
     "examples/mq-filesystem-receiver-demo",
-    "examples/mq-config",
 ]
 
 [[bin]]
