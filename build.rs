@@ -5,9 +5,6 @@ use std::{
 
 const WIT_DIRECTORY: &str = "wit/*";
 const KV_TEST_PATH: &str = "tests/kv-test";
-const KV_EXAMPLE_DEMO: &str = "examples/kv-demo";
-const MQ_EXAMPLE_FILESYSTEM_SENDER: &str = "examples/mq-filesystem-sender-demo";
-const MQ_EXAMPLE_FILESYSTEM_RECEIVER: &str = "examples/mq-filesystem-receiver-demo";
 
 fn main() {
     println!("cargo:rerun-if-changed={}", WIT_DIRECTORY);
