@@ -10,7 +10,7 @@ authors = ["DeisLabs Engineering Team"]
 anyhow = "1.0"
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
-tokio = { version = "^0.2.0", features = ["full"] }
+tokio = { version = "1.18.2", features = ["full"] }
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 clap = { version = "3.1.18", features = ["derive"] }
 runtime = { path = "crates/runtime" }

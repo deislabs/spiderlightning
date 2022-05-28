@@ -30,5 +30,5 @@ run-mq-azure-servicebus-sender:
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c ./target/wasm32-wasi/release/mq_azure_servicebus_config.wasm
 
 run-mq-azure-servicebus-receiver:
-	#./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c ./target/wasm32-wasi/release/mq_azure_servicebus_config.wasm
-	python3 ./examples/mq-receiver-demo/src/main.py
+	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c ./target/wasm32-wasi/release/mq_azure_servicebus_config.wasm
+	

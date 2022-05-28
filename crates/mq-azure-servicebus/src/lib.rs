@@ -1,6 +1,6 @@
 use std::{sync::{Arc, Mutex}, str::Utf8Error};
 
-use azure_sdk_service_bus::prelude::*;
+use azure_messaging_servicebus::prelude::*;
 use capability::{Resource, ResourceTables};
 use url::Url;
 use anyhow::Result;
@@ -27,7 +27,10 @@ impl MqAzureServiceBus {
         policy_name: &str,
         policy_key: &str,
     ) -> Self {
+        let http_client = azure_core::new_http_client();
+        
         let inner = Some(Arc::new(Mutex::new(Client::new(
+            http_client,
             service_bus_namespace.to_owned(),
             event_hub_name.to_owned(),
             policy_name.to_owned(),
