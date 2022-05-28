@@ -18,21 +18,7 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     let mut builder = Builder::new_default()?;
-    builder.link_wasi()?;
-    // let url = Url::parse(&args.config)?;
-    // match url.scheme() {
-    //     "azblob" => {
-    //         builder.link_capability::<KvAzureBlob>(url)?;
-    //     },
-    //     "file" => {
-    //         builder.link_capability::<KvFilesystem>(url)?;
-    //     },
-    //     "mq" => {
-    //         builder.link_capability::<MqFilesystem>(url)?;
-    //     },
-    //     _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
-    // }
-    builder.link_capability::<KvDispatcher>()?;
+    builder.link_wasi()?.link_capability::<KvDispatcher>()?;
     let (mut store, instance) = builder.build(&args.module)?;
 
     instance
