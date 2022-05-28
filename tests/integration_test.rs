@@ -3,10 +3,9 @@ mod common;
 #[cfg(test)]
 mod kv_test {
     use anyhow::Result;
-    
-    
+
     use temp_dir::TempDir;
-    
+
     use crate::common::run;
 
     const WASI_CLOUD_BINARY: &str = "./target/debug/wasi-cloud";
