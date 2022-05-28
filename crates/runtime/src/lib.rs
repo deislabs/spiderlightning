@@ -1,7 +1,7 @@
 pub mod resource;
 use anyhow::Result;
 use resource::{DataT, HostResource};
-use url::Url;
+
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
