@@ -1,8 +1,6 @@
 use anyhow::{bail, Result};
 use clap::Parser;
-use kv_azure_blob::KvAzureBlob;
-use kv_filesystem::KvFilesystem;
-use mq_filesystem::MqFilesystem;
+use kv_dispatcher::KvDispatcher;
 
 use runtime::Builder;
 use url::Url;
@@ -12,8 +10,6 @@ use url::Url;
 struct Args {
     #[clap(short, long)]
     module: String,
-    #[clap(short, long)]
-    config: String,
 }
 
 /// The entry point for wasi-cloud CLI
@@ -23,19 +19,20 @@ async fn main() -> Result<()> {
 
     let mut builder = Builder::new_default()?;
     builder.link_wasi()?;
-    let url = Url::parse(&args.config)?;
-    match url.scheme() {
-        "azblob" => {
-            builder.link_capability::<KvAzureBlob>(url)?;
-        },
-        "file" => {
-            builder.link_capability::<KvFilesystem>(url)?;
-        },
-        "mq" => {
-            builder.link_capability::<MqFilesystem>(url)?;
-        },
-        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
-    }
+    // let url = Url::parse(&args.config)?;
+    // match url.scheme() {
+    //     "azblob" => {
+    //         builder.link_capability::<KvAzureBlob>(url)?;
+    //     },
+    //     "file" => {
+    //         builder.link_capability::<KvFilesystem>(url)?;
+    //     },
+    //     "mq" => {
+    //         builder.link_capability::<MqFilesystem>(url)?;
+    //     },
+    //     _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
+    // }
+    builder.link_capability::<KvDispatcher>()?;
     let (mut store, instance) = builder.build(&args.module)?;
 
     instance

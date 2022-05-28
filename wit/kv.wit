@@ -3,7 +3,7 @@ use { error, payload } from types
 use * from resources
 
 // get a key-value store resource descriptor.
-get-kv: function() -> expected<resource-descriptor, error>
+get-kv: function(url: string) -> expected<resource-descriptor, error>
 
 // get the payload for a given key.
 get: function(rd: resource-descriptor, key: string) -> expected<payload, error> 
