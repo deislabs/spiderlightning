@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use runtime::resource::{Addressable};
+use runtime::resource::Addressable;
 use std::{
     fs::{self, File},
     io::{Read, Write},

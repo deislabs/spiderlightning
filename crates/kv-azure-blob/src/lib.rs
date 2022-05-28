@@ -2,7 +2,7 @@ use anyhow::Result;
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{Addressable};
+use runtime::resource::Addressable;
 use std::sync::Arc;
 use url::Url;
 
