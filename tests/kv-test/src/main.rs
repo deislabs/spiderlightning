@@ -4,7 +4,6 @@ use kv::*;
 wit_bindgen_rust::import!("../../wit/kv.wit");
 
 fn main() -> Result<()> {
-
     // test get, set, delete
     let rd = get_kv()?;
     let value = "wasi-cloud".as_bytes();
@@ -15,7 +14,7 @@ fn main() -> Result<()> {
     );
     delete(&rd, "key")?;
     let value = get(&rd, "key");
-    assert_eq!(value.is_err(), true);
+    assert!(value.is_err());
     drop(rd);
 
     // test get_kv() will refer to the same underlying resource
@@ -31,17 +30,17 @@ fn main() -> Result<()> {
 
     drop(rd1);
     drop(rd2);
-    
+
     // test get empty key
     let rd = get_kv()?;
     let value = get(&rd, "");
-    assert_eq!(value.is_err(), true);
+    assert!(value.is_err());
     drop(rd);
 
     // test delete empty key
     let rd = get_kv()?;
     let ret = delete(&rd, "key");
-    assert_eq!(ret.is_err(), true);
+    assert!(ret.is_err());
     Ok(())
 }
 
