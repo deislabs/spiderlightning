@@ -30,7 +30,7 @@ fn main() -> Result<()> {
     delete(&rd2, "key")?;
     let value = get(&rd2, "key");
     assert!(value.is_err());
-    
+
     Ok(())
 }
 

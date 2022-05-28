@@ -1,7 +1,9 @@
 use anyhow::{bail, Result};
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables, Addressable};
+use runtime::resource::{
+    get, Addressable, Context, DataT, HostResource, Linker, Resource, ResourceTables,
+};
 use std::{
     fs::{self, File},
     io::{Read, Write},
@@ -27,8 +29,12 @@ impl kv::Kv for KvDispatcher {
     fn get_kv(&mut self, url: &str) -> Result<Self::ResourceDescriptor, Error> {
         let parsed = Url::parse(url).unwrap();
         match parsed.scheme() {
-            "azblob" => Ok(ResourceDescriptor::AzureBlob(KvAzureBlob::from_url(parsed)?)),
-            "file" => Ok(ResourceDescriptor::Filesystem(KvFilesystem::from_url(parsed)?)),
+            "azblob" => Ok(ResourceDescriptor::AzureBlob(KvAzureBlob::from_url(
+                parsed,
+            )?)),
+            "file" => Ok(ResourceDescriptor::Filesystem(KvFilesystem::from_url(
+                parsed,
+            )?)),
             _ => {
                 println!("invalid url: {}, currently wasi-cloud kv interface only supports 'file', 'azblob'", parsed);
                 Err(Error::OtherError)
