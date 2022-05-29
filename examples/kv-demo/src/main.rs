@@ -16,7 +16,7 @@ fn main() -> Result<()> {
     delete(&resource_descriptor, "key")?;
     let value = get(&resource_descriptor, "key");
     assert_eq!(value.is_err(), true);
-    drop(resource_descriptor);
+    drop(resource_descriptor); // drop != close
     Ok(())
 }
 

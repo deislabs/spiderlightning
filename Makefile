@@ -4,10 +4,13 @@ build:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-filesystem-sender-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-filesystem-receiver-demo/Cargo.toml
-
+	
 .PHONY: test
 test:
-	# cargo test --all --no-fail-fast -- --nocapture
+	cargo test --all --no-fail-fast -- --nocapture
+
+.PHONY: check
+check:
 	cargo clippy --all-targets --all-features -- -D warnings
 	cargo fmt --all -- --check
 
