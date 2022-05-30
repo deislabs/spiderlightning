@@ -1,7 +1,6 @@
 use anyhow::{bail, Result};
-use capability::{Resource, ResourceTables};
-pub use mq::add_to_linker;
 use mq::*;
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
@@ -128,10 +127,24 @@ impl Resource for MqFilesystem {
         match path {
             Ok(path) => {
                 let path = path.to_str().unwrap_or(".").to_string();
-                Ok(MqFilesystem::new(path))
+                Ok(Self::new(path))
             }
             Err(_) => bail!("invalid url: {}", url),
         }
+    }
+}
+
+impl HostResource for MqFilesystem {
+    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
+        crate::add_to_linker(linker, get::<Self, MqTables<Self>>)
+    }
+
+    fn build_data(url: Url) -> Result<DataT> {
+        let mq_filesystem = Self::from_url(url)?;
+        Ok((
+            Box::new(mq_filesystem),
+            Box::new(MqTables::<Self>::default()),
+        ))
     }
 }
 

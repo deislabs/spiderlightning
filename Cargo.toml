@@ -14,10 +14,14 @@ tokio = { version = "1.18.2", features = ["full"] }
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 clap = { version = "3.1.18", features = ["derive"] }
 runtime = { path = "crates/runtime" }
-azure_core = "0.2"
+kv-azure-blob = { path = "crates/kv-azure-blob" }
+kv-filesystem = { path = "crates/kv-filesystem" }
+mq-filesystem = { path = "crates/mq-filesystem" }
+url = "2.2"
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
+temp-dir = "0.1"
 
 [build-dependencies]
 cargo-target-dep = { git = "https://github.com/fermyon/cargo-target-dep", rev = "b7b1989fe0984c0f7c4966398304c6538e52fe49" }
@@ -34,9 +38,6 @@ members = [
     "crates/kv-filesystem",
     "crates/runtime",
     "crates/kv-azure-blob",
-    "crates/capability",
-    "examples/kv-filesystem-config",
-    "examples/kv-azure-blob-config",
     "examples/kv-demo",
     "examples/mq-sender-demo",
     "examples/mq-receiver-demo",

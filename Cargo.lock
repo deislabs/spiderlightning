@@ -309,15 +309,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "capability"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "as-any",
- "url",
-]
-
-[[package]]
 name = "cargo-target-dep"
 version = "0.1.0"
 source = "git+https://github.com/fermyon/cargo-target-dep?rev=b7b1989fe0984c0f7c4966398304c6538e52fe49#b7b1989fe0984c0f7c4966398304c6538e52fe49"
@@ -1197,17 +1188,10 @@ dependencies = [
  "azure_storage",
  "azure_storage_blobs",
  "bytes",
- "capability",
  "futures",
+ "runtime",
  "url",
  "wit-bindgen-wasmtime",
-]
-
-[[package]]
-name = "kv-azure-blob-config"
-version = "0.1.0"
-dependencies = [
- "wit-bindgen-rust",
 ]
 
 [[package]]
@@ -1223,16 +1207,9 @@ name = "kv-filesystem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "capability",
+ "runtime",
  "url",
  "wit-bindgen-wasmtime",
-]
-
-[[package]]
-name = "kv-filesystem-config"
-version = "0.1.0"
-dependencies = [
- "wit-bindgen-rust",
 ]
 
 [[package]]
@@ -1413,7 +1390,7 @@ name = "mq-filesystem"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "capability",
+ "runtime",
  "url",
  "wit-bindgen-wasmtime",
 ]
@@ -2215,6 +2192,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c02424087780c9b71cc96799eaeddff35af2bc513278cda5c99fc1f5d026d3c1"
 
 [[package]]
+name = "temp-dir"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af547b166dd1ea4b472165569fc456cfb6818116f854690b0ff205e636523dab"
+
+[[package]]
 name = "tempfile"
 version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2589,9 +2572,14 @@ dependencies = [
  "clap",
  "env_logger",
  "hyper",
+ "kv-azure-blob",
+ "kv-filesystem",
  "log",
+ "mq-filesystem",
  "runtime",
+ "temp-dir",
  "tokio",
+ "url",
  "vergen",
  "wit-bindgen-wasmtime",
 ]

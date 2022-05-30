@@ -14,9 +14,4 @@ wasi-cap-std-sync = "0.35"
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 anyhow = "1"
 url = "2.2"
-kv-filesystem = { path = "../kv-filesystem" }
-kv-azure-blob = { path = "../kv-azure-blob" }
-mq-filesystem = { path = "../mq-filesystem" }
-mq-azure-servicebus = { path = "../mq-azure-servicebus" }
-capability = { path = "../capability" }
 as-any = "0.3"
