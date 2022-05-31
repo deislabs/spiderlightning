@@ -41,11 +41,9 @@ impl MqAzureServiceBus {
 }
 
 impl Resource for MqAzureServiceBus {
-    fn from_url(_: Url) -> Result<Self> {
-        // get environment var AZURE_SERVICE_BUS_NAMESPACE
-        let service_bus_namespace = std::env::var("AZURE_SERVICE_BUS_NAMESPACE")?;
-        // get environment var AZURE_QUEUE_NAME
-        let queue_name  = std::env::var("AZURE_QUEUE_NAME")?;
+    fn from_url(url: Url) -> Result<Self> {
+        let service_bus_namespace = url.username();
+        let queue_name  = url.host_str().unwrap();
         // get environment var AZURE_POLICY_NAME
         let policy_name = std::env::var("AZURE_POLICY_NAME")?;
         // get environment var AZURE_POLICY_KEY
