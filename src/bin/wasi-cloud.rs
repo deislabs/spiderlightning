@@ -3,6 +3,7 @@ use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
 use mq_filesystem::MqFilesystem;
+use mq_azure_servicebus::MqAzureServiceBus;
 
 use runtime::Builder;
 use url::Url;
@@ -33,6 +34,9 @@ async fn main() -> Result<()> {
         },
         "mq" => {
             builder.link_capability::<MqFilesystem>(url)?;
+        },
+        "azmq" => {
+            builder.link_capability::<MqAzureServiceBus>(url)?;
         },
         _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
     }

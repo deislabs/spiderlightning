@@ -108,8 +108,8 @@ dependencies = [
 
 [[package]]
 name = "azure_messaging_servicebus"
-version = "0.3.0"
-source = "git+https://github.com/danbugs/azure-sdk-for-rust?rev=88e1f5d4aadd3bce872396783291a7d4885e7816#88e1f5d4aadd3bce872396783291a7d4885e7816"
+version = "0.2.0"
+source = "git+https://github.com/danbugs/azure-sdk-for-rust?rev=920b7d948d64c69ad7185dc94cba043c663c69a6#920b7d948d64c69ad7185dc94cba043c663c69a6"
 dependencies = [
  "azure_core",
  "base64",
@@ -120,7 +120,6 @@ dependencies = [
  "log",
  "ring",
  "sha2 0.10.2",
- "thiserror",
  "url",
 ]
 
@@ -1370,19 +1369,12 @@ dependencies = [
  "anyhow",
  "azure_core",
  "azure_messaging_servicebus",
- "capability",
  "chrono",
  "futures",
  "http",
+ "runtime",
  "url",
  "wit-bindgen-wasmtime",
-]
-
-[[package]]
-name = "mq-azure-servicebus-config"
-version = "0.1.0"
-dependencies = [
- "wit-bindgen-rust",
 ]
 
 [[package]]
@@ -1393,13 +1385,6 @@ dependencies = [
  "runtime",
  "url",
  "wit-bindgen-wasmtime",
-]
-
-[[package]]
-name = "mq-filesystem-config"
-version = "0.1.0"
-dependencies = [
- "wit-bindgen-rust",
 ]
 
 [[package]]
@@ -1899,11 +1884,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "as-any",
- "capability",
- "kv-azure-blob",
- "kv-filesystem",
- "mq-azure-servicebus",
- "mq-filesystem",
  "url",
  "wasi-cap-std-sync",
  "wasi-common",
@@ -2567,7 +2547,6 @@ name = "wasi-cloud-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "azure_core",
  "cargo-target-dep",
  "clap",
  "env_logger",
@@ -2575,6 +2554,7 @@ dependencies = [
  "kv-azure-blob",
  "kv-filesystem",
  "log",
+ "mq-azure-servicebus",
  "mq-filesystem",
  "runtime",
  "temp-dir",

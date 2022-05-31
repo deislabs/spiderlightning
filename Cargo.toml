@@ -17,6 +17,7 @@ runtime = { path = "crates/runtime" }
 kv-azure-blob = { path = "crates/kv-azure-blob" }
 kv-filesystem = { path = "crates/kv-filesystem" }
 mq-filesystem = { path = "crates/mq-filesystem" }
+mq-azure-servicebus = { path = "crates/mq-azure-servicebus" }
 url = "2.2"
 
 [dev-dependencies]
@@ -41,8 +42,6 @@ members = [
     "examples/kv-demo",
     "examples/mq-sender-demo",
     "examples/mq-receiver-demo",
-    "examples/mq-filesystem-config",
-    "examples/mq-azure-servicebus-config",
 ]
 
 [[bin]]
