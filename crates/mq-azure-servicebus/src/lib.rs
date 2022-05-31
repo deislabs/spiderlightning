@@ -1,10 +1,13 @@
-use std::{sync::{Arc, Mutex}, str::Utf8Error};
+use std::{
+    str::Utf8Error,
+    sync::{Arc, Mutex},
+};
 
+use anyhow::Result;
 use azure_messaging_servicebus::prelude::*;
+use futures::executor::block_on;
 use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
 use url::Url;
-use anyhow::Result;
-use futures::executor::block_on;
 
 pub use mq::add_to_linker;
 use mq::*;
@@ -28,14 +31,17 @@ impl MqAzureServiceBus {
         policy_key: &str,
     ) -> Self {
         let http_client = azure_core::new_http_client();
-        
-        let inner = Some(Arc::new(Mutex::new(Client::new(
-            http_client,
-            service_bus_namespace.to_owned(),
-            queue_name.to_owned(),
-            policy_name.to_owned(),
-            policy_key.to_owned()
-        ).unwrap())));
+
+        let inner = Some(Arc::new(Mutex::new(
+            Client::new(
+                http_client,
+                service_bus_namespace.to_owned(),
+                queue_name.to_owned(),
+                policy_name.to_owned(),
+                policy_key,
+            )
+            .unwrap(),
+        )));
         Self { inner }
     }
 }
@@ -43,15 +49,15 @@ impl MqAzureServiceBus {
 impl Resource for MqAzureServiceBus {
     fn from_url(url: Url) -> Result<Self> {
         let service_bus_namespace = url.username();
-        let queue_name  = url.host_str().unwrap();
+        let queue_name = url.host_str().unwrap();
         // get environment var AZURE_POLICY_NAME
         let policy_name = std::env::var("AZURE_POLICY_NAME")?;
         // get environment var AZURE_POLICY_KEY
         let policy_key = std::env::var("AZURE_POLICY_KEY")?;
 
         Ok(MqAzureServiceBus::new(
-            &service_bus_namespace,
-            &queue_name,
+            service_bus_namespace,
+            queue_name,
             &policy_name,
             &policy_key,
         ))
@@ -87,7 +93,10 @@ impl mq::Mq for MqAzureServiceBus {
         if *rd != 0 {
             return Err(Error::OtherError);
         }
-        block_on(azure::send(&mut self.inner.as_ref().unwrap().lock().unwrap(), std::str::from_utf8(msg)?.to_string()))?;
+        block_on(azure::send(
+            &mut self.inner.as_ref().unwrap().lock().unwrap(),
+            std::str::from_utf8(msg)?.to_string(),
+        ))?;
         Ok(())
     }
 
@@ -97,7 +106,9 @@ impl mq::Mq for MqAzureServiceBus {
             return Err(Error::OtherError);
         }
 
-        let result = block_on(azure::receive(&mut self.inner.as_ref().unwrap().lock().unwrap()))?;
+        let result = block_on(azure::receive(
+            &mut self.inner.as_ref().unwrap().lock().unwrap(),
+        ))?;
         Ok(result)
     }
 }

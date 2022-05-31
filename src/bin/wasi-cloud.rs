@@ -2,8 +2,8 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
-use mq_filesystem::MqFilesystem;
 use mq_azure_servicebus::MqAzureServiceBus;
+use mq_filesystem::MqFilesystem;
 
 use runtime::Builder;
 use url::Url;

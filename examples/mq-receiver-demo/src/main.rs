@@ -8,9 +8,10 @@ fn main() -> Result<()> {
     loop {
         println!(
             "top message in the queue: {:#?}",
-            std::str::from_utf8(&receive(&resource_descriptor)?)?);
+            std::str::from_utf8(&receive(&resource_descriptor)?)?
+        );
 
-            std::thread::sleep(core::time::Duration::from_secs(1));
+        std::thread::sleep(core::time::Duration::from_secs(1));
     }
 }
 
