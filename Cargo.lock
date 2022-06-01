@@ -107,6 +107,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "azure_core"
+version = "0.2.2"
+source = "git+https://github.com/danbugs/azure-sdk-for-rust?rev=40deff431c8a87ba60d93c59ea35fd11c4f9caad#40deff431c8a87ba60d93c59ea35fd11c4f9caad"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes",
+ "chrono",
+ "dyn-clone",
+ "futures",
+ "getrandom",
+ "http",
+ "log",
+ "oauth2",
+ "pin-project",
+ "rand",
+ "reqwest",
+ "rustc_version",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "thiserror",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_messaging_servicebus"
+version = "0.2.0"
+source = "git+https://github.com/danbugs/azure-sdk-for-rust?rev=40deff431c8a87ba60d93c59ea35fd11c4f9caad#40deff431c8a87ba60d93c59ea35fd11c4f9caad"
+dependencies = [
+ "azure_core 0.2.2 (git+https://github.com/danbugs/azure-sdk-for-rust?rev=40deff431c8a87ba60d93c59ea35fd11c4f9caad)",
+ "base64",
+ "bytes",
+ "chrono",
+ "hmac",
+ "http",
+ "log",
+ "ring",
+ "sha2 0.10.2",
+ "url",
+]
+
+[[package]]
 name = "azure_storage"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -114,7 +158,7 @@ checksum = "7a9f2aee687da9817f7b332e1e01dda51cd9f7a0a68a5abcfec7c4c494a65546"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core",
+ "azure_core 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "base64",
  "bytes",
  "chrono",
@@ -140,7 +184,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d17982127c4a34736a60656ddbd05b1714420686b6e6304145ee3b4501395e75"
 dependencies = [
  "RustyXML",
- "azure_core",
+ "azure_core 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "azure_storage",
  "base64",
  "bytes",
@@ -226,9 +270,9 @@ checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
 
 [[package]]
 name = "cap-fs-ext"
-version = "0.24.3"
+version = "0.24.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de96a353a1b625fae721c0274552533a75d4961e2f313d5a873076c964e9982e"
+checksum = "e54b86398b5852ddd45784b1d9b196b98beb39171821bad4b8b44534a1e87927"
 dependencies = [
  "cap-primitives",
  "cap-std",
@@ -238,9 +282,9 @@ dependencies = [
 
 [[package]]
 name = "cap-primitives"
-version = "0.24.3"
+version = "0.24.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7217718088981caa36e35a01307daeeaad2f6e6e188bf4149d35029dad1c08a2"
+checksum = "fb8fca3e81fae1d91a36e9784ca22a39ef623702b5f7904d89dc31f10184a178"
 dependencies = [
  "ambient-authority",
  "errno",
@@ -257,9 +301,9 @@ dependencies = [
 
 [[package]]
 name = "cap-rand"
-version = "0.24.3"
+version = "0.24.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "575e96a49058d34b2d75caa6ef677d35569add0fcb16cf7866d1a47a35649a87"
+checksum = "ca3b27294116983d706f4c8168f6d10c84f9f5daed0c28bc7d0296cf16bcf971"
 dependencies = [
  "ambient-authority",
  "rand",
@@ -267,9 +311,9 @@ dependencies = [
 
 [[package]]
 name = "cap-std"
-version = "0.24.3"
+version = "0.24.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d684df5773e4af5c343c466f47151db7e7a4366daab609b4a6bb7a75aecf732"
+checksum = "2247568946095c7765ad2b441a56caffc08027734c634a6d5edda648f04e32eb"
 dependencies = [
  "cap-primitives",
  "io-extras",
@@ -280,9 +324,9 @@ dependencies = [
 
 [[package]]
 name = "cap-time-ext"
-version = "0.24.3"
+version = "0.24.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ed053e759cc9bb1c2cbdb53d029c76c56820787a65619579b9a7147eaaf307b"
+checksum = "c50472b6ebc302af0401fa3fb939694cd8ff00e0d4c9182001e434fc822ab83a"
 dependencies = [
  "cap-primitives",
  "once_cell",
@@ -323,7 +367,7 @@ dependencies = [
  "num-integer",
  "num-traits",
  "serde",
- "time 0.1.43",
+ "time 0.1.44",
  "winapi",
 ]
 
@@ -854,7 +898,7 @@ dependencies = [
  "cfg-if",
  "js-sys",
  "libc",
- "wasi 0.10.2+wasi-snapshot-preview1",
+ "wasi 0.10.0+wasi-snapshot-preview1",
  "wasm-bindgen",
 ]
 
@@ -1166,7 +1210,7 @@ name = "kv-azure-blob"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "azure_core",
+ "azure_core 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "azure_storage",
  "azure_storage_blobs",
  "bytes",
@@ -1346,6 +1390,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7843ec2de400bcbc6a6328c958dc38e5359da6e93e72e37bc5246bf1ae776389"
 
 [[package]]
+name = "mq-azure-servicebus"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "azure_core 0.2.2 (git+https://github.com/danbugs/azure-sdk-for-rust?rev=40deff431c8a87ba60d93c59ea35fd11c4f9caad)",
+ "azure_messaging_servicebus",
+ "chrono",
+ "futures",
+ "http",
+ "runtime",
+ "url",
+ "wit-bindgen-wasmtime",
+]
+
+[[package]]
 name = "mq-filesystem"
 version = "0.1.0"
 dependencies = [
@@ -1356,7 +1415,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mq-filesystem-receiver-demo"
+name = "mq-receiver-demo"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1364,7 +1423,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mq-filesystem-sender-demo"
+name = "mq-sender-demo"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1526,9 +1585,9 @@ dependencies = [
 
 [[package]]
 name = "os_str_bytes"
-version = "6.0.1"
+version = "6.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "029d8d0b2f198229de29dca79676f2738ff952edf3fde542eb8bf94d8c21b435"
+checksum = "21326818e99cfe6ce1e524c2a805c189a99b5ae555a35d19f9a284b427d86afa"
 
 [[package]]
 name = "parking_lot"
@@ -1832,6 +1891,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ring"
+version = "0.16.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3053cf52e236a3ed746dfc745aa9cacf1b791d846bdaf412f60a8d7d6e17c8fc"
+dependencies = [
+ "cc",
+ "libc",
+ "once_cell",
+ "spin",
+ "untrusted",
+ "web-sys",
+ "winapi",
+]
+
+[[package]]
 name = "runtime"
 version = "0.1.0"
 dependencies = [
@@ -2068,6 +2142,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "spin"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2175,11 +2255,12 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.1.43"
+version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca8a50ef2360fbd1eeb0ecd46795a87a19024eb4b53c5dc916ca1fd95fe62438"
+checksum = "6db9e6914ab8b1ae1c260a4ae7a49b6c5611b40328a735b21862567685e73255"
 dependencies = [
  "libc",
+ "wasi 0.10.0+wasi-snapshot-preview1",
  "winapi",
 ]
 
@@ -2387,6 +2468,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "957e51f3646910546462e67d5f7599b9e4fb8acdd304b087a6494730f9eebf04"
 
 [[package]]
+name = "untrusted"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
+
+[[package]]
 name = "url"
 version = "2.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2401,9 +2488,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.0.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cfcd319456c4d6ea10087ed423473267e1a071f3bc0aa89f80d60997843c6f0"
+checksum = "93bbc61e655a4833cf400d0d15bf3649313422fa7572886ad6dab16d79886365"
 dependencies = [
  "getrandom",
 ]
@@ -2416,9 +2503,9 @@ checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
 
 [[package]]
 name = "vergen"
-version = "7.1.0"
+version = "7.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20e9626b9dd8e2b78d1f14adacd0787277e612094abceb023d550f9ba33d5d73"
+checksum = "626fd028e124b3ee607632d92ba99b5a5a086cfd404ede4af6c19ecd9b75a02d"
 dependencies = [
  "anyhow",
  "cfg-if",
@@ -2448,9 +2535,9 @@ dependencies = [
 
 [[package]]
 name = "wasi"
-version = "0.10.2+wasi-snapshot-preview1"
+version = "0.10.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
+checksum = "1a143597ca7c7793eff794def352d41792a93c481eb1042423ff7ff72ba2c31f"
 
 [[package]]
 name = "wasi"
@@ -2494,6 +2581,7 @@ dependencies = [
  "kv-azure-blob",
  "kv-filesystem",
  "log",
+ "mq-azure-servicebus",
  "mq-filesystem",
  "runtime",
  "temp-dir",

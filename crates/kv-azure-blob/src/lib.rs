@@ -1,8 +1,10 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
+use runtime::resource::{
+    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceTables,
+};
 use std::sync::Arc;
 use url::Url;
 
@@ -41,9 +43,11 @@ impl KvAzureBlob {
 impl Resource for KvAzureBlob {
     fn from_url(url: Url) -> Result<Self> {
         // get environment var STORAGE_ACCOUNT_NAME
-        let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")?;
+        let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")
+            .context("AZURE_STORAGE_ACCOUNT environment variable not found")?;
         // get environment var STORAGE_ACCOUNT_KEY
-        let storage_account_key = std::env::var("AZURE_STORAGE_KEY")?;
+        let storage_account_key = std::env::var("AZURE_STORAGE_KEY")
+            .context("AZURE_STORAGE_KEY environment variable not found")?;
 
         // container name from the domain of url. For example, if url is
         // "azblob://my-container, then the domain is "my-container".
@@ -61,7 +65,7 @@ impl Resource for KvAzureBlob {
 impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
 
 impl HostResource for KvAzureBlob {
-    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
+    fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
         crate::add_to_linker(linker, get::<Self, crate::KvTables<Self>>)
     }
 

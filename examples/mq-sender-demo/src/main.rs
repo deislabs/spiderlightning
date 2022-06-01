@@ -1,5 +1,3 @@
-use std::{thread::sleep, time::Duration};
-
 use anyhow::Result;
 
 use mq::*;
@@ -7,11 +5,12 @@ wit_bindgen_rust::import!("../../wit/mq.wit");
 
 fn main() -> Result<()> {
     let resource_descriptor = get_mq()?;
-    loop {
+    for _ in 0..3 {
         println!("sending \"hello, world!\" to queue");
         send(&resource_descriptor, "hello, world!".as_bytes())?;
-        sleep(Duration::from_secs(10));
     }
+
+    Ok(())
 }
 
 impl From<mq::Error> for anyhow::Error {
