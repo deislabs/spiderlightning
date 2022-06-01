@@ -51,9 +51,9 @@ impl Builder {
     }
 
     /// Link a host capability to the wasmtime::Linker
-    pub fn link_capability<T: HostResource>(&mut self, url: Url) -> Result<&mut Self> {
+    pub fn link_capability<T: HostResource>(&mut self) -> Result<&mut Self> {
         T::add_to_linker(&mut self.linker)?;
-        self.store.data_mut().data = Some(T::build_data(url)?);
+        self.store.data_mut().data = Some(T::build_data()?);
         Ok(self)
     }
 

@@ -11,8 +11,9 @@ pub type DataT = (Box<dyn Resource>, Box<dyn ResourceTables<dyn Resource>>);
 pub trait ResourceTables<T: ?Sized>: AsAny {}
 
 /// A trait for wit-bindgen resource.
-pub trait Resource: AsAny {
-    /// Given a resource url, return a resource.
+pub trait Resource: AsAny {}
+
+pub trait Addressable {
     fn from_url(url: Url) -> Result<Self>
     where
         Self: Sized;
@@ -21,7 +22,7 @@ pub trait Resource: AsAny {
 /// A trait for wit-bindgen host resource composed of a resource and a resource table.
 pub trait HostResource {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()>;
-    fn build_data(url: Url) -> Result<DataT>;
+    fn build_data() -> Result<DataT>;
 }
 
 /// dynamic dispatch to respective host resource.

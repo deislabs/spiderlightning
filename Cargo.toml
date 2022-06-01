@@ -14,10 +14,7 @@ tokio = { version = "1.18.2", features = ["full"] }
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 clap = { version = "3.1.18", features = ["derive"] }
 runtime = { path = "crates/runtime" }
-kv-azure-blob = { path = "crates/kv-azure-blob" }
-kv-filesystem = { path = "crates/kv-filesystem" }
-mq-filesystem = { path = "crates/mq-filesystem" }
-mq-azure-servicebus = { path = "crates/mq-azure-servicebus" }
+kv-dispatcher = { path = "crates/kv-dispatcher" }
 url = "2.2"
 
 [dev-dependencies]
@@ -37,6 +34,7 @@ members = [
     "crates/mq-azure-servicebus",
     "crates/mq-filesystem",
     "crates/kv-filesystem",
+    "crates/kv-dispatcher",
     "crates/runtime",
     "crates/kv-azure-blob",
     "examples/kv-demo",

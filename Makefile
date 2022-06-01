@@ -1,6 +1,7 @@
 .PHONY: build
 build:
 	cargo build --release
+	install ./target/release/wasi-cloud /usr/local/bin
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-receiver-demo/Cargo.toml
