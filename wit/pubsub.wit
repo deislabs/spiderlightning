@@ -1,0 +1,15 @@
+// A Pub/Sub Interface
+use { error, payload } from types
+use * from resources
+
+// get the resource-descriptor for pub/sub
+get-pub-sub: function() -> expected<resource-descriptor, error>
+
+// pub a message
+send-message: function(rd: resource-descriptor, msg: payload) -> expected<unit, error> 
+
+// sub to a topic
+subscribe: function(rd: resource-descriptor, topic: payload) -> expected<unit, error>
+
+// get messages under subbed topic
+get-message-stream: function(rd: resource-descriptor) -> expected<payload, error>
