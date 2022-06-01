@@ -1027,6 +1027,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "kv-dispatcher"
+version = "0.1.0"
+dependencies = [
+    "anyhow",
+    "kv-azure-blob",
+    "kv-filesystem",
+    "runtime",
+    "url",
+    "wit-bindgen-wasmtime",
+]
+
+[[package]]
 name = "kv-filesystem"
 version = "0.1.0"
 dependencies = ["anyhow", "runtime", "url", "wit-bindgen-wasmtime"]
