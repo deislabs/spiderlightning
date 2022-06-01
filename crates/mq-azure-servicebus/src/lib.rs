@@ -3,10 +3,12 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceTables};
+use runtime::resource::{
+    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceTables,
+};
 use url::Url;
 
 pub use mq::add_to_linker;
@@ -51,9 +53,11 @@ impl Resource for MqAzureServiceBus {
         let service_bus_namespace = url.username();
         let queue_name = url.host_str().unwrap();
         // get environment var AZURE_POLICY_NAME
-        let policy_name = std::env::var("AZURE_POLICY_NAME").context("AZURE_POLICY_NAME environment variable not found")?;
+        let policy_name = std::env::var("AZURE_POLICY_NAME")
+            .context("AZURE_POLICY_NAME environment variable not found")?;
         // get environment var AZURE_POLICY_KEY
-        let policy_key = std::env::var("AZURE_POLICY_KEY").context("AZURE_POLICY_KEY environment variable not found")?;
+        let policy_key = std::env::var("AZURE_POLICY_KEY")
+            .context("AZURE_POLICY_KEY environment variable not found")?;
 
         Ok(MqAzureServiceBus::new(
             service_bus_namespace,
