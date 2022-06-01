@@ -17,9 +17,6 @@ check:
 
 .PHONY: run
 run:
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c 'file:///tmp'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c 'azblob://my-container'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c 'mq:///tmp' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c 'mq:///tmp'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c 'azmq://wasi-cloud-servicebus@wasi-cloud-queue' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c 'azmq://wasi-cloud-servicebus@wasi-cloud-queue'
+	wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm
+	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-filesystem-sender-demo.wasm -c 'mq:///tmp'
+	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-filesystem-receiver-demo.wasm -c 'mq:///tmp'
