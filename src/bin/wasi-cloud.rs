@@ -4,6 +4,7 @@ use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
+use pubsub_confluent_kafka::PubSubConfluentKafka;
 
 use runtime::Builder;
 use url::Url;
@@ -38,7 +39,10 @@ async fn main() -> Result<()> {
         "azmq" => {
             builder.link_capability::<MqAzureServiceBus>(url)?;
         },
-        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
+        "ckpubsub" => {
+            builder.link_capability::<PubSubConfluentKafka>(url)?;
+        }
+        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes", url),
     }
     let (mut store, instance) = builder.build(&args.module)?;
 

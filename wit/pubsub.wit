@@ -3,13 +3,13 @@ use { error, payload } from types
 use * from resources
 
 // get the resource-descriptor for pub/sub
-get-pub-sub: function() -> expected<resource-descriptor, error>
+get-pubsub: function() -> expected<resource-descriptor, error>
 
 // pub a message
-send-message: function(rd: resource-descriptor, msg: payload) -> expected<unit, error> 
+send-message-to-topic: function(rd: resource-descriptor, msg-key: payload, msg-value: payload, topic: string) -> expected<unit, error> 
 
 // sub to a topic
-subscribe: function(rd: resource-descriptor, topic: payload) -> expected<unit, error>
+subscribe-to-topic: function(rd: resource-descriptor, topic: list<string>) -> expected<unit, error>
 
-// get messages under subbed topic
-get-message-stream: function(rd: resource-descriptor) -> expected<payload, error>
+// print messages under subbed topic
+print-message-stream: function(rd: resource-descriptor) -> expected<unit, error>
