@@ -9,7 +9,7 @@ fn main() -> Result<()> {
     let now = SystemTime::now();
     while now.elapsed().unwrap().as_secs() < 60 {
         subscribe_to_topic(&resource_descriptor, &["rust"])?;
-        print_message_stream(&resource_descriptor)?;        
+        print_message_stream(&resource_descriptor)?;
     }
     Ok(())
 }
