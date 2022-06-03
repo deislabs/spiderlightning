@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, time::Duration};
 
 use anyhow::Result;
 use rdkafka::{
@@ -109,8 +109,8 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     fn send_message_to_topic(
         &mut self,
         rd: &Self::ResourceDescriptor,
-        msg_key: Payload<'_>,
-        msg_value: Payload<'_>,
+        msg_key: PayloadParam<'_>,
+        msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
         if *rd != 0 {
@@ -144,21 +144,35 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         Ok(())
     }
 
-    // TO DO: I have to think about how we want to do streaming
-    fn print_message_stream(&mut self, rd: &Self::ResourceDescriptor) -> Result<(), Error> {
+    fn poll_for_message(
+        &mut self,
+        rd: &Self::ResourceDescriptor,
+        timeout_in_secs: u64,
+    ) -> Result<pubsub::Message, Error> {
         if *rd != 0 {
             return Err(Error::DescriptorError);
         }
-        for message in self.consumer.as_ref().unwrap().iter() {
-            let raw_message = message.expect("failed to read message");
-            let key: &str = raw_message
-                .key_view()
-                .unwrap()
-                .expect("failed to get message key");
-            let value = std::str::from_utf8(raw_message.payload().unwrap());
-            println!("{:#?} => {:#?}", key, value);
-        }
+        let message = self
+            .consumer
+            .as_ref()
+            .unwrap()
+            .poll(Duration::from_secs(timeout_in_secs))
+            .transpose()
+            .expect("failed to read message");
 
-        Ok(())
+        match message {
+            Some(m) => Ok(pubsub::Message {
+                key: m
+                    .key_view::<[u8]>()
+                    .transpose()
+                    .expect("failed to get message key view")
+                    .map(Vec::from),
+                value: m.payload().map(Vec::from),
+            }),
+            None => Ok(pubsub::Message {
+                key: None,
+                value: None,
+            }),
+        }
     }
 }

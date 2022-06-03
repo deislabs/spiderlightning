@@ -1,5 +1,5 @@
 // A Pub/Sub Interface
-use { error, payload } from types
+use { message, error, payload } from types
 use * from resources
 
 // get the resource-descriptor for pub/sub
@@ -12,4 +12,4 @@ send-message-to-topic: function(rd: resource-descriptor, msg-key: payload, msg-v
 subscribe-to-topic: function(rd: resource-descriptor, topic: list<string>) -> expected<unit, error>
 
 // print messages under subbed topic
-print-message-stream: function(rd: resource-descriptor) -> expected<unit, error>
+poll-for-message: function(rd: resource-descriptor, timeout-in-secs: u64) -> expected<message, error>
