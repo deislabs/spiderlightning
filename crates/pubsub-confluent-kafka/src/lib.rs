@@ -1,16 +1,14 @@
-use std::{env, time::Duration};
+use std::env;
 
 use anyhow::Result;
-use rdkafka::{
-    consumer::{BaseConsumer, Consumer},
-    producer::{BaseProducer, BaseRecord},
-    ClientConfig, Message,
-};
+use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
 use url::{Position, Url};
 
 use pubsub::*;
 wit_bindgen_wasmtime::export!("../../wit/pubsub.wit");
+
+mod confluent;
 
 #[derive(Default)]
 pub struct PubSubConfluentKafka {
@@ -116,14 +114,9 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         if *rd != 0 {
             return Err(Error::DescriptorError);
         }
-        // TO DO: move this to a module
-        self.producer
-            .as_ref()
-            .unwrap()
-            .send(BaseRecord::to(topic).key(msg_key).payload(msg_value))
-            .expect("failed to send message");
 
-        Ok(())
+        confluent::send(self.producer.as_ref().unwrap(), msg_key, msg_value, topic)
+            .map_err(|_| Error::IoError)
     }
 
     fn subscribe_to_topic(
@@ -134,14 +127,8 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         if *rd != 0 {
             return Err(Error::DescriptorError);
         }
-        // TO DO: move this to a module
-        self.consumer
-            .as_ref()
-            .unwrap()
-            .subscribe(&topic)
-            .expect("failed to subscribe to topic");
 
-        Ok(())
+        confluent::subscribe(self.consumer.as_ref().unwrap(), topic).map_err(|_| Error::OtherError)
     }
 
     fn poll_for_message(
@@ -152,27 +139,12 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         if *rd != 0 {
             return Err(Error::DescriptorError);
         }
-        let message = self
-            .consumer
-            .as_ref()
-            .unwrap()
-            .poll(Duration::from_secs(timeout_in_secs))
-            .transpose()
-            .expect("failed to read message");
-
-        match message {
-            Some(m) => Ok(pubsub::Message {
-                key: m
-                    .key_view::<[u8]>()
-                    .transpose()
-                    .expect("failed to get message key view")
-                    .map(Vec::from),
-                value: m.payload().map(Vec::from),
-            }),
-            None => Ok(pubsub::Message {
-                key: None,
-                value: None,
-            }),
-        }
+        
+        confluent::poll(self.consumer.as_ref().unwrap(), timeout_in_secs)
+            .map_err(|_| Error::OtherError)
+            .map(|f| pubsub::Message {
+                key: f.0,
+                value: f.1,
+            })
     }
 }
