@@ -139,7 +139,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         if *rd != 0 {
             return Err(Error::DescriptorError);
         }
-        
+
         confluent::poll(self.consumer.as_ref().unwrap(), timeout_in_secs)
             .map_err(|_| Error::OtherError)
             .map(|f| pubsub::Message {
