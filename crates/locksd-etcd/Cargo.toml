@@ -1,0 +1,15 @@
+[package]
+name = "locksd-etcd"
+version = "0.1.0"
+edition = "2021"
+authors = ["DeisLabs Engineering Team"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+etcd-client = "0.9"
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+url = "2.2"
+runtime = { path = "../runtime" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
