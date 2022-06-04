@@ -4,6 +4,7 @@ use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
+use lockd_etcd::LockdEtcd;
 
 use runtime::Builder;
 use url::Url;
@@ -37,6 +38,9 @@ async fn main() -> Result<()> {
         },
         "azmq" => {
             builder.link_capability::<MqAzureServiceBus>(url)?;
+        },
+        "etcdlockd" => {
+            builder.link_capability::<LockdEtcd>(url)?;
         },
         _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
     }

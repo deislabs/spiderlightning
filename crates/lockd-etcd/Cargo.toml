@@ -1,5 +1,5 @@
 [package]
-name = "locksd-etcd"
+name = "lockd-etcd"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
@@ -13,3 +13,4 @@ anyhow = "1.0"
 url = "2.2"
 runtime = { path = "../runtime" }
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
+futures = "0.3"
