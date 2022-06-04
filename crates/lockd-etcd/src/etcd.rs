@@ -11,7 +11,11 @@ pub async fn lease_grant(client: &mut Client, ttl: i64) -> Result<i64> {
     Ok(resp.id())
 }
 
-pub async fn lock_with_lease(client: &mut Client, lock_name: &[u8], lease_id: i64) -> Result<Vec<u8>> {
+pub async fn lock_with_lease(
+    client: &mut Client,
+    lock_name: &[u8],
+    lease_id: i64,
+) -> Result<Vec<u8>> {
     let lock_options = LockOptions::new().with_lease(lease_id);
     let resp = client.lock(lock_name, Some(lock_options)).await?;
     Ok(resp.key().to_vec())
