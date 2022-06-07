@@ -72,7 +72,7 @@ impl<T> ResourceTables<dyn Resource> for MqTables<T> where T: Mq + 'static {}
 
 impl HostResource for MqAzureServiceBus {
     fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, get::<Self, crate::MqTables<Self>>)
+        crate::add_to_linker(linker, |cx| get::<Self, crate::MqTables<Self>>(cx, "azmq".to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {

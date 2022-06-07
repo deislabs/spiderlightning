@@ -66,7 +66,7 @@ impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
 
 impl HostResource for KvAzureBlob {
     fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, get::<Self, crate::KvTables<Self>>)
+        crate::add_to_linker(linker, |cx| get::<Self, crate::KvTables<Self>>(cx, "azblob".to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {

@@ -25,15 +25,16 @@ pub trait HostResource {
 }
 
 /// dynamic dispatch to respective host resource.
-pub fn get<T, TTables>(cx: &mut Context<DataT>) -> (&mut T, &mut TTables)
+pub fn get<T, TTables>(cx: &mut Context<DataT>, resource_key: String) -> (&mut T, &mut TTables)
 where
     T: 'static,
     TTables: 'static,
 {
     let data = cx
         .data
-        .as_mut()
+        .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
+
     (
         data.0.as_mut().downcast_mut().unwrap(),
         data.1.as_mut().downcast_mut().unwrap(),

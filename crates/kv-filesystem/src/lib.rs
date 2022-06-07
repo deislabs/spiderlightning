@@ -88,7 +88,7 @@ impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
 
 impl HostResource for KvFilesystem {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, get::<Self, KvTables<Self>>)
+        crate::add_to_linker(linker, |cx| get::<Self, KvTables<Self>>(cx, "file".to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {

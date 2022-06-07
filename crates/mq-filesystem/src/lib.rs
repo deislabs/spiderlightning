@@ -136,7 +136,7 @@ impl Resource for MqFilesystem {
 
 impl HostResource for MqFilesystem {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, get::<Self, MqTables<Self>>)
+        crate::add_to_linker(linker, |cx| get::<Self, MqTables<Self>>(cx, "mq".to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {
