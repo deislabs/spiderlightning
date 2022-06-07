@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource};
 use std::{
     fs::{self, File},
     io::{Read, Write},
@@ -26,16 +26,15 @@ impl KvFilesystem {
 }
 
 impl kv::Kv for KvFilesystem {
-    type ResourceDescriptor = u64;
 
-    fn get_kv(&mut self) -> Result<Self::ResourceDescriptor, Error> {
+    fn get_kv(&mut self) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 
     /// Output the value of a set key.
     /// If key has not been set, return empty.
-    fn get(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
-        if *rd != 0 {
+    fn get(&mut self, rd: ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
 
@@ -49,11 +48,11 @@ impl kv::Kv for KvFilesystem {
     /// Create a key-value pair.
     fn set(
         &mut self,
-        rd: &Self::ResourceDescriptor,
+        rd: ResourceDescriptor,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        if *rd != 0 {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
         let mut file = File::create(path(key, &self.path))?;
@@ -62,8 +61,8 @@ impl kv::Kv for KvFilesystem {
     }
 
     /// Delete a key-value pair.
-    fn delete(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<(), Error> {
-        if *rd != 0 {
+    fn delete(&mut self, rd: ResourceDescriptor, key: &str) -> Result<(), Error> {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
         fs::remove_file(path(key, &self.path))?;
@@ -84,19 +83,14 @@ impl Resource for KvFilesystem {
     }
 }
 
-impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
-
 impl HostResource for KvFilesystem {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self, KvTables<Self>>(cx, "file".to_string()))
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, "file".to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {
         let kv_filesystem = Self::from_url(url)?;
-        Ok((
-            Box::new(kv_filesystem),
-            Box::new(KvTables::<Self>::default()),
-        ))
+        Ok(Box::new(kv_filesystem))
     }
 }
 

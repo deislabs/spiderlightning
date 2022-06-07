@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceTables,
+    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource,
 };
 use url::Url;
 
@@ -68,33 +68,27 @@ impl Resource for MqAzureServiceBus {
     }
 }
 
-impl<T> ResourceTables<dyn Resource> for MqTables<T> where T: Mq + 'static {}
-
 impl HostResource for MqAzureServiceBus {
     fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self, crate::MqTables<Self>>(cx, "azmq".to_string()))
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, "azmq".to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {
         let mq_azure_servicebus = Self::from_url(url)?;
-        Ok((
-            Box::new(mq_azure_servicebus),
-            Box::new(crate::MqTables::<Self>::default()),
-        ))
+        Ok(Box::new(mq_azure_servicebus))
     }
 }
 
 impl mq::Mq for MqAzureServiceBus {
-    type ResourceDescriptor = u64;
 
     /// Get the resource descriptor for your Azure Service Bus message queue
-    fn get_mq(&mut self) -> Result<Self::ResourceDescriptor, Error> {
+    fn get_mq(&mut self) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 
     /// Send a message to your service bus' queue
-    fn send(&mut self, rd: &Self::ResourceDescriptor, msg: PayloadParam<'_>) -> Result<(), Error> {
-        if *rd != 0 {
+    fn send(&mut self, rd: ResourceDescriptor, msg: PayloadParam<'_>) -> Result<(), Error> {
+        if rd != 0 {
             return Err(Error::OtherError);
         }
         block_on(azure::send(
@@ -105,8 +99,8 @@ impl mq::Mq for MqAzureServiceBus {
     }
 
     /// Receive the top message from your service bus' queue
-    fn receive(&mut self, rd: &Self::ResourceDescriptor) -> Result<PayloadResult, Error> {
-        if *rd != 0 {
+    fn receive(&mut self, rd: ResourceDescriptor) -> Result<PayloadResult, Error> {
+        if rd != 0 {
             return Err(Error::OtherError);
         }
 

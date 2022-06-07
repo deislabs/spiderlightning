@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use mq::*;
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
@@ -29,14 +29,12 @@ impl MqFilesystem {
 }
 
 impl mq::Mq for MqFilesystem {
-    type ResourceDescriptor = u64;
-
-    fn get_mq(&mut self) -> Result<Self::ResourceDescriptor, Error> {
+    fn get_mq(&mut self) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 
-    fn send(&mut self, rd: &Self::ResourceDescriptor, msg: PayloadParam<'_>) -> Result<(), Error> {
-        if *rd != 0 {
+    fn send(&mut self, rd: ResourceDescriptor, msg: PayloadParam<'_>) -> Result<(), Error> {
+        if rd != 0 {
             return Err(Error::OtherError);
         }
 
@@ -65,8 +63,8 @@ impl mq::Mq for MqFilesystem {
         Ok(())
     }
 
-    fn receive(&mut self, rd: &Self::ResourceDescriptor) -> Result<PayloadResult, Error> {
-        if *rd != 0 {
+    fn receive(&mut self, rd: ResourceDescriptor) -> Result<PayloadResult, Error> {
+        if rd != 0 {
             return Err(Error::OtherError);
         }
 
@@ -119,8 +117,6 @@ impl mq::Mq for MqFilesystem {
     }
 }
 
-impl<T> ResourceTables<dyn Resource> for MqTables<T> where T: mq::Mq + 'static {}
-
 impl Resource for MqFilesystem {
     fn from_url(url: Url) -> Result<Self> {
         let path = url.to_file_path();
@@ -136,15 +132,12 @@ impl Resource for MqFilesystem {
 
 impl HostResource for MqFilesystem {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self, MqTables<Self>>(cx, "mq".to_string()))
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, "mq".to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {
         let mq_filesystem = Self::from_url(url)?;
-        Ok((
-            Box::new(mq_filesystem),
-            Box::new(MqTables::<Self>::default()),
-        ))
+        Ok(Box::new(mq_filesystem))
     }
 }
 
