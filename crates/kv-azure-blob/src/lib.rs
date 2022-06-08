@@ -2,9 +2,7 @@ use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceTables,
-};
+use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource};
 use std::sync::Arc;
 use url::Url;
 
@@ -13,6 +11,8 @@ use kv::*;
 pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
+
+const SCHEME_NAME: &str = "azblob";
 
 /// A Azure Blob Storage binding for kv interface.
 #[derive(Default)]
@@ -62,33 +62,26 @@ impl Resource for KvAzureBlob {
     }
 }
 
-impl<T> ResourceTables<dyn Resource> for KvTables<T> where T: Kv + 'static {}
-
 impl HostResource for KvAzureBlob {
     fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, get::<Self, crate::KvTables<Self>>)
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {
         let kv_azure_blob = Self::from_url(url)?;
-        Ok((
-            Box::new(kv_azure_blob),
-            Box::new(crate::KvTables::<Self>::default()),
-        ))
+        Ok(Box::new(kv_azure_blob))
     }
 }
 
 impl kv::Kv for KvAzureBlob {
-    type ResourceDescriptor = u64;
-
-    fn get_kv(&mut self) -> Result<Self::ResourceDescriptor, Error> {
+    fn get_kv(&mut self) -> Result<ResourceDescriptor, Error> {
         Ok(1)
     }
 
     /// Output the value of a set key.
     /// If key has not been set, return empty.
-    fn get(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
-        if *rd != 1 {
+    fn get(&mut self, rd: ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
+        if rd != 1 {
             return Err(Error::DescriptorError);
         }
 
@@ -100,11 +93,11 @@ impl kv::Kv for KvAzureBlob {
     /// Create a key-value pair.
     fn set(
         &mut self,
-        rd: &Self::ResourceDescriptor,
+        rd: ResourceDescriptor,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        if *rd != 1 {
+        if rd != 1 {
             return Err(Error::DescriptorError);
         }
 
@@ -115,8 +108,8 @@ impl kv::Kv for KvAzureBlob {
     }
 
     /// Delete a key-value pair.
-    fn delete(&mut self, rd: &Self::ResourceDescriptor, key: &str) -> Result<(), Error> {
-        if *rd != 1 {
+    fn delete(&mut self, rd: ResourceDescriptor, key: &str) -> Result<(), Error> {
+        if rd != 1 {
             return Err(Error::DescriptorError);
         }
         let blob_client = self.inner.as_ref().unwrap().as_blob_client(key);
