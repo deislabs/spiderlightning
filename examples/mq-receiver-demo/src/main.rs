@@ -8,7 +8,7 @@ fn main() -> Result<()> {
     for _ in 0..3 {
         println!(
             "top message in the queue: {:#?}",
-            std::str::from_utf8(&receive(&resource_descriptor)?)?
+            std::str::from_utf8(&receive(resource_descriptor)?)?
         );
     }
     Ok(())
