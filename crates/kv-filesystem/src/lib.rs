@@ -11,6 +11,8 @@ use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
+const SCHEME_NAME: &str = "file";
+
 /// A Filesystem implementation for kv interface.
 #[derive(Default)]
 pub struct KvFilesystem {
@@ -26,7 +28,6 @@ impl KvFilesystem {
 }
 
 impl kv::Kv for KvFilesystem {
-
     fn get_kv(&mut self) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
@@ -85,7 +86,7 @@ impl Resource for KvFilesystem {
 
 impl HostResource for KvFilesystem {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, "file".to_string()))
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {

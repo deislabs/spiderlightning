@@ -11,6 +11,8 @@ use url::Url;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 
+const SCHEME_NAME: &str = "mq";
+
 /// A Filesystem implementation for mq interface.
 #[derive(Default)]
 pub struct MqFilesystem {
@@ -132,7 +134,7 @@ impl Resource for MqFilesystem {
 
 impl HostResource for MqFilesystem {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, "mq".to_string()))
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {

@@ -2,9 +2,7 @@ use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource,
-};
+use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource};
 use std::sync::Arc;
 use url::Url;
 
@@ -13,6 +11,8 @@ use kv::*;
 pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
+
+const SCHEME_NAME: &str = "azblob";
 
 /// A Azure Blob Storage binding for kv interface.
 #[derive(Default)]
@@ -64,7 +64,7 @@ impl Resource for KvAzureBlob {
 
 impl HostResource for KvAzureBlob {
     fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, "azblob".to_string()))
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {

@@ -6,9 +6,7 @@ use std::{
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource,
-};
+use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource};
 use url::Url;
 
 pub use mq::add_to_linker;
@@ -17,6 +15,8 @@ use mq::*;
 pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
+
+const SCHEME_NAME: &str = "azmq";
 
 /// A Azure ServiceBus Message Queue binding for the mq interface.
 #[derive(Default)]
@@ -70,7 +70,7 @@ impl Resource for MqAzureServiceBus {
 
 impl HostResource for MqAzureServiceBus {
     fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, "azmq".to_string()))
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {
@@ -80,7 +80,6 @@ impl HostResource for MqAzureServiceBus {
 }
 
 impl mq::Mq for MqAzureServiceBus {
-
     /// Get the resource descriptor for your Azure Service Bus message queue
     fn get_mq(&mut self) -> Result<ResourceDescriptor, Error> {
         Ok(0)

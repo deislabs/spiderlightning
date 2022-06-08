@@ -16,7 +16,6 @@ fn main() -> Result<()> {
     delete(rd, "key")?;
     let value = get(rd, "key");
     assert!(value.is_err());
-    drop(rd);
 
     // test get_kv() will refer to the same underlying resource
     let rd1 = get_kv()?;
@@ -29,14 +28,10 @@ fn main() -> Result<()> {
     assert_eq!(std::str::from_utf8(&value1)?, "value2");
     assert_eq!(std::str::from_utf8(&value2)?, "value1");
 
-    drop(rd1);
-    drop(rd2);
-
     // test get empty key
     let rd = get_kv()?;
     let value = get(rd, "");
     assert!(value.is_err());
-    drop(rd);
 
     // test delete empty key
     let rd = get_kv()?;
