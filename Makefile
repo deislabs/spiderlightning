@@ -23,4 +23,5 @@ run:
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c 'mq:///tmp'
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c 'azmq://wasi-cloud-servicebus@wasi-cloud-queue' &
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c 'azmq://wasi-cloud-servicebus@wasi-cloud-queue'
+	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/lockd-demo.wasm -c 'etcdlockd://localhost:2379' &
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/lockd-demo.wasm -c 'etcdlockd://localhost:2379'

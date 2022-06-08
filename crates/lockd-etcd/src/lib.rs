@@ -55,10 +55,7 @@ impl lockd::Lockd for LockdEtcd {
             return Err(Error::DescriptorError);
         }
 
-        let lease_id = block_on(etcd::lease_grant(&mut self.client, time_to_live_in_secs))
-            .map_err(|_| Error::OtherError)?;
-
-        block_on(etcd::lock_with_lease(&mut self.client, lock_name, lease_id))
+        block_on(etcd::lock_with_lease(&mut self.client, lock_name, time_to_live_in_secs))
             .map_err(|_| Error::OtherError)
     }
 
