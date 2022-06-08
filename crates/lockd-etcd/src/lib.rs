@@ -55,8 +55,12 @@ impl lockd::Lockd for LockdEtcd {
             return Err(Error::DescriptorError);
         }
 
-        block_on(etcd::lock_with_lease(&mut self.client, lock_name, time_to_live_in_secs))
-            .map_err(|_| Error::OtherError)
+        block_on(etcd::lock_with_lease(
+            &mut self.client,
+            lock_name,
+            time_to_live_in_secs,
+        ))
+        .map_err(|_| Error::OtherError)
     }
 
     fn unlock(&mut self, rd: ResourceDescriptor, lock_key: PayloadParam<'_>) -> Result<(), Error> {
