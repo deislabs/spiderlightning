@@ -7,12 +7,14 @@ use anyhow::Result;
 use etcd_client::Client;
 use futures::executor::block_on;
 use runtime::{
-    resource::{get, DataT, HostResource, Linker, Resource, ResourceTables},
+    resource::{get, DataT, HostResource, Linker, Resource},
     Context,
 };
 use url::{Position, Url};
 
 mod etcd;
+
+const SCHEMA_NAME: &str = "etcdlockd";
 
 pub struct LockdEtcd {
     client: Client,
@@ -27,18 +29,16 @@ impl LockdEtcd {
 }
 
 impl lockd::Lockd for LockdEtcd {
-    type ResourceDescriptor = u64;
-
-    fn get_lockd(&mut self) -> Result<Self::ResourceDescriptor, Error> {
+    fn get_lockd(&mut self) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 
     fn lock(
         &mut self,
-        rd: &Self::ResourceDescriptor,
+        rd: ResourceDescriptor,
         lock_name: PayloadParam<'_>,
     ) -> Result<PayloadResult, Error> {
-        if *rd != 0 {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
 
@@ -47,11 +47,11 @@ impl lockd::Lockd for LockdEtcd {
 
     fn lock_with_time_to_live(
         &mut self,
-        rd: &Self::ResourceDescriptor,
+        rd: ResourceDescriptor,
         lock_name: PayloadParam<'_>,
         time_to_live_in_secs: i64,
     ) -> Result<PayloadResult, Error> {
-        if *rd != 0 {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
 
@@ -62,12 +62,8 @@ impl lockd::Lockd for LockdEtcd {
             .map_err(|_| Error::OtherError)
     }
 
-    fn unlock(
-        &mut self,
-        rd: &Self::ResourceDescriptor,
-        lock_key: PayloadParam<'_>,
-    ) -> Result<(), Error> {
-        if *rd != 0 {
+    fn unlock(&mut self, rd: ResourceDescriptor, lock_key: PayloadParam<'_>) -> Result<(), Error> {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
 
@@ -84,18 +80,13 @@ impl Resource for LockdEtcd {
     }
 }
 
-impl<T> ResourceTables<dyn Resource> for LockdTables<T> where T: Lockd + 'static {}
-
 impl HostResource for LockdEtcd {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, get::<Self, crate::LockdTables<Self>>)
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEMA_NAME.to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {
         let mq_azure_servicebus = Self::from_url(url)?;
-        Ok((
-            Box::new(mq_azure_servicebus),
-            Box::new(crate::LockdTables::<Self>::default()),
-        ))
+        Ok(Box::new(mq_azure_servicebus))
     }
 }
