@@ -2,13 +2,15 @@ use std::env;
 
 use anyhow::Result;
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceTables};
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource};
 use url::{Position, Url};
 
 use pubsub::*;
 wit_bindgen_wasmtime::export!("../../wit/pubsub.wit");
 
 mod confluent;
+
+const SCHEMA_NAME: &str = "ckpubsub";
 
 #[derive(Default)]
 pub struct PubSubConfluentKafka {
@@ -81,37 +83,30 @@ impl PubSubConfluentKafka {
     }
 }
 
-impl<T> ResourceTables<dyn Resource> for PubsubTables<T> where T: Pubsub + 'static {}
-
 impl HostResource for PubSubConfluentKafka {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, get::<Self, crate::PubsubTables<Self>>)
+        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEMA_NAME.to_string()))
     }
 
     fn build_data(url: Url) -> Result<DataT> {
         let mq_azure_servicebus = Self::from_url(url)?;
-        Ok((
-            Box::new(mq_azure_servicebus),
-            Box::new(crate::PubsubTables::<Self>::default()),
-        ))
+        Ok(Box::new(mq_azure_servicebus))
     }
 }
 
 impl pubsub::Pubsub for PubSubConfluentKafka {
-    type ResourceDescriptor = u64;
-
-    fn get_pubsub(&mut self) -> Result<Self::ResourceDescriptor, Error> {
+    fn get_pubsub(&mut self) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 
     fn send_message_to_topic(
         &mut self,
-        rd: &Self::ResourceDescriptor,
+        rd: ResourceDescriptor,
         msg_key: PayloadParam<'_>,
         msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        if *rd != 0 {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
 
@@ -121,10 +116,10 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
 
     fn subscribe_to_topic(
         &mut self,
-        rd: &Self::ResourceDescriptor,
+        rd: ResourceDescriptor,
         topic: Vec<&str>,
     ) -> Result<(), Error> {
-        if *rd != 0 {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
 
@@ -133,10 +128,10 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
 
     fn poll_for_message(
         &mut self,
-        rd: &Self::ResourceDescriptor,
+        rd: ResourceDescriptor,
         timeout_in_secs: u64,
     ) -> Result<pubsub::Message, Error> {
-        if *rd != 0 {
+        if rd != 0 {
             return Err(Error::DescriptorError);
         }
 
