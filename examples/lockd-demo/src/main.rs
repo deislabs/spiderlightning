@@ -15,10 +15,7 @@ fn main() -> Result<()> {
     unlock(&lockd, &leaseless_lock_key)?;
     println!("unlocked leaseless lock!");
 
-    println!("making lease of 60s...");
-    let lease_id = grant_lease(&lockd, 60)?;
-
-    let leasefull_lock_key = lock_with_lease(&lockd, "leasefull-lock".as_bytes(), lease_id)?;
+    let leasefull_lock_key = lock_with_time_to_live(&lockd, "leasefull-lock".as_bytes(), 60)?;
     println!(
         "made leasefull lock with the following key: {}",
         std::str::from_utf8(&leasefull_lock_key)?

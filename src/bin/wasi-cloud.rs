@@ -42,7 +42,7 @@ async fn main() -> Result<()> {
         "etcdlockd" => {
             builder.link_capability::<LockdEtcd>(url)?;
         },
-        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
+        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', and 'etcdlockd' schemes", url),
     }
     let (mut store, instance) = builder.build(&args.module)?;
 

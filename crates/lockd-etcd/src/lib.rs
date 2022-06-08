@@ -45,28 +45,18 @@ impl lockd::Lockd for LockdEtcd {
         block_on(etcd::lock(&mut self.client, lock_name)).map_err(|_| Error::OtherError)
     }
 
-    fn grant_lease(
-        &mut self,
-        rd: &Self::ResourceDescriptor,
-        time_to_live_in_secs: i64,
-    ) -> Result<i64, Error> {
-        if *rd != 0 {
-            return Err(Error::DescriptorError);
-        }
-
-        block_on(etcd::lease_grant(&mut self.client, time_to_live_in_secs))
-            .map_err(|_| Error::OtherError)
-    }
-
-    fn lock_with_lease(
+    fn lock_with_time_to_live(
         &mut self,
         rd: &Self::ResourceDescriptor,
         lock_name: PayloadParam<'_>,
-        lease_id: i64,
+        time_to_live_in_secs: i64,
     ) -> Result<PayloadResult, Error> {
         if *rd != 0 {
             return Err(Error::DescriptorError);
         }
+
+        let lease_id = block_on(etcd::lease_grant(&mut self.client, time_to_live_in_secs))
+            .map_err(|_| Error::OtherError)?;
 
         block_on(etcd::lock_with_lease(&mut self.client, lock_name, lease_id))
             .map_err(|_| Error::OtherError)

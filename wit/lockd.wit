@@ -8,11 +8,8 @@ get-lockd: function() -> expected<resource-descriptor, error>
 // creates a lock with a name, returns the lock key
 lock: function(rd: resource-descriptor, lock-name: payload) -> expected<payload, error>
 
-// grants a lease for with a specific time to live (TTL) in seconds, returns the lease ID
-grant-lease: function(rd: resource-descriptor, time-to-live-in-secs: s64) -> expected<s64, error>
-
 // creates a lock with a lease id, hence giving the lock a TTL
-lock-with-lease: function(rd: resource-descriptor, lock-name: payload, lease-id: s64) -> expected<payload, error>
+lock-with-time-to-live: function(rd: resource-descriptor, lock-name: payload, time-to-live-in-secs: s64) -> expected<payload, error>
 
 // unlock a lock given a lock key
 unlock: function(rd: resource-descriptor, lock-key: payload) -> expected<unit, error>
