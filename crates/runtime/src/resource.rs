@@ -5,7 +5,7 @@ pub use wasmtime::Linker;
 
 pub use crate::Context;
 
-pub type DataT = (Box<dyn Resource>, Box<dyn ResourceTables<dyn Resource>>);
+pub type DataT = Box<dyn Resource>;
 
 /// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait ResourceTables<T: ?Sized>: AsAny {}
@@ -25,17 +25,14 @@ pub trait HostResource {
 }
 
 /// dynamic dispatch to respective host resource.
-pub fn get<T, TTables>(cx: &mut Context<DataT>) -> (&mut T, &mut TTables)
+pub fn get<T>(cx: &mut Context<DataT>, resource_key: String) -> &mut T
 where
     T: 'static,
-    TTables: 'static,
 {
     let data = cx
         .data
-        .as_mut()
+        .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
-    (
-        data.0.as_mut().downcast_mut().unwrap(),
-        data.1.as_mut().downcast_mut().unwrap(),
-    )
+
+    data.as_mut().downcast_mut().unwrap()
 }

@@ -1,4 +1,6 @@
 pub mod resource;
+use std::collections::HashMap;
+
 use anyhow::Result;
 use resource::{DataT, HostResource};
 use url::Url;
@@ -11,7 +13,7 @@ use wasmtime_wasi::*;
 #[derive(Default)]
 pub struct Context<T> {
     pub wasi: Option<WasiCtx>,
-    pub data: Option<T>,
+    pub data: HashMap<String, T>,
 }
 
 /// A wasmtime-based runtime builder.
@@ -27,10 +29,11 @@ impl Builder {
     pub fn new_default() -> Result<Self> {
         let wasi = default_wasi()?;
         let engine = Engine::new(&default_config()?)?;
-        let linker = Linker::new(&engine);
+        let mut linker = Linker::new(&engine);
+        linker.allow_shadowing(true);
         let ctx = Context {
             wasi: Some(wasi),
-            data: None,
+            data: HashMap::new(),
         };
 
         let store = Store::new(&engine, ctx);
@@ -52,8 +55,11 @@ impl Builder {
 
     /// Link a host capability to the wasmtime::Linker
     pub fn link_capability<T: HostResource>(&mut self, url: Url) -> Result<&mut Self> {
+        self.store
+            .data_mut()
+            .data
+            .insert(url.scheme().to_string(), T::build_data(url)?);
         T::add_to_linker(&mut self.linker)?;
-        self.store.data_mut().data = Some(T::build_data(url)?);
         Ok(self)
     }
 
