@@ -2,6 +2,7 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
+use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
 
@@ -38,7 +39,10 @@ async fn main() -> Result<()> {
         "azmq" => {
             builder.link_capability::<MqAzureServiceBus>(url)?;
         },
-        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', and 'mq' schemes", url),
+        "etcdlockd" => {
+            builder.link_capability::<LockdEtcd>(url)?;
+        },
+        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', and 'etcdlockd' schemes", url),
     }
     let (mut store, instance) = builder.build(&args.module)?;
 
