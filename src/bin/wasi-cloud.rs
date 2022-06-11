@@ -5,6 +5,7 @@ use kv_filesystem::KvFilesystem;
 use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
+use pubsub_confluent_kafka::PubSubConfluentKafka;
 
 use runtime::Builder;
 use url::Url;
@@ -42,7 +43,10 @@ async fn main() -> Result<()> {
         "etcdlockd" => {
             builder.link_capability::<LockdEtcd>(url)?;
         },
-        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', and 'etcdlockd' schemes", url),
+        "ckpubsub" => {
+            builder.link_capability::<PubSubConfluentKafka>(url)?;
+        }
+        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes", url),
     }
     let (mut store, instance) = builder.build(&args.module)?;
 
