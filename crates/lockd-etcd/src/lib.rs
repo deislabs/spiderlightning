@@ -16,6 +16,7 @@ mod etcd;
 
 const SCHEMA_NAME: &str = "etcdlockd";
 
+#[derive(Clone)]
 pub struct LockdEtcd {
     client: Client,
 }

@@ -15,7 +15,7 @@ wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 const SCHEME_NAME: &str = "azblob";
 
 /// A Azure Blob Storage binding for kv interface.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct KvAzureBlob {
     inner: Option<Arc<ContainerClient>>,
 }

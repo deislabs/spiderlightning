@@ -14,7 +14,7 @@ wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 const SCHEME_NAME: &str = "mq";
 
 /// A Filesystem implementation for mq interface.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MqFilesystem {
     queue: String,
     path: String,

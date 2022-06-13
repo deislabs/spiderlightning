@@ -14,7 +14,7 @@ wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 const SCHEME_NAME: &str = "file";
 
 /// A Filesystem implementation for kv interface.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct KvFilesystem {
     /// The root directory of the filesystem.
     path: String,

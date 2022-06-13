@@ -19,7 +19,7 @@ wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 const SCHEME_NAME: &str = "azmq";
 
 /// A Azure ServiceBus Message Queue binding for the mq interface.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MqAzureServiceBus {
     inner: Option<Arc<Mutex<Client>>>,
 }
