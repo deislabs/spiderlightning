@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use mq::*;
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource};
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
@@ -18,6 +18,7 @@ const SCHEME_NAME: &str = "mq";
 pub struct MqFilesystem {
     queue: String,
     path: String,
+    resource_map: Option<ResourceMap>,
 }
 
 impl MqFilesystem {
@@ -26,6 +27,7 @@ impl MqFilesystem {
         Self {
             queue: ".queue".to_string(),
             path,
+            resource_map: None,
         }
     }
 }
@@ -130,6 +132,13 @@ impl Resource for MqFilesystem {
             Err(_) => bail!("invalid url: {}", url),
         }
     }
+
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
+        self.resource_map = Some(resource_map);
+        Ok(())
+    }
+
+    
 }
 
 impl HostResource for MqFilesystem {

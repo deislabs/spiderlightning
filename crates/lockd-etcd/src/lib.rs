@@ -7,7 +7,7 @@ use anyhow::Result;
 use etcd_client::Client;
 use futures::executor::block_on;
 use runtime::{
-    resource::{get, DataT, HostResource, Linker, Resource},
+    resource::{get, DataT, HostResource, Linker, Resource, ResourceMap},
     Context,
 };
 use url::{Position, Url};
@@ -19,13 +19,14 @@ const SCHEMA_NAME: &str = "etcdlockd";
 #[derive(Clone)]
 pub struct LockdEtcd {
     client: Client,
+    resource_map: Option<ResourceMap>,
 }
 
 impl LockdEtcd {
     fn new(endpoint: &str) -> Self {
         let client =
             block_on(Client::connect([endpoint], None)).expect("failed to connect to etcd client");
-        Self { client }
+        Self { client, resource_map: None }
     }
 }
 
@@ -80,6 +81,12 @@ impl Resource for LockdEtcd {
     {
         Ok(Self::new(&url[Position::AfterPassword..]))
     }
+
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
+        self.resource_map = Some(resource_map);
+        Ok(())
+    }
+    
 }
 
 impl HostResource for LockdEtcd {

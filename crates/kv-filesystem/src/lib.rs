@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource};
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
 use std::{
     fs::{self, File},
     io::{Read, Write},
@@ -18,12 +18,13 @@ const SCHEME_NAME: &str = "file";
 pub struct KvFilesystem {
     /// The root directory of the filesystem.
     path: String,
+    resource_map: Option<ResourceMap>,
 }
 
 impl KvFilesystem {
     /// Create a new KvFilesystem.
     pub fn new(path: String) -> Self {
-        Self { path }
+        Self { path, resource_map: None }
     }
 }
 
@@ -82,6 +83,12 @@ impl Resource for KvFilesystem {
             Err(_) => bail!("invalid url: {}", url),
         }
     }
+
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
+        self.resource_map = Some(resource_map);
+        Ok(())
+    }
+    
 }
 
 impl HostResource for KvFilesystem {

@@ -2,7 +2,7 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{DataT, HostResource};
+use resource::{DataT, HostResource, Resource, ResourceMap};
 use url::Url;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
@@ -60,6 +60,16 @@ impl Builder {
             .data
             .insert(url.scheme().to_string(), T::build_data(url)?);
         T::add_to_linker(&mut self.linker)?;
+        Ok(self)
+    }
+
+    pub fn link_resource_map(&mut self, rd_map: ResourceMap) -> Result<&mut Self> {
+        for (_k, v) in self.store
+            .data_mut()
+            .data
+            .iter_mut() {
+                v.add_resource_map(rd_map.clone())?;
+        }
         Ok(self)
     }
 

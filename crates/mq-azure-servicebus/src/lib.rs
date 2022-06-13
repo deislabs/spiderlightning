@@ -6,7 +6,7 @@ use std::{
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource};
+use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceMap};
 use url::Url;
 
 pub use mq::add_to_linker;
@@ -22,6 +22,7 @@ const SCHEME_NAME: &str = "azmq";
 #[derive(Default, Clone)]
 pub struct MqAzureServiceBus {
     inner: Option<Arc<Mutex<Client>>>,
+    resource_map: Option<ResourceMap>,
 }
 
 impl MqAzureServiceBus {
@@ -44,7 +45,7 @@ impl MqAzureServiceBus {
             )
             .unwrap(),
         )));
-        Self { inner }
+        Self { inner, resource_map: None }
     }
 }
 
@@ -66,6 +67,12 @@ impl Resource for MqAzureServiceBus {
             &policy_key,
         ))
     }
+
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
+        self.resource_map = Some(resource_map);
+        Ok(())
+    }
+    
 }
 
 impl HostResource for MqAzureServiceBus {

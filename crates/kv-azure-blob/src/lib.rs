@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource};
+use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceMap};
 use std::sync::Arc;
 use url::Url;
 
@@ -18,6 +18,7 @@ const SCHEME_NAME: &str = "azblob";
 #[derive(Default, Clone)]
 pub struct KvAzureBlob {
     inner: Option<Arc<ContainerClient>>,
+    resource_map: Option<ResourceMap>,
 }
 
 impl KvAzureBlob {
@@ -36,7 +37,7 @@ impl KvAzureBlob {
             )
             .as_container_client(container_name),
         );
-        Self { inner }
+        Self { inner, resource_map: None }
     }
 }
 
@@ -60,6 +61,13 @@ impl Resource for KvAzureBlob {
             container_name,
         ))
     }
+
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
+        self.resource_map = Some(resource_map);
+        Ok(())
+    }
+
+    
 }
 
 impl HostResource for KvAzureBlob {

@@ -1,3 +1,5 @@
+use std::{collections::HashMap, sync::{Mutex, Arc}};
+
 use anyhow::{bail, Result};
 use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
@@ -23,6 +25,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    let resource_map = Arc::new(Mutex::new(HashMap::new()));
 
     let mut builder = Builder::new_default()?;
     builder.link_wasi()?;
@@ -48,6 +51,7 @@ async fn main() -> Result<()> {
         }
         _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes", url),
     }
+    builder.link_resource_map(resource_map)?;
     let (mut store, instance) = builder.build(&args.module)?;
 
     instance
