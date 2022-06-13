@@ -1,0 +1,14 @@
+[package]
+name = "pubsub-confluent-kafka"
+version = "0.1.0"
+edition = "2021"
+authors = ["DeisLabs Engineering Team"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+runtime = { path = "../runtime" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
+rdkafka = { version = "0.28", features = ["cmake-build", "ssl"] }
+url = "2.2"
