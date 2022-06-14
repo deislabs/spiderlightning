@@ -32,7 +32,7 @@ impl KvFilesystem {
 }
 
 impl kv::Kv for KvFilesystem {
-    fn get_kv(&mut self) -> Result<ResourceDescriptor, Error> {
+    fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 

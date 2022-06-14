@@ -102,7 +102,7 @@ impl HostResource for PubSubConfluentKafka {
 }
 
 impl pubsub::Pubsub for PubSubConfluentKafka {
-    fn get_pubsub(&mut self) -> Result<ResourceDescriptor, Error> {
+    fn get_pubsub(&mut self, name: &str) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 

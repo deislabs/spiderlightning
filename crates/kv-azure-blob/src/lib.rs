@@ -85,7 +85,7 @@ impl HostResource for KvAzureBlob {
 }
 
 impl kv::Kv for KvAzureBlob {
-    fn get_kv(&mut self) -> Result<ResourceDescriptor, Error> {
+    fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptor, Error> {
         Ok(1)
     }
 

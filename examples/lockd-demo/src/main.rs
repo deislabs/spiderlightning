@@ -9,7 +9,7 @@ wit_bindgen_rust::import!("../../wit/lockd.wit");
 use anyhow::Result;
 
 fn main() -> Result<()> {
-    let lockd = get_lockd()?;
+    let lockd = get_lockd("localhost:2379")?;
 
     println!("trying to acquire a lock with 5s time to live");
     let mut now = SystemTime::now();

@@ -3,7 +3,7 @@ use { error, payload } from types
 use * from resources
 
 // get a resource descriptor for a lockd object
-get-lockd: function() -> expected<resource-descriptor, error>
+get-lockd: function(host: string) -> expected<resource-descriptor, error>
 
 // creates a lock with a name, returns the lock key
 lock: function(rd: resource-descriptor, lock-name: payload) -> expected<payload, error>

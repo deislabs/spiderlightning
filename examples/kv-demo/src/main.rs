@@ -6,7 +6,7 @@ wit_bindgen_rust::import!("../../wit/kv.wit");
 fn main() -> Result<()> {
     // application devleoper does not need to know the host implementation details.
 
-    let resource_descriptor = get_kv()?;
+    let resource_descriptor = get_kv("my-container")?;
     let value = "wasi-cloud".as_bytes();
     set(resource_descriptor, "key", value)?;
     println!(

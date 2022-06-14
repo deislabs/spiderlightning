@@ -33,7 +33,7 @@ impl MqFilesystem {
 }
 
 impl mq::Mq for MqFilesystem {
-    fn get_mq(&mut self) -> Result<ResourceDescriptor, Error> {
+    fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 

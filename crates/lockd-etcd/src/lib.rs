@@ -34,7 +34,7 @@ impl LockdEtcd {
 }
 
 impl lockd::Lockd for LockdEtcd {
-    fn get_lockd(&mut self) -> Result<ResourceDescriptor, Error> {
+    fn get_lockd(&mut self, name: &str) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 

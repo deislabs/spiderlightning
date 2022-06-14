@@ -92,7 +92,7 @@ impl HostResource for MqAzureServiceBus {
 
 impl mq::Mq for MqAzureServiceBus {
     /// Get the resource descriptor for your Azure Service Bus message queue
-    fn get_mq(&mut self) -> Result<ResourceDescriptor, Error> {
+    fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 
