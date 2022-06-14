@@ -80,38 +80,34 @@ impl HostResource for MqAzureServiceBus {
 impl mq::Mq for MqAzureServiceBus {
     /// Get the resource descriptor for your Azure Service Bus message queue
     fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
-        let parsed = name.split("@").collect::<Vec<&str>>();
-        match parsed.len() {
-            2 => {
-                let (service_bus_namespace, queue_name) = (parsed[0], parsed[1]);
-                // get environment var AZURE_POLICY_NAME
-                let policy_name = std::env::var("AZURE_POLICY_NAME")
-                    .context("AZURE_POLICY_NAME environment variable not found")?;
-                // get environment var AZURE_POLICY_KEY
-                let policy_key = std::env::var("AZURE_POLICY_KEY")
-                    .context("AZURE_POLICY_KEY environment variable not found")?;
+        let queue_name = name;
+        let service_bus_namespace = std::env::var("AZURE_SERVICE_BUS_NAMESPACE")
+            .context("AZURE_SERVICE_BUS_NAMESPACE environment variable not found")?;
+        // get environment var AZURE_POLICY_NAME
+        let policy_name = std::env::var("AZURE_POLICY_NAME")
+            .context("AZURE_POLICY_NAME environment variable not found")?;
+        // get environment var AZURE_POLICY_KEY
+        let policy_key = std::env::var("AZURE_POLICY_KEY")
+            .context("AZURE_POLICY_KEY environment variable not found")?;
 
-                let mq_azure_serivcebus = MqAzureServiceBus::new(
-                    service_bus_namespace,
-                    queue_name,
-                    &policy_name,
-                    &policy_key,
-                );
-                self.inner = mq_azure_serivcebus.inner;
-                let uuid = Uuid::new_v4();
-                let rd = uuid.to_string();
-                let cloned = self.clone();
-                let mut map = self
-                    .resource_map
-                    .as_mut()
-                    .ok_or(anyhow::anyhow!("resource map is not initialized"))?
-                    .lock()
-                    .unwrap();
-                map.set(rd.clone(), Box::new(cloned));
-                Ok(rd)
-            }
-            _ => Err(Error::OtherError),
-        }
+        let mq_azure_serivcebus = MqAzureServiceBus::new(
+            &service_bus_namespace,
+            queue_name,
+            &policy_name,
+            &policy_key,
+        );
+        self.inner = mq_azure_serivcebus.inner;
+        let uuid = Uuid::new_v4();
+        let rd = uuid.to_string();
+        let cloned = self.clone();
+        let mut map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        map.set(rd.clone(), Box::new(cloned));
+        Ok(rd)
     }
 
     /// Send a message to your service bus' queue
