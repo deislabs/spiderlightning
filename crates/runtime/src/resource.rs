@@ -11,8 +11,24 @@ pub use wasmtime::Linker;
 pub use crate::Context;
 
 pub type DataT = Box<dyn Resource>;
-pub type ResourceMap = Arc<Mutex<HashMap<String, Box<dyn Resource>>>>;
 pub type ResourceConfig = String;
+pub type ResourceMap = Arc<Mutex<Map>>;
+
+#[derive(Default)]
+pub struct Map(HashMap<String, Box<dyn Resource>>);
+
+impl Map {
+    pub fn set(&mut self, key: String, value: DataT) -> Result<()> {
+        self.0.insert(key, value);
+        Ok(())
+    }
+
+    pub fn get<T: 'static>(&self, key: &str) -> Result<&T> {
+        let value = self.0.get(key).ok_or(anyhow::anyhow!("key not found"))?;
+        let inner = value.get_inner();
+        Ok(inner.clone().downcast_ref::<T>().unwrap())
+    }
+}
 
 /// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait ResourceTables<T: ?Sized>: AsAny {}

@@ -86,12 +86,13 @@ impl kv::Kv for KvAzureBlob {
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
-        let map = self
+        let mut map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
-        let mut map = map.lock().unwrap();
-        map.insert(rd.clone(), Box::new(cloned));
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        map.set(rd.clone(), Box::new(cloned))?;
         Ok(rd)
     }
 
@@ -105,14 +106,10 @@ impl kv::Kv for KvAzureBlob {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
-        let map = map.lock().unwrap();
-        let inner = map
-            .get(rd)
-            .ok_or(anyhow::anyhow!("resource not found"))?
-            .get_inner()
-            .downcast_ref::<Arc<ContainerClient>>()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
             .unwrap();
+        let inner = map.get::<Arc<ContainerClient>>(rd)?;
 
         let blob_client = inner.as_blob_client(key);
         let res = block_on(azure::get(blob_client))?;
@@ -133,14 +130,10 @@ impl kv::Kv for KvAzureBlob {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
-        let map = map.lock().unwrap();
-        let inner = map
-            .get(rd)
-            .ok_or(anyhow::anyhow!("resource not found"))?
-            .get_inner()
-            .downcast_ref::<Arc<ContainerClient>>()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
             .unwrap();
+        let inner = map.get::<Arc<ContainerClient>>(rd)?;
 
         let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
@@ -157,14 +150,10 @@ impl kv::Kv for KvAzureBlob {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
-        let map = map.lock().unwrap();
-        let inner = map
-            .get(rd)
-            .ok_or(anyhow::anyhow!("resource not found"))?
-            .get_inner()
-            .downcast_ref::<Arc<ContainerClient>>()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
             .unwrap();
+        let inner = map.get::<Arc<ContainerClient>>(rd)?;
 
         let blob_client = inner.as_blob_client(key);
         block_on(azure::delete(blob_client))?;

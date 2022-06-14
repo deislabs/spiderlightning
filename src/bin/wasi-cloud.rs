@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 use anyhow::{bail, Result};
 use clap::Parser;
@@ -12,7 +9,7 @@ use kv_filesystem::KvFilesystem;
 // use mq_filesystem::MqFilesystem;
 // use pubsub_confluent_kafka::PubSubConfluentKafka;
 
-use runtime::Builder;
+use runtime::{resource::Map, Builder};
 use url::Url;
 
 #[derive(Parser, Debug)]
@@ -28,7 +25,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let resource_map = Arc::new(Mutex::new(HashMap::new()));
+    let resource_map = Arc::new(Mutex::new(Map::default()));
 
     let mut builder = Builder::new_default()?;
     builder.link_wasi()?;

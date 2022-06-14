@@ -37,12 +37,13 @@ impl kv::Kv for KvFilesystem {
         let rd = uuid.to_string();
 
         let cloned = self.clone();
-        let map = self
+        let mut map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
-        let mut map = map.lock().unwrap();
-        map.insert(rd.clone(), Box::new(cloned));
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        map.set(rd.clone(), Box::new(cloned))?;
 
         Ok(rd)
     }
@@ -57,14 +58,10 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
-        let map = map.lock().unwrap();
-        let base = map
-            .get(rd)
-            .ok_or(anyhow::anyhow!("resource not found"))?
-            .get_inner()
-            .downcast_ref::<String>()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
             .unwrap();
+        let base = map.get::<String>(rd)?;
         let mut file = File::open(path(key, base))?;
 
         let mut buf = Vec::new();
@@ -86,14 +83,10 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
-        let map = map.lock().unwrap();
-        let base = map
-            .get(rd)
-            .ok_or(anyhow::anyhow!("resource not found"))?
-            .get_inner()
-            .downcast_ref::<String>()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
             .unwrap();
+        let base = map.get::<String>(rd)?;
 
         let mut file = match File::create(path(key, base)) {
             Ok(file) => file,
@@ -116,14 +109,10 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
-        let map = map.lock().unwrap();
-        let base = map
-            .get(rd)
-            .ok_or(anyhow::anyhow!("resource not found"))?
-            .get_inner()
-            .downcast_ref::<String>()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
             .unwrap();
+        let base = map.get::<String>(rd)?;
 
         fs::remove_file(path(key, base))?;
         Ok(())
