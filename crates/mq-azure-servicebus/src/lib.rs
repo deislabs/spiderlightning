@@ -103,7 +103,7 @@ impl mq::Mq for MqAzureServiceBus {
         let mut map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         map.set(rd.clone(), Box::new(cloned))?;
@@ -119,7 +119,7 @@ impl mq::Mq for MqAzureServiceBus {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
@@ -140,7 +140,7 @@ impl mq::Mq for MqAzureServiceBus {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;

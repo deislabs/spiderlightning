@@ -27,7 +27,7 @@ impl kv::Kv for KvFilesystem {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
-            .ok_or(anyhow::anyhow!("invalid path: {}", name))?
+            .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
             .to_string();
         self.path = path;
 
@@ -38,7 +38,7 @@ impl kv::Kv for KvFilesystem {
         let mut map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         map.set(rd.clone(), Box::new(cloned))?;
@@ -56,7 +56,7 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
@@ -82,7 +82,7 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
@@ -91,8 +91,7 @@ impl kv::Kv for KvFilesystem {
 
         let mut file = match File::create(path(key, base)) {
             Ok(file) => file,
-            Err(e) => {
-                dbg!(e);
+            Err(_) => {
                 return Err(Error::IoError);
             }
         };
@@ -110,7 +109,7 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;

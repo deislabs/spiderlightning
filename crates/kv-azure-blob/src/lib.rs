@@ -3,8 +3,7 @@ use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource,
-    ResourceMap,
+    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceMap,
 };
 use std::sync::Arc;
 use uuid::Uuid;
@@ -89,7 +88,7 @@ impl kv::Kv for KvAzureBlob {
         let mut map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         map.set(rd.clone(), Box::new(cloned))?;
@@ -106,7 +105,7 @@ impl kv::Kv for KvAzureBlob {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
@@ -130,7 +129,7 @@ impl kv::Kv for KvAzureBlob {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
@@ -150,7 +149,7 @@ impl kv::Kv for KvAzureBlob {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let inner = map.get::<Arc<ContainerClient>>(rd)?;

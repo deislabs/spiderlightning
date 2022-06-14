@@ -57,10 +57,7 @@ impl Builder {
         &mut self,
         config: ResourceConfig,
     ) -> Result<&mut Self> {
-        self.store
-            .data_mut()
-            .data
-            .insert(config.clone(), T::build_data()?);
+        self.store.data_mut().data.insert(config, T::build_data()?);
         T::add_to_linker(&mut self.linker)?;
         Ok(self)
     }

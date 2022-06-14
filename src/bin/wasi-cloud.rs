@@ -7,8 +7,8 @@ use kv_filesystem::KvFilesystem;
 // use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
-use serde::Deserialize;
 use runtime::{resource::Map, Builder};
+use serde::Deserialize;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]

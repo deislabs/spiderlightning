@@ -36,7 +36,7 @@ impl mq::Mq for MqFilesystem {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
-            .ok_or(anyhow::anyhow!("invalid path: {}", name))?
+            .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
             .to_string();
         self.path = path;
 
@@ -47,7 +47,7 @@ impl mq::Mq for MqFilesystem {
         let mut map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         map.set(rd.clone(), Box::new(cloned))?;
@@ -57,18 +57,16 @@ impl mq::Mq for MqFilesystem {
 
     fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
         if Uuid::parse_str(rd).is_err() {
-            dbg!("error at resource desc");
             return Err(Error::DescriptorError);
         }
 
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
-        dbg!(&base);
 
         // get a random name for a queue element
         let rand_file_name = format!(
@@ -105,13 +103,13 @@ impl mq::Mq for MqFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
 
         fs::create_dir_all(&base)?;
-        
+
         // get the queue
         let queue = OpenOptions::new()
             .create(true)

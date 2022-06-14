@@ -24,9 +24,14 @@ impl Map {
     }
 
     pub fn get<T: 'static>(&self, key: &str) -> Result<&T> {
-        let value = self.0.get(key).ok_or(anyhow::anyhow!("key not found"))?;
+        let value = self
+            .0
+            .get(key)
+            .ok_or_else(|| anyhow::anyhow!("key not found"))?;
         let inner = value.get_inner();
-        Ok(inner.clone().downcast_ref::<T>().unwrap())
+        Ok(<&dyn std::any::Any>::clone(&inner)
+            .downcast_ref::<T>()
+            .unwrap())
     }
 }
 
