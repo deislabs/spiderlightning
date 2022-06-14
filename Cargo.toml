@@ -16,8 +16,8 @@ clap = { version = "3.1.18", features = ["derive"] }
 runtime = { path = "crates/runtime" }
 kv-azure-blob = { path = "crates/kv-azure-blob" }
 kv-filesystem = { path = "crates/kv-filesystem" }
-# mq-filesystem = { path = "crates/mq-filesystem" }
-# mq-azure-servicebus = { path = "crates/mq-azure-servicebus" }
+mq-filesystem = { path = "crates/mq-filesystem" }
+mq-azure-servicebus = { path = "crates/mq-azure-servicebus" }
 # lockd-etcd = { path = "crates/lockd-etcd" }
 # pubsub-confluent-kafka = { path = "crates/pubsub-confluent-kafka" }
 url = "2.2"
@@ -38,14 +38,14 @@ vergen = { version = "7", default-features = false, features = [
 members = [
     # "crates/lockd-etcd",
     # "crates/pubsub-confluent-kafka",
-    # "crates/mq-azure-servicebus",
-    # "crates/mq-filesystem",
+    "crates/mq-azure-servicebus",
+    "crates/mq-filesystem",
     "crates/kv-filesystem",
     "crates/runtime",
     "crates/kv-azure-blob",
     "examples/kv-demo",
-    # "examples/mq-sender-demo",
-    # "examples/mq-receiver-demo",
+    "examples/mq-sender-demo",
+    "examples/mq-receiver-demo",
     # "examples/lockd-demo",
     # "examples/pubsub-consumer-demo",
     # "examples/pubsub-producer-demo"

@@ -5,8 +5,8 @@ use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
 // use lockd_etcd::LockdEtcd;
-// use mq_azure_servicebus::MqAzureServiceBus;
-// use mq_filesystem::MqFilesystem;
+use mq_azure_servicebus::MqAzureServiceBus;
+use mq_filesystem::MqFilesystem;
 // use pubsub_confluent_kafka::PubSubConfluentKafka;
 
 use runtime::{resource::Map, Builder};
@@ -37,12 +37,12 @@ async fn main() -> Result<()> {
         s@"file" => {
             builder.link_capability::<KvFilesystem>(s.to_string())?;
         },
-        // "mq" => {
-        //     builder.link_capability::<MqFilesystem>(url)?;
-        // },
-        // "azmq" => {
-        //     builder.link_capability::<MqAzureServiceBus>(url)?;
-        // },
+        s@"mq" => {
+            builder.link_capability::<MqFilesystem>(s.to_string())?;
+        },
+        s@"azmq" => {
+            builder.link_capability::<MqAzureServiceBus>(s.to_string())?;
+        },
         // "etcdlockd" => {
         //     builder.link_capability::<LockdEtcd>(url)?;
         // },
