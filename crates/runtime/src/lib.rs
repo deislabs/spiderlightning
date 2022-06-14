@@ -2,8 +2,7 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{DataT, HostResource, Resource, ResourceConfig, ResourceMap};
-use url::Url;
+use resource::{DataT, HostResource, ResourceConfig, ResourceMap};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
@@ -58,10 +57,7 @@ impl Builder {
         &mut self,
         config: ResourceConfig,
     ) -> Result<&mut Self> {
-        self.store
-            .data_mut()
-            .data
-            .insert(config.clone(), T::build_data()?);
+        self.store.data_mut().data.insert(config, T::build_data()?);
         T::add_to_linker(&mut self.linker)?;
         Ok(self)
     }

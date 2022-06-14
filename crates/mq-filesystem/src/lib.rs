@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use mq::*;
 use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
 use std::{
@@ -7,7 +7,6 @@ use std::{
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
-use url::Url;
 use uuid::Uuid;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
@@ -37,7 +36,7 @@ impl mq::Mq for MqFilesystem {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
-            .ok_or(anyhow::anyhow!("invalid path: {}", name))?
+            .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
             .to_string();
         self.path = path;
 
@@ -48,7 +47,7 @@ impl mq::Mq for MqFilesystem {
         let mut map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         map.set(rd.clone(), Box::new(cloned))?;
@@ -64,7 +63,7 @@ impl mq::Mq for MqFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
@@ -74,6 +73,8 @@ impl mq::Mq for MqFilesystem {
             "{:?}",
             SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
         );
+
+        fs::create_dir_all(&base)?;
 
         // create a file to store the queue element data
         let mut file = File::create(path(&rand_file_name, base))?;
@@ -102,10 +103,12 @@ impl mq::Mq for MqFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
+
+        fs::create_dir_all(&base)?;
 
         // get the queue
         let queue = OpenOptions::new()

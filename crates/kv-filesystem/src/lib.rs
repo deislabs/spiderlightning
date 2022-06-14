@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
 use std::{
     fs::{self, File},
@@ -27,11 +27,9 @@ impl kv::Kv for KvFilesystem {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
-            .ok_or(anyhow::anyhow!("invalid path: {}", name))?
+            .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
             .to_string();
         self.path = path;
-
-        dbg!(&self.path);
 
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
@@ -40,7 +38,7 @@ impl kv::Kv for KvFilesystem {
         let mut map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         map.set(rd.clone(), Box::new(cloned))?;
@@ -58,10 +56,11 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
+        fs::create_dir_all(&base)?;
         let mut file = File::open(path(key, base))?;
 
         let mut buf = Vec::new();
@@ -83,15 +82,16 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
 
+        fs::create_dir_all(&base)?;
+
         let mut file = match File::create(path(key, base)) {
             Ok(file) => file,
-            Err(e) => {
-                dbg!(e);
+            Err(_) => {
                 return Err(Error::IoError);
             }
         };
@@ -109,11 +109,12 @@ impl kv::Kv for KvFilesystem {
         let map = self
             .resource_map
             .as_mut()
-            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
 
+        fs::create_dir_all(&base)?;
         fs::remove_file(path(key, base))?;
         Ok(())
     }

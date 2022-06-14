@@ -1,0 +1,9 @@
+specversion = "0.1"
+
+[[capability]]
+name = "file"
+url = "file:///tmp"
+
+[[capability]]
+name = "mq"
+url = "mq:///tmp"
