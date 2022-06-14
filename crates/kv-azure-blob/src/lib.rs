@@ -3,7 +3,7 @@ use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceConfig,
+    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource,
     ResourceMap,
 };
 use std::sync::Arc;

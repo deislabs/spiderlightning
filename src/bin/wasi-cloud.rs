@@ -7,15 +7,8 @@ use kv_filesystem::KvFilesystem;
 // use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
-<<<<<<< HEAD
-use pubsub_confluent_kafka::PubSubConfluentKafka;
 use serde::Deserialize;
-=======
-// use pubsub_confluent_kafka::PubSubConfluentKafka;
->>>>>>> origin/develop
-
 use runtime::{resource::Map, Builder};
-use url::Url;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -35,7 +28,6 @@ struct Config {
 #[derive(Debug, Deserialize)]
 struct CapabilityConfig {
     name: Option<String>,
-    url: Option<String>,
 }
 /// The entry point for wasi-cloud CLI
 #[tokio::main]
@@ -49,18 +41,19 @@ async fn main() -> Result<()> {
     let toml: Config = toml::from_str(&toml_file)?;
     if toml.specversion.unwrap() == "0.1" {
         for c in toml.capability.unwrap() {
-            match c.name.unwrap().as_str() {
+            let resource_type: &str = c.name.as_ref().unwrap();
+            match resource_type {
             "azblob" => {
-                builder.link_capability::<KvAzureBlob>(Url::parse(&c.url.unwrap()).unwrap())?;
+                builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
             },
             "file" => {
-                builder.link_capability::<KvFilesystem>(Url::parse(&c.url.unwrap()).unwrap())?;
+                builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
             },
             "mq" => {
-                builder.link_capability::<MqFilesystem>(Url::parse(&c.url.unwrap()).unwrap())?;
+                builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
             },
             "azmq" => {
-                builder.link_capability::<MqAzureServiceBus>(Url::parse(&c.url.unwrap()).unwrap())?;
+                builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
             },
             // "etcdlockd" => {
             //     builder.link_capability::<LockdEtcd>(url)?;
@@ -75,6 +68,7 @@ async fn main() -> Result<()> {
         bail!("unsupported toml spec version");
     }
 
+    builder.link_resource_map(resource_map)?;
     let (mut store, instance) = builder.build(&args.module)?;
 
     instance

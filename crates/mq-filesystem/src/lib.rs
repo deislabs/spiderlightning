@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use mq::*;
 use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
 use std::{
@@ -7,7 +7,6 @@ use std::{
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
-use url::Url;
 use uuid::Uuid;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
@@ -58,6 +57,7 @@ impl mq::Mq for MqFilesystem {
 
     fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
         if Uuid::parse_str(rd).is_err() {
+            dbg!("error at resource desc");
             return Err(Error::DescriptorError);
         }
 
@@ -68,12 +68,15 @@ impl mq::Mq for MqFilesystem {
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
+        dbg!(&base);
 
         // get a random name for a queue element
         let rand_file_name = format!(
             "{:?}",
             SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
         );
+
+        fs::create_dir_all(&base)?;
 
         // create a file to store the queue element data
         let mut file = File::create(path(&rand_file_name, base))?;
@@ -107,6 +110,8 @@ impl mq::Mq for MqFilesystem {
             .unwrap();
         let base = map.get::<String>(rd)?;
 
+        fs::create_dir_all(&base)?;
+        
         // get the queue
         let queue = OpenOptions::new()
             .create(true)

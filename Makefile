@@ -21,12 +21,12 @@ check:
 .PHONY: run
 run:
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/multi_capability-demo.wasm -c './examples/multi_capability-demo/wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c 'file:///tmp'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c 'azblob://my-container'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c 'mq:///tmp' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c 'mq:///tmp'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c 'azmq://wasi-cloud-servicebus@wasi-cloud-queue' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c 'azmq://wasi-cloud-servicebus@wasi-cloud-queue'
+	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c 'file:///tmp'
+	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c 'azblob://my-container'
+	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c 'mq:///tmp' &
+	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c 'mq:///tmp'
+	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c 'azmq://wasi-cloud-servicebus@wasi-cloud-queue' &
+	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c 'azmq://wasi-cloud-servicebus@wasi-cloud-queue'
 	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/lockd-demo.wasm -c 'etcdlockd://localhost:2379' &
 	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/lockd-demo.wasm -c 'etcdlockd://localhost:2379'
 	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm -c 'ckpubsub://pkc-epwny.eastus.azure.confluent.cloud:9092' &

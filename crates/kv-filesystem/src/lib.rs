@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
 use std::{
     fs::{self, File},
@@ -31,8 +31,6 @@ impl kv::Kv for KvFilesystem {
             .to_string();
         self.path = path;
 
-        dbg!(&self.path);
-
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
 
@@ -62,6 +60,7 @@ impl kv::Kv for KvFilesystem {
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
+        fs::create_dir_all(&base)?;
         let mut file = File::open(path(key, base))?;
 
         let mut buf = Vec::new();
@@ -87,6 +86,8 @@ impl kv::Kv for KvFilesystem {
             .lock()
             .unwrap();
         let base = map.get::<String>(rd)?;
+
+        fs::create_dir_all(&base)?;
 
         let mut file = match File::create(path(key, base)) {
             Ok(file) => file,
@@ -114,6 +115,7 @@ impl kv::Kv for KvFilesystem {
             .unwrap();
         let base = map.get::<String>(rd)?;
 
+        fs::create_dir_all(&base)?;
         fs::remove_file(path(key, base))?;
         Ok(())
     }

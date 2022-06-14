@@ -2,8 +2,7 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{DataT, HostResource, Resource, ResourceConfig, ResourceMap};
-use url::Url;
+use resource::{DataT, HostResource, ResourceConfig, ResourceMap};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
