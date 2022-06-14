@@ -1,13 +1,15 @@
+use std::sync::{Arc, Mutex};
+
 use anyhow::{bail, Result};
 use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
-use lockd_etcd::LockdEtcd;
+// use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
-use pubsub_confluent_kafka::PubSubConfluentKafka;
+// use pubsub_confluent_kafka::PubSubConfluentKafka;
 
-use runtime::Builder;
+use runtime::{resource::Map, Builder};
 use url::Url;
 
 #[derive(Parser, Debug)]
@@ -23,31 +25,33 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    let resource_map = Arc::new(Mutex::new(Map::default()));
 
     let mut builder = Builder::new_default()?;
     builder.link_wasi()?;
     let url = Url::parse(&args.config)?;
     match url.scheme() {
-        "azblob" => {
-            builder.link_capability::<KvAzureBlob>(url)?;
+        s@"azblob" => {
+            builder.link_capability::<KvAzureBlob>(s.to_string())?;
         },
-        "file" => {
-            builder.link_capability::<KvFilesystem>(url)?;
+        s@"file" => {
+            builder.link_capability::<KvFilesystem>(s.to_string())?;
         },
-        "mq" => {
-            builder.link_capability::<MqFilesystem>(url)?;
+        s@"mq" => {
+            builder.link_capability::<MqFilesystem>(s.to_string())?;
         },
-        "azmq" => {
-            builder.link_capability::<MqAzureServiceBus>(url)?;
+        s@"azmq" => {
+            builder.link_capability::<MqAzureServiceBus>(s.to_string())?;
         },
-        "etcdlockd" => {
-            builder.link_capability::<LockdEtcd>(url)?;
-        },
-        "ckpubsub" => {
-            builder.link_capability::<PubSubConfluentKafka>(url)?;
-        }
+        // "etcdlockd" => {
+        //     builder.link_capability::<LockdEtcd>(url)?;
+        // },
+        // "ckpubsub" => {
+        //     builder.link_capability::<PubSubConfluentKafka>(url)?;
+        // }
         _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes", url),
     }
+    builder.link_resource_map(resource_map)?;
     let (mut store, instance) = builder.build(&args.module)?;
 
     instance

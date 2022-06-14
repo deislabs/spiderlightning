@@ -5,7 +5,7 @@ use pubsub::*;
 wit_bindgen_rust::import!("../../wit/pubsub.wit");
 
 fn main() -> Result<()> {
-    let resource_descriptor = get_pubsub()?;
+    let resource_descriptor = get_pubsub("pkc-epwny.eastus.azure.confluent.cloud:9092")?;
     let now = SystemTime::now();
     subscribe_to_topic(resource_descriptor, &["rust"])?;
     let timeout_as_secs = 30;

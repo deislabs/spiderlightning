@@ -2,7 +2,7 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{DataT, HostResource};
+use resource::{DataT, HostResource, Resource, ResourceConfig, ResourceMap};
 use url::Url;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
@@ -54,12 +54,22 @@ impl Builder {
     }
 
     /// Link a host capability to the wasmtime::Linker
-    pub fn link_capability<T: HostResource>(&mut self, url: Url) -> Result<&mut Self> {
+    pub fn link_capability<T: HostResource>(
+        &mut self,
+        config: ResourceConfig,
+    ) -> Result<&mut Self> {
         self.store
             .data_mut()
             .data
-            .insert(url.scheme().to_string(), T::build_data(url)?);
+            .insert(config.clone(), T::build_data()?);
         T::add_to_linker(&mut self.linker)?;
+        Ok(self)
+    }
+
+    pub fn link_resource_map(&mut self, rd_map: ResourceMap) -> Result<&mut Self> {
+        for (_k, v) in self.store.data_mut().data.iter_mut() {
+            v.add_resource_map(rd_map.clone())?;
+        }
         Ok(self)
     }
 

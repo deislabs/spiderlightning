@@ -15,4 +15,4 @@ azure_core = "0.2"
 bytes = "1"
 futures = "0.3"
 runtime = { path = "../runtime" }
-url = "2.2"
+uuid = "1"

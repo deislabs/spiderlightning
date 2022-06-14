@@ -6,7 +6,7 @@ wit_bindgen_rust::import!("../../wit/kv.wit");
 
 fn main() -> Result<()> {
     // test get, set, delete
-    let rd = get_kv()?;
+    let rd = get_kv("rand")?; // TODO: this should be a random name
     let value = "wasi-cloud".as_bytes();
     set(rd, "key", value)?;
     println!(
@@ -18,8 +18,8 @@ fn main() -> Result<()> {
     assert!(value.is_err());
 
     // test get_kv() will refer to the same underlying resource
-    let rd1 = get_kv()?;
-    let rd2 = get_kv()?;
+    let rd1 = get_kv("random1")?;
+    let rd2 = get_kv("random2")?;
     set(rd1, "key1", "value1".as_bytes())?;
     set(rd2, "key2", "value2".as_bytes())?;
 
@@ -29,12 +29,12 @@ fn main() -> Result<()> {
     assert_eq!(std::str::from_utf8(&value2)?, "value1");
 
     // test get empty key
-    let rd = get_kv()?;
+    let rd = get_kv("random3")?;
     let value = get(rd, "");
     assert!(value.is_err());
 
     // test delete empty key
-    let rd = get_kv()?;
+    let rd = get_kv("random4")?;
     let ret = delete(rd, "key");
     assert!(ret.is_err());
     Ok(())

@@ -9,4 +9,4 @@ authors = ["DeisLabs Engineering Team"]
 anyhow = "1.0"
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
 runtime = { path = "../runtime" }
-url = "2.2"
+uuid = "1"
