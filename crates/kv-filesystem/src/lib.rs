@@ -1,8 +1,6 @@
 use anyhow::{Context, Result};
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{
-    get, DataT, Linker, Map, Resource, ResourceMap, RuntimeContext, RuntimeResource,
-};
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 use std::{
     fs::{self, File},
     io::{Read, Write},
@@ -38,7 +36,7 @@ impl kv::Kv for KvFilesystem {
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
         let mut map = Map::lock(&mut self.resource_map)?;
-        map.set(rd.clone(), Box::new(cloned));
+        map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 
@@ -94,5 +92,12 @@ impl kv::Kv for KvFilesystem {
         fs::remove_file(PathBuf::from(base).join(key))
             .with_context(|| "failed to delete key's value")?;
         Ok(())
+    }
+
+    fn watch(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<Observable, Error> {
+        Ok(Observable {
+            rd: rd.to_string(),
+            key: key.to_string(),
+        })
     }
 }

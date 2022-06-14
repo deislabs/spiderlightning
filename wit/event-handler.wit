@@ -1,0 +1,3 @@
+use { event } from types
+
+handle-event: function(ev: event) -> expected<option<event>, string> 

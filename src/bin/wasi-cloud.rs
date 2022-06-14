@@ -1,14 +1,20 @@
 use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 use anyhow::{bail, Result};
+use as_any::Downcast;
 use clap::Parser;
+use events::Events;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
 use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
 use pubsub_confluent_kafka::PubSubConfluentKafka;
-use runtime::{resource::Map, Builder};
+use runtime::{
+    resource::{event_handler::EventHandler, Map},
+    Builder,
+};
 use serde::Deserialize;
 
 #[derive(Parser, Debug)]
@@ -38,12 +44,17 @@ async fn main() -> Result<()> {
 
     let mut builder = Builder::new_default()?;
     builder.link_wasi()?;
+    let mut events_enabled = false;
     let toml_file = std::fs::read_to_string(args.config)?;
     let toml: Config = toml::from_str(&toml_file)?;
     if toml.specversion.unwrap() == "0.1" {
         for c in toml.capability.unwrap() {
             let resource_type: &str = c.name.as_ref().unwrap();
             match resource_type {
+            "events" => {
+                events_enabled = true;
+                builder.link_capability::<Events>(resource_type.to_string())?;
+            },
             "azblobkv" => {
                 builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
             },
@@ -62,7 +73,7 @@ async fn main() -> Result<()> {
             "ckpubsub" => {
                 builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
             }
-            _ => bail!("invalid url: currently wasi-cloud only supports 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
+            _ => bail!("invalid url: currently wasi-cloud only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
         }
     } else {
@@ -70,10 +81,35 @@ async fn main() -> Result<()> {
     }
 
     builder.link_resource_map(resource_map)?;
+
     let (mut store, instance) = builder.build(&args.module)?;
 
-    instance
-        .get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?
-        .call(&mut store, (0, 0))?;
+    if events_enabled {
+        let event_handler = EventHandler::new(&mut store, &instance, |ctx| {
+            ctx.guest_state.as_mut().unwrap()
+        })?;
+        let store_rc = Rc::new(RefCell::new(store));
+        store_rc
+            .borrow_mut()
+            .data_mut()
+            .data
+            .get_mut("events")
+            .unwrap()
+            .0
+            .as_mut()
+            .downcast_mut::<Events>()
+            .unwrap()
+            .update_state(store_rc.clone(), event_handler)?;
+        unsafe {
+            let store = Rc::into_raw(store_rc);
+            instance
+                .get_typed_func::<(i32, i32), i32, _>(&mut (*(*store).as_ptr()), "main")?
+                .call(&mut (*(*store).as_ptr()), (0, 0))?;
+        }
+    } else {
+        instance
+            .get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?
+            .call(&mut store, (0, 0))?;
+    }
     Ok(())
 }

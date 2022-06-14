@@ -1,0 +1,11 @@
+use { observable } from resources
+
+variant event-error {
+	error(string),
+} 
+
+resource events {
+	static get: function() -> expected<events, event-error>
+	listen: function(ob: observable) -> expected<events, event-error>
+	exec: function(duration: u64) -> expected<unit, event-error>
+}

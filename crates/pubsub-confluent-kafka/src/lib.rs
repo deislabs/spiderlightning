@@ -3,9 +3,7 @@ use std::{env, sync::Arc};
 use anyhow::{Context, Result};
 use proc_macro_utils::{Resource, RuntimeResource};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::{
-    get, DataT, Linker, Map, Resource, ResourceMap, RuntimeContext, RuntimeResource,
-};
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 
 use pubsub::*;
 use uuid::Uuid;
@@ -89,7 +87,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
         let mut map = Map::lock(&mut self.resource_map)?;
-        map.set(rd.clone(), Box::new(cloned));
+        map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 

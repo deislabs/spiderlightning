@@ -10,12 +10,16 @@ pub use wasmtime::Linker;
 
 pub use crate::RuntimeContext;
 
-pub type DataT = Box<dyn Resource>;
+pub type DataT = (
+    Box<dyn Resource>,
+    Option<Box<dyn ResourceTables<dyn Resource>>>,
+);
 pub type ResourceConfig = String;
 pub type ResourceMap = Arc<Mutex<Map>>;
+pub type Ctx = RuntimeContext<DataT, GuestState>;
 
 #[derive(Default)]
-pub struct Map(HashMap<String, Box<dyn Resource>>);
+pub struct Map(HashMap<String, DataT>);
 
 impl Map {
     pub fn lock(wrapped_map: &mut Option<Arc<Mutex<Map>>>) -> Result<MutexGuard<Map>> {
@@ -34,10 +38,18 @@ impl Map {
         let value = self.0.get(key).with_context(|| {
             "failed to match resource descriptor in map of instantiated resources"
         })?;
-        let inner = value.get_inner();
+        let inner = value.0.get_inner();
         <&dyn std::any::Any>::clone(&inner)
             .downcast_ref::<T>()
             .with_context(|| "failed to acquire matched resource descriptor service")
+    }
+
+    pub fn get_dynamic(&self, key: &str) -> Result<&DataT> {
+        let value = self
+            .0
+            .get(key)
+            .ok_or_else(|| anyhow::anyhow!("key not found"))?;
+        Ok(value)
     }
 }
 
@@ -50,16 +62,19 @@ pub trait Resource: AsAny {
 
     /// Add resource map to resource.
     fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
+
+    /// check if the resource has changed on key.
+    fn changed(&self, key: &str) -> bool;
 }
 
 /// A trait for wit-bindgen host resource composed of a resource and a resource table.
 pub trait RuntimeResource {
-    fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()>;
+    fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
     fn build_data() -> Result<DataT>;
 }
 
 /// dynamic dispatch to respective host resource.
-pub fn get<T>(cx: &mut RuntimeContext<DataT>, resource_key: String) -> &mut T
+pub fn get<T>(cx: &mut Ctx, resource_key: String) -> &mut T
 where
     T: 'static,
 {
@@ -68,5 +83,27 @@ where
         .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
 
-    data.as_mut().downcast_mut().unwrap()
+    data.0.as_mut().downcast_mut().unwrap()
 }
+
+pub fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)
+where
+    T: 'static,
+    TTable: 'static,
+{
+    let data = cx
+        .data
+        .get_mut(&resource_key)
+        .expect("internal error: Runtime context data is None");
+    (
+        data.0.as_mut().downcast_mut().unwrap(),
+        data.1.as_mut().unwrap().as_mut().downcast_mut().unwrap(),
+    )
+}
+
+// guest resource
+use event_handler::EventHandlerData;
+
+wit_bindgen_wasmtime::import!("../../wit/event-handler.wit");
+
+pub type GuestState = EventHandlerData;

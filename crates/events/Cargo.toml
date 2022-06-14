@@ -1,8 +1,9 @@
 [package]
-name = "runtime"
+name = "events"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,6 +12,8 @@ wasmtime = "0.35"
 wasmtime-wasi = "0.35"
 wasi-common = "0.35"
 wasi-cap-std-sync = "0.35"
-anyhow = "1"
-as-any = "0.3"
+anyhow = "1.0"
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+runtime = { path = "../runtime" }
+url = "2.2"
+wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }

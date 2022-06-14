@@ -1,8 +1,12 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
+use event_handler::Event;
+use events::{EventError, Events};
 use kv::*;
 wit_bindgen_rust::import!("../../wit/kv.wit");
 wit_error_rs::impl_error!(Error);
+wit_bindgen_rust::import!("../../wit/events.wit");
+wit_bindgen_rust::export!("../../wit/event-handler.wit");
 
 fn main() -> Result<()> {
     // application devleoper does not need to know the host implementation details.
@@ -21,7 +25,32 @@ fn main() -> Result<()> {
     delete(&rd2, "key")?;
     let value = get(&rd1, "key");
     assert_eq!(value.is_err(), true);
+
+    let ob1 = watch(&rd1, "my-key")?;
+    let ob2 = watch(&rd1, "my-key2")?;
+    let events = Events::get()?;
+    events
+        .listen(events::Observable {
+            rd: ob1.rd.as_str(),
+            key: ob1.key.as_str(),
+        })?
+        .listen(events::Observable {
+            rd: ob2.rd.as_str(),
+            key: ob2.key.as_str(),
+        })?
+        .exec(5)?;
+
     drop(rd1); // drop != close
     drop(rd2);
     Ok(())
+}
+
+pub struct EventHandler {}
+
+impl event_handler::EventHandler for EventHandler {
+    fn handle_event(ev: Event) -> Result<Option<Event>, String> {
+        println!("{:?}", ev.source);
+        println!("{:?}", ev.event_type);
+        Ok(Some(ev))
+    }
 }

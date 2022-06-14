@@ -813,6 +813,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "events"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "runtime",
+ "url",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2265,6 +2280,7 @@ dependencies = [
  "wasi-common",
  "wasmtime",
  "wasmtime-wasi",
+ "wit-bindgen-wasmtime",
 ]
 
 [[package]]
@@ -3035,9 +3051,11 @@ name = "wasi-cloud-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "as-any",
  "cargo-target-dep",
  "clap",
  "env_logger",
+ "events",
  "hyper",
  "kv-azure-blob",
  "kv-filesystem",

@@ -16,6 +16,10 @@ pub fn resource(input: TokenStream) -> TokenStream {
             fn get_inner(&self) -> &dyn std::any::Any {
                 self.inner.as_ref().unwrap()
             }
+
+            fn changed(&self, key: &str) -> bool {
+                true
+            }
         }
     };
     TokenStream::from(expanded)
@@ -27,12 +31,12 @@ pub fn runtime_resource(input: TokenStream) -> TokenStream {
     let name = &input.ident;
     let expanded = quote! {
         impl RuntimeResource for #name {
-            fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
+            fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
                 crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
             }
 
             fn build_data() -> Result<DataT> {
-                Ok(Box::new(Self::default()))
+                Ok((Box::new(Self::default()), None))
             }
         }
     };
