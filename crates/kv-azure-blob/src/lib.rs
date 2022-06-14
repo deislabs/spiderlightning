@@ -2,9 +2,12 @@ use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource};
+use runtime::resource::{
+    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceConfig,
+    ResourceMap,
+};
 use std::sync::Arc;
-use url::Url;
+use uuid::Uuid;
 
 use kv::*;
 
@@ -15,9 +18,10 @@ wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 const SCHEME_NAME: &str = "azblob";
 
 /// A Azure Blob Storage binding for kv interface.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct KvAzureBlob {
     inner: Option<Arc<ContainerClient>>,
+    resource_map: Option<ResourceMap>,
 }
 
 impl KvAzureBlob {
@@ -36,29 +40,22 @@ impl KvAzureBlob {
             )
             .as_container_client(container_name),
         );
-        Self { inner }
+        Self {
+            inner,
+            resource_map: None,
+        }
     }
 }
 
 impl Resource for KvAzureBlob {
-    fn from_url(url: Url) -> Result<Self> {
-        // get environment var STORAGE_ACCOUNT_NAME
-        let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")
-            .context("AZURE_STORAGE_ACCOUNT environment variable not found")?;
-        // get environment var STORAGE_ACCOUNT_KEY
-        let storage_account_key = std::env::var("AZURE_STORAGE_KEY")
-            .context("AZURE_STORAGE_KEY environment variable not found")?;
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
+        self.resource_map = Some(resource_map);
+        Ok(())
+    }
 
-        // container name from the domain of url. For example, if url is
-        // "azblob://my-container, then the domain is "my-container".
-        let container_name = url
-            .domain()
-            .expect("container name is required in the capability configuration");
-        Ok(KvAzureBlob::new(
-            &storage_account_name,
-            &storage_account_key,
-            container_name,
-        ))
+    fn get_inner(&self) -> &dyn std::any::Any {
+        let inner = self.inner.as_ref().unwrap();
+        inner
     }
 }
 
@@ -67,25 +64,54 @@ impl HostResource for KvAzureBlob {
         crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
     }
 
-    fn build_data(url: Url) -> Result<DataT> {
-        let kv_azure_blob = Self::from_url(url)?;
+    fn build_data() -> Result<DataT> {
+        let kv_azure_blob = Self::default();
         Ok(Box::new(kv_azure_blob))
     }
 }
 
 impl kv::Kv for KvAzureBlob {
-    fn get_kv(&mut self) -> Result<ResourceDescriptor, Error> {
-        Ok(1)
+    /// Construct a new KvAzureBlob from container name. For example, A container name could be "my-container".
+    fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
+        // get environment var STORAGE_ACCOUNT_NAME
+        let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")
+            .context("AZURE_STORAGE_ACCOUNT environment variable not found")?;
+        // get environment var STORAGE_ACCOUNT_KEY
+        let storage_account_key = std::env::var("AZURE_STORAGE_KEY")
+            .context("AZURE_STORAGE_KEY environment variable not found")?;
+
+        let kv_azure_blob = KvAzureBlob::new(&storage_account_name, &storage_account_key, name);
+        self.inner = kv_azure_blob.inner;
+
+        let uuid = Uuid::new_v4();
+        let rd = uuid.to_string();
+        let cloned = self.clone();
+        let mut map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        map.set(rd.clone(), Box::new(cloned))?;
+        Ok(rd)
     }
 
     /// Output the value of a set key.
     /// If key has not been set, return empty.
-    fn get(&mut self, rd: ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
-        if rd != 1 {
+    fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
+        if Uuid::parse_str(rd).is_err() {
             return Err(Error::DescriptorError);
         }
 
-        let blob_client = self.inner.as_ref().unwrap().as_blob_client(key);
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        let inner = map.get::<Arc<ContainerClient>>(rd)?;
+
+        let blob_client = inner.as_blob_client(key);
         let res = block_on(azure::get(blob_client))?;
         Ok(res)
     }
@@ -93,26 +119,43 @@ impl kv::Kv for KvAzureBlob {
     /// Create a key-value pair.
     fn set(
         &mut self,
-        rd: ResourceDescriptor,
+        rd: ResourceDescriptorParam,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        if rd != 1 {
+        if Uuid::parse_str(rd).is_err() {
             return Err(Error::DescriptorError);
         }
 
-        let blob_client = self.inner.as_ref().unwrap().as_blob_client(key);
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        let inner = map.get::<Arc<ContainerClient>>(rd)?;
+
+        let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
         block_on(azure::set(blob_client, value))?;
         Ok(())
     }
 
     /// Delete a key-value pair.
-    fn delete(&mut self, rd: ResourceDescriptor, key: &str) -> Result<(), Error> {
-        if rd != 1 {
+    fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
+        if Uuid::parse_str(rd).is_err() {
             return Err(Error::DescriptorError);
         }
-        let blob_client = self.inner.as_ref().unwrap().as_blob_client(key);
+
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        let inner = map.get::<Arc<ContainerClient>>(rd)?;
+
+        let blob_client = inner.as_blob_client(key);
         block_on(azure::delete(blob_client))?;
         Ok(())
     }

@@ -2,7 +2,7 @@ use std::env;
 
 use anyhow::Result;
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource};
+use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
 use url::{Position, Url};
 
 use pubsub::*;
@@ -16,6 +16,7 @@ const SCHEMA_NAME: &str = "ckpubsub";
 pub struct PubSubConfluentKafka {
     producer: Option<BaseProducer>,
     consumer: Option<BaseConsumer>,
+    resource_map: Option<ResourceMap>,
 }
 
 impl Resource for PubSubConfluentKafka {
@@ -43,6 +44,11 @@ impl Resource for PubSubConfluentKafka {
             &sasl_password,
             &group_id,
         ))
+    }
+
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
+        self.resource_map = Some(resource_map);
+        Ok(())
     }
 }
 
@@ -79,6 +85,7 @@ impl PubSubConfluentKafka {
         Self {
             producer: Some(producer),
             consumer: Some(consumer),
+            resource_map: None,
         }
     }
 }
@@ -95,7 +102,7 @@ impl HostResource for PubSubConfluentKafka {
 }
 
 impl pubsub::Pubsub for PubSubConfluentKafka {
-    fn get_pubsub(&mut self) -> Result<ResourceDescriptor, Error> {
+    fn get_pubsub(&mut self, name: &str) -> Result<ResourceDescriptor, Error> {
         Ok(0)
     }
 

@@ -1,14 +1,20 @@
+use std::sync::{Arc, Mutex};
+
 use anyhow::{bail, Result};
 use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
-use lockd_etcd::LockdEtcd;
+// use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
+<<<<<<< HEAD
 use pubsub_confluent_kafka::PubSubConfluentKafka;
 use serde::Deserialize;
+=======
+// use pubsub_confluent_kafka::PubSubConfluentKafka;
+>>>>>>> origin/develop
 
-use runtime::Builder;
+use runtime::{resource::Map, Builder};
 use url::Url;
 
 #[derive(Parser, Debug)]
@@ -35,6 +41,7 @@ struct CapabilityConfig {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    let resource_map = Arc::new(Mutex::new(Map::default()));
 
     let mut builder = Builder::new_default()?;
     builder.link_wasi()?;
@@ -55,12 +62,12 @@ async fn main() -> Result<()> {
             "azmq" => {
                 builder.link_capability::<MqAzureServiceBus>(Url::parse(&c.url.unwrap()).unwrap())?;
             },
-            "etcdlockd" => {
-                builder.link_capability::<LockdEtcd>(Url::parse(&c.url.unwrap()).unwrap())?;
-            },
-            "ckpubsub" => {
-                builder.link_capability::<PubSubConfluentKafka>(Url::parse(&c.url.unwrap()).unwrap())?;
-            }
+            // "etcdlockd" => {
+            //     builder.link_capability::<LockdEtcd>(url)?;
+            // },
+            // "ckpubsub" => {
+            //     builder.link_capability::<PubSubConfluentKafka>(url)?;
+            // }
             _ => bail!("invalid url: currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes"),
         }
         }

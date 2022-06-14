@@ -4,11 +4,11 @@
 
 #include "bindings/kv.h"
 
-__attribute__((export_name("main")))
-int main(int argc, char *argv[]) {
+__attribute__((export_name("main"))) int main(int argc, char *argv[])
+{
   // get resource descriptor
   kv_resource_descriptor_t rd;
-  kv_get_kv(&rd);
+  kv_get_kv(&rd, "my-container");
 
   // declare key
   kv_string_t key;

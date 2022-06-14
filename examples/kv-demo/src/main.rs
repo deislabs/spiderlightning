@@ -6,17 +6,22 @@ wit_bindgen_rust::import!("../../wit/kv.wit");
 fn main() -> Result<()> {
     // application devleoper does not need to know the host implementation details.
 
-    let resource_descriptor = get_kv()?;
+    let rd1 = get_kv("my-container")?;
+    let rd2 = get_kv("my-container2")?;
     let value = "wasi-cloud".as_bytes();
-    set(resource_descriptor, "key", value)?;
+    set(&rd1, "key", value)?;
+    set(&rd2, "key", value)?;
     println!(
-        "Hello, world! the value is: {}",
-        std::str::from_utf8(&get(resource_descriptor, "key")?)?
+        "Hello, world! the value for rd1 is: {}, rd2 is {}",
+        std::str::from_utf8(&get(&rd1, "key")?)?,
+        std::str::from_utf8(&get(&rd2, "key")?)?,
     );
-    delete(resource_descriptor, "key")?;
-    let value = get(resource_descriptor, "key");
+    delete(&rd1, "key")?;
+    delete(&rd2, "key")?;
+    let value = get(&rd1, "key");
     assert_eq!(value.is_err(), true);
-    drop(resource_descriptor); // drop != close
+    drop(rd1); // drop != close
+    drop(rd2);
     Ok(())
 }
 
