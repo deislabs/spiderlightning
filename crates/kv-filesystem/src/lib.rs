@@ -3,7 +3,7 @@ use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, Res
 use std::{
     fs::{self, File},
     io::{Read, Write},
-    path::{PathBuf, Path},
+    path::{Path, PathBuf},
 };
 use uuid::Uuid;
 
@@ -21,30 +21,26 @@ pub struct KvFilesystem {
     resource_map: Option<ResourceMap>,
 }
 
-impl KvFilesystem {
-    /// Create a new KvFilesystem.
-    pub fn new(path: String) -> Self {
-        Self {
-            path,
-            resource_map: None,
-        }
-    }
-}
-
 impl kv::Kv for KvFilesystem {
     fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
-        // TODO: we hard code to use the `/tmp` directory for now. 
+        // TODO: we hard code to use the `/tmp` directory for now.
         let path = Path::new("/tmp").join(name);
-        let path = path.to_str().ok_or(anyhow::anyhow!("invalid path: {}", name))?.to_string();
+        let path = path
+            .to_str()
+            .ok_or(anyhow::anyhow!("invalid path: {}", name))?
+            .to_string();
         self.path = path;
 
         dbg!(&self.path);
 
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
-        
+
         let cloned = self.clone();
-        let map = self.resource_map.as_mut().ok_or(anyhow::anyhow!("resource map is not initialized"))?;
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
         let mut map = map.lock().unwrap();
         map.insert(rd.clone(), Box::new(cloned));
 
@@ -58,7 +54,18 @@ impl kv::Kv for KvFilesystem {
             return Err(Error::DescriptorError);
         }
 
-        let mut file = File::open(path(key, &self.path))?;
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
+        let map = map.lock().unwrap();
+        let base = map
+            .get(rd)
+            .ok_or(anyhow::anyhow!("resource not found"))?
+            .get_inner()
+            .downcast_ref::<String>()
+            .unwrap();
+        let mut file = File::open(path(key, base))?;
 
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -76,7 +83,19 @@ impl kv::Kv for KvFilesystem {
             return Err(Error::DescriptorError);
         }
 
-        let mut file = match File::create(path(key, &self.path)) {
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
+        let map = map.lock().unwrap();
+        let base = map
+            .get(rd)
+            .ok_or(anyhow::anyhow!("resource not found"))?
+            .get_inner()
+            .downcast_ref::<String>()
+            .unwrap();
+
+        let mut file = match File::create(path(key, base)) {
             Ok(file) => file,
             Err(e) => {
                 dbg!(e);
@@ -94,7 +113,19 @@ impl kv::Kv for KvFilesystem {
             return Err(Error::DescriptorError);
         }
 
-        fs::remove_file(path(key, &self.path))?;
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
+        let map = map.lock().unwrap();
+        let base = map
+            .get(rd)
+            .ok_or(anyhow::anyhow!("resource not found"))?
+            .get_inner()
+            .downcast_ref::<String>()
+            .unwrap();
+
+        fs::remove_file(path(key, base))?;
         Ok(())
     }
 }
@@ -114,6 +145,10 @@ impl Resource for KvFilesystem {
     fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
         self.resource_map = Some(resource_map);
         Ok(())
+    }
+
+    fn get_inner(&self) -> &dyn std::any::Any {
+        &self.path
     }
 }
 

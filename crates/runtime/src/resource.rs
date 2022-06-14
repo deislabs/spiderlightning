@@ -1,4 +1,5 @@
 use std::{
+    any::Any,
     collections::HashMap,
     sync::{Arc, Mutex},
 };
@@ -18,6 +19,9 @@ pub trait ResourceTables<T: ?Sized>: AsAny {}
 
 /// A trait for wit-bindgen resource.
 pub trait Resource: AsAny {
+    /// get inner representation of the resource.
+    fn get_inner(&self) -> &dyn Any;
+
     /// Add resource map to resource.
     fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
 }

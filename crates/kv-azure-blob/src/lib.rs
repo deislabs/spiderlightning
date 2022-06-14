@@ -3,10 +3,11 @@ use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceMap, ResourceConfig,
+    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceConfig,
+    ResourceMap,
 };
-use uuid::Uuid;
 use std::sync::Arc;
+use uuid::Uuid;
 
 use kv::*;
 
@@ -51,6 +52,11 @@ impl Resource for KvAzureBlob {
         self.resource_map = Some(resource_map);
         Ok(())
     }
+
+    fn get_inner(&self) -> &dyn std::any::Any {
+        let inner = self.inner.as_ref().unwrap();
+        inner
+    }
 }
 
 impl HostResource for KvAzureBlob {
@@ -74,17 +80,16 @@ impl kv::Kv for KvAzureBlob {
         let storage_account_key = std::env::var("AZURE_STORAGE_KEY")
             .context("AZURE_STORAGE_KEY environment variable not found")?;
 
-        let kv_azure_blob = KvAzureBlob::new(
-            &storage_account_name,
-            &storage_account_key,
-            name,
-        );        
+        let kv_azure_blob = KvAzureBlob::new(&storage_account_name, &storage_account_key, name);
         self.inner = kv_azure_blob.inner;
 
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
-        let map = self.resource_map.as_mut().ok_or(anyhow::anyhow!("resource map is not initialized"))?;
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
         let mut map = map.lock().unwrap();
         map.insert(rd.clone(), Box::new(cloned));
         Ok(rd)
@@ -97,7 +102,19 @@ impl kv::Kv for KvAzureBlob {
             return Err(Error::DescriptorError);
         }
 
-        let blob_client = self.inner.as_ref().unwrap().as_blob_client(key);
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
+        let map = map.lock().unwrap();
+        let inner = map
+            .get(rd)
+            .ok_or(anyhow::anyhow!("resource not found"))?
+            .get_inner()
+            .downcast_ref::<Arc<ContainerClient>>()
+            .unwrap();
+
+        let blob_client = inner.as_blob_client(key);
         let res = block_on(azure::get(blob_client))?;
         Ok(res)
     }
@@ -113,7 +130,19 @@ impl kv::Kv for KvAzureBlob {
             return Err(Error::DescriptorError);
         }
 
-        let blob_client = self.inner.as_ref().unwrap().as_blob_client(key);
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
+        let map = map.lock().unwrap();
+        let inner = map
+            .get(rd)
+            .ok_or(anyhow::anyhow!("resource not found"))?
+            .get_inner()
+            .downcast_ref::<Arc<ContainerClient>>()
+            .unwrap();
+
+        let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
         block_on(azure::set(blob_client, value))?;
         Ok(())
@@ -125,7 +154,19 @@ impl kv::Kv for KvAzureBlob {
             return Err(Error::DescriptorError);
         }
 
-        let blob_client = self.inner.as_ref().unwrap().as_blob_client(key);
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or(anyhow::anyhow!("resource map is not initialized"))?;
+        let map = map.lock().unwrap();
+        let inner = map
+            .get(rd)
+            .ok_or(anyhow::anyhow!("resource not found"))?
+            .get_inner()
+            .downcast_ref::<Arc<ContainerClient>>()
+            .unwrap();
+
+        let blob_client = inner.as_blob_client(key);
         block_on(azure::delete(blob_client))?;
         Ok(())
     }
