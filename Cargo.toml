@@ -21,6 +21,8 @@ mq-azure-servicebus = { path = "crates/mq-azure-servicebus" }
 lockd-etcd = { path = "crates/lockd-etcd" }
 pubsub-confluent-kafka = { path = "crates/pubsub-confluent-kafka" }
 url = "2.2"
+toml = "0.5.9"
+serde = "1.0.137"
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
@@ -48,7 +50,8 @@ members = [
     "examples/mq-receiver-demo",
     "examples/lockd-demo",
     "examples/pubsub-consumer-demo",
-    "examples/pubsub-producer-demo"
+    "examples/pubsub-producer-demo",
+    "examples/multi_capability-demo"
 ]
 
 [[bin]]

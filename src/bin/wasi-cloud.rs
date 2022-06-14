@@ -6,6 +6,7 @@ use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
 use pubsub_confluent_kafka::PubSubConfluentKafka;
+use serde::Deserialize;
 
 use runtime::Builder;
 use url::Url;
@@ -19,6 +20,17 @@ struct Args {
     config: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct Config {
+    specversion: Option<String>,
+    capability: Option<Vec<CapabilityConfig>>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CapabilityConfig {
+    name: Option<String>,
+    url: Option<String>,
+}
 /// The entry point for wasi-cloud CLI
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -26,28 +38,36 @@ async fn main() -> Result<()> {
 
     let mut builder = Builder::new_default()?;
     builder.link_wasi()?;
-    let url = Url::parse(&args.config)?;
-    match url.scheme() {
-        "azblob" => {
-            builder.link_capability::<KvAzureBlob>(url)?;
-        },
-        "file" => {
-            builder.link_capability::<KvFilesystem>(url)?;
-        },
-        "mq" => {
-            builder.link_capability::<MqFilesystem>(url)?;
-        },
-        "azmq" => {
-            builder.link_capability::<MqAzureServiceBus>(url)?;
-        },
-        "etcdlockd" => {
-            builder.link_capability::<LockdEtcd>(url)?;
-        },
-        "ckpubsub" => {
-            builder.link_capability::<PubSubConfluentKafka>(url)?;
+    let toml_file = std::fs::read_to_string(args.config)?;
+    let toml: Config = toml::from_str(&toml_file)?;
+    if toml.specversion.unwrap() == "0.1" {
+        for c in toml.capability.unwrap() {
+            match c.name.unwrap().as_str() {
+            "azblob" => {
+                builder.link_capability::<KvAzureBlob>(Url::parse(&c.url.unwrap()).unwrap())?;
+            },
+            "file" => {
+                builder.link_capability::<KvFilesystem>(Url::parse(&c.url.unwrap()).unwrap())?;
+            },
+            "mq" => {
+                builder.link_capability::<MqFilesystem>(Url::parse(&c.url.unwrap()).unwrap())?;
+            },
+            "azmq" => {
+                builder.link_capability::<MqAzureServiceBus>(Url::parse(&c.url.unwrap()).unwrap())?;
+            },
+            "etcdlockd" => {
+                builder.link_capability::<LockdEtcd>(Url::parse(&c.url.unwrap()).unwrap())?;
+            },
+            "ckpubsub" => {
+                builder.link_capability::<PubSubConfluentKafka>(Url::parse(&c.url.unwrap()).unwrap())?;
+            }
+            _ => bail!("invalid url: currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes"),
         }
-        _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes", url),
+        }
+    } else {
+        bail!("unsupported toml spec version");
     }
+
     let (mut store, instance) = builder.build(&args.module)?;
 
     instance
