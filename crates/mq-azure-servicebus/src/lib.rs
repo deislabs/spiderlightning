@@ -106,7 +106,7 @@ impl mq::Mq for MqAzureServiceBus {
             .ok_or(anyhow::anyhow!("resource map is not initialized"))?
             .lock()
             .unwrap();
-        map.set(rd.clone(), Box::new(cloned));
+        map.set(rd.clone(), Box::new(cloned))?;
         Ok(rd)
     }
 
