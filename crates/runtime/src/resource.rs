@@ -5,30 +5,27 @@ use std::{
 
 use anyhow::Result;
 use as_any::{AsAny, Downcast};
-use url::Url;
 pub use wasmtime::Linker;
 
 pub use crate::Context;
 
 pub type DataT = Box<dyn Resource>;
-pub type ResourceMap = Arc<Mutex<HashMap<u64, Box<dyn Resource>>>>;
+pub type ResourceMap = Arc<Mutex<HashMap<String, Box<dyn Resource>>>>;
+pub type ResourceConfig = String;
+
 /// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait ResourceTables<T: ?Sized>: AsAny {}
 
 /// A trait for wit-bindgen resource.
 pub trait Resource: AsAny {
-    /// Given a resource url, return a resource.
-    fn from_url(url: Url) -> Result<Self>
-    where
-        Self: Sized;
-
+    /// Add resource map to resource.
     fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
 }
 
 /// A trait for wit-bindgen host resource composed of a resource and a resource table.
 pub trait HostResource {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()>;
-    fn build_data(url: Url) -> Result<DataT>;
+    fn build_data() -> Result<DataT>;
 }
 
 /// dynamic dispatch to respective host resource.

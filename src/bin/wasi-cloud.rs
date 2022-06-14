@@ -7,10 +7,10 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
-use lockd_etcd::LockdEtcd;
-use mq_azure_servicebus::MqAzureServiceBus;
-use mq_filesystem::MqFilesystem;
-use pubsub_confluent_kafka::PubSubConfluentKafka;
+// use lockd_etcd::LockdEtcd;
+// use mq_azure_servicebus::MqAzureServiceBus;
+// use mq_filesystem::MqFilesystem;
+// use pubsub_confluent_kafka::PubSubConfluentKafka;
 
 use runtime::Builder;
 use url::Url;
@@ -34,29 +34,29 @@ async fn main() -> Result<()> {
     builder.link_wasi()?;
     let url = Url::parse(&args.config)?;
     match url.scheme() {
-        "azblob" => {
-            builder.link_capability::<KvAzureBlob>(url)?;
+        s@"azblob" => {
+            builder.link_capability::<KvAzureBlob>(s.to_string())?;
         },
-        "file" => {
-            builder.link_capability::<KvFilesystem>(url)?;
+        s@"file" => {
+            builder.link_capability::<KvFilesystem>(s.to_string())?;
         },
-        "mq" => {
-            builder.link_capability::<MqFilesystem>(url)?;
-        },
-        "azmq" => {
-            builder.link_capability::<MqAzureServiceBus>(url)?;
-        },
-        "etcdlockd" => {
-            builder.link_capability::<LockdEtcd>(url)?;
-        },
-        "ckpubsub" => {
-            builder.link_capability::<PubSubConfluentKafka>(url)?;
-        }
+        // "mq" => {
+        //     builder.link_capability::<MqFilesystem>(url)?;
+        // },
+        // "azmq" => {
+        //     builder.link_capability::<MqAzureServiceBus>(url)?;
+        // },
+        // "etcdlockd" => {
+        //     builder.link_capability::<LockdEtcd>(url)?;
+        // },
+        // "ckpubsub" => {
+        //     builder.link_capability::<PubSubConfluentKafka>(url)?;
+        // }
         _ => bail!("invalid url: {}, currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes", url),
     }
     builder.link_resource_map(resource_map)?;
     let (mut store, instance) = builder.build(&args.module)?;
-
+    
     instance
         .get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?
         .call(&mut store, (0, 0))?;
