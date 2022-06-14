@@ -24,7 +24,10 @@ pub struct KvFilesystem {
 impl KvFilesystem {
     /// Create a new KvFilesystem.
     pub fn new(path: String) -> Self {
-        Self { path, resource_map: None }
+        Self {
+            path,
+            resource_map: None,
+        }
     }
 }
 
@@ -88,7 +91,6 @@ impl Resource for KvFilesystem {
         self.resource_map = Some(resource_map);
         Ok(())
     }
-    
 }
 
 impl HostResource for KvFilesystem {

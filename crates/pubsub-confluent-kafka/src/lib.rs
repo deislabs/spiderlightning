@@ -50,8 +50,6 @@ impl Resource for PubSubConfluentKafka {
         self.resource_map = Some(resource_map);
         Ok(())
     }
-    
-    
 }
 
 impl PubSubConfluentKafka {

@@ -137,8 +137,6 @@ impl Resource for MqFilesystem {
         self.resource_map = Some(resource_map);
         Ok(())
     }
-
-    
 }
 
 impl HostResource for MqFilesystem {

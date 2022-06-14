@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::{Mutex, Arc}};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::Result;
 use as_any::{AsAny, Downcast};

@@ -6,7 +6,9 @@ use std::{
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
-use runtime::resource::{get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceMap};
+use runtime::resource::{
+    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceMap,
+};
 use url::Url;
 
 pub use mq::add_to_linker;
@@ -45,7 +47,10 @@ impl MqAzureServiceBus {
             )
             .unwrap(),
         )));
-        Self { inner, resource_map: None }
+        Self {
+            inner,
+            resource_map: None,
+        }
     }
 }
 
@@ -72,7 +77,6 @@ impl Resource for MqAzureServiceBus {
         self.resource_map = Some(resource_map);
         Ok(())
     }
-    
 }
 
 impl HostResource for MqAzureServiceBus {

@@ -26,7 +26,10 @@ impl LockdEtcd {
     fn new(endpoint: &str) -> Self {
         let client =
             block_on(Client::connect([endpoint], None)).expect("failed to connect to etcd client");
-        Self { client, resource_map: None }
+        Self {
+            client,
+            resource_map: None,
+        }
     }
 }
 
@@ -86,7 +89,6 @@ impl Resource for LockdEtcd {
         self.resource_map = Some(resource_map);
         Ok(())
     }
-    
 }
 
 impl HostResource for LockdEtcd {
