@@ -11,7 +11,7 @@ use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
-const SCHEME_NAME: &str = "file";
+const SCHEME_NAME: &str = "filekv";
 
 /// A Filesystem implementation for kv interface.
 #[derive(Default, Clone)]

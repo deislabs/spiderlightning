@@ -14,7 +14,7 @@ pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
-const SCHEME_NAME: &str = "azblob";
+const SCHEME_NAME: &str = "azblobkv";
 
 /// A Azure Blob Storage binding for kv interface.
 #[derive(Default, Clone)]

@@ -2,6 +2,4 @@ specversion = "0.1"
 
 [[capability]]
 name = "filekv"
-
-[[capability]]
-name = "filemq"
+url = "filekv:///tmp"

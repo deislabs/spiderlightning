@@ -18,7 +18,7 @@ pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 
-const SCHEME_NAME: &str = "azmq";
+const SCHEME_NAME: &str = "azsbusmq";
 
 /// A Azure ServiceBus Message Queue binding for the mq interface.
 #[derive(Default, Clone)]

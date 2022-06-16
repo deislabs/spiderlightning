@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 
-const SCHEME_NAME: &str = "mq";
+const SCHEME_NAME: &str = "filemq";
 
 /// A Filesystem implementation for mq interface.
 #[derive(Clone)]

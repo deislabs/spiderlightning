@@ -43,16 +43,16 @@ async fn main() -> Result<()> {
         for c in toml.capability.unwrap() {
             let resource_type: &str = c.name.as_ref().unwrap();
             match resource_type {
-            "azblob" => {
+            "azblobkv" => {
                 builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
             },
-            "file" => {
+            "filekv" => {
                 builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
             },
-            "mq" => {
+            "filemq" => {
                 builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
             },
-            "azmq" => {
+            "azsbusmq" => {
                 builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
             },
             // "etcdlockd" => {
@@ -61,7 +61,7 @@ async fn main() -> Result<()> {
             // "ckpubsub" => {
             //     builder.link_capability::<PubSubConfluentKafka>(url)?;
             // }
-            _ => bail!("invalid url: currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes"),
+            _ => bail!("invalid url: currently wasi-cloud only supports 'filekv', 'azblobkv', 'filemq', and 'azsbusmq' schemes"),
         }
         }
     } else {
