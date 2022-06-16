@@ -4,9 +4,10 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
-// use lockd_etcd::LockdEtcd;
+use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
+use pubsub_confluent_kafka::PubSubConfluentKafka;
 use runtime::{resource::Map, Builder};
 use serde::Deserialize;
 
@@ -55,13 +56,13 @@ async fn main() -> Result<()> {
             "azsbusmq" => {
                 builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
             },
-            // "etcdlockd" => {
-            //     builder.link_capability::<LockdEtcd>(url)?;
-            // },
-            // "ckpubsub" => {
-            //     builder.link_capability::<PubSubConfluentKafka>(url)?;
-            // }
-            _ => bail!("invalid url: currently wasi-cloud only supports 'filekv', 'azblobkv', 'filemq', and 'azsbusmq' schemes"),
+            "etcdlockd" => {
+                builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
+            },
+            "ckpubsub" => {
+                builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
+            }
+            _ => bail!("invalid url: currently wasi-cloud only supports 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
         }
     } else {

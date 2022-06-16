@@ -15,4 +15,5 @@ azure_core = "0.2"
 bytes = "1"
 futures = "0.3"
 runtime = { path = "../runtime" }
+proc_macro_utils = { path = "../proc_macro_utils" }
 uuid = "1"

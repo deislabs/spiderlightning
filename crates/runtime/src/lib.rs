@@ -2,7 +2,7 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{DataT, HostResource, ResourceConfig, ResourceMap};
+use resource::{DataT, ResourceConfig, ResourceMap, RuntimeResource};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::{StringArrayError, WasiCtx};
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
@@ -53,7 +53,7 @@ impl Builder {
     }
 
     /// Link a host capability to the wasmtime::Linker
-    pub fn link_capability<T: HostResource>(
+    pub fn link_capability<T: RuntimeResource>(
         &mut self,
         config: ResourceConfig,
     ) -> Result<&mut Self> {

@@ -2,4 +2,3 @@ specversion = "0.1"
 
 [[capability]]
 name = "azsbusmq"
-url = "'azsbusmq://wasi-cloud-servicebus@wasi-cloud-queue'"

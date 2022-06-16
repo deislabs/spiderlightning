@@ -38,7 +38,6 @@ impl Map {
 /// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait ResourceTables<T: ?Sized>: AsAny {}
 
-/// A trait for wit-bindgen resource.
 pub trait Resource: AsAny {
     /// get inner representation of the resource.
     fn get_inner(&self) -> &dyn Any;
@@ -48,7 +47,7 @@ pub trait Resource: AsAny {
 }
 
 /// A trait for wit-bindgen host resource composed of a resource and a resource table.
-pub trait HostResource {
+pub trait RuntimeResource {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()>;
     fn build_data() -> Result<DataT>;
 }

@@ -9,7 +9,7 @@ fn main() -> Result<()> {
     for i in 0..3 {
         println!("sending message");
         send_message_to_topic(
-            resource_descriptor,
+            &resource_descriptor,
             format!("key-{}", i).as_bytes(),
             format!("value-{}", i).as_bytes(),
             "rust",
