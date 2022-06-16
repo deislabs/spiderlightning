@@ -20,7 +20,7 @@ const SCHEME_NAME: &str = "filekv";
 #[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct KvFilesystem {
     /// The root directory of the filesystem.
-    inner: String,
+    inner: Option<String>,
     resource_map: Option<ResourceMap>,
 }
 
@@ -32,7 +32,7 @@ impl kv::Kv for KvFilesystem {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
             .to_string();
-        self.inner = path;
+        self.inner = Some(path);
 
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();

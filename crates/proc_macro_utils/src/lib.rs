@@ -14,7 +14,7 @@ pub fn resource(input: TokenStream) -> TokenStream {
             }
 
             fn get_inner(&self) -> &dyn std::any::Any {
-                &self.inner
+                self.inner.as_ref().unwrap()
             }
         }
     };

@@ -20,7 +20,7 @@ const SCHEME_NAME: &str = "filemq";
 #[derive(Clone, Resource, RuntimeResource)]
 pub struct MqFilesystem {
     queue: String,
-    inner: String,
+    inner: Option<String>,
     resource_map: Option<ResourceMap>,
 }
 
@@ -28,7 +28,7 @@ impl Default for MqFilesystem {
     fn default() -> Self {
         Self {
             queue: ".queue".to_string(),
-            inner: String::default(),
+            inner: Some(String::default()),
             resource_map: None,
         }
     }
@@ -41,7 +41,7 @@ impl mq::Mq for MqFilesystem {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
             .to_string();
-        self.inner = path;
+        self.inner = Some(path);
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
