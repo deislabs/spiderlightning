@@ -1,4 +1,4 @@
-use std::sync::{Mutex, Arc};
+use std::sync::{Arc, Mutex};
 
 pub use lockd::add_to_linker;
 use lockd::*;
@@ -37,7 +37,7 @@ impl LockdEtcd {
 
 impl lockd::Lockd for LockdEtcd {
     fn get_lockd(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
-        let etcd_lockd = Self::new(&name);
+        let etcd_lockd = Self::new(name);
         self.inner = etcd_lockd.inner;
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
@@ -62,14 +62,15 @@ impl lockd::Lockd for LockdEtcd {
         }
 
         let map = self
-        .resource_map
-        .as_mut()
-        .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-        .lock()
-        .unwrap();
+            .resource_map
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
-        let pr = block_on(etcd::lock( &mut inner.lock().unwrap(), lock_name)).map_err(|_| Error::OtherError)?;
+        let pr = block_on(etcd::lock(&mut inner.lock().unwrap(), lock_name))
+            .map_err(|_| Error::OtherError)?;
         Ok(pr)
     }
 
@@ -84,11 +85,11 @@ impl lockd::Lockd for LockdEtcd {
         }
 
         let map = self
-        .resource_map
-        .as_mut()
-        .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-        .lock()
-        .unwrap();
+            .resource_map
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         let pr = block_on(etcd::lock_with_lease(
@@ -110,11 +111,11 @@ impl lockd::Lockd for LockdEtcd {
         }
 
         let map = self
-        .resource_map
-        .as_mut()
-        .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-        .lock()
-        .unwrap();
+            .resource_map
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         let pr = block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))
