@@ -10,8 +10,8 @@ mod kv_test {
 
     #[test]
     fn test_kv_filesystem() -> Result<()> {
-        let config = format!("./tests/wc.toml");
-        run(WASI_CLOUD_BINARY, vec!["-m", KV_TEST_MODULE, "-c", &config]);
+        let config = "./tests/wc.toml";
+        run(WASI_CLOUD_BINARY, vec!["-m", KV_TEST_MODULE, "-c", config]);
         Ok(())
     }
 }
