@@ -12,5 +12,4 @@ SRC_DIR ?= ./src
 
 build:
 	$(WASI_CC) -Wall -I . -I ./bindings -c -o kv.o bindings/kv.c
-	$(WASI_CC) -Wall -I . -I ./bindings -c -o mq.o bindings/mq.c
-	$(WASI_CC) -Wall  main.c kv.o mq.o -o kv-filesystem-c.wasm --sysroot $(SYSROOT)
+	$(WASI_CC) -Wall  main.c kv.o  -o kv-filesystem-c.wasm --sysroot $(SYSROOT)
