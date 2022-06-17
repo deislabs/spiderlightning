@@ -6,8 +6,9 @@ use std::{
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
+use proc_macro_utils::{Resource, RuntimeResource};
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceMap,
+    get, Context as RuntimeContext, DataT, Linker, Resource, ResourceMap, RuntimeResource,
 };
 
 pub use mq::add_to_linker;
@@ -18,10 +19,10 @@ pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 
-const SCHEME_NAME: &str = "azmq";
+const SCHEME_NAME: &str = "azsbusmq";
 
 /// A Azure ServiceBus Message Queue binding for the mq interface.
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct MqAzureServiceBus {
     inner: Option<Arc<Mutex<Client>>>,
     resource_map: Option<ResourceMap>,
@@ -51,29 +52,6 @@ impl MqAzureServiceBus {
             inner,
             resource_map: None,
         }
-    }
-}
-
-impl Resource for MqAzureServiceBus {
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
-        self.resource_map = Some(resource_map);
-        Ok(())
-    }
-
-    fn get_inner(&self) -> &dyn std::any::Any {
-        let inner = self.inner.as_ref().unwrap();
-        inner
-    }
-}
-
-impl HostResource for MqAzureServiceBus {
-    fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
-    }
-
-    fn build_data() -> Result<DataT> {
-        let mq_azure_servicebus = Self::default();
-        Ok(Box::new(mq_azure_servicebus))
     }
 }
 

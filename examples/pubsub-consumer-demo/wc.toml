@@ -1,0 +1,5 @@
+specversion = "0.1"
+
+[[capability]]
+name = "ckpubsub"
+

@@ -16,4 +16,5 @@ chrono = "0.4.19"
 futures = "0.3"
 http = "0.2.7"
 runtime = { path = "../runtime" }
+proc_macro_utils = { path = "../proc_macro_utils" }
 uuid = "1"

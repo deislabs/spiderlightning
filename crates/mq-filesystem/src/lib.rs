@@ -1,6 +1,9 @@
 use anyhow::Result;
 use mq::*;
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
+use proc_macro_utils::{Resource, RuntimeResource};
+use runtime::resource::{
+    get, Context as RuntimeContext, DataT, Linker, Resource, ResourceMap, RuntimeResource,
+};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
@@ -11,13 +14,13 @@ use uuid::Uuid;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 
-const SCHEME_NAME: &str = "mq";
+const SCHEME_NAME: &str = "filemq";
 
 /// A Filesystem implementation for mq interface.
-#[derive(Clone)]
+#[derive(Clone, Resource, RuntimeResource)]
 pub struct MqFilesystem {
     queue: String,
-    path: String,
+    inner: Option<String>,
     resource_map: Option<ResourceMap>,
 }
 
@@ -25,7 +28,7 @@ impl Default for MqFilesystem {
     fn default() -> Self {
         Self {
             queue: ".queue".to_string(),
-            path: String::default(),
+            inner: Some(String::default()),
             resource_map: None,
         }
     }
@@ -38,11 +41,9 @@ impl mq::Mq for MqFilesystem {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
             .to_string();
-        self.path = path;
-
+        self.inner = Some(path);
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
-
         let cloned = self.clone();
         let mut map = self
             .resource_map
@@ -51,7 +52,6 @@ impl mq::Mq for MqFilesystem {
             .lock()
             .unwrap();
         map.set(rd.clone(), Box::new(cloned))?;
-
         Ok(rd)
     }
 
@@ -156,28 +156,6 @@ impl mq::Mq for MqFilesystem {
             // if queue is empty, respond with empty string
             Ok(Vec::new())
         }
-    }
-}
-
-impl Resource for MqFilesystem {
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
-        self.resource_map = Some(resource_map);
-        Ok(())
-    }
-
-    fn get_inner(&self) -> &dyn std::any::Any {
-        &self.path // TODO: do we need to put queue name here?
-    }
-}
-
-impl HostResource for MqFilesystem {
-    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
-    }
-
-    fn build_data() -> Result<DataT> {
-        let mq_filesystem = Self::default();
-        Ok(Box::new(mq_filesystem))
     }
 }
 

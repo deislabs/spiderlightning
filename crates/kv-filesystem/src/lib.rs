@@ -1,5 +1,8 @@
 use anyhow::Result;
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource, ResourceMap};
+use proc_macro_utils::{Resource, RuntimeResource};
+use runtime::resource::{
+    get, Context as RuntimeContext, DataT, Linker, Resource, ResourceMap, RuntimeResource,
+};
 use std::{
     fs::{self, File},
     io::{Read, Write},
@@ -11,13 +14,13 @@ use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
-const SCHEME_NAME: &str = "file";
+const SCHEME_NAME: &str = "filekv";
 
 /// A Filesystem implementation for kv interface.
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct KvFilesystem {
     /// The root directory of the filesystem.
-    path: String,
+    inner: Option<String>,
     resource_map: Option<ResourceMap>,
 }
 
@@ -29,11 +32,10 @@ impl kv::Kv for KvFilesystem {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
             .to_string();
-        self.path = path;
+        self.inner = Some(path);
 
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
-
         let cloned = self.clone();
         let mut map = self
             .resource_map
@@ -42,7 +44,6 @@ impl kv::Kv for KvFilesystem {
             .lock()
             .unwrap();
         map.set(rd.clone(), Box::new(cloned))?;
-
         Ok(rd)
     }
 
@@ -117,39 +118,6 @@ impl kv::Kv for KvFilesystem {
         fs::create_dir_all(&base)?;
         fs::remove_file(path(key, base))?;
         Ok(())
-    }
-}
-
-impl Resource for KvFilesystem {
-    // fn from_url(url: Url) -> Result<Self> {
-    //     let path = url.to_file_path();
-    //     match path {
-    //         Ok(path) => {
-    //             let path = path.to_str().unwrap_or(".").to_string();
-    //             Ok(KvFilesystem::new(path))
-    //         }
-    //         Err(_) => bail!("invalid url: {}", url),
-    //     }
-    // }
-
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
-        self.resource_map = Some(resource_map);
-        Ok(())
-    }
-
-    fn get_inner(&self) -> &dyn std::any::Any {
-        &self.path
-    }
-}
-
-impl HostResource for KvFilesystem {
-    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
-    }
-
-    fn build_data() -> Result<DataT> {
-        let kv_filesystem = Self::default();
-        Ok(Box::new(kv_filesystem))
     }
 }
 

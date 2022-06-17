@@ -2,8 +2,9 @@ use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
 use futures::executor::block_on;
+use proc_macro_utils::{Resource, RuntimeResource};
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, HostResource, Linker, Resource, ResourceMap,
+    get, Context as RuntimeContext, DataT, Linker, Resource, ResourceMap, RuntimeResource,
 };
 use std::sync::Arc;
 use uuid::Uuid;
@@ -14,10 +15,10 @@ pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
-const SCHEME_NAME: &str = "azblob";
+const SCHEME_NAME: &str = "azblobkv";
 
 /// A Azure Blob Storage binding for kv interface.
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct KvAzureBlob {
     inner: Option<Arc<ContainerClient>>,
     resource_map: Option<ResourceMap>,
@@ -43,29 +44,6 @@ impl KvAzureBlob {
             inner,
             resource_map: None,
         }
-    }
-}
-
-impl Resource for KvAzureBlob {
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
-        self.resource_map = Some(resource_map);
-        Ok(())
-    }
-
-    fn get_inner(&self) -> &dyn std::any::Any {
-        let inner = self.inner.as_ref().unwrap();
-        inner
-    }
-}
-
-impl HostResource for KvAzureBlob {
-    fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
-    }
-
-    fn build_data() -> Result<DataT> {
-        let kv_azure_blob = Self::default();
-        Ok(Box::new(kv_azure_blob))
     }
 }
 

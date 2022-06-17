@@ -4,9 +4,10 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
-// use lockd_etcd::LockdEtcd;
+use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
+use pubsub_confluent_kafka::PubSubConfluentKafka;
 use runtime::{resource::Map, Builder};
 use serde::Deserialize;
 
@@ -43,25 +44,25 @@ async fn main() -> Result<()> {
         for c in toml.capability.unwrap() {
             let resource_type: &str = c.name.as_ref().unwrap();
             match resource_type {
-            "azblob" => {
+            "azblobkv" => {
                 builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
             },
-            "file" => {
+            "filekv" => {
                 builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
             },
-            "mq" => {
+            "filemq" => {
                 builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
             },
-            "azmq" => {
+            "azsbusmq" => {
                 builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
             },
-            // "etcdlockd" => {
-            //     builder.link_capability::<LockdEtcd>(url)?;
-            // },
-            // "ckpubsub" => {
-            //     builder.link_capability::<PubSubConfluentKafka>(url)?;
-            // }
-            _ => bail!("invalid url: currently wasi-cloud only supports 'file', 'azblob', 'mq', 'azmq', and 'ckpubsub' schemes"),
+            "etcdlockd" => {
+                builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
+            },
+            "ckpubsub" => {
+                builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
+            }
+            _ => bail!("invalid url: currently wasi-cloud only supports 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
         }
     } else {
