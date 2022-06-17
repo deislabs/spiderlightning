@@ -8,11 +8,12 @@ authors = ["DeisLabs Engineering Team"]
 
 [dependencies]
 anyhow = "1.0"
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev= "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
 azure_storage_blobs = "0.2"
 azure_storage = "0.2"
 azure_core = "0.2"
 bytes = "1"
 futures = "0.3"
 runtime = { path = "../runtime" }
-url = "2.2"
+proc_macro_utils = { path = "../proc_macro_utils" }
+uuid = "1"

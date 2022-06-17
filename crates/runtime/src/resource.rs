@@ -1,27 +1,55 @@
+use std::{
+    any::Any,
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
+
 use anyhow::Result;
 use as_any::{AsAny, Downcast};
-use url::Url;
 pub use wasmtime::Linker;
 
 pub use crate::Context;
 
 pub type DataT = Box<dyn Resource>;
+pub type ResourceConfig = String;
+pub type ResourceMap = Arc<Mutex<Map>>;
+
+#[derive(Default)]
+pub struct Map(HashMap<String, Box<dyn Resource>>);
+
+impl Map {
+    pub fn set(&mut self, key: String, value: DataT) -> Result<()> {
+        self.0.insert(key, value);
+        Ok(())
+    }
+
+    pub fn get<T: 'static>(&self, key: &str) -> Result<&T> {
+        let value = self
+            .0
+            .get(key)
+            .ok_or_else(|| anyhow::anyhow!("key not found"))?;
+        let inner = value.get_inner();
+        Ok(<&dyn std::any::Any>::clone(&inner)
+            .downcast_ref::<T>()
+            .unwrap())
+    }
+}
 
 /// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait ResourceTables<T: ?Sized>: AsAny {}
 
-/// A trait for wit-bindgen resource.
 pub trait Resource: AsAny {
-    /// Given a resource url, return a resource.
-    fn from_url(url: Url) -> Result<Self>
-    where
-        Self: Sized;
+    /// get inner representation of the resource.
+    fn get_inner(&self) -> &dyn Any;
+
+    /// Add resource map to resource.
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
 }
 
 /// A trait for wit-bindgen host resource composed of a resource and a resource table.
-pub trait HostResource {
+pub trait RuntimeResource {
     fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()>;
-    fn build_data(url: Url) -> Result<DataT>;
+    fn build_data() -> Result<DataT>;
 }
 
 /// dynamic dispatch to respective host resource.

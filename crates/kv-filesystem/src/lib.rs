@@ -1,45 +1,68 @@
-use anyhow::{bail, Result};
-use runtime::resource::{get, Context, DataT, HostResource, Linker, Resource};
+use anyhow::Result;
+use proc_macro_utils::{Resource, RuntimeResource};
+use runtime::resource::{
+    get, Context as RuntimeContext, DataT, Linker, Resource, ResourceMap, RuntimeResource,
+};
 use std::{
     fs::{self, File},
     io::{Read, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
-use url::Url;
+use uuid::Uuid;
 
 use kv::*;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 
-const SCHEME_NAME: &str = "file";
+const SCHEME_NAME: &str = "filekv";
 
 /// A Filesystem implementation for kv interface.
-#[derive(Default)]
+#[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct KvFilesystem {
     /// The root directory of the filesystem.
-    path: String,
-}
-
-impl KvFilesystem {
-    /// Create a new KvFilesystem.
-    pub fn new(path: String) -> Self {
-        Self { path }
-    }
+    inner: Option<String>,
+    resource_map: Option<ResourceMap>,
 }
 
 impl kv::Kv for KvFilesystem {
-    fn get_kv(&mut self) -> Result<ResourceDescriptor, Error> {
-        Ok(0)
+    fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
+        // TODO: we hard code to use the `/tmp` directory for now.
+        let path = Path::new("/tmp").join(name);
+        let path = path
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
+            .to_string();
+        self.inner = Some(path);
+
+        let uuid = Uuid::new_v4();
+        let rd = uuid.to_string();
+        let cloned = self.clone();
+        let mut map = self
+            .resource_map
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        map.set(rd.clone(), Box::new(cloned))?;
+        Ok(rd)
     }
 
     /// Output the value of a set key.
     /// If key has not been set, return empty.
-    fn get(&mut self, rd: ResourceDescriptor, key: &str) -> Result<PayloadResult, Error> {
-        if rd != 0 {
+    fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
+        if Uuid::parse_str(rd).is_err() {
             return Err(Error::DescriptorError);
         }
 
-        let mut file = File::open(path(key, &self.path))?;
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        let base = map.get::<String>(rd)?;
+        fs::create_dir_all(&base)?;
+        let mut file = File::open(path(key, base))?;
 
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -49,49 +72,52 @@ impl kv::Kv for KvFilesystem {
     /// Create a key-value pair.
     fn set(
         &mut self,
-        rd: ResourceDescriptor,
+        rd: ResourceDescriptorParam,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        if rd != 0 {
+        if Uuid::parse_str(rd).is_err() {
             return Err(Error::DescriptorError);
         }
-        let mut file = File::create(path(key, &self.path))?;
+
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        let base = map.get::<String>(rd)?;
+
+        fs::create_dir_all(&base)?;
+
+        let mut file = match File::create(path(key, base)) {
+            Ok(file) => file,
+            Err(_) => {
+                return Err(Error::IoError);
+            }
+        };
+
         file.write_all(value)?;
         Ok(())
     }
 
     /// Delete a key-value pair.
-    fn delete(&mut self, rd: ResourceDescriptor, key: &str) -> Result<(), Error> {
-        if rd != 0 {
+    fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
+        if Uuid::parse_str(rd).is_err() {
             return Err(Error::DescriptorError);
         }
-        fs::remove_file(path(key, &self.path))?;
+
+        let map = self
+            .resource_map
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
+            .lock()
+            .unwrap();
+        let base = map.get::<String>(rd)?;
+
+        fs::create_dir_all(&base)?;
+        fs::remove_file(path(key, base))?;
         Ok(())
-    }
-}
-
-impl Resource for KvFilesystem {
-    fn from_url(url: Url) -> Result<Self> {
-        let path = url.to_file_path();
-        match path {
-            Ok(path) => {
-                let path = path.to_str().unwrap_or(".").to_string();
-                Ok(KvFilesystem::new(path))
-            }
-            Err(_) => bail!("invalid url: {}", url),
-        }
-    }
-}
-
-impl HostResource for KvFilesystem {
-    fn add_to_linker(linker: &mut Linker<Context<DataT>>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
-    }
-
-    fn build_data(url: Url) -> Result<DataT> {
-        let kv_filesystem = Self::from_url(url)?;
-        Ok(Box::new(kv_filesystem))
     }
 }
 

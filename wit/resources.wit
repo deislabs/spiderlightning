@@ -1,3 +1,2 @@
-// resource descriptor, represented as a opaque resource type and 
-// relies on the host to interpret the resource type.
-type resource-descriptor = u64
+// resource descriptor, represented as a uuid hex string;
+type resource-descriptor = string
