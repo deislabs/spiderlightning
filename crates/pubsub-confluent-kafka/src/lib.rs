@@ -1,15 +1,17 @@
 use std::{env, sync::Arc};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use proc_macro_utils::{Resource, RuntimeResource};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, Linker, Resource, ResourceMap, RuntimeResource,
+    get, DataT, Linker, Map, Resource, ResourceMap, RuntimeContext, RuntimeResource,
 };
 
 use pubsub::*;
 use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/pubsub.wit");
+wit_error_rs::impl_error!(Error);
+wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 mod confluent;
 
@@ -38,7 +40,8 @@ impl PubSubConfluentKafka {
             .set("sasl.username", sasl_username)
             .set("sasl.password", sasl_password)
             .create()
-            .expect("failed to create producer");
+            .with_context(|| "failed to create producer client")
+            .unwrap(); // panic if we fail to create client
 
         // basic consumer
         let consumer: BaseConsumer = ClientConfig::new()
@@ -49,7 +52,8 @@ impl PubSubConfluentKafka {
             .set("sasl.password", sasl_password)
             .set("group.id", group_id)
             .create()
-            .expect("failed to create client");
+            .with_context(|| "failed to create consumer client")
+            .unwrap(); // panic if we fail to create client
 
         Self {
             inner: Some((Arc::new(producer), Arc::new(consumer))),
@@ -62,15 +66,15 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     fn get_pubsub(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let bootstap_servers = name;
         let security_protocol = env::var("CK_SECURITY_PROTOCOL")
-            .expect("failed to read CK_SECURITY_PROTOCOL environment variable");
+            .with_context(|| "failed to read CK_SECURITY_PROTOCOL environment variable")?;
         let sasl_mechanisms = env::var("CK_SASL_MECHANISMS")
-            .expect("failed to read CK_SASL_MECHANISMS environment variable");
+            .with_context(|| "failed to read CK_SASL_MECHANISMS environment variable")?;
         let sasl_username = env::var("CK_SASL_USERNAME")
-            .expect("failed to read CK_SASL_USERNAME environment variable");
+            .with_context(|| "failed to read CK_SASL_USERNAME environment variable")?;
         let sasl_password = env::var("CK_SASL_PASSWORD")
-            .expect("failed to read CK_SASL_PASSWORD environment variable");
-        let group_id =
-            env::var("CK_GROUP_ID").expect("failed to read CK_GROUP_ID environment variable");
+            .with_context(|| "failed to read CK_SASL_PASSWORD environment variable")?;
+        let group_id = env::var("CK_GROUP_ID")
+            .with_context(|| "failed to read CK_GROUP_ID environment variable")?;
 
         let ck_pubsub = Self::new(
             bootstap_servers,
@@ -84,13 +88,8 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
-        let mut map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
-        map.set(rd.clone(), Box::new(cloned))?;
+        let mut map = Map::unwrap(&mut self.resource_map)?;
+        map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
 
@@ -101,19 +100,13 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        if Uuid::parse_str(rd).is_err() {
-            return Err(Error::DescriptorError);
-        }
+        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
+        let map = Map::unwrap(&mut self.resource_map)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
-        confluent::send(&inner.0, msg_key, msg_value, topic).map_err(|_| Error::IoError)
+        Ok(confluent::send(&inner.0, msg_key, msg_value, topic)
+            .with_context(|| "failed to send message to a topic")?)
     }
 
     fn subscribe_to_topic(
@@ -121,18 +114,15 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         rd: ResourceDescriptorParam,
         topic: Vec<&str>,
     ) -> Result<(), Error> {
-        if Uuid::parse_str(rd).is_err() {
-            return Err(Error::DescriptorError);
-        }
-        let map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
+        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+
+        let map = Map::unwrap(&mut self.resource_map)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
-        confluent::subscribe(&inner.1, topic).map_err(|_| Error::OtherError)
+        Ok(
+            confluent::subscribe(&inner.1, topic)
+                .with_context(|| "failed to subscribe to topic")?,
+        )
     }
 
     fn poll_for_message(
@@ -140,28 +130,16 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         rd: ResourceDescriptorParam,
         timeout_in_secs: u64,
     ) -> Result<pubsub::Message, Error> {
-        if Uuid::parse_str(rd).is_err() {
-            return Err(Error::DescriptorError);
-        }
-        let map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
+        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+
+        let map = Map::unwrap(&mut self.resource_map)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
-        confluent::poll(&inner.1, timeout_in_secs)
-            .map_err(|_| Error::OtherError)
+        Ok(confluent::poll(&inner.1, timeout_in_secs)
             .map(|f| pubsub::Message {
                 key: f.0,
                 value: f.1,
             })
-    }
-}
-
-impl From<anyhow::Error> for Error {
-    fn from(_: anyhow::Error) -> Self {
-        Self::OtherError
+            .with_context(|| "failed to poll for message")?)
     }
 }

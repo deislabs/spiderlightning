@@ -1,12 +1,6 @@
-enum error {
-	// getting a resource descriptor failed.
-    descriptor-error, 
-	// getting the payload failed.
-	io-error,
-	// other errors.
-	other-error,
+variant error {
+	error-with-description(string),
 }
-
 type payload = list<u8>
 type map = list<tuple<string, string>>
 

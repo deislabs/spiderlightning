@@ -5,6 +5,7 @@ use std::{
 
 use lockd::*;
 wit_bindgen_rust::import!("../../wit/lockd.wit");
+wit_error_rs::impl_error!(Error);
 
 use anyhow::Result;
 
@@ -33,10 +34,4 @@ fn main() -> Result<()> {
     unlock(&lockd, &lock_with_no_time_to_live)?;
 
     Ok(())
-}
-
-impl From<lockd::Error> for anyhow::Error {
-    fn from(_: lockd::Error) -> Self {
-        anyhow::anyhow!("lockd error")
-    }
 }

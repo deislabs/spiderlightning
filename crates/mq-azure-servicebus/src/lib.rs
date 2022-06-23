@@ -1,14 +1,11 @@
-use std::{
-    str::Utf8Error,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, Linker, Resource, ResourceMap, RuntimeResource,
+    get, DataT, Linker, Map, Resource, ResourceMap, RuntimeContext, RuntimeResource,
 };
 
 pub use mq::add_to_linker;
@@ -18,6 +15,8 @@ use uuid::Uuid;
 pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
+wit_error_rs::impl_error!(Error);
+wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "azsbusmq";
 
@@ -46,6 +45,7 @@ impl MqAzureServiceBus {
                 policy_name.to_owned(),
                 policy_key,
             )
+            .with_context(|| "failed to connect to Azure Service Bus")
             .unwrap(),
         )));
         Self {
@@ -60,13 +60,13 @@ impl mq::Mq for MqAzureServiceBus {
     fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let queue_name = name;
         let service_bus_namespace = std::env::var("AZURE_SERVICE_BUS_NAMESPACE")
-            .context("AZURE_SERVICE_BUS_NAMESPACE environment variable not found")?;
+            .with_context(|| "AZURE_SERVICE_BUS_NAMESPACE environment variable not found")?;
         // get environment var AZURE_POLICY_NAME
         let policy_name = std::env::var("AZURE_POLICY_NAME")
-            .context("AZURE_POLICY_NAME environment variable not found")?;
+            .with_context(|| "AZURE_POLICY_NAME environment variable not found")?;
         // get environment var AZURE_POLICY_KEY
         let policy_key = std::env::var("AZURE_POLICY_KEY")
-            .context("AZURE_POLICY_KEY environment variable not found")?;
+            .with_context(|| "AZURE_POLICY_KEY environment variable not found")?;
 
         let mq_azure_serivcebus = MqAzureServiceBus::new(
             &service_bus_namespace,
@@ -78,64 +78,37 @@ impl mq::Mq for MqAzureServiceBus {
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
-        let mut map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
-        map.set(rd.clone(), Box::new(cloned))?;
+        let mut map = Map::unwrap(&mut self.resource_map)?;
+        map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
 
     /// Send a message to your service bus' queue
     fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
-        if Uuid::parse_str(rd).is_err() {
-            return Err(Error::DescriptorError);
-        }
+        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
+        let map = Map::unwrap(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         block_on(azure::send(
             &mut inner.lock().unwrap(),
-            std::str::from_utf8(msg)?.to_string(),
-        ))?;
+            std::str::from_utf8(msg)
+                .with_context(|| "failed to parse message as UTF-8")?
+                .to_string(),
+        ))
+        .with_context(|| "failed to send message to Azure Service Bus")?;
         Ok(())
     }
 
     /// Receive the top message from your service bus' queue
     fn receive(&mut self, rd: ResourceDescriptorParam) -> Result<PayloadResult, Error> {
-        if Uuid::parse_str(rd).is_err() {
-            return Err(Error::DescriptorError);
-        }
+        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
+        let map = Map::unwrap(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
-        let result = block_on(azure::receive(&mut inner.lock().unwrap()))?;
+        let result = block_on(azure::receive(&mut inner.lock().unwrap()))
+            .with_context(|| "failed to send receive message from Azure Service Bus")?;
         Ok(result)
-    }
-}
-
-impl From<anyhow::Error> for Error {
-    fn from(_: anyhow::Error) -> Self {
-        Self::OtherError
-    }
-}
-
-impl From<Utf8Error> for Error {
-    fn from(_: Utf8Error) -> Self {
-        Self::OtherError
     }
 }
