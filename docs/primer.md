@@ -11,12 +11,12 @@ wasi-cloud is a modular and portable interface that provides distributed system 
 
 | Capability  | Resource Examples | Description | Work Status |
 | ----------- | ----------------- | ----------- | ----------- |
-| distributed lock service | [etcd](https://etcd.io/), [Apache Zookeeper](https://zookeeper.apache.org/) |   / | ❌ TBD |
+| distributed lock service | [etcd](https://etcd.io/), [Apache Zookeeper](https://zookeeper.apache.org/) |   / | ✅ `lockd.wit`  |
 | key-value store | [Redis](https://redis.io/) | / | ✅ `kv.wit` |
 | sql database | [MySQL](https://www.mysql.com/), [PostgresSQL](https://www.postgresql.org/) | / | ❌ TBD |
 | blob store | [Amazon S3](https://aws.amazon.com/s3/), [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs) | / | ❌ TBD |
 | message queue | [Amazon SQS](https://aws.amazon.com/sqs/), [Azure Service Bus](https://azure.microsoft.com/services/service-bus/) | / | ✅ `mq.wit` 
-| pub/sub (defined in `pubsub.wit`) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ❌ TBD |
+| pub/sub (defined in `pubsub.wit`) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ✅ `pubsub.wit`  |
 | custom pluggable functions | TBD | / | ❌ TBD |
 
 > **Question:** Do we care that the store is a KV, filesystem, etcd, DB, etc? What level of abstraction should we provide? Does the current level of abstraction leave implementation details?
