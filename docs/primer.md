@@ -1,23 +1,23 @@
 # wasi-cloud
 
-wasi-cloud is a modular and portable interface that provides distributed system capabilities to WebAssembly applications. It is designed to follow the principals of the [WebAssembly System Interface](https://wasi.dev/):
-1. **Portability**: wasi-cloud is vendor-neutral, and can run on various host environments (e.g., cloud, edge, bare-metal etc.) and deployment runtime (e.g., VM, containers, standalone etc.). 
+wasi-cloud is a set of consistent, modular and portable interfaces that provide common distributed system capabilities to WebAssembly applications. It is designed to follow the principals of the [WebAssembly System Interface](https://wasi.dev/):
+1. **Portability**: wasi-cloud is vendor-neutral, and can run on various host environments (e.g., cloud, edge, bare-metal etc.) and deployment runtime (e.g., VM, containers, standalone etc.), using different programming languages (e.g., Rust, C etc.)
 2. **Security**: applications that link to wasi-cloud libc will run in a sandboxed environment. The host will put capability functions in a sandboxed environment that the code can run. 
+3. **Modular**: 
 
 ![Diagram](./Slide1.jpg)
 
 
 ## wasi-cloud capabilities
 
-| Capability  | Resource Examples | Description | Work Status |
-| ----------- | ----------------- | ----------- | ----------- |
-| distributed lock service | [etcd](https://etcd.io/), [Apache Zookeeper](https://zookeeper.apache.org/) |   / | ✅ `lockd.wit`  |
-| key-value store | [Redis](https://redis.io/) | / | ✅ `kv.wit` |
-| sql database | [MySQL](https://www.mysql.com/), [PostgresSQL](https://www.postgresql.org/) | / | ❌ TBD |
-| blob store | [Amazon S3](https://aws.amazon.com/s3/), [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs) | / | ❌ TBD |
-| message queue | [Amazon SQS](https://aws.amazon.com/sqs/), [Azure Service Bus](https://azure.microsoft.com/services/service-bus/) | / | ✅ `mq.wit` 
-| pub/sub (defined in `pubsub.wit`) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ✅ `pubsub.wit`  |
-| custom pluggable functions | TBD | / | ❌ TBD |
+| Capability  | Implemented Resource Examples | Future Resource Examples | Description | Work Status |
+| ----------- | ----------------- | ---------- | ----------- | ----------- |
+| distributed lock service | [etcd](https://etcd.io/) | [Apache Zookeeper](https://zookeeper.apache.org/) |   / | ✅ `lockd.wit`  |
+| key-value store | [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs) | [Redis](https://redis.io/) | / | ✅ `kv.wit` |
+| sql database | / | [MySQL](https://www.mysql.com/), [PostgresSQL](https://www.postgresql.org/) | / | ❌ TBD |
+| message queue | [Azure Service Bus](https://azure.microsoft.com/services/service-bus/) | [Amazon SQS](https://aws.amazon.com/sqs/) | / | ✅ `mq.wit` 
+| pub/sub | [Confluent Kafka](https://kafka.apache.org/) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ✅ `pubsub.wit`  |
+| custom pluggable functions | TBD | TBD | / | ❌ TBD |
 
 > **Question:** Do we care that the store is a KV, filesystem, etcd, DB, etc? What level of abstraction should we provide? Does the current level of abstraction leave implementation details?
 
