@@ -31,13 +31,13 @@ impl kv::Kv for KvFilesystem {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
-            .with_context(|| format!("invalid path: {}", name))?
+            .with_context(|| format!("failed due to invalid path: {}", name))?
             .to_string();
         self.inner = Some(path);
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
-        let mut map = Map::unwrap(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.resource_map)?;
         map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
@@ -46,7 +46,7 @@ impl kv::Kv for KvFilesystem {
     fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let base = map.get::<String>(rd)?;
         fs::create_dir_all(&base)
             .with_context(|| "failed to create base directory for kv store instance")?;
@@ -68,7 +68,7 @@ impl kv::Kv for KvFilesystem {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let base = map.get::<String>(rd)?;
 
         fs::create_dir_all(&base)
@@ -86,7 +86,7 @@ impl kv::Kv for KvFilesystem {
     fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let base = map.get::<String>(rd)?;
 
         fs::create_dir_all(&base)

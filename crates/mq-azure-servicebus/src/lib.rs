@@ -60,13 +60,13 @@ impl mq::Mq for MqAzureServiceBus {
     fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let queue_name = name;
         let service_bus_namespace = std::env::var("AZURE_SERVICE_BUS_NAMESPACE")
-            .with_context(|| "AZURE_SERVICE_BUS_NAMESPACE environment variable not found")?;
+            .with_context(|| "failed to read AZURE_SERVICE_BUS_NAMESPACE environment variable")?;
         // get environment var AZURE_POLICY_NAME
         let policy_name = std::env::var("AZURE_POLICY_NAME")
-            .with_context(|| "AZURE_POLICY_NAME environment variable not found")?;
+            .with_context(|| "failed to read AZURE_POLICY_NAME environment variable")?;
         // get environment var AZURE_POLICY_KEY
         let policy_key = std::env::var("AZURE_POLICY_KEY")
-            .with_context(|| "AZURE_POLICY_KEY environment variable not found")?;
+            .with_context(|| "failed to read AZURE_POLICY_KEY environment variable")?;
 
         let mq_azure_serivcebus = MqAzureServiceBus::new(
             &service_bus_namespace,
@@ -78,7 +78,7 @@ impl mq::Mq for MqAzureServiceBus {
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
-        let mut map = Map::unwrap(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.resource_map)?;
         map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
@@ -87,7 +87,7 @@ impl mq::Mq for MqAzureServiceBus {
     fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         block_on(azure::send(
@@ -104,11 +104,11 @@ impl mq::Mq for MqAzureServiceBus {
     fn receive(&mut self, rd: ResourceDescriptorParam) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         let result = block_on(azure::receive(&mut inner.lock().unwrap()))
-            .with_context(|| "failed to send receive message from Azure Service Bus")?;
+            .with_context(|| "failed to receive message from Azure Service Bus")?;
         Ok(result)
     }
 }

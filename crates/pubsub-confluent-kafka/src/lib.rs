@@ -88,7 +88,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
-        let mut map = Map::unwrap(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.resource_map)?;
         map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
@@ -102,7 +102,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
         Ok(confluent::send(&inner.0, msg_key, msg_value, topic)
@@ -116,7 +116,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
         Ok(
@@ -132,7 +132,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     ) -> Result<pubsub::Message, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
         Ok(confluent::poll(&inner.1, timeout_in_secs)

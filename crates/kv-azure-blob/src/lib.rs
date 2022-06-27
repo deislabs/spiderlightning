@@ -53,16 +53,16 @@ impl kv::Kv for KvAzureBlob {
     /// Construct a new KvAzureBlob from container name. For example, A container name could be "my-container".
     fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")
-            .with_context(|| "AZURE_STORAGE_ACCOUNT environment variable not found")?;
+            .with_context(|| "failed to read AZURE_STORAGE_ACCOUNT environment variable")?;
         let storage_account_key = std::env::var("AZURE_STORAGE_KEY")
-            .with_context(|| "AZURE_STORAGE_KEY environment variable not found")?;
+            .with_context(|| "failed to read AZURE_STORAGE_KEY environment variable")?;
 
         let kv_azure_blob = KvAzureBlob::new(&storage_account_name, &storage_account_key, name);
         self.inner = kv_azure_blob.inner;
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
-        let mut map = Map::unwrap(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.resource_map)?;
         map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
@@ -71,7 +71,7 @@ impl kv::Kv for KvAzureBlob {
     fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
         let blob_client = inner.as_blob_client(key);
         let res = block_on(azure::get(blob_client)).with_context(|| "failed to get key's value")?;
@@ -87,7 +87,7 @@ impl kv::Kv for KvAzureBlob {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
         let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
@@ -99,7 +99,7 @@ impl kv::Kv for KvAzureBlob {
     fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
 
         let blob_client = inner.as_blob_client(key);

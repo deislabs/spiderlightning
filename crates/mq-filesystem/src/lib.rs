@@ -42,14 +42,14 @@ impl mq::Mq for MqFilesystem {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
-            .with_context(|| "failed invalid path provided")?
+            .with_context(|| format!("failed due to invalid path: {}", name))?
             .to_string();
 
         self.inner = Some(path);
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
-        let mut map = Map::unwrap(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.resource_map)?;
         map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
@@ -57,7 +57,7 @@ impl mq::Mq for MqFilesystem {
     fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let base = map.get::<String>(rd)?;
 
         // get a random name for a queue element
@@ -90,7 +90,7 @@ impl mq::Mq for MqFilesystem {
     fn receive(&mut self, rd: ResourceDescriptorParam) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let base = map.get::<String>(rd)?;
 
         fs::create_dir_all(&base)?;

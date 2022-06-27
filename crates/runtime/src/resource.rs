@@ -18,14 +18,12 @@ pub type ResourceMap = Arc<Mutex<Map>>;
 pub struct Map(HashMap<String, Box<dyn Resource>>);
 
 impl Map {
-    pub fn unwrap(wrapped_map: &mut Option<Arc<Mutex<Map>>>) -> Result<MutexGuard<Map>> {
-        let res = wrapped_map
+    pub fn lock(wrapped_map: &mut Option<Arc<Mutex<Map>>>) -> Result<MutexGuard<Map>> {
+        wrapped_map
             .as_mut()
-            .with_context(|| "resource map is not initialized")?
+            .with_context(|| "failed because resource map is not initialized")?
             .lock()
-            .unwrap(); // panic if we cannot acquire a lock
-
-        Ok(res)
+            .map_err(|_| anyhow::anyhow!("failed to acquire lock on resource map"))
     }
 
     pub fn set(&mut self, key: String, value: DataT) {
@@ -34,12 +32,12 @@ impl Map {
 
     pub fn get<T: 'static>(&self, key: &str) -> Result<&T> {
         let value = self.0.get(key).with_context(|| {
-            "failed to match resource descriptor with map of instantiated resources"
+            "failed to match resource descriptor in map of instantiated resources"
         })?;
         let inner = value.get_inner();
         <&dyn std::any::Any>::clone(&inner)
             .downcast_ref::<T>()
-            .with_context(|| "failed acquire matched resource descriptor service")
+            .with_context(|| "failed to acquire matched resource descriptor service")
     }
 }
 

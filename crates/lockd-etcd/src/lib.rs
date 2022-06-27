@@ -46,7 +46,7 @@ impl lockd::Lockd for LockdEtcd {
         let uuid = Uuid::new_v4();
         let rd = uuid.to_string();
         let cloned = self.clone();
-        let mut map = Map::unwrap(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.resource_map)?;
         map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
@@ -58,7 +58,7 @@ impl lockd::Lockd for LockdEtcd {
     ) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         let pr = block_on(etcd::lock(&mut inner.lock().unwrap(), lock_name))
@@ -74,7 +74,7 @@ impl lockd::Lockd for LockdEtcd {
     ) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         let pr = block_on(etcd::lock_with_lease(
@@ -93,7 +93,7 @@ impl lockd::Lockd for LockdEtcd {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::unwrap(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         let pr = block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))
