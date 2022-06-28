@@ -74,7 +74,8 @@ impl kv::Kv for KvAzureBlob {
         let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
         let blob_client = inner.as_blob_client(key);
-        let res = block_on(azure::get(blob_client)).with_context(|| "failed to get key's value")?;
+        let res = block_on(azure::get(blob_client))
+            .with_context(|| format!("failed to get value for key {}", key))?;
         Ok(res)
     }
 
@@ -91,7 +92,8 @@ impl kv::Kv for KvAzureBlob {
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
         let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
-        block_on(azure::set(blob_client, value)).with_context(|| "failed to set key's value")?;
+        block_on(azure::set(blob_client, value))
+            .with_context(|| format!("failed to set value for key {}", key))?;
         Ok(())
     }
 

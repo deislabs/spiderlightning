@@ -46,8 +46,8 @@ impl mq::Mq for MqFilesystem {
             .to_string();
 
         self.inner = Some(path);
-        let uuid = Uuid::new_v4();
-        let rd = uuid.to_string();
+
+        let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
         let mut map = Map::lock(&mut self.resource_map)?;
         map.set(rd.clone(), Box::new(cloned));
