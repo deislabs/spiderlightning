@@ -3,6 +3,7 @@ use std::time::SystemTime;
 use anyhow::Result;
 use pubsub::*;
 wit_bindgen_rust::import!("../../wit/pubsub.wit");
+wit_error_rs::impl_error!(Error);
 
 fn main() -> Result<()> {
     let resource_descriptor = get_pubsub("pkc-epwny.eastus.azure.confluent.cloud:9092")?;
@@ -21,10 +22,4 @@ fn main() -> Result<()> {
         );
     }
     Ok(())
-}
-
-impl From<pubsub::Error> for anyhow::Error {
-    fn from(_: pubsub::Error) -> Self {
-        anyhow::anyhow!("pubsub error")
-    }
 }

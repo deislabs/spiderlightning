@@ -46,6 +46,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "wit-bindgen-rust",
+ "wit-error-rs",
 ]
 
 [[package]]
@@ -198,6 +199,15 @@ dependencies = [
  "syn",
  "wit-bindgen-gen-core",
  "wit-bindgen-gen-rust-wasm",
+]
+
+[[package]]
+name = "wit-error-rs"
+version = "0.1.0"
+source = "git+https://github.com/danbugs/wit-error-rs?rev=05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e#05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]

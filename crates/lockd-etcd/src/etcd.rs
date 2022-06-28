@@ -36,8 +36,5 @@ pub async fn create_lease_and_lock_with_it(
 ) -> Result<LockResponse> {
     let lease_id = lease_grant(client, time_to_live_in_secs).await?;
     let lock_options = LockOptions::new().with_lease(lease_id);
-    client
-        .lock(lock_name, Some(lock_options))
-        .await
-        .map_err(|_| anyhow::anyhow!("error at create_lease_and_lock_with_it"))
+    Ok(client.lock(lock_name, Some(lock_options)).await?)
 }

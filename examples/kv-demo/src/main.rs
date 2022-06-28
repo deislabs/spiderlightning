@@ -2,6 +2,7 @@ use anyhow::Result;
 
 use kv::*;
 wit_bindgen_rust::import!("../../wit/kv.wit");
+wit_error_rs::impl_error!(Error);
 
 fn main() -> Result<()> {
     // application devleoper does not need to know the host implementation details.
@@ -23,14 +24,4 @@ fn main() -> Result<()> {
     drop(rd1); // drop != close
                // drop(rd2);
     Ok(())
-}
-
-impl From<kv::Error> for anyhow::Error {
-    fn from(e: kv::Error) -> Self {
-        match e {
-            kv::Error::OtherError => anyhow::anyhow!("other error"),
-            kv::Error::IoError => anyhow::anyhow!("io error"),
-            kv::Error::DescriptorError => anyhow::anyhow!("descriptor error"),
-        }
-    }
 }

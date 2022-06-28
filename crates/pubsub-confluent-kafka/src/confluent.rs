@@ -12,14 +12,12 @@ pub struct KafkaMessage(pub Option<Vec<u8>>, pub Option<Vec<u8>>);
 pub fn send(producer: &BaseProducer, msg_key: &[u8], msg_value: &[u8], topic: &str) -> Result<()> {
     producer
         .send(BaseRecord::to(topic).key(msg_key).payload(msg_value))
-        .expect("failed to send message");
+        .map_err(|e| anyhow::anyhow!("{:?}", e))?;
     Ok(())
 }
 
 pub fn subscribe(consumer: &BaseConsumer, topic: Vec<&str>) -> Result<()> {
-    consumer
-        .subscribe(&topic)
-        .expect("failed to subscribe to topic");
+    consumer.subscribe(&topic)?;
 
     Ok(())
 }
@@ -27,8 +25,7 @@ pub fn subscribe(consumer: &BaseConsumer, topic: Vec<&str>) -> Result<()> {
 pub fn poll(consumer: &BaseConsumer, timeout_in_secs: u64) -> Result<KafkaMessage> {
     let message = consumer
         .poll(Duration::from_secs(timeout_in_secs))
-        .transpose()
-        .expect("failed to read message");
+        .transpose()?;
 
     match message {
         Some(m) => Ok(KafkaMessage(

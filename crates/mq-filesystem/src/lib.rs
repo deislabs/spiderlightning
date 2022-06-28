@@ -1,8 +1,8 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use mq::*;
 use proc_macro_utils::{Resource, RuntimeResource};
 use runtime::resource::{
-    get, Context as RuntimeContext, DataT, Linker, Resource, ResourceMap, RuntimeResource,
+    get, DataT, Linker, Map, Resource, ResourceMap, RuntimeContext, RuntimeResource,
 };
 use std::{
     fs::{self, File, OpenOptions},
@@ -13,6 +13,9 @@ use std::{
 use uuid::Uuid;
 
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
+wit_error_rs::impl_error!(Error);
+wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_from!(std::io::Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "filemq";
 
@@ -39,33 +42,22 @@ impl mq::Mq for MqFilesystem {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
-            .ok_or_else(|| anyhow::anyhow!("invalid path: {}", name))?
+            .with_context(|| format!("failed due to invalid path: {}", name))?
             .to_string();
+
         self.inner = Some(path);
-        let uuid = Uuid::new_v4();
-        let rd = uuid.to_string();
+
+        let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
-        map.set(rd.clone(), Box::new(cloned))?;
+        let mut map = Map::lock(&mut self.resource_map)?;
+        map.set(rd.clone(), Box::new(cloned));
         Ok(rd)
     }
 
     fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
-        if Uuid::parse_str(rd).is_err() {
-            return Err(Error::DescriptorError);
-        }
+        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
+        let map = Map::lock(&mut self.resource_map)?;
         let base = map.get::<String>(rd)?;
 
         // get a random name for a queue element
@@ -77,7 +69,7 @@ impl mq::Mq for MqFilesystem {
         fs::create_dir_all(&base)?;
 
         // create a file to store the queue element data
-        let mut file = File::create(path(&rand_file_name, base))?;
+        let mut file = File::create(PathBuf::from(base).join(&rand_file_name))?;
 
         // write to file msg sent
         file.write_all(msg)?;
@@ -87,7 +79,7 @@ impl mq::Mq for MqFilesystem {
             .write(true)
             .append(true)
             .create(true)
-            .open(path(&self.queue, base))?;
+            .open(PathBuf::from(base).join(&self.queue))?;
 
         // add queue element name to the bottom of the queue
         writeln!(queue, "{}", rand_file_name)?;
@@ -96,16 +88,9 @@ impl mq::Mq for MqFilesystem {
     }
 
     fn receive(&mut self, rd: ResourceDescriptorParam) -> Result<PayloadResult, Error> {
-        if Uuid::parse_str(rd).is_err() {
-            return Err(Error::DescriptorError);
-        }
+        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = self
-            .resource_map
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-            .lock()
-            .unwrap();
+        let map = Map::lock(&mut self.resource_map)?;
         let base = map.get::<String>(rd)?;
 
         fs::create_dir_all(&base)?;
@@ -115,7 +100,7 @@ impl mq::Mq for MqFilesystem {
             .create(true)
             .read(true)
             .write(true)
-            .open(path(&self.queue, base))?;
+            .open(PathBuf::from(base).join(&self.queue))?;
 
         if queue.metadata().unwrap().len() != 0 {
             // get top element in the queue
@@ -136,43 +121,25 @@ impl mq::Mq for MqFilesystem {
             }
 
             // update queue status
-            fs::write(path(&self.queue, base), queue_post_receive)?;
+            fs::write(PathBuf::from(base).join(&self.queue), queue_post_receive)?;
 
             // remove \n char from end of queue element
             to_receive.pop();
 
             // get element at top of queue
-            let mut file = File::open(path(&to_receive, base))?;
+            let mut file = File::open(PathBuf::from(base).join(&to_receive))?;
             let mut buf = Vec::new();
 
             // read element's message
             file.read_to_end(&mut buf)?;
 
             // clean-up element from disk
-            fs::remove_file(path(&to_receive, base))?;
+            fs::remove_file(PathBuf::from(base).join(&to_receive))?;
 
             Ok(buf)
         } else {
             // if queue is empty, respond with empty string
             Ok(Vec::new())
         }
-    }
-}
-
-/// TODO (Dan): This function is used across kv-filesystem and mq-filesystem — we might want to make a utils crate.
-/// Return the absolute path for the file corresponding to the given key.
-fn path(name: &str, base: &str) -> PathBuf {
-    PathBuf::from(base).join(name)
-}
-
-impl From<anyhow::Error> for Error {
-    fn from(_: anyhow::Error) -> Self {
-        Self::OtherError
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(_: std::io::Error) -> Self {
-        Self::OtherError
     }
 }

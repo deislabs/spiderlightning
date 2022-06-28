@@ -10,7 +10,5 @@ authors = ["DeisLabs Engineering Team"]
 proc-macro = true
 
 [dependencies]
-anyhow = "1"
-as-any = "0.3"
 syn = "1.0.96"
 quote = "1.0.18"

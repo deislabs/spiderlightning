@@ -4,21 +4,21 @@ use std::collections::HashMap;
 use anyhow::Result;
 use resource::{DataT, ResourceConfig, ResourceMap, RuntimeResource};
 use wasi_cap_std_sync::WasiCtxBuilder;
-use wasi_common::{StringArrayError, WasiCtx};
+use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
 use wasmtime_wasi::*;
 
 /// A wasmtime runtime context to be passed to a wasm module.
 #[derive(Default)]
-pub struct Context<T> {
+pub struct RuntimeContext<T> {
     pub wasi: Option<WasiCtx>,
     pub data: HashMap<String, T>,
 }
 
 /// A wasmtime-based runtime builder.
 pub struct Builder {
-    linker: Linker<Context<DataT>>,
-    store: Store<Context<DataT>>,
+    linker: Linker<RuntimeContext<DataT>>,
+    store: Store<RuntimeContext<DataT>>,
     engine: Engine,
     pub config: Option<Vec<(String, String)>>,
 }
@@ -30,7 +30,7 @@ impl Builder {
         let engine = Engine::new(&default_config()?)?;
         let mut linker = Linker::new(&engine);
         linker.allow_shadowing(true);
-        let ctx = Context {
+        let ctx = RuntimeContext {
             wasi: Some(wasi),
             data: HashMap::new(),
         };
@@ -46,7 +46,7 @@ impl Builder {
 
     /// Link wasi to the wasmtime::Linker
     pub fn link_wasi(&mut self) -> Result<&mut Self> {
-        wasmtime_wasi::add_to_linker(&mut self.linker, |cx: &mut Context<_>| {
+        wasmtime_wasi::add_to_linker(&mut self.linker, |cx: &mut RuntimeContext<_>| {
             cx.wasi.as_mut().unwrap()
         })?;
         Ok(self)
@@ -70,7 +70,7 @@ impl Builder {
     }
 
     /// Instantiate the guest module.
-    pub fn build(mut self, module: &str) -> Result<(Store<Context<DataT>>, Instance)> {
+    pub fn build(mut self, module: &str) -> Result<(Store<RuntimeContext<DataT>>, Instance)> {
         let module = Module::from_file(&self.engine, module)?;
         let instance = self.linker.instantiate(&mut self.store, &module)?;
         Ok((self.store, instance))
@@ -87,14 +87,12 @@ pub fn default_config() -> Result<Config> {
 }
 
 // TODO (Joe): expose the wasmtime wasi context as a capability?
-pub fn default_wasi() -> Result<WasiCtx, StringArrayError> {
+pub fn default_wasi() -> Result<WasiCtx> {
     let mut ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
-    ctx = ctx
-        .preopened_dir(
-            Dir::open_ambient_dir("./target", ambient_authority()).unwrap(),
-            "cache",
-        )
-        .unwrap();
+    ctx = ctx.preopened_dir(
+        Dir::open_ambient_dir("./target", ambient_authority())?,
+        "cache",
+    )?;
 
     Ok(ctx.build())
 }

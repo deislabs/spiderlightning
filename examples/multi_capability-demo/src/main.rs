@@ -2,9 +2,11 @@ use anyhow::Result;
 
 use kv::*;
 wit_bindgen_rust::import!("../../wit/kv.wit");
+wit_error_rs::impl_error!(kv::Error);
 
 use mq::*;
 wit_bindgen_rust::import!("../../wit/mq.wit");
+wit_error_rs::impl_error!(mq::Error);
 
 fn main() -> Result<()> {
     // application developer does not need to know the host implementation details.
@@ -37,24 +39,4 @@ fn main() -> Result<()> {
     println!("Deleting all messages ever sent to a queue from the kv store...");
 
     Ok(())
-}
-
-impl From<kv::Error> for anyhow::Error {
-    fn from(e: kv::Error) -> Self {
-        match e {
-            kv::Error::OtherError => anyhow::anyhow!("other error"),
-            kv::Error::IoError => anyhow::anyhow!("io error"),
-            kv::Error::DescriptorError => anyhow::anyhow!("descriptor error"),
-        }
-    }
-}
-
-impl From<mq::Error> for anyhow::Error {
-    fn from(e: mq::Error) -> Self {
-        match e {
-            mq::Error::OtherError => anyhow::anyhow!("other error"),
-            mq::Error::IoError => anyhow::anyhow!("io error"),
-            mq::Error::DescriptorError => anyhow::anyhow!("descriptor error"),
-        }
-    }
 }
