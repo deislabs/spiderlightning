@@ -70,10 +70,11 @@ async fn main() -> Result<()> {
     }
 
     builder.link_resource_map(resource_map)?;
-    let (mut store, instance) = builder.build(&args.module)?;
+    let (mut store, linker) = builder.build(&args.module)?;
 
-    instance
-        .get_typed_func::<(i32, i32), i32, _>(&mut store, "main")?
-        .call(&mut store, (0, 0))?;
+    linker
+        .get_default(&mut store, "")?
+        .typed::<(), (), _>(&store)?
+        .call(&mut store, ())?;
     Ok(())
 }

@@ -70,10 +70,13 @@ impl Builder {
     }
 
     /// Instantiate the guest module.
-    pub fn build(mut self, module: &str) -> Result<(Store<RuntimeContext<DataT>>, Instance)> {
+    pub fn build(
+        mut self,
+        module: &str,
+    ) -> Result<(Store<RuntimeContext<DataT>>, Linker<RuntimeContext<DataT>>)> {
         let module = Module::from_file(&self.engine, module)?;
-        let instance = self.linker.instantiate(&mut self.store, &module)?;
-        Ok((self.store, instance))
+        self.linker.module(&mut self.store, "", &module)?;
+        Ok((self.store, self.linker))
     }
 }
 
