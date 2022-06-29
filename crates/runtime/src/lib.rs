@@ -2,10 +2,10 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{DataT, ResourceConfig, ResourceMap, RuntimeResource};
+use resource::{Ctx, ResourceConfig, ResourceMap, RuntimeResource};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
-use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
+use wasmtime::{Config, Engine, Linker, Module, Store};
 use wasmtime_wasi::*;
 
 /// A wasmtime runtime context to be passed to a wasm module.
@@ -17,8 +17,8 @@ pub struct RuntimeContext<T> {
 
 /// A wasmtime-based runtime builder.
 pub struct Builder {
-    linker: Linker<RuntimeContext<DataT>>,
-    store: Store<RuntimeContext<DataT>>,
+    linker: Linker<Ctx>,
+    store: Store<Ctx>,
     engine: Engine,
     pub config: Option<Vec<(String, String)>>,
 }
@@ -70,10 +70,7 @@ impl Builder {
     }
 
     /// Instantiate the guest module.
-    pub fn build(
-        mut self,
-        module: &str,
-    ) -> Result<(Store<RuntimeContext<DataT>>, Linker<RuntimeContext<DataT>>)> {
+    pub fn build(mut self, module: &str) -> Result<(Store<Ctx>, Linker<Ctx>)> {
         let module = Module::from_file(&self.engine, module)?;
         self.linker.module(&mut self.store, "", &module)?;
         Ok((self.store, self.linker))

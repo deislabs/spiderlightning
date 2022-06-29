@@ -13,6 +13,7 @@ pub use crate::RuntimeContext;
 pub type DataT = Box<dyn Resource>;
 pub type ResourceConfig = String;
 pub type ResourceMap = Arc<Mutex<Map>>;
+pub type Ctx = RuntimeContext<DataT>;
 
 #[derive(Default)]
 pub struct Map(HashMap<String, Box<dyn Resource>>);
@@ -54,12 +55,12 @@ pub trait Resource: AsAny {
 
 /// A trait for wit-bindgen host resource composed of a resource and a resource table.
 pub trait RuntimeResource {
-    fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()>;
+    fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
     fn build_data() -> Result<DataT>;
 }
 
 /// dynamic dispatch to respective host resource.
-pub fn get<T>(cx: &mut RuntimeContext<DataT>, resource_key: String) -> &mut T
+pub fn get<T>(cx: &mut Ctx, resource_key: String) -> &mut T
 where
     T: 'static,
 {

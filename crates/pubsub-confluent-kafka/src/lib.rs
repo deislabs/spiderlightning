@@ -3,9 +3,7 @@ use std::{env, sync::Arc};
 use anyhow::{Context, Result};
 use proc_macro_utils::{Resource, RuntimeResource};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::{
-    get, DataT, Linker, Map, Resource, ResourceMap, RuntimeContext, RuntimeResource,
-};
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 
 use pubsub::*;
 use uuid::Uuid;

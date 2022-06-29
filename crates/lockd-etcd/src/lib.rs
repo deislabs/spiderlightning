@@ -11,9 +11,7 @@ use anyhow::{Context, Result};
 use etcd_client::Client;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{
-    get, DataT, Linker, Map, Resource, ResourceMap, RuntimeContext, RuntimeResource,
-};
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 use uuid::Uuid;
 
 mod etcd;
