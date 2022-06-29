@@ -37,5 +37,8 @@ jobs:
         run: make build
       - name: Test
         run: make test
+        env: # Or as an environment variable
+          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
       - name: Check
         run: make check
