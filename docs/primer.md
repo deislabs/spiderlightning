@@ -4,8 +4,8 @@ wasi-cloud is a set of consistent, modular and portable interfaces that provide 
 1. **Portability**: wasi-cloud is vendor-neutral, and can run on various host environments (e.g., cloud, edge, bare-metal etc.) and deployment runtime (e.g., VM, containers, standalone etc.), using different programming languages (e.g., Rust, C etc.)
 2. **Security**: applications that link to wasi-cloud libc will run in a sandboxed environment. The host will put capability functions in a sandboxed environment that the code can run. 
 3. **Modular**: 
-
-![Diagram](./Slide1.jpg)
+w
+![Diagram](assets/Slide1.jpg)
 
 
 ## wasi-cloud capabilities
