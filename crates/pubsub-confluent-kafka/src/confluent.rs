@@ -7,8 +7,10 @@ use rdkafka::{
     Message,
 };
 
+/// A wrapper type around a pair of vector of u8s 
 pub struct KafkaMessage(pub Option<Vec<u8>>, pub Option<Vec<u8>>);
 
+/// Send a message
 pub fn send(producer: &BaseProducer, msg_key: &[u8], msg_value: &[u8], topic: &str) -> Result<()> {
     producer
         .send(BaseRecord::to(topic).key(msg_key).payload(msg_value))
@@ -16,12 +18,14 @@ pub fn send(producer: &BaseProducer, msg_key: &[u8], msg_value: &[u8], topic: &s
     Ok(())
 }
 
+/// Subscribe to topic
 pub fn subscribe(consumer: &BaseConsumer, topic: Vec<&str>) -> Result<()> {
     consumer.subscribe(&topic)?;
 
     Ok(())
 }
 
+/// Receive/poll for messages
 pub fn poll(consumer: &BaseConsumer, timeout_in_secs: u64) -> Result<KafkaMessage> {
     let message = consumer
         .poll(Duration::from_secs(timeout_in_secs))
