@@ -1,15 +1,18 @@
-use std::{env, sync::Arc};
+use std::{env, sync::mpsc::Sender};
 
 use anyhow::{Context, Result};
 use proc_macro_utils::{Resource, RuntimeResource};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use runtime::resource::{
+    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+};
 
 use pubsub::*;
 use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/pubsub.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+use std::sync::{Arc, Mutex};
 
 mod confluent;
 

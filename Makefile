@@ -5,9 +5,9 @@ build:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-receiver-demo/Cargo.toml
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/lockd-demo/Cargo.toml
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-producer-demo/Cargo.toml
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-consumer-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/lockd-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-producer-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-consumer-demo/Cargo.toml
 	
 .PHONY: test
 test:

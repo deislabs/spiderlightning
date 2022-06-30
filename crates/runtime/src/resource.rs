@@ -1,7 +1,7 @@
 use std::{
     any::Any,
     collections::HashMap,
-    sync::{Arc, Mutex, MutexGuard},
+    sync::{mpsc::Sender, Arc, Mutex, MutexGuard},
 };
 
 use anyhow::{Context, Result};
@@ -11,12 +11,12 @@ pub use wasmtime::Linker;
 pub use crate::RuntimeContext;
 
 pub type DataT = (
-    Box<dyn Resource>,
-    Option<Box<dyn ResourceTables<dyn Resource>>>,
+    Box<dyn Resource + Send + Sync>,
+    Option<Box<dyn ResourceTables<dyn Resource> + Send + Sync>>,
 );
 pub type ResourceConfig = String;
 pub type ResourceMap = Arc<Mutex<Map>>;
-pub type Ctx = RuntimeContext<DataT, GuestState>;
+pub type Ctx = RuntimeContext<DataT>;
 
 #[derive(Default)]
 pub struct Map(HashMap<String, DataT>);
@@ -44,11 +44,10 @@ impl Map {
             .with_context(|| "failed to acquire matched resource descriptor service")
     }
 
-    pub fn get_dynamic(&self, key: &str) -> Result<&DataT> {
-        let value = self
-            .0
-            .get(key)
-            .ok_or_else(|| anyhow::anyhow!("key not found"))?;
+    pub fn get_dynamic_mut(&mut self, key: &str) -> Result<&mut DataT> {
+        let value = self.0.get_mut(key).ok_or_else(|| {
+            anyhow::anyhow!(format!("failed because key '{}' was not found", &key))
+        })?;
         Ok(value)
     }
 }
@@ -64,7 +63,13 @@ pub trait Resource: AsAny {
     fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
 
     /// check if the resource has changed on key.
-    fn changed(&self, key: &str) -> bool;
+    fn watch(
+        &mut self,
+        data: &str,
+        rd: &str,
+        key: &str,
+        sender: Arc<Mutex<Sender<Event>>>,
+    ) -> Result<()>;
 }
 
 /// A trait for wit-bindgen host resource composed of a resource and a resource table.
@@ -107,3 +112,30 @@ use event_handler::EventHandlerData;
 wit_bindgen_wasmtime::import!("../../wit/event-handler.wit");
 
 pub type GuestState = EventHandlerData;
+
+#[derive(Debug, Default, Clone)]
+pub struct Event {
+    pub source: String,
+    pub event_type: String,
+    pub specversion: String,
+    pub id: String,
+    pub data: Option<String>,
+}
+
+impl Event {
+    pub fn new(
+        source: String,
+        event_type: String,
+        specversion: String,
+        id: String,
+        data: Option<String>,
+    ) -> Self {
+        Self {
+            source,
+            event_type,
+            specversion,
+            id,
+            data,
+        }
+    }
+}

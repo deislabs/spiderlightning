@@ -17,8 +17,8 @@ pub fn resource(input: TokenStream) -> TokenStream {
                 self.inner.as_ref().unwrap()
             }
 
-            fn changed(&self, key: &str) -> bool {
-                true
+            fn watch(&mut self, data: &str, rd: &str, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
+                Ok(())
             }
         }
     };

@@ -1,10 +1,17 @@
+#![feature(deadline_api)]
 use anyhow::{Context, Result};
-use proc_macro_utils::{Resource, RuntimeResource};
+use notify::{watcher, RecursiveMode, Watcher};
+use proc_macro_utils::RuntimeResource;
+use runtime::resource::Event;
 use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use std::sync::{Arc, Mutex};
+
+use std::time::{Duration, Instant};
 use std::{
     fs::{self, File},
     io::{Read, Write},
     path::{Path, PathBuf},
+    sync::mpsc::{channel, Sender},
 };
 use uuid::Uuid;
 
@@ -17,7 +24,7 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "filekv";
 
 /// A Filesystem implementation for kv interface.
-#[derive(Default, Clone, Resource, RuntimeResource)]
+#[derive(Default, Clone, RuntimeResource)]
 pub struct KvFilesystem {
     /// The root directory of the filesystem.
     inner: Option<String>,
@@ -100,4 +107,50 @@ impl kv::Kv for KvFilesystem {
             key: key.to_string(),
         })
     }
+}
+
+impl Resource for KvFilesystem {
+    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
+        self.resource_map = Some(resource_map);
+        Ok(())
+    }
+
+    fn get_inner(&self) -> &dyn std::any::Any {
+        self.inner.as_ref().unwrap()
+    }
+
+    fn watch(
+        &mut self,
+        data: &str,
+        _rd: &str,
+        key: &str,
+        sender: Arc<Mutex<Sender<Event>>>,
+    ) -> Result<()> {
+        let path = path(key, data);
+        let (tx, rx) = channel();
+        let mut watcher = watcher(tx, Duration::from_millis(100)).unwrap();
+        watcher.watch(path, RecursiveMode::NonRecursive).unwrap();
+        loop {
+            match rx.recv_deadline(Instant::now() + Duration::from_secs(50)) {
+                Ok(event) => {
+                    let data = format!("{event:#?}");
+                    let event = Event::new(
+                        "filekv".to_string(),
+                        "changed".to_string(),
+                        "1".to_string(),
+                        "id".to_string(),
+                        Some(data),
+                    );
+                    sender.lock().unwrap().send(event).unwrap();
+                }
+                Err(_e) => break,
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Return the absolute path for the file corresponding to the given key.
+fn path(name: &str, base: &str) -> PathBuf {
+    PathBuf::from(base).join(name)
 }

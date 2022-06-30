@@ -1,11 +1,15 @@
 use anyhow::{Context, Result};
 use mq::*;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use runtime::resource::{
+    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+};
+use std::sync::{Arc, Mutex};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
     path::{Path, PathBuf},
+    sync::mpsc::Sender,
     time::{SystemTime, UNIX_EPOCH},
 };
 use uuid::Uuid;

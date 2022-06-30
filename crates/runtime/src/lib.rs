@@ -10,10 +10,10 @@ use wasmtime_wasi::*;
 
 /// A wasmtime runtime context to be passed to a wasm module.
 #[derive(Default)]
-pub struct RuntimeContext<Host, GuestState> {
+pub struct RuntimeContext<Host> {
     pub wasi: Option<WasiCtx>,
     pub data: HashMap<String, Host>,
-    pub guest_state: Option<GuestState>,
+    pub state: GuestState,
 }
 
 /// A wasmtime-based runtime builder.
@@ -28,14 +28,13 @@ impl Builder {
     /// Create a new runtime builder.
     pub fn new_default() -> Result<Self> {
         let wasi = default_wasi()?;
-        let guest_state = GuestState::default();
         let engine = Engine::new(&default_config()?)?;
         let mut linker = Linker::new(&engine);
         linker.allow_shadowing(true);
         let ctx = RuntimeContext {
             wasi: Some(wasi),
             data: HashMap::new(),
-            guest_state: Some(guest_state),
+            state: GuestState::default(),
         };
 
         let store = Store::new(&engine, ctx);
@@ -49,7 +48,7 @@ impl Builder {
 
     /// Link wasi to the wasmtime::Linker
     pub fn link_wasi(&mut self) -> Result<&mut Self> {
-        wasmtime_wasi::add_to_linker(&mut self.linker, |cx: &mut RuntimeContext<_, _>| {
+        wasmtime_wasi::add_to_linker(&mut self.linker, |cx: &mut RuntimeContext<_>| {
             cx.wasi.as_mut().unwrap()
         })?;
         Ok(self)
@@ -73,10 +72,10 @@ impl Builder {
     }
 
     /// Instantiate the guest module.
-    pub fn build(mut self, module: &str) -> Result<(Store<Ctx>, Instance)> {
+    pub fn build(mut self, module: &str) -> Result<(Engine, Store<Ctx>, Instance)> {
         let module = Module::from_file(&self.engine, module)?;
         let instance = self.linker.instantiate(&mut self.store, &module)?;
-        Ok((self.store, instance))
+        Ok((self.engine, self.store, instance))
     }
 }
 

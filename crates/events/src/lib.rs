@@ -1,11 +1,20 @@
-use std::{cell::RefCell, rc::Rc};
+#![feature(deadline_api)]
+use std::{
+    ops::DerefMut,
+    sync::{
+        mpsc::{channel, Receiver, Sender},
+        Arc, Mutex,
+    },
+    time::{Duration, Instant},
+};
 
 use anyhow::Result;
+use crossbeam_utils::thread;
 
 use crate::events::{EventError, Observable as GeneratedObservable};
 use runtime::resource::{
     event_handler::{EventHandler, EventParam},
-    Ctx, Resource, ResourceMap, RuntimeResource,
+    Ctx, Event, Resource, ResourceMap, RuntimeResource,
 };
 use runtime::resource::{get_table, ResourceTables};
 use wasmtime::Store;
@@ -20,22 +29,24 @@ const SCHEME_NAME: &str = "events";
 pub struct Events {
     observables: Vec<Observable>,
     resource_map: Option<ResourceMap>,
-    event_handler: Option<EventHandler<Ctx>>,
-    store: Option<Rc<RefCell<Store<Ctx>>>>,
+    event_handler: Option<Arc<Mutex<EventHandler<Ctx>>>>,
+    store: Option<Arc<Mutex<Store<Ctx>>>>,
 }
 
 /// An owned observable
 struct Observable {
     rd: String,
     key: String,
+    sender: Arc<Mutex<Sender<Event>>>,
+    receiver: Arc<Mutex<Receiver<Event>>>,
 }
 
 impl Events {
     /// Host will call this function to update store and event_handler
     pub fn update_state(
         &mut self,
-        store: Rc<RefCell<Store<Ctx>>>,
-        event_handler: EventHandler<Ctx>,
+        store: Arc<Mutex<Store<Ctx>>>,
+        event_handler: Arc<Mutex<EventHandler<Ctx>>>,
     ) -> Result<()> {
         self.event_handler = Some(event_handler);
         self.store = Some(store);
@@ -53,7 +64,13 @@ impl Resource for Events {
         unimplemented!("events will not be dynamically dispatched to a specific resource")
     }
 
-    fn changed(&self, _key: &str) -> bool {
+    fn watch(
+        &mut self,
+        _data: &str,
+        _rd: &str,
+        _key: &str,
+        _sender: Arc<Mutex<Sender<Event>>>,
+    ) -> Result<()> {
         unimplemented!("events will not be listened to")
     }
 }
@@ -82,64 +99,86 @@ impl events::Events for Events {
         Ok(())
     }
 
-    fn events_listen(&mut self, _events: &Self::Events, ob: GeneratedObservable<'_>) -> Result<(), EventError> {
+    fn events_listen(
+        &mut self,
+        _events: &Self::Events,
+        ob: GeneratedObservable<'_>,
+    ) -> Result<(), EventError> {
         // TODO (Joe): I can't figure out how to not deep copy the Observable here to satisfy the
         // Rust lifetime rules.
+        let (sender, receiver) = channel();
         let ob2 = Observable {
             rd: ob.rd.to_string(),
             key: ob.key.to_string(),
+            sender: Arc::new(Mutex::new(sender)),
+            receiver: Arc::new(Mutex::new(receiver)),
         };
         self.observables.push(ob2);
         Ok(())
     }
 
     fn events_exec(&mut self, _events: &Self::Events, duration: u64) -> Result<(), EventError> {
-        // loop until duration time has passed
-        let mut duration = duration;
-        loop {
+        thread::scope(|s| {
+            let mut thread_handles = vec![];
+            // loop until duration time has passed
+            let duration = duration;
             for ob in &self.observables {
                 // check if observable has changed
-                let map = self
-                    .resource_map
-                    .as_mut()
-                    .ok_or_else(|| anyhow::anyhow!("resource map is not initialized"))?
-                    .lock()
-                    .unwrap();
-                let resource = &map.get_dynamic(&ob.rd)?.0;
-                if resource.changed(&ob.key) {
-                    // call event handler
-                    let event = EventParam {
-                        source: &ob.rd,
-                        event_type: "changed",
-                        specversion: "1",
-                        id: "id",
-                        data: None,
-                    };
-                    unsafe {
-                        let store = self.store.as_mut().unwrap();
-                        let store = &mut (*(*store).as_ptr());
-                        match self.event_handler
-                            .as_ref()
-                            .unwrap()
-                            .handle_event(store, event) {
+                let map = self.resource_map.as_mut().unwrap().clone();
+                let rd = ob.rd.clone();
+                let key = ob.key.clone();
+                let sender = ob.sender.clone();
+                thread_handles.push(s.spawn(move |_| {
+                    let mut map = map.lock().unwrap();
+                    let data = map.get::<String>(&ob.rd).unwrap().to_string();
+                    let resource = &mut map.get_dynamic_mut(&rd).unwrap().0;
+                    resource.watch(&data, &rd, &key, sender)?;
+                    Ok(())
+                }));
+            }
+
+            for ob in &self.observables {
+                let handler = self.event_handler.as_ref().unwrap().clone();
+                let store = self.store.as_mut().unwrap().clone();
+                let receiver = ob.receiver.clone();
+                thread_handles.push(s.spawn(move |_| loop {
+                    match receiver
+                        .lock()
+                        .unwrap()
+                        .recv_deadline(Instant::now() + Duration::from_secs(duration))
+                    {
+                        Ok(event) => {
+                            let mut store = store.lock().unwrap();
+                            let event_param = EventParam {
+                                specversion: event.specversion.as_str(),
+                                event_type: event.event_type.as_str(),
+                                source: event.source.as_str(),
+                                id: event.id.as_str(),
+                                data: event.data.as_deref(),
+                            };
+                            match handler
+                                .lock()
+                                .unwrap()
+                                .handle_event(store.deref_mut(), event_param)
+                            {
                                 Ok(_) => (),
                                 Err(e) => {
-                                    return Err(events::EventError::Error(format!("event handler error {}", e)));
+                                    return Err(events::EventError::Error(format!(
+                                        "event handler error {}",
+                                        e
+                                    )));
                                 }
                             }
+                        }
+                        Err(_) => return Ok(()),
                     }
-                }
+                }));
             }
-            // sleep for 1 second
-            std::thread::sleep(std::time::Duration::from_secs(1));
-            // decrement duration
-            duration -= 1;
-            // if duration is 0, break
-            if duration == 0 {
-                break;
+            for handle in thread_handles {
+                handle.join().unwrap();
             }
-        }
-
+        })
+        .unwrap();
         Ok(())
     }
 }

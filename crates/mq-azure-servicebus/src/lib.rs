@@ -1,10 +1,15 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::mpsc::Sender,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use runtime::resource::{
+    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+};
 
 pub use mq::add_to_linker;
 use mq::*;

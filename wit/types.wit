@@ -14,5 +14,5 @@ record event {
 	event-type: string,
 	source: string,
 	id: string,
-	data: option<payload>
+	data: option<string>
 } 
