@@ -1,7 +1,7 @@
 use anyhow::Result;
 use etcd_client::{Client, LockOptions, LockResponse};
 
-/// Create a lock 
+/// Create a lock
 pub async fn lock(client: &mut Client, lock_name: &[u8]) -> Result<Vec<u8>> {
     let resp = client.lock(lock_name, None).await?;
     Ok(resp.key().to_vec())

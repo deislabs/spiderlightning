@@ -102,8 +102,8 @@ impl lockd::Lockd for LockdEtcd {
         let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
-        let pr = block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))
+        block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))
             .with_context(|| "failed to unlock")?;
-        Ok(pr)
+        Ok(())
     }
 }

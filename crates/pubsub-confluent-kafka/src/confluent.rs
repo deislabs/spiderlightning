@@ -7,7 +7,7 @@ use rdkafka::{
     Message,
 };
 
-/// A wrapper type around a pair of vector of u8s 
+/// A wrapper type around a pair of vector of u8s
 pub struct KafkaMessage(pub Option<Vec<u8>>, pub Option<Vec<u8>>);
 
 /// Send a message

@@ -28,11 +28,7 @@ pub struct KvAzureBlob {
 
 impl KvAzureBlob {
     /// Create a new `KvAzureBlob`
-    fn new(
-        storage_account_name: &str,
-        storage_account_key: &str,
-        container_name: &str,
-    ) -> Self {
+    fn new(storage_account_name: &str, storage_account_key: &str, container_name: &str) -> Self {
         let http_client = azure_core::new_http_client();
         let inner = Some(
             StorageAccountClient::new_access_key(
