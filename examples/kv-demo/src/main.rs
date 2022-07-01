@@ -41,7 +41,7 @@ fn main() -> Result<()> {
             rd: ob2.rd.as_str(),
             key: ob2.key.as_str(),
         })?
-        .exec(100)?;
+        .exec(5)?;
 
     drop(rd1); // drop != close
     drop(rd2);

@@ -11,7 +11,7 @@ use std::{
     io::{Read, Write},
     path::{Path, PathBuf},
 };
-use uuid::{Uuid};
+use uuid::Uuid;
 
 use kv::*;
 

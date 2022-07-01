@@ -89,9 +89,13 @@ where
         .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
 
-    data.0.as_mut().downcast_mut().unwrap_or_else(|| panic!("internal error: context has key {} but can't be downcast to resource {}",
-        &resource_key,
-        std::any::type_name::<T>()))
+    data.0.as_mut().downcast_mut().unwrap_or_else(|| {
+        panic!(
+            "internal error: context has key {} but can't be downcast to resource {}",
+            &resource_key,
+            std::any::type_name::<T>()
+        )
+    })
 }
 
 pub fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)
@@ -104,18 +108,30 @@ where
         .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
     (
-        data.0.as_mut().downcast_mut().unwrap_or_else(|| panic!("internal error: context has key {} but can't be downcast to resource {}",
-            &resource_key,
-            std::any::type_name::<T>())),
+        data.0.as_mut().downcast_mut().unwrap_or_else(|| {
+            panic!(
+                "internal error: context has key {} but can't be downcast to resource {}",
+                &resource_key,
+                std::any::type_name::<T>()
+            )
+        }),
         data.1
             .as_mut()
-            .unwrap_or_else(|| panic!("internal error: table {} is not initialized",
-                    std::any::type_name::<TTable>()))
+            .unwrap_or_else(|| {
+                panic!(
+                    "internal error: table {} is not initialized",
+                    std::any::type_name::<TTable>()
+                )
+            })
             .as_mut()
             .downcast_mut()
-            .unwrap_or_else(|| panic!("internal error: context has key {} but can't be downcast to resource_table {}",
-                &resource_key,
-                std::any::type_name::<TTable>())),
+            .unwrap_or_else(|| {
+                panic!(
+                    "internal error: context has key {} but can't be downcast to resource_table {}",
+                    &resource_key,
+                    std::any::type_name::<TTable>()
+                )
+            }),
     )
 }
 
