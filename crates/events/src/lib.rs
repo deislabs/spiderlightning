@@ -11,7 +11,8 @@ use std::{
 use anyhow::Result;
 use crossbeam_utils::thread;
 
-use crate::events::{EventError, Observable as GeneratedObservable};
+use crate::events::Observable as GeneratedObservable;
+use events::Error;
 use runtime::resource::{
     event_handler::{EventHandler, EventParam},
     Ctx, Event, Resource, ResourceMap, RuntimeResource,
@@ -21,6 +22,8 @@ use wasmtime::Store;
 
 use crate::events::add_to_linker;
 wit_bindgen_wasmtime::export!("../../wit/events.wit");
+wit_error_rs::impl_error!(Error);
+wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "events";
 
@@ -95,7 +98,7 @@ impl<T> ResourceTables<dyn Resource> for events::EventsTables<T> where T: events
 
 impl events::Events for Events {
     type Events = ();
-    fn events_get(&mut self) -> Result<Self::Events, EventError> {
+    fn events_get(&mut self) -> Result<Self::Events, Error> {
         Ok(())
     }
 
@@ -103,7 +106,7 @@ impl events::Events for Events {
         &mut self,
         _events: &Self::Events,
         ob: GeneratedObservable<'_>,
-    ) -> Result<(), EventError> {
+    ) -> Result<(), Error> {
         // TODO (Joe): I can't figure out how to not deep copy the Observable here to satisfy the
         // Rust lifetime rules.
         let (sender, receiver) = channel();
@@ -117,7 +120,7 @@ impl events::Events for Events {
         Ok(())
     }
 
-    fn events_exec(&mut self, _events: &Self::Events, duration: u64) -> Result<(), EventError> {
+    fn events_exec(&mut self, _events: &Self::Events, duration: u64) -> Result<(), Error> {
         thread::scope(|s| {
             let mut thread_handles = vec![];
             // loop until duration time has passed
@@ -163,7 +166,7 @@ impl events::Events for Events {
                             {
                                 Ok(_) => (),
                                 Err(e) => {
-                                    return Err(events::EventError::Error(format!(
+                                    return Err(events::Error::ErrorWithDescription(format!(
                                         "event handler error {}",
                                         e
                                     )));
@@ -180,11 +183,5 @@ impl events::Events for Events {
         })
         .unwrap();
         Ok(())
-    }
-}
-
-impl From<anyhow::Error> for events::EventError {
-    fn from(e: anyhow::Error) -> Self {
-        Self::Error(e.to_string())
     }
 }

@@ -5,7 +5,7 @@ use events::Events;
 use kv::*;
 wit_bindgen_rust::import!("../../wit/kv.wit");
 wit_error_rs::impl_error!(Error);
-wit_error_rs::impl_error!(events::EventError);
+wit_error_rs::impl_error!(events::Error);
 wit_bindgen_rust::import!("../../wit/events.wit");
 wit_bindgen_rust::export!("../../wit/event-handler.wit");
 
@@ -29,6 +29,8 @@ fn main() -> Result<()> {
 
     let ob1 = watch(&rd1, "my-key")?;
     let events = Events::get()?;
+    // TODO (mosssaka): I had to construct a copy of Observable because wit_bindgen generates two
+    // observables in different mods: events::Observable vs. kv::Observable.
     events
         .listen(events::Observable {
             rd: ob1.rd.as_str(),
