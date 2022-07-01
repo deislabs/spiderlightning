@@ -1,6 +1,5 @@
 use std::sync::{Arc, Mutex};
 
-
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use clap::Parser;
@@ -90,21 +89,21 @@ async fn main() -> Result<()> {
         bail!("unsupported toml spec version");
     }
     builder.link_resource_map(resource_map.clone())?;
-    let (_engine, mut store, instance) = builder.build(&args.module)?;
+    let (_, mut store, instance) = builder.build(&args.module)?;
 
     builder2.link_resource_map(resource_map)?;
-    let (_engine2, mut store2, instance2) = builder2.build(&args.module)?;
+    let (_, mut store2, instance2) = builder2.build(&args.module)?;
     if events_enabled {
         let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;
         store
             .data_mut()
             .data
             .get_mut("events")
-            .unwrap()
+            .expect("internal error: resource_map does not contain key events")
             .0
             .as_mut()
             .downcast_mut::<Events>()
-            .unwrap()
+            .expect("internal error: resource map contains key events but can't downcast to Events")
             .update_state(
                 Arc::new(Mutex::new(store2)),
                 Arc::new(Mutex::new(event_handler)),

@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use crossbeam_channel::Sender;
 use mq::*;
 use proc_macro_utils::{Resource, RuntimeResource};
 use runtime::resource::{
@@ -9,7 +10,6 @@ use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
     path::{Path, PathBuf},
-    sync::mpsc::Sender,
     time::{SystemTime, UNIX_EPOCH},
 };
 use uuid::Uuid;

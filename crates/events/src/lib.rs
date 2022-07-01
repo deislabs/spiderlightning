@@ -1,10 +1,6 @@
-#![feature(deadline_api)]
 use std::{
     ops::DerefMut,
-    sync::{
-        mpsc::{channel, Receiver, Sender},
-        Arc, Mutex,
-    },
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
@@ -12,6 +8,7 @@ use anyhow::Result;
 use crossbeam_utils::thread;
 
 use crate::events::Observable as GeneratedObservable;
+use crossbeam_channel::{unbounded, Receiver, Sender};
 use events::Error;
 use runtime::resource::{
     event_handler::{EventHandler, EventParam},
@@ -109,7 +106,7 @@ impl events::Events for Events {
     ) -> Result<(), Error> {
         // TODO (Joe): I can't figure out how to not deep copy the Observable here to satisfy the
         // Rust lifetime rules.
-        let (sender, receiver) = channel();
+        let (sender, receiver) = unbounded();
         let ob2 = Observable {
             rd: ob.rd.to_string(),
             key: ob.key.to_string(),
@@ -121,30 +118,25 @@ impl events::Events for Events {
     }
 
     fn events_exec(&mut self, _events: &Self::Events, duration: u64) -> Result<(), Error> {
-        thread::scope(|s| {
-            let mut thread_handles = vec![];
-            // loop until duration time has passed
-            let duration = duration;
-            for ob in &self.observables {
-                // check if observable has changed
-                let map = self.resource_map.as_mut().unwrap().clone();
-                let rd = ob.rd.clone();
-                let key = ob.key.clone();
-                let sender = ob.sender.clone();
-                thread_handles.push(s.spawn(move |_| {
-                    let mut map = map.lock().unwrap();
-                    let data = map.get::<String>(&ob.rd).unwrap().to_string();
-                    let resource = &mut map.get_dynamic_mut(&rd).unwrap().0;
-                    resource.watch(&data, &rd, &key, sender)?;
-                    Ok(())
-                }));
-            }
+        for ob in &self.observables {
+            // check if observable has changed
+            let map = self.resource_map.as_mut().unwrap().clone();
+            let rd = ob.rd.clone();
+            let key = ob.key.clone();
+            let sender = ob.sender.clone();
 
+            let mut map = map.lock().unwrap();
+            let data = map.get::<String>(&ob.rd).unwrap().to_string();
+            let resource = &mut map.get_dynamic_mut(&rd).unwrap().0;
+            resource.watch(&data, &rd, &key, sender)?;
+        }
+        thread::scope(|s| -> Result<()> {
+            let mut thread_handles = vec![];
             for ob in &self.observables {
                 let handler = self.event_handler.as_ref().unwrap().clone();
                 let store = self.store.as_mut().unwrap().clone();
                 let receiver = ob.receiver.clone();
-                thread_handles.push(s.spawn(move |_| loop {
+                let receive_thread = s.spawn(move |_| loop {
                     match receiver
                         .lock()
                         .unwrap()
@@ -153,10 +145,10 @@ impl events::Events for Events {
                         Ok(event) => {
                             let mut store = store.lock().unwrap();
                             let event_param = EventParam {
-                                specversion: event.specversion.as_str(),
-                                event_type: event.event_type.as_str(),
-                                source: event.source.as_str(),
-                                id: event.id.as_str(),
+                                specversion: &event.specversion,
+                                event_type: &event.event_type,
+                                source: &event.source,
+                                id: &event.id,
                                 data: event.data.as_deref(),
                             };
                             match handler
@@ -175,13 +167,22 @@ impl events::Events for Events {
                         }
                         Err(_) => return Ok(()),
                     }
-                }));
+                });
+                thread_handles.push(receive_thread);
             }
             for handle in thread_handles {
-                handle.join().unwrap();
+                handle
+                    .join()
+                    .expect("internal error: joined thread failed")?;
             }
+            Ok(())
         })
-        .unwrap();
+        .map_err(|e| {
+            anyhow::anyhow!(format!(
+                "internal error: joined thread failed with {}",
+                e.downcast::<events::Error>().unwrap()
+            ))
+        })??;
         Ok(())
     }
 }

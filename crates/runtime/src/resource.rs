@@ -1,14 +1,14 @@
 use std::{
     any::Any,
     collections::HashMap,
-    sync::{mpsc::Sender, Arc, Mutex, MutexGuard},
+    sync::{Arc, Mutex, MutexGuard},
 };
 
+pub use crate::RuntimeContext;
 use anyhow::{Context, Result};
 use as_any::{AsAny, Downcast};
+use crossbeam_channel::Sender;
 pub use wasmtime::Linker;
-
-pub use crate::RuntimeContext;
 
 pub type DataT = (
     Box<dyn Resource + Send + Sync>,
@@ -45,9 +45,10 @@ impl Map {
     }
 
     pub fn get_dynamic_mut(&mut self, key: &str) -> Result<&mut DataT> {
-        let value = self.0.get_mut(key).ok_or_else(|| {
-            anyhow::anyhow!(format!("failed because key '{}' was not found", &key))
-        })?;
+        let value = self
+            .0
+            .get_mut(key)
+            .ok_or_else(|| anyhow::anyhow!("failed because key '{}' was not found", &key))?;
         Ok(value)
     }
 }
@@ -88,7 +89,9 @@ where
         .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
 
-    data.0.as_mut().downcast_mut().unwrap()
+    data.0.as_mut().downcast_mut().unwrap_or_else(|| panic!("internal error: context has key {} but can't be downcast to resource {}",
+        &resource_key,
+        std::any::type_name::<T>()))
 }
 
 pub fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)
@@ -101,8 +104,18 @@ where
         .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
     (
-        data.0.as_mut().downcast_mut().unwrap(),
-        data.1.as_mut().unwrap().as_mut().downcast_mut().unwrap(),
+        data.0.as_mut().downcast_mut().unwrap_or_else(|| panic!("internal error: context has key {} but can't be downcast to resource {}",
+            &resource_key,
+            std::any::type_name::<T>())),
+        data.1
+            .as_mut()
+            .unwrap_or_else(|| panic!("internal error: table {} is not initialized",
+                    std::any::type_name::<TTable>()))
+            .as_mut()
+            .downcast_mut()
+            .unwrap_or_else(|| panic!("internal error: context has key {} but can't be downcast to resource_table {}",
+                &resource_key,
+                std::any::type_name::<TTable>())),
     )
 }
 

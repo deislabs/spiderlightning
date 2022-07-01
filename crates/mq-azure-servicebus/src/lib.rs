@@ -1,7 +1,4 @@
-use std::{
-    sync::mpsc::Sender,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
@@ -11,6 +8,7 @@ use runtime::resource::{
     get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
 };
 
+use crossbeam_channel::Sender;
 pub use mq::add_to_linker;
 use mq::*;
 use uuid::Uuid;

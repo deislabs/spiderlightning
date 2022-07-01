@@ -1,19 +1,17 @@
-#![feature(deadline_api)]
 use anyhow::{Context, Result};
-use notify::{watcher, RecursiveMode, Watcher};
+use notify::{Event as NotifyEvent, FsEventWatcher, RecursiveMode, Watcher};
 use proc_macro_utils::RuntimeResource;
 use runtime::resource::Event;
 use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 use std::sync::{Arc, Mutex};
 
-use std::time::{Duration, Instant};
+use crossbeam_channel::Sender;
 use std::{
     fs::{self, File},
     io::{Read, Write},
     path::{Path, PathBuf},
-    sync::mpsc::{channel, Sender},
 };
-use uuid::Uuid;
+use uuid::{Uuid};
 
 use kv::*;
 
@@ -29,6 +27,7 @@ pub struct KvFilesystem {
     /// The root directory of the filesystem.
     inner: Option<String>,
     resource_map: Option<ResourceMap>,
+    wathchers: Vec<Arc<Mutex<FsEventWatcher>>>,
 }
 
 impl kv::Kv for KvFilesystem {
@@ -121,31 +120,45 @@ impl Resource for KvFilesystem {
 
     fn watch(
         &mut self,
-        data: &str,
+        base: &str,
         _rd: &str,
         key: &str,
         sender: Arc<Mutex<Sender<Event>>>,
     ) -> Result<()> {
-        let path = path(key, data);
-        let (tx, rx) = channel();
-        let mut watcher = watcher(tx, Duration::from_millis(100)).unwrap();
-        watcher.watch(path, RecursiveMode::NonRecursive).unwrap();
-        loop {
-            match rx.recv_deadline(Instant::now() + Duration::from_secs(50)) {
+        let path = path(key, base);
+        let key = key.to_string();
+        let mut watcher =
+            notify::recommended_watcher(move |res: Result<NotifyEvent, _>| match res {
                 Ok(event) => {
-                    let data = format!("{event:#?}");
+                    // we use uuid to identify an event
+                    let id = Uuid::new_v4().to_string();
+                    let path = event
+                        .paths
+                        .get(0)
+                        .map(|x| format!("{}", x.display()))
+                        .unwrap_or_default();
                     let event = Event::new(
-                        "filekv".to_string(),
-                        "changed".to_string(),
-                        "1".to_string(),
-                        "id".to_string(),
-                        Some(data),
+                        path,
+                        format!("{:#?}", event.kind),
+                        "1.0".to_string(),
+                        id,
+                        Some(key.clone()),
                     );
-                    sender.lock().unwrap().send(event).unwrap();
+                    sender
+                        .lock()
+                        .unwrap()
+                        .send(event)
+                        .expect("internal error: send");
                 }
-                Err(_e) => break,
-            }
-        }
+                Err(e) => println!("watch error: {:?}", e),
+            })?;
+
+        // Add a path to be watched. All files and directories at that path and
+        // below will be monitored for changes.
+        watcher.watch(&path, RecursiveMode::Recursive)?;
+        // we don't want to destruct the watcher after the function exit. We
+        // want to keep the watcher alive until the resource is dropped.
+        self.wathchers.push(Arc::new(Mutex::new(watcher)));
         Ok(())
     }
 }

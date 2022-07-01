@@ -28,6 +28,7 @@ fn main() -> Result<()> {
     assert_eq!(value.is_err(), true);
 
     let ob1 = watch(&rd1, "my-key")?;
+    let ob2 = watch(&rd1, "my-key2")?;
     let events = Events::get()?;
     // TODO (mosssaka): I had to construct a copy of Observable because wit_bindgen generates two
     // observables in different mods: events::Observable vs. kv::Observable.
@@ -35,6 +36,10 @@ fn main() -> Result<()> {
         .listen(events::Observable {
             rd: ob1.rd.as_str(),
             key: ob1.key.as_str(),
+        })?
+        .listen(events::Observable {
+            rd: ob2.rd.as_str(),
+            key: ob2.key.as_str(),
         })?
         .exec(100)?;
 
@@ -47,7 +52,15 @@ pub struct EventHandler {}
 
 impl event_handler::EventHandler for EventHandler {
     fn handle_event(ev: Event) -> Result<Option<Event>, String> {
-        println!("{}", ev.data.unwrap());
+        let rd = get_kv("my-container").unwrap();
+        let key = ev.data.unwrap();
+        let value = get(&rd, &key).unwrap();
+        println!(
+            "received event of type {}, key: {}, new value: {}",
+            &ev.event_type,
+            &key,
+            std::str::from_utf8(&value).unwrap()
+        );
         Ok(None)
     }
 }

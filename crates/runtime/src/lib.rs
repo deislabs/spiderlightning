@@ -65,7 +65,7 @@ impl Builder {
     }
 
     pub fn link_resource_map(&mut self, rd_map: ResourceMap) -> Result<&mut Self> {
-        for (_k, v) in self.store.data_mut().data.iter_mut() {
+        for (_, v) in self.store.data_mut().data.iter_mut() {
             v.0.add_resource_map(rd_map.clone())?;
         }
         Ok(self)

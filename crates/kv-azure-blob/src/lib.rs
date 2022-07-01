@@ -1,12 +1,12 @@
 use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
+use crossbeam_channel::Sender;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
 use runtime::resource::{
     get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
 };
-use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 

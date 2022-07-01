@@ -9,7 +9,7 @@ authors = ["DeisLabs Engineering Team"]
 [dependencies]
 azure_messaging_servicebus = { version = "0.2", git = "https://github.com/danbugs/azure-sdk-for-rust", rev = "40deff431c8a87ba60d93c59ea35fd11c4f9caad" }
 azure_core = { version = "0.2", git = "https://github.com/danbugs/azure-sdk-for-rust", rev = "40deff431c8a87ba60d93c59ea35fd11c4f9caad" }
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev= "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
 anyhow = "1.0"
 url = "2.2"
 chrono = "0.4.19"
@@ -19,3 +19,4 @@ runtime = { path = "../runtime" }
 proc_macro_utils = { path = "../proc_macro_utils" }
 uuid = "1"
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
+crossbeam-channel = "0.5.5"

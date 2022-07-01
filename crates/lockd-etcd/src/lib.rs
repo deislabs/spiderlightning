@@ -1,4 +1,4 @@
-use std::sync::{mpsc::Sender, Arc, Mutex};
+use std::sync::{Arc, Mutex};
 
 pub use lockd::add_to_linker;
 use lockd::*;
@@ -8,6 +8,7 @@ wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 use anyhow::{Context, Result};
+use crossbeam_channel::Sender;
 use etcd_client::Client;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
