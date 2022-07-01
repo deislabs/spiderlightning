@@ -17,16 +17,4 @@ mod kv_test {
         );
         Ok(())
     }
-
-    #[test]
-    fn test_kv_azblob() -> Result<()> {
-        //TODO (mossaka): figure out a way to inject secrets to gh actions
-
-        // let azblob_config = "./tests/azblob.toml";
-        // run(
-        //     WASI_CLOUD_BINARY,
-        //     vec!["-m", KV_TEST_MODULE, "-c", azblob_config],
-        // );
-        Ok(())
-    }
 }
