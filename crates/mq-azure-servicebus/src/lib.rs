@@ -20,7 +20,7 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "azsbusmq";
 
-/// A Azure ServiceBus Message Queue binding for the mq interface.
+/// A Azure ServiceBus Message Queue service implementation for the mq interface
 #[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct MqAzureServiceBus {
     inner: Option<Arc<Mutex<Client>>>,
@@ -28,7 +28,7 @@ pub struct MqAzureServiceBus {
 }
 
 impl MqAzureServiceBus {
-    /// Create a new KvAzureBlob.
+    /// Create a new `MqAzureServiceBus`
     pub fn new(
         service_bus_namespace: &str,
         queue_name: &str,
@@ -56,7 +56,7 @@ impl MqAzureServiceBus {
 }
 
 impl mq::Mq for MqAzureServiceBus {
-    /// Get the resource descriptor for your Azure Service Bus message queue
+    /// Construct a new `MqAzureServiceBus` instance provided a queue name.
     fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let queue_name = name;
         let service_bus_namespace = std::env::var("AZURE_SERVICE_BUS_NAMESPACE")

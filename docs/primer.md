@@ -1,11 +1,11 @@
-# wasi-cloud
+# WASI-Cloud
 
-wasi-cloud is a set of consistent, modular and portable interfaces that provide common distributed system capabilities to WebAssembly applications. It is designed to follow the principals of the [WebAssembly System Interface](https://wasi.dev/):
-1. **Portability**: wasi-cloud is vendor-neutral, and can run on various host environments (e.g., cloud, edge, bare-metal etc.) and deployment runtime (e.g., VM, containers, standalone etc.), using different programming languages (e.g., Rust, C etc.)
-2. **Security**: applications that link to wasi-cloud libc will run in a sandboxed environment. The host will put capability functions in a sandboxed environment that the code can run. 
-3. **Modular**: 
+WASI-Cloud is a set of consistent, modular, and portable interfaces that provide common Cloud capabilities to WebAssembly applications. It is designed to follow the principals of the [WebAssembly System Interface](https://wasi.dev/):
+1. **Portability**: wasi-cloud is vendor-neutral, and can run on various host environments (e.g., cloud, edge, bare-metal etc.) and deployment runtime (e.g., VM, containers, standalone etc.), using different programming languages (e.g., Rust, C etc.),
+2. **Security**: applications that link to WASI-Cloud will run in a sandboxed environment. The host will put capability functions in a sandboxed environment that the code can run, and
+3. **Modular**.
 
-![Diagram](./Slide1.jpg)
+![Diagram](./images/primer0.jpg)
 
 
 ## wasi-cloud capabilities
@@ -19,10 +19,8 @@ wasi-cloud is a set of consistent, modular and portable interfaces that provide 
 | pub/sub | [Confluent Kafka](https://kafka.apache.org/) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ✅ `pubsub.wit`  |
 | custom pluggable functions | TBD | TBD | / | ❌ TBD |
 
-> **Question:** Do we care that the store is a KV, filesystem, etcd, DB, etc? What level of abstraction should we provide? Does the current level of abstraction leave implementation details?
-
-## WebAssembly Interface
-wasi-cloud capability interfaces are written in WIT files. WIT is becoming the next standard for defining Wasm interfaces. WASI, for example, is transitioning to [use](https://github.com/bytecodealliance/wit-bindgen/blob/32e63116d469d8046727fae3c1333a7d35d0c5d3/tests/codegen/wasi-next/wasi_next.wit) this textual format, together with the [Interface Types](https://github.com/WebAssembly/interface-types/blob/main/proposals/interface-types/Explainer.md) and [Canonical ABI](https://github.com/WebAssembly/interface-types/pull/140). 
+## WebAssembly Interface Types
+WASI-Cloud capability interfaces are written in WIT files. WIT is becoming the next standard for defining Wasm interfaces. WASI, for example, is transitioning to [use](https://github.com/bytecodealliance/wit-bindgen/blob/32e63116d469d8046727fae3c1333a7d35d0c5d3/tests/codegen/wasi-next/wasi_next.wit) this textual format, together with the [Interface Types](https://github.com/WebAssembly/interface-types/blob/main/proposals/interface-types/Explainer.md), and the [Canonical ABI](https://github.com/WebAssembly/interface-types/pull/140). 
 
 Below is an exmaple of a WIT file - defining a message queue capability.
 ```fsharp
@@ -40,14 +38,11 @@ send: function(rd: resource-descriptor, msg: payload) -> expected<unit, error>
 receive: function(rd: resource-descriptor) -> expected<payload, error>
 ```
 
+[Bytecode Alliance](https://bytecodealliance.org/) has a project called [`wit-bindgen`](https://github.com/bytecodealliance/wit-bindgen) that will generate language bindings for WIT files. The bindings can be used to import or export the capability functions.
 
-> How will the guest/host import or export capability functions defined in WIT?
+WASI-Cloud heavily relies on `wit-bindgen` to generate Rust and C language bindings for importing and exporting capability functions. 
 
-[Bytecode Alliance](https://bytecodealliance.org/) has a project called [wit-bindgen](https://github.com/bytecodealliance/wit-bindgen) that will generate language bindings for WIT files. The bindings can be used to import or export the capability functions.
-
-wasi-cloud heavily relies on `wit-bindgen` to generate Rust and C language bindings for importing and exporting capability functions. 
-
-#### Limitations of wit-bindgen
+#### Limitations of `wit-bindgen`
 As of now, wit-bindgen only support two guest programming languages: Rust and C. If we want to support other languages, we either need to use C FFI or write a language generator to wit-bindgen.
 
 ## Architecture
@@ -58,17 +53,13 @@ This project consists of three independent components.
 
 `wit/` contains the WIT files that define the capability interfaces. The WIT files are used to generate import functions for the application, and export functions for ths host implementation. The WIT files is the specification and our main focus for this project. 
 
-#### Host Implementation Example
-
-`wasi-cloud-cli` is a host implementation that provides the capability functions defined in the WIT files. The host implementation is written in Rust. It is used to demonstrate how to author a host implementation and not intended to use as a production host implementation.
-
 #### Guest Implementation Examples
 
 `examples/*` contains examples of guest implementations. They are used to demonstrate how to author a guest implementation.
 
 #### Configuration
 
-wasi-cloud applications can provide dynamic configuration manifest to configure the host what resources to provide. See [here](https://github.com/deislabs/wasi-cloud/issues/23) fore more details.
+WASI-Cloud applications can provide dynamic configuration manifest to configure the host what resources to provide. See [here](https://github.com/deislabs/wasi-cloud/issues/23) for more details.
 
 
 ## Similar Projects
