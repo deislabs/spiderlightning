@@ -2,6 +2,8 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 
+/// Derive this in a struct to make it a `Resource`
+/// (i.e., granting it the `add_resource_map`, and `get_inner` functions)
 #[proc_macro_derive(Resource)]
 pub fn resource(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -25,6 +27,8 @@ pub fn resource(input: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
+/// Derive this in your struct to make it a `RuntimeResource`
+/// (i.e., granting it the `add_to_linker`, and `build_data` functions)
 #[proc_macro_derive(RuntimeResource)]
 pub fn runtime_resource(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

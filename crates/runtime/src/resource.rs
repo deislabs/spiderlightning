@@ -18,10 +18,12 @@ pub type ResourceConfig = String;
 pub type ResourceMap = Arc<Mutex<Map>>;
 pub type Ctx = RuntimeContext<DataT>;
 
+/// A map wrapper type for the resource map
 #[derive(Default)]
 pub struct Map(HashMap<String, DataT>);
 
 impl Map {
+    /// A convinience function for grabbing a lock provided a map
     pub fn lock(wrapped_map: &mut Option<Arc<Mutex<Map>>>) -> Result<MutexGuard<Map>> {
         wrapped_map
             .as_mut()
@@ -30,10 +32,12 @@ impl Map {
             .map_err(|_| anyhow::anyhow!("failed to acquire lock on resource map"))
     }
 
+    /// A wrapper function for inserting a key in the map
     pub fn set(&mut self, key: String, value: DataT) {
         self.0.insert(key, value);
     }
 
+    /// A wrapper funciton around getting a value from a map
     pub fn get<T: 'static>(&self, key: &str) -> Result<&T> {
         let value = self.0.get(key).with_context(|| {
             "failed to match resource descriptor in map of instantiated resources"
@@ -56,11 +60,12 @@ impl Map {
 /// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait ResourceTables<T: ?Sized>: AsAny {}
 
+/// An implemented service interface
 pub trait Resource: AsAny {
-    /// get inner representation of the resource.
+    /// Get inner representation of the resource
     fn get_inner(&self) -> &dyn Any;
 
-    /// Add resource map to resource.
+    /// Add resource map to resource
     fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
 
     /// check if the resource has changed on key.
@@ -73,13 +78,13 @@ pub trait Resource: AsAny {
     ) -> Result<()>;
 }
 
-/// A trait for wit-bindgen host resource composed of a resource and a resource table.
+/// A trait for wit-bindgen host resource composed of a resource
 pub trait RuntimeResource {
     fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
     fn build_data() -> Result<DataT>;
 }
 
-/// dynamic dispatch to respective host resource.
+/// Dynamically dispatch to respective host resource
 pub fn get<T>(cx: &mut Ctx, resource_key: String) -> &mut T
 where
     T: 'static,

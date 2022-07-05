@@ -1,16 +1,19 @@
 use anyhow::Result;
 use etcd_client::{Client, LockOptions, LockResponse};
 
+/// Create a lock
 pub async fn lock(client: &mut Client, lock_name: &[u8]) -> Result<Vec<u8>> {
     let resp = client.lock(lock_name, None).await?;
     Ok(resp.key().to_vec())
 }
 
+/// Create a lease
 pub async fn lease_grant(client: &mut Client, ttl: i64) -> Result<i64> {
     let resp = client.lease_grant(ttl, None).await?;
     Ok(resp.id())
 }
 
+/// Create a lock with a time to live (i.e., a lease)
 pub async fn lock_with_lease(
     client: &mut Client,
     lock_name: &[u8],

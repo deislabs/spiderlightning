@@ -21,16 +21,17 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "filekv";
 
-/// A Filesystem implementation for kv interface.
+/// A Filesystem implementation for the kv interface
 #[derive(Default, Clone, RuntimeResource)]
 pub struct KvFilesystem {
-    /// The root directory of the filesystem.
+    /// The root directory of the filesystem
     inner: Option<String>,
     resource_map: Option<ResourceMap>,
     wathchers: Vec<Arc<Mutex<FsEventWatcher>>>,
 }
 
 impl kv::Kv for KvFilesystem {
+    /// Contruct a new `KvFilesystem` from a folder name. This folder will be created under `/tmp`
     fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let path = Path::new("/tmp").join(name);
         let path = path
@@ -46,7 +47,7 @@ impl kv::Kv for KvFilesystem {
         Ok(rd)
     }
 
-    /// Output the value of a set key.
+    /// Output the value of a set key
     fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
@@ -63,7 +64,7 @@ impl kv::Kv for KvFilesystem {
         Ok(buf)
     }
 
-    /// Create a key-value pair.
+    /// Create a key-value pair
     fn set(
         &mut self,
         rd: ResourceDescriptorParam,
@@ -86,7 +87,7 @@ impl kv::Kv for KvFilesystem {
         Ok(())
     }
 
-    /// Delete a key-value pair.
+    /// Delete a key-value pair
     fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 

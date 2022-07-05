@@ -20,7 +20,7 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "azblobkv";
 
-/// A Azure Blob Storage binding for kv interface.
+/// A Azure Blob Storage implementation for the kv interface
 #[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct KvAzureBlob {
     inner: Option<Arc<ContainerClient>>,
@@ -28,12 +28,8 @@ pub struct KvAzureBlob {
 }
 
 impl KvAzureBlob {
-    /// Create a new KvAzureBlob.
-    pub fn new(
-        storage_account_name: &str,
-        storage_account_key: &str,
-        container_name: &str,
-    ) -> Self {
+    /// Create a new `KvAzureBlob`
+    fn new(storage_account_name: &str, storage_account_key: &str, container_name: &str) -> Self {
         let http_client = azure_core::new_http_client();
         let inner = Some(
             StorageAccountClient::new_access_key(
@@ -51,7 +47,7 @@ impl KvAzureBlob {
 }
 
 impl kv::Kv for KvAzureBlob {
-    /// Construct a new KvAzureBlob from container name. For example, A container name could be "my-container".
+    /// Construct a new `KvAzureBlob` from a container name. For example, a container name could be "my-container"
     fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")
             .with_context(|| "failed to read AZURE_STORAGE_ACCOUNT environment variable")?;
@@ -68,7 +64,7 @@ impl kv::Kv for KvAzureBlob {
         Ok(rd)
     }
 
-    /// Output the value of a set key.
+    /// Output the value of a set key
     fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
@@ -80,7 +76,7 @@ impl kv::Kv for KvAzureBlob {
         Ok(res)
     }
 
-    /// Create a key-value pair.
+    /// Create a key-value pair
     fn set(
         &mut self,
         rd: ResourceDescriptorParam,
@@ -98,7 +94,7 @@ impl kv::Kv for KvAzureBlob {
         Ok(())
     }
 
-    /// Delete a key-value pair.
+    /// Delete a key-value pair
     fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 

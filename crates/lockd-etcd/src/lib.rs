@@ -21,6 +21,7 @@ mod etcd;
 
 const SCHEME_NAME: &str = "etcdlockd";
 
+/// An etcd implementation for the lockd (i.e., distributed locking) Interface
 #[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct LockdEtcd {
     inner: Option<Arc<Mutex<Client>>>,
@@ -28,6 +29,7 @@ pub struct LockdEtcd {
 }
 
 impl LockdEtcd {
+    /// Create a new `LockdEtcd`
     fn new(endpoint: &str) -> Self {
         let client = block_on(Client::connect([endpoint], None))
             .with_context(|| "failed to connect to etcd server")
@@ -41,6 +43,7 @@ impl LockdEtcd {
 }
 
 impl lockd::Lockd for LockdEtcd {
+    /// Construct a new `LockdEtcd` instance
     fn get_lockd(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let etcd_lockd = Self::new(name);
         self.inner = etcd_lockd.inner;
@@ -52,6 +55,7 @@ impl lockd::Lockd for LockdEtcd {
         Ok(rd)
     }
 
+    /// Create a lock without a time to live
     fn lock(
         &mut self,
         rd: ResourceDescriptorParam,
@@ -67,6 +71,7 @@ impl lockd::Lockd for LockdEtcd {
         Ok(pr)
     }
 
+    /// Create a lock with a time to live. Once the time to live runs out, the lock is no longer locking
     fn lock_with_time_to_live(
         &mut self,
         rd: ResourceDescriptorParam,
@@ -87,6 +92,7 @@ impl lockd::Lockd for LockdEtcd {
         Ok(pr)
     }
 
+    /// Unlock a lock
     fn unlock(
         &mut self,
         rd: ResourceDescriptorParam,
@@ -97,8 +103,8 @@ impl lockd::Lockd for LockdEtcd {
         let map = Map::lock(&mut self.resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
-        let pr = block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))
+        block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))
             .with_context(|| "failed to unlock")?;
-        Ok(pr)
+        Ok(())
     }
 }

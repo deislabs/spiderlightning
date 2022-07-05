@@ -19,6 +19,7 @@ mod confluent;
 
 const SCHEME_NAME: &str = "ckpubsub";
 
+/// A Confluent Apache Kafka implementation for the pubsub interface.
 #[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct PubSubConfluentKafka {
     inner: Option<(Arc<BaseProducer>, Arc<BaseConsumer>)>,
@@ -26,6 +27,7 @@ pub struct PubSubConfluentKafka {
 }
 
 impl PubSubConfluentKafka {
+    /// Create a new `PubSubConfluentKafka`
     pub fn new(
         bootstap_servers: &str,
         security_protocol: &str,
@@ -65,6 +67,7 @@ impl PubSubConfluentKafka {
 }
 
 impl pubsub::Pubsub for PubSubConfluentKafka {
+    /// Construct a new `PubSubConfluentKafka`
     fn get_pubsub(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let bootstap_servers = name;
         let security_protocol = env::var("CK_SECURITY_PROTOCOL")
@@ -95,6 +98,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         Ok(rd)
     }
 
+    /// Send messages to a topic
     fn send_message_to_topic(
         &mut self,
         rd: ResourceDescriptorParam,
@@ -111,6 +115,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             .with_context(|| "failed to send message to a topic")?)
     }
 
+    /// Subscribe to a topic
     fn subscribe_to_topic(
         &mut self,
         rd: ResourceDescriptorParam,
@@ -127,6 +132,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         )
     }
 
+    /// Receive/poll for messages
     fn poll_for_message(
         &mut self,
         rd: ResourceDescriptorParam,
