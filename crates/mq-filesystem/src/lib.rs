@@ -17,7 +17,7 @@ wit_error_rs::impl_from!(std::io::Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "filemq";
 
-/// A Filesystem implementation for mq interface.
+/// A Filesystem implementation for the mq interface.
 #[derive(Clone, Resource, RuntimeResource)]
 pub struct MqFilesystem {
     queue: String,
@@ -25,6 +25,7 @@ pub struct MqFilesystem {
     resource_map: Option<ResourceMap>,
 }
 
+// vvv we implement default manually because of the `queue` attribute
 impl Default for MqFilesystem {
     fn default() -> Self {
         Self {
@@ -36,6 +37,7 @@ impl Default for MqFilesystem {
 }
 
 impl mq::Mq for MqFilesystem {
+    /// Construct a new `MqFilesystem` instance provided a folder name. The folder will be created under `/tmp`.
     fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
         let path = Path::new("/tmp").join(name);
         let path = path
@@ -52,6 +54,7 @@ impl mq::Mq for MqFilesystem {
         Ok(rd)
     }
 
+    /// Send a message to the message queue
     fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
@@ -85,6 +88,7 @@ impl mq::Mq for MqFilesystem {
         Ok(())
     }
 
+    /// Receive a message from the message queue
     fn receive(&mut self, rd: ResourceDescriptorParam) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
