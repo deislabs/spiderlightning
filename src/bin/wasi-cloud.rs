@@ -44,10 +44,10 @@ async fn main() -> Result<()> {
     let toml_file = std::fs::read_to_string(args.config)?;
     let toml: Config = toml::from_str(&toml_file)?;
 
-    let mut builder = Builder::new_default()?;
-    let mut builder2 = Builder::new_default()?;
-    builder.link_wasi()?;
-    builder2.link_wasi()?;
+    let mut host_builder = Builder::new_default()?;
+    let mut guest_builder = Builder::new_default()?;
+    host_builder.link_wasi()?;
+    guest_builder.link_wasi()?;
     let mut events_enabled = false;
     if toml.specversion.unwrap() == "0.1" {
         for c in toml.capability.unwrap() {
@@ -55,32 +55,32 @@ async fn main() -> Result<()> {
             match resource_type {
             "events" => {
                 events_enabled = true;
-                builder.link_capability::<Events>(resource_type.to_string())?;
-                builder2.link_capability::<Events>(resource_type.to_string())?;
+                host_builder.link_capability::<Events>(resource_type.to_string())?;
+                guest_builder.link_capability::<Events>(resource_type.to_string())?;
             },
             "azblobkv" => {
-                builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
-                builder2.link_capability::<KvAzureBlob>(resource_type.to_string())?;
+                host_builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
+                guest_builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
             },
             "filekv" => {
-                builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
-                builder2.link_capability::<KvFilesystem>(resource_type.to_string())?;
+                host_builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
+                guest_builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
             },
             "filemq" => {
-                builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
-                builder2.link_capability::<MqFilesystem>(resource_type.to_string())?;
+                host_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
+                guest_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
             },
             "azsbusmq" => {
-                builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
-                builder2.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
+                host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
+                guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
             },
             "etcdlockd" => {
-                builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
-                builder2.link_capability::<LockdEtcd>(resource_type.to_string())?;
+                host_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
+                guest_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
             },
             "ckpubsub" => {
-                builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
-                builder2.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
+                host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
+                guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
             }
             _ => bail!("invalid url: currently wasi-cloud only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
@@ -88,11 +88,11 @@ async fn main() -> Result<()> {
     } else {
         bail!("unsupported toml spec version");
     }
-    builder.link_resource_map(resource_map.clone())?;
-    let (_, mut store, instance) = builder.build(&args.module)?;
+    host_builder.link_resource_map(resource_map.clone())?;
+    let (_, mut store, instance) = host_builder.build(&args.module)?;
 
-    builder2.link_resource_map(resource_map)?;
-    let (_, mut store2, instance2) = builder2.build(&args.module)?;
+    guest_builder.link_resource_map(resource_map)?;
+    let (_, mut store2, instance2) = guest_builder.build(&args.module)?;
     if events_enabled {
         let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;
         store

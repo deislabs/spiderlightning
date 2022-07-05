@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use notify::{Event as NotifyEvent, FsEventWatcher, RecursiveMode, Watcher};
+use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use proc_macro_utils::RuntimeResource;
 use runtime::resource::Event;
 use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
@@ -27,7 +27,7 @@ pub struct KvFilesystem {
     /// The root directory of the filesystem
     inner: Option<String>,
     resource_map: Option<ResourceMap>,
-    wathchers: Vec<Arc<Mutex<FsEventWatcher>>>,
+    wathchers: Vec<Arc<Mutex<RecommendedWatcher>>>,
 }
 
 impl kv::Kv for KvFilesystem {
@@ -102,10 +102,7 @@ impl kv::Kv for KvFilesystem {
     }
 
     fn watch(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<Observable, Error> {
-        Ok(Observable {
-            rd: rd.to_string(),
-            key: key.to_string(),
-        })
+        Ok(Observable::new(rd, key))
     }
 }
 
@@ -167,4 +164,13 @@ impl Resource for KvFilesystem {
 /// Return the absolute path for the file corresponding to the given key.
 fn path(name: &str, base: &str) -> PathBuf {
     PathBuf::from(base).join(name)
+}
+
+impl Observable {
+    pub fn new(rd: &str, key: &str) -> Self {
+        Observable {
+            rd: rd.to_string(),
+            key: key.to_string(),
+        }
+    }
 }

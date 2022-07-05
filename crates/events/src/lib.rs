@@ -7,9 +7,9 @@ use std::{
 use anyhow::Result;
 use crossbeam_utils::thread;
 
+use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use events::Error;
 use runtime::resource::{
     event_handler::{EventHandler, EventParam},
     Ctx, Event, Resource, ResourceMap, RuntimeResource,
@@ -39,6 +39,18 @@ struct Observable {
     key: String,
     sender: Arc<Mutex<Sender<Event>>>,
     receiver: Arc<Mutex<Receiver<Event>>>,
+}
+
+impl From<GeneratedObservable<'_>> for Observable {
+    fn from(observable: GeneratedObservable) -> Self {
+        let (sender, receiver) = unbounded();
+        Self {
+            rd: observable.rd.to_string(),
+            key: observable.key.to_string(),
+            sender: Arc::new(Mutex::new(sender)),
+            receiver: Arc::new(Mutex::new(receiver)),
+        }
+    }
 }
 
 impl Events {
@@ -106,13 +118,7 @@ impl events::Events for Events {
     ) -> Result<(), Error> {
         // TODO (Joe): I can't figure out how to not deep copy the Observable here to satisfy the
         // Rust lifetime rules.
-        let (sender, receiver) = unbounded();
-        let ob2 = Observable {
-            rd: ob.rd.to_string(),
-            key: ob.key.to_string(),
-            sender: Arc::new(Mutex::new(sender)),
-            receiver: Arc::new(Mutex::new(receiver)),
-        };
+        let ob2 = ob.into();
         self.observables.push(ob2);
         Ok(())
     }
@@ -120,15 +126,12 @@ impl events::Events for Events {
     fn events_exec(&mut self, _events: &Self::Events, duration: u64) -> Result<(), Error> {
         for ob in &self.observables {
             // check if observable has changed
-            let map = self.resource_map.as_mut().unwrap().clone();
-            let rd = ob.rd.clone();
-            let key = ob.key.clone();
-            let sender = ob.sender.clone();
+            let map = self.resource_map.as_mut().unwrap();
 
             let mut map = map.lock().unwrap();
             let data = map.get::<String>(&ob.rd).unwrap().to_string();
-            let resource = &mut map.get_dynamic_mut(&rd).unwrap().0;
-            resource.watch(&data, &rd, &key, sender)?;
+            let resource = &mut map.get_dynamic_mut(&ob.rd).unwrap().0;
+            resource.watch(&data, &ob.rd, &ob.key, ob.sender.clone())?;
         }
         thread::scope(|s| -> Result<()> {
             let mut thread_handles = vec![];
