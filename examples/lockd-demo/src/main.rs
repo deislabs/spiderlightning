@@ -10,7 +10,7 @@ wit_error_rs::impl_error!(Error);
 use anyhow::Result;
 
 fn main() -> Result<()> {
-    let lockd = get_lockd("localhost:2379")?;
+    let lockd = get_lockd()?;
 
     println!("trying to acquire a lock with 5s time to live");
     let mut now = SystemTime::now();

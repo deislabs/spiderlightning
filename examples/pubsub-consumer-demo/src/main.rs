@@ -6,7 +6,7 @@ wit_bindgen_rust::import!("../../wit/pubsub.wit");
 wit_error_rs::impl_error!(Error);
 
 fn main() -> Result<()> {
-    let resource_descriptor = get_pubsub("pkc-epwny.eastus.azure.confluent.cloud:9092")?;
+    let resource_descriptor = get_pubsub()?;
     let now = SystemTime::now();
     subscribe_to_topic(&resource_descriptor, &["rust"])?;
     let timeout_as_secs = 30;

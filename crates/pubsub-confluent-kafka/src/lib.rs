@@ -66,8 +66,9 @@ impl PubSubConfluentKafka {
 
 impl pubsub::Pubsub for PubSubConfluentKafka {
     /// Construct a new `PubSubConfluentKafka`
-    fn get_pubsub(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
-        let bootstap_servers = name;
+    fn get_pubsub(&mut self) -> Result<ResourceDescriptorResult, Error> {
+        let bootstap_servers = env::var("CK_ENDPOINT")
+            .with_context(|| "failed to read CK_ENDPOINT environment variable")?;
         let security_protocol = env::var("CK_SECURITY_PROTOCOL")
             .with_context(|| "failed to read CK_SECURITY_PROTOCOL environment variable")?;
         let sasl_mechanisms = env::var("CK_SASL_MECHANISMS")
@@ -80,7 +81,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             .with_context(|| "failed to read CK_GROUP_ID environment variable")?;
 
         let ck_pubsub = Self::new(
-            bootstap_servers,
+            &bootstap_servers,
             &security_protocol,
             &sasl_mechanisms,
             &sasl_username,
