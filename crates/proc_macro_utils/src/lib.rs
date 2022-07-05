@@ -31,7 +31,7 @@ pub fn runtime_resource(input: TokenStream) -> TokenStream {
     let name = &input.ident;
     let expanded = quote! {
         impl RuntimeResource for #name {
-            fn add_to_linker(linker: &mut Linker<RuntimeContext<DataT>>) -> Result<()> {
+            fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
                 crate::add_to_linker(linker, |cx| get::<Self>(cx, SCHEME_NAME.to_string()))
             }
 

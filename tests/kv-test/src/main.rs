@@ -18,16 +18,27 @@ fn main() -> Result<()> {
     let value = get(&rd, "key");
     assert!(value.is_err());
 
-    // test get_kv() will refer to the same underlying resource
+    // test get_kv() will have a unique allocation in the resource table.
+    // so two `get_kv()` with different names will return different allocations.
     let rd1 = get_kv("random1")?;
     let rd2 = get_kv("random2")?;
     set(&rd1, "key1", "value1".as_bytes())?;
     set(&rd2, "key2", "value2".as_bytes())?;
 
-    let value1 = get(&rd1, "key2")?;
-    let value2 = get(&rd2, "key1")?;
-    assert_eq!(std::str::from_utf8(&value1)?, "value2");
-    assert_eq!(std::str::from_utf8(&value2)?, "value1");
+    assert!(get(&rd1, "key2").is_err());
+    delete(&rd1, "key1")?;
+    delete(&rd2, "key2")?;
+
+    // test two get_kv() with the same name will return the same allocation.
+    // but the resource descriptors are not the same.
+    let rd1 = get_kv("random1")?;
+    let rd2 = get_kv("random1")?;
+    assert!(rd1 != rd2);
+    set(&rd1, "key1", "value1".as_bytes())?;
+    set(&rd2, "key2", "value2".as_bytes())?;
+    assert!(get(&rd1, "key2")? == "value2".as_bytes());
+    delete(&rd1, "key1")?;
+    delete(&rd2, "key2")?;
 
     // test get empty key
     let rd = get_kv("random3")?;
@@ -38,5 +49,7 @@ fn main() -> Result<()> {
     let rd = get_kv("random4")?;
     let ret = delete(&rd, "key");
     assert!(ret.is_err());
+
+    println!("finished running kv-test");
     Ok(())
 }

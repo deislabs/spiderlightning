@@ -1,8 +1,6 @@
 use anyhow::{Context, Result};
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{
-    get, DataT, Linker, Map, Resource, ResourceMap, RuntimeContext, RuntimeResource,
-};
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 use std::{
     fs::{self, File},
     io::{Read, Write},
