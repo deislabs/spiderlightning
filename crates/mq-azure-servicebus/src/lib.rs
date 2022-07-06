@@ -4,8 +4,11 @@ use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use runtime::resource::{
+    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+};
 
+use crossbeam_channel::Sender;
 pub use mq::add_to_linker;
 use mq::*;
 use uuid::Uuid;
@@ -77,7 +80,7 @@ impl mq::Mq for MqAzureServiceBus {
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
         let mut map = Map::lock(&mut self.resource_map)?;
-        map.set(rd.clone(), Box::new(cloned));
+        map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 

@@ -13,3 +13,6 @@ set: function(rd: resource-descriptor, key: string, value: payload) -> expected<
 
 // delete the payload for a given key.
 delete: function(rd: resource-descriptor, key:string) -> expected<unit, error>
+
+// watch for changes to a key.
+watch: function(rd: resource-descriptor, key: string) -> expected<observable, error>

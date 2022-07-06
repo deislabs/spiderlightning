@@ -8,3 +8,11 @@ record message {
 	key: option<payload>,
 	value: option<payload>
 }
+
+record event {
+	specversion: string,
+	event-type: string,
+	source: string,
+	id: string,
+	data: option<string>
+} 

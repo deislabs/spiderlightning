@@ -1,7 +1,11 @@
 use anyhow::{Context, Result};
+use crossbeam_channel::Sender;
 use mq::*;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use runtime::resource::{
+    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+};
+use std::sync::{Arc, Mutex};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
@@ -50,7 +54,7 @@ impl mq::Mq for MqFilesystem {
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
         let mut map = Map::lock(&mut self.resource_map)?;
-        map.set(rd.clone(), Box::new(cloned));
+        map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 

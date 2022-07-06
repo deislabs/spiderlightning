@@ -8,10 +8,13 @@ wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 use anyhow::{Context, Result};
+use crossbeam_channel::Sender;
 use etcd_client::Client;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use runtime::resource::{
+    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+};
 use uuid::Uuid;
 
 mod etcd;
@@ -48,7 +51,7 @@ impl lockd::Lockd for LockdEtcd {
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
         let mut map = Map::lock(&mut self.resource_map)?;
-        map.set(rd.clone(), Box::new(cloned));
+        map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 

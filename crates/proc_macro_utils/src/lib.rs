@@ -18,6 +18,10 @@ pub fn resource(input: TokenStream) -> TokenStream {
             fn get_inner(&self) -> &dyn std::any::Any {
                 self.inner.as_ref().unwrap()
             }
+
+            fn watch(&mut self, data: &str, rd: &str, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
+                Ok(())
+            }
         }
     };
     TokenStream::from(expanded)
@@ -36,7 +40,7 @@ pub fn runtime_resource(input: TokenStream) -> TokenStream {
             }
 
             fn build_data() -> Result<DataT> {
-                Ok(Box::new(Self::default()))
+                Ok((Box::new(Self::default()), None))
             }
         }
     };

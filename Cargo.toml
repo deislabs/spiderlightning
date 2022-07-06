@@ -11,7 +11,7 @@ anyhow = "1.0"
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
 tokio = { version = "1.18.2", features = ["full"] }
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev= "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
 clap = { version = "3.1.18", features = ["derive"] }
 runtime = { path = "crates/runtime" }
 kv-azure-blob = { path = "crates/kv-azure-blob" }
@@ -20,8 +20,10 @@ mq-filesystem = { path = "crates/mq-filesystem" }
 mq-azure-servicebus = { path = "crates/mq-azure-servicebus" }
 lockd-etcd = { path = "crates/lockd-etcd" }
 pubsub-confluent-kafka = { path = "crates/pubsub-confluent-kafka" }
+events = { path = "crates/events" }
 toml = "0.5.9"
 serde = "1.0.137"
+as-any = "0.3"
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
@@ -45,6 +47,7 @@ members = [
     "crates/kv-filesystem",
     "crates/runtime",
     "crates/kv-azure-blob",
+    "crates/events/",
     "examples/kv-demo",
     "examples/mq-sender-demo",
     "examples/mq-receiver-demo",

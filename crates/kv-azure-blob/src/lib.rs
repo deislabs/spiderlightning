@@ -1,10 +1,13 @@
 use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
+use crossbeam_channel::Sender;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
-use std::sync::Arc;
+use runtime::resource::{
+    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+};
+use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
 use kv::*;
@@ -57,7 +60,7 @@ impl kv::Kv for KvAzureBlob {
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
         let mut map = Map::lock(&mut self.resource_map)?;
-        map.set(rd.clone(), Box::new(cloned));
+        map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 
@@ -101,5 +104,12 @@ impl kv::Kv for KvAzureBlob {
         let blob_client = inner.as_blob_client(key);
         block_on(azure::delete(blob_client)).with_context(|| "failed to delete key's value")?;
         Ok(())
+    }
+
+    fn watch(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<Observable, Error> {
+        Ok(Observable {
+            rd: rd.to_string(),
+            key: key.to_string(),
+        })
     }
 }
