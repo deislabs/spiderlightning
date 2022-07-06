@@ -44,8 +44,10 @@ impl LockdEtcd {
 
 impl lockd::Lockd for LockdEtcd {
     /// Construct a new `LockdEtcd` instance
-    fn get_lockd(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
-        let etcd_lockd = Self::new(name);
+    fn get_lockd(&mut self) -> Result<ResourceDescriptorResult, Error> {
+        let endpoint = std::env::var("ETCD_ENDPOINT")
+            .with_context(|| "failed to read ETCD_ENDPOINT environment variable")?;
+        let etcd_lockd = Self::new(&endpoint);
         self.inner = etcd_lockd.inner;
 
         let rd = Uuid::new_v4().to_string();

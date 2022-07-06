@@ -3,7 +3,7 @@ use { message, error, payload } from types
 use * from resources
 
 // get the resource-descriptor for pub/sub
-get-pubsub: function(name: string) -> expected<resource-descriptor, error>
+get-pubsub: function() -> expected<resource-descriptor, error>
 
 // pub a message
 send-message-to-topic: function(rd: resource-descriptor, msg-key: payload, msg-value: payload, topic: string) -> expected<unit, error> 
