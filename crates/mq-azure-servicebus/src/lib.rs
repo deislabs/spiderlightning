@@ -5,8 +5,9 @@ use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
 use runtime::resource::{
-    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+    get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource,
 };
+use events_api::Event;
 
 use crossbeam_channel::Sender;
 pub use mq::add_to_linker;

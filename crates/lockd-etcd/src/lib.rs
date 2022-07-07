@@ -13,8 +13,10 @@ use etcd_client::Client;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
 use runtime::resource::{
-    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+    get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource,
 };
+use events_api::Event;
+
 use uuid::Uuid;
 
 mod etcd;

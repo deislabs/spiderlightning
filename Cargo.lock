@@ -819,6 +819,7 @@ dependencies = [
  "anyhow",
  "crossbeam-channel",
  "crossbeam-utils",
+ "events-api",
  "runtime",
  "url",
  "wasi-cap-std-sync",
@@ -827,6 +828,13 @@ dependencies = [
  "wasmtime-wasi",
  "wit-bindgen-wasmtime",
  "wit-error-rs",
+]
+
+[[package]]
+name = "events-api"
+version = "0.1.0"
+dependencies = [
+ "wit-bindgen-wasmtime",
 ]
 
 [[package]]
@@ -1406,6 +1414,7 @@ dependencies = [
  "azure_storage_blobs",
  "bytes",
  "crossbeam-channel",
+ "events-api",
  "futures",
  "proc_macro_utils",
  "runtime",
@@ -1429,6 +1438,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "crossbeam-channel",
+ "events-api",
  "notify",
  "proc_macro_utils",
  "runtime",
@@ -1511,6 +1521,7 @@ dependencies = [
  "anyhow",
  "crossbeam-channel",
  "etcd-client",
+ "events-api",
  "futures",
  "proc_macro_utils",
  "runtime",
@@ -1629,6 +1640,7 @@ dependencies = [
  "azure_messaging_servicebus",
  "chrono",
  "crossbeam-channel",
+ "events-api",
  "futures",
  "http",
  "proc_macro_utils",
@@ -1645,6 +1657,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "crossbeam-channel",
+ "events-api",
  "proc_macro_utils",
  "runtime",
  "url",
@@ -2104,6 +2117,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "crossbeam-channel",
+ "events-api",
  "proc_macro_utils",
  "rdkafka",
  "runtime",
@@ -2365,6 +2379,7 @@ dependencies = [
  "anyhow",
  "as-any",
  "crossbeam-channel",
+ "events-api",
  "wasi-cap-std-sync",
  "wasi-common",
  "wasmtime",
@@ -3165,6 +3180,7 @@ dependencies = [
  "clap",
  "env_logger",
  "events",
+ "events-api",
  "hyper",
  "kv-azure-blob",
  "kv-filesystem",

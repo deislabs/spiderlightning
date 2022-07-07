@@ -1,13 +1,11 @@
 use std::env;
 
 use anyhow::{Context, Result};
+use events_api::Event;
 use proc_macro_utils::{Resource, RuntimeResource};
-use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::{
-    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
-};
-
 use pubsub::*;
+use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/pubsub.wit");
 wit_error_rs::impl_error!(Error);

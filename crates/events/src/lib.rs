@@ -10,11 +10,11 @@ use crossbeam_utils::thread;
 use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use runtime::resource::{
+use events_api::{
     event_handler::{EventHandler, EventParam},
-    Ctx, Event, Resource, ResourceMap, RuntimeResource,
+    Event,
 };
-use runtime::resource::{get_table, ResourceTables};
+use runtime::resource::{get_table, Ctx, Resource, ResourceMap, ResourceTables, RuntimeResource};
 use wasmtime::Store;
 
 use crate::events::add_to_linker;
