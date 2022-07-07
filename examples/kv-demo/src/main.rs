@@ -52,13 +52,18 @@ pub struct EventHandler {}
 
 impl event_handler::EventHandler for EventHandler {
     fn handle_event(ev: Event) -> Result<Option<Event>, String> {
+        // event.data has value: "String data: key: my-key2"
         let rd = get_kv("my-container").unwrap();
-        let key = ev.data.unwrap();
-        let value = get(&rd, &key).unwrap();
+        let data = ev.data.unwrap();
+        let value =
+            serde_json::from_str::<serde_json::Value>(std::str::from_utf8(&data).unwrap()).unwrap();
+        let key = value["key"].as_str().unwrap();
+        dbg!("key: {}", &key);
+        let value = get(&rd, key).unwrap();
         println!(
             "received event of type {}, key: {}, new value: {}",
-            &ev.event_type,
-            &key,
+            &ev.ty,
+            key,
             std::str::from_utf8(&value).unwrap()
         );
         Ok(None)

@@ -10,10 +10,7 @@ use crossbeam_utils::thread;
 use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use events_api::{
-    event_handler::{EventHandler, EventParam},
-    Event,
-};
+use events_api::{AttributesReader, Event, EventHandler, EventParam};
 use runtime::resource::{get_table, Ctx, Resource, ResourceMap, ResourceTables, RuntimeResource};
 use wasmtime::Store;
 
@@ -145,14 +142,24 @@ impl events::Events for Events {
                         .unwrap()
                         .recv_deadline(Instant::now() + Duration::from_secs(duration))
                     {
-                        Ok(event) => {
+                        Ok(mut event) => {
                             let mut store = store.lock().unwrap();
+                            let spec = event.specversion();
+                            let data: Option<String> = event
+                                .take_data()
+                                .2
+                                .map(|d| d.try_into().expect("event data is not a string"));
+                            let time = event.time().take().map(|d| d.to_rfc2822());
                             let event_param = EventParam {
-                                specversion: &event.specversion,
-                                event_type: &event.event_type,
-                                source: &event.source,
-                                id: &event.id,
-                                data: event.data.as_deref(),
+                                specversion: spec.as_str(),
+                                ty: event.ty(),
+                                source: event.source(),
+                                id: event.id(),
+                                data: data.as_deref().map(|d| d.as_bytes()),
+                                datacontenttype: event.datacontenttype(),
+                                dataschema: None,
+                                subject: event.subject(),
+                                time: time.as_deref(),
                             };
                             match handler
                                 .lock()
