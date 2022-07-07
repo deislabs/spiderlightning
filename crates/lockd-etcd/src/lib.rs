@@ -10,12 +10,10 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 use anyhow::{Context, Result};
 use crossbeam_channel::Sender;
 use etcd_client::Client;
+use events_api::Event;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{
-    get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource,
-};
-use events_api::Event;
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 
 use uuid::Uuid;
 

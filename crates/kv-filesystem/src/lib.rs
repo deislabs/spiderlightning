@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
+use events_api::Event;
 use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use proc_macro_utils::RuntimeResource;
-use events_api::Event;
 use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 use std::sync::{Arc, Mutex};
 

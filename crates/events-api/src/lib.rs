@@ -3,7 +3,6 @@ pub use event_handler::EventHandlerData;
 
 wit_bindgen_wasmtime::import!("../../wit/event-handler.wit");
 
-
 #[derive(Debug, Default, Clone)]
 pub struct Event {
     pub source: String,
