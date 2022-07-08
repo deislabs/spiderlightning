@@ -1,116 +1,57 @@
-use std::sync::{Arc, Mutex};
+use std::fs::OpenOptions;
 
-use anyhow::{bail, Result};
-use as_any::Downcast;
-use clap::Parser;
-use events::Events;
-use kv_azure_blob::KvAzureBlob;
-use kv_filesystem::KvFilesystem;
-use lockd_etcd::LockdEtcd;
-use mq_azure_servicebus::MqAzureServiceBus;
-use mq_filesystem::MqFilesystem;
-use pubsub_confluent_kafka::PubSubConfluentKafka;
+use anyhow::Result;
+use clap::{Parser, Subcommand};
+use wasi_cloud_cli::commands::{run::handle_run, secret::handle_secret};
 
-use runtime::{
-    resource::{event_handler::EventHandler, Map},
-    Builder,
-};
-use serde::Deserialize;
+const DEFAULT_CONFIG_FILEPATH: &str = "./wc-config.toml";
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about)]
 struct Args {
-    #[clap(short, long)]
-    module: String,
-    #[clap(short, long)]
-    config: String,
+    #[clap(subcommand)]
+    command: Commands,
+    #[clap(short, long, value_parser)]
+    config: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
-struct Config {
-    specversion: Option<String>,
-    capability: Option<Vec<CapabilityConfig>>,
+#[derive(Debug, Subcommand)]
+enum Commands {
+    /// Run wasi-cloud providing a config and a module
+    Run {
+        #[clap(short, long, value_parser)]
+        module: String,
+    },
+    /// Add a secret to the application
+    Secret {
+        #[clap(short, long, value_parser)]
+        key: String,
+        #[clap(short, long, value_parser)]
+        value: String,
+    },
 }
 
-#[derive(Debug, Deserialize)]
-struct CapabilityConfig {
-    name: Option<String>,
-}
 /// The entry point for wasi-cloud CLI
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    let resource_map = Arc::new(Mutex::new(Map::default()));
-    let toml_file = std::fs::read_to_string(args.config)?;
-    let toml: Config = toml::from_str(&toml_file)?;
 
-    let mut host_builder = Builder::new_default()?;
-    let mut guest_builder = Builder::new_default()?;
-    host_builder.link_wasi()?;
-    guest_builder.link_wasi()?;
-    let mut events_enabled = false;
-    if toml.specversion.unwrap() == "0.1" {
-        for c in toml.capability.unwrap() {
-            let resource_type: &str = c.name.as_ref().unwrap();
-            match resource_type {
-            "events" => {
-                events_enabled = true;
-                host_builder.link_capability::<Events>(resource_type.to_string())?;
-                guest_builder.link_capability::<Events>(resource_type.to_string())?;
-            },
-            "azblobkv" => {
-                host_builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
-                guest_builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
-            },
-            "filekv" => {
-                host_builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
-                guest_builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
-            },
-            "filemq" => {
-                host_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
-                guest_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
-            },
-            "azsbusmq" => {
-                host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
-                guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
-            },
-            "etcdlockd" => {
-                host_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
-                guest_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
-            },
-            "ckpubsub" => {
-                host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
-                guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
-            }
-            _ => bail!("invalid url: currently wasi-cloud only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
-        }
-        }
+    let toml_file_path = if let Some(c) = &args.config {
+        c
     } else {
-        bail!("unsupported toml spec version");
-    }
-    host_builder.link_resource_map(resource_map.clone())?;
-    let (_, mut store, instance) = host_builder.build(&args.module)?;
+        DEFAULT_CONFIG_FILEPATH
+    };
 
-    guest_builder.link_resource_map(resource_map)?;
-    let (_, mut store2, instance2) = guest_builder.build(&args.module)?;
-    if events_enabled {
-        let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;
-        store
-            .data_mut()
-            .data
-            .get_mut("events")
-            .expect("internal error: resource_map does not contain key events")
-            .0
-            .as_mut()
-            .downcast_mut::<Events>()
-            .expect("internal error: resource map contains key events but can't downcast to Events")
-            .update_state(
-                Arc::new(Mutex::new(store2)),
-                Arc::new(Mutex::new(event_handler)),
-            )?;
+    let mut toml_file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(toml_file_path)?;
+    let toml_file_contents = std::fs::read_to_string(toml_file_path)?;
+    let mut toml = toml::from_str(&toml_file_contents)?;
+
+    match &args.command {
+        Commands::Run { module } => handle_run(&module, &toml),
+        Commands::Secret { key, value } => handle_secret(&key, &value, &mut toml, &mut toml_file),
     }
-    instance
-        .get_typed_func::<(), _, _>(&mut store, "_start")?
-        .call(&mut store, ())?;
-    Ok(())
 }

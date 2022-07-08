@@ -1,3 +1,5 @@
+INSTALL_DIR_PREFIX ?= /usr/local
+
 .PHONY: build
 build:
 	cargo build --release
@@ -34,3 +36,6 @@ run:
 
 run-c:
 	./target/release/wasi-cloud -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm -c './examples/kv-mq-demo-clang/wc.toml'
+
+install:
+	./target/release/wasi-cloud $(INSTALL_DIR_PREFIX)/bin

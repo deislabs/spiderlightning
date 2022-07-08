@@ -24,6 +24,8 @@ events = { path = "crates/events" }
 toml = "0.5.9"
 serde = "1.0.137"
 as-any = "0.3"
+argon2rs = "0.2.5"
+rand = "0.8.5"
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
