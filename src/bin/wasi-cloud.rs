@@ -11,10 +11,8 @@ use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
 use pubsub_confluent_kafka::PubSubConfluentKafka;
 
-use runtime::{
-    resource::{event_handler::EventHandler, Map},
-    Builder,
-};
+use events_api::event_handler::EventHandler;
+use runtime::{resource::Map, Builder};
 use serde::Deserialize;
 
 #[derive(Parser, Debug)]

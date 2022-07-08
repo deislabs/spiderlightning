@@ -14,3 +14,4 @@ uuid = "1"
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
 notify = "5.0.0-pre.15"
 crossbeam-channel = "0.5.5"
+events-api = { path = "../events-api" }

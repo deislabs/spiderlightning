@@ -1,10 +1,9 @@
 use anyhow::{Context, Result};
 use crossbeam_channel::Sender;
+use events_api::Event;
 use mq::*;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{
-    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
-};
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 use std::sync::{Arc, Mutex};
 use std::{
     fs::{self, File, OpenOptions},

@@ -24,6 +24,7 @@ events = { path = "crates/events" }
 toml = "0.5.9"
 serde = "1.0.137"
 as-any = "0.3"
+events-api = { path = "crates/events-api" }
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
@@ -48,13 +49,14 @@ members = [
     "crates/runtime",
     "crates/kv-azure-blob",
     "crates/events/",
+    "crates/events-api",
     "examples/kv-demo",
     "examples/mq-sender-demo",
     "examples/mq-receiver-demo",
     "examples/multi_capability-demo",
     "examples/lockd-demo",
     "examples/pubsub-consumer-demo",
-    "examples/pubsub-producer-demo"
+    "examples/pubsub-producer-demo",
 ]
 
 [[bin]]

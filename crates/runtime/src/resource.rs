@@ -8,6 +8,7 @@ pub use crate::RuntimeContext;
 use anyhow::{Context, Result};
 use as_any::{AsAny, Downcast};
 use crossbeam_channel::Sender;
+use events_api::{Event, EventHandlerData};
 pub use wasmtime::Linker;
 
 pub type DataT = (
@@ -17,6 +18,7 @@ pub type DataT = (
 pub type ResourceConfig = String;
 pub type ResourceMap = Arc<Mutex<Map>>;
 pub type Ctx = RuntimeContext<DataT>;
+pub type GuestState = EventHandlerData;
 
 /// A map wrapper type for the resource map
 #[derive(Default)]
@@ -138,38 +140,4 @@ where
                 )
             }),
     )
-}
-
-// guest resource
-use event_handler::EventHandlerData;
-
-wit_bindgen_wasmtime::import!("../../wit/event-handler.wit");
-
-pub type GuestState = EventHandlerData;
-
-#[derive(Debug, Default, Clone)]
-pub struct Event {
-    pub source: String,
-    pub event_type: String,
-    pub specversion: String,
-    pub id: String,
-    pub data: Option<String>,
-}
-
-impl Event {
-    pub fn new(
-        source: String,
-        event_type: String,
-        specversion: String,
-        id: String,
-        data: Option<String>,
-    ) -> Self {
-        Self {
-            source,
-            event_type,
-            specversion,
-            id,
-            data,
-        }
-    }
 }

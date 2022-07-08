@@ -2,11 +2,10 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
+use events_api::Event;
 use futures::executor::block_on;
 use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{
-    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
-};
+use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
 
 use crossbeam_channel::Sender;
 pub use mq::add_to_linker;
