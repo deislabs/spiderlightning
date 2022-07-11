@@ -6,10 +6,10 @@ use clap::Parser;
 use events::Events;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
-use lockd_etcd::LockdEtcd;
-use mq_azure_servicebus::MqAzureServiceBus;
-use mq_filesystem::MqFilesystem;
-use pubsub_confluent_kafka::PubSubConfluentKafka;
+// use lockd_etcd::LockdEtcd;
+// use mq_azure_servicebus::MqAzureServiceBus;
+// use mq_filesystem::MqFilesystem;
+// use pubsub_confluent_kafka::PubSubConfluentKafka;
 
 use runtime::{
     resource::{event_handler::EventHandler, Map},
@@ -66,22 +66,22 @@ async fn main() -> Result<()> {
                 host_builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
                 guest_builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
             },
-            "filemq" => {
-                host_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
-                guest_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
-            },
-            "azsbusmq" => {
-                host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
-                guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
-            },
-            "etcdlockd" => {
-                host_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
-                guest_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
-            },
-            "ckpubsub" => {
-                host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
-                guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
-            }
+            // "filemq" => {
+            //     host_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
+            //     guest_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
+            // },
+            // "azsbusmq" => {
+            //     host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
+            //     guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
+            // },
+            // "etcdlockd" => {
+            //     host_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
+            //     guest_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
+            // },
+            // "ckpubsub" => {
+            //     host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
+            //     guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
+            // }
             _ => bail!("invalid url: currently wasi-cloud only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
         }
