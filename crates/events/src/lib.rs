@@ -91,17 +91,12 @@ impl RuntimeResource for Events {
     }
 
     fn build_data(state: ResourceMap) -> Result<runtime::resource::DataT> {
-        let events = Self::from_state(state);
+        let mut events = Self::default();
+        events.host_state = Some(state);
         Ok((
             Box::new(events),
             Some(Box::new(events::EventsTables::<Self>::default())),
         ))
-    }
-
-    fn from_state(state: ResourceMap) -> Self {
-        let mut events = Self::default();
-        events.host_state = Some(state);
-        events
     }
 }
 

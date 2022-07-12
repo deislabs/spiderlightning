@@ -36,13 +36,12 @@ pub fn runtime_resource(input: TokenStream) -> TokenStream {
             }
 
             fn build_data(state: Self::State) -> Result<DataT> {
-                Ok((Box::new(Self::from_state(state)), None))
-            }
-
-            fn from_state(state: Self::State) -> Self {
+                /// We prepare a default resource without any inner data, and then we modify the resource with host-provided state.
+                /// In the last step, the resource will be fully configured by the guest application. This is done in the
+                /// `get-<capability>` function.
                 let mut resource = Self::default();
                 resource.host_state = Some(state);
-                resource
+                Ok((Box::new(resource), None))
             }
         }
     };

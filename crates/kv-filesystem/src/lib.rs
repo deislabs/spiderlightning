@@ -26,6 +26,8 @@ const SCHEME_NAME: &str = "filekv";
 pub struct KvFilesystem {
     /// The root directory of the filesystem
     inner: Option<String>,
+    /// The host state. Currently this is a map of resource names to resource descriptors.
+    /// If there are more host-specified states, they can be added here.
     host_state: Option<ResourceMap>,
     wathchers: Vec<Arc<Mutex<RecommendedWatcher>>>,
 }

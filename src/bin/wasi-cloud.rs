@@ -88,10 +88,7 @@ async fn main() -> Result<()> {
     } else {
         bail!("unsupported toml spec version");
     }
-    // host_builder.link_resource_map(resource_map.clone())?;
     let (_, mut store, instance) = host_builder.build(&args.module)?;
-
-    // guest_builder.link_resource_map(resource_map)?;
     let (_, mut store2, instance2) = guest_builder.build(&args.module)?;
     if events_enabled {
         let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;

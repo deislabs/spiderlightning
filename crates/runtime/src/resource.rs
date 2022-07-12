@@ -80,7 +80,6 @@ pub trait RuntimeResource {
     type State: Sized;
     fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
     fn build_data(state: Self::State) -> Result<DataT>;
-    fn from_state(state: Self::State) -> Self;
 }
 
 /// Dynamically dispatch to respective host resource
