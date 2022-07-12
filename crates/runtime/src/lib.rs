@@ -2,7 +2,7 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{Ctx, GuestState, ResourceConfig, ResourceMap, RuntimeResource};
+use resource::{Ctx, GuestState, ResourceConfig, RuntimeResource};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
