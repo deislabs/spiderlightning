@@ -2,14 +2,16 @@
 use { error, payload } from types
 use * from resources
 
-// get a resource descriptor for a lockd object
-get-lockd: function() -> expected<resource-descriptor, error>
+resource lockd {
+	// get a resource descriptor for a lockd object
+	static open: function() -> expected<lockd, error>
 
-// creates a lock with a name, returns the lock key
-lock: function(rd: resource-descriptor, lock-name: payload) -> expected<payload, error>
+	// creates a lock with a name, returns the lock key
+	lock: function(lock-name: payload) -> expected<payload, error>
 
-// creates a lock with a lease id, hence giving the lock a TTL
-lock-with-time-to-live: function(rd: resource-descriptor, lock-name: payload, time-to-live-in-secs: s64) -> expected<payload, error>
+	// creates a lock with a lease id, hence giving the lock a TTL
+	lock-with-time-to-live: function(lock-name: payload, time-to-live-in-secs: s64) -> expected<payload, error>
 
-// unlock a lock given a lock key
-unlock: function(rd: resource-descriptor, lock-key: payload) -> expected<unit, error>
+	// unlock a lock given a lock key
+	unlock: function(lock-key: payload) -> expected<unit, error>
+}

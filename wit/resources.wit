@@ -1,6 +1,4 @@
-// resource descriptor, represented as a uuid hex string;
-type resource-descriptor = string
 record observable {
-	rd: resource-descriptor,
+	rd: string,
 	key: string,
 }

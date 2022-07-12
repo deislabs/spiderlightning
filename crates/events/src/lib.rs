@@ -14,7 +14,12 @@ use events_api::{
     event_handler::{EventHandler, EventParam},
     Event,
 };
-use runtime::resource::{get_table, Ctx, Resource, ResourceMap, ResourceTables, RuntimeResource};
+use runtime::{
+    impl_resource,
+    resource::{
+        get_table, Ctx, DataT, Linker, Resource, ResourceMap, ResourceTables, RuntimeResource,
+    },
+};
 use wasmtime::Store;
 
 use crate::events::add_to_linker;
@@ -32,6 +37,8 @@ pub struct Events {
     event_handler: Option<Arc<Mutex<EventHandler<Ctx>>>>,
     store: Option<Arc<Mutex<Store<Ctx>>>>,
 }
+
+impl_resource!(Events, events::EventsTables<Events>, ResourceMap);
 
 /// An owned observable
 struct Observable {
@@ -81,28 +88,6 @@ impl Resource for Events {
         unimplemented!("events will not be listened to")
     }
 }
-
-impl RuntimeResource for Events {
-    type State = ResourceMap;
-    fn add_to_linker(linker: &mut runtime::resource::Linker<runtime::resource::Ctx>) -> Result<()> {
-        crate::add_to_linker(linker, |cx| {
-            get_table::<Self, events::EventsTables<Self>>(cx, SCHEME_NAME.to_string())
-        })
-    }
-
-    fn build_data(state: ResourceMap) -> Result<runtime::resource::DataT> {
-        let events = Self {
-            host_state: Some(state),
-            ..Default::default()
-        };
-        Ok((
-            Box::new(events),
-            Some(Box::new(events::EventsTables::<Self>::default())),
-        ))
-    }
-}
-
-impl<T> ResourceTables<dyn Resource> for events::EventsTables<T> where T: events::Events + 'static {}
 
 impl events::Events for Events {
     type Events = ();

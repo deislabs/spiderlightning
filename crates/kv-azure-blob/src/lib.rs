@@ -4,8 +4,13 @@ use azure_storage_blobs::prelude::*;
 use crossbeam_channel::Sender;
 use events_api::Event;
 use futures::executor::block_on;
-use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use proc_macro_utils::Resource;
+use runtime::{
+    impl_resource,
+    resource::{
+        get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+    },
+};
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
@@ -20,11 +25,13 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "azblobkv";
 
 /// A Azure Blob Storage implementation for the kv interface
-#[derive(Default, Clone, Resource, RuntimeResource)]
+#[derive(Default, Clone, Resource)]
 pub struct KvAzureBlob {
     inner: Option<Arc<ContainerClient>>,
     host_state: Option<ResourceMap>,
 }
+
+impl_resource!(KvAzureBlob, kv::KvTables<KvAzureBlob>, ResourceMap);
 
 impl KvAzureBlob {
     /// Create a new `KvAzureBlob`
@@ -46,8 +53,9 @@ impl KvAzureBlob {
 }
 
 impl kv::Kv for KvAzureBlob {
+    type Kv = String;
     /// Construct a new `KvAzureBlob` from a container name. For example, a container name could be "my-container"
-    fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
+    fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
         let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")
             .with_context(|| "failed to read AZURE_STORAGE_ACCOUNT environment variable")?;
         let storage_account_key = std::env::var("AZURE_STORAGE_KEY")
@@ -64,11 +72,11 @@ impl kv::Kv for KvAzureBlob {
     }
 
     /// Output the value of a set key
-    fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
+        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
         let map = Map::lock(&mut self.host_state)?;
-        let inner = map.get::<Arc<ContainerClient>>(rd)?;
+        let inner = map.get::<Arc<ContainerClient>>(self_)?;
         let blob_client = inner.as_blob_client(key);
         let res = block_on(azure::get(blob_client))
             .with_context(|| format!("failed to get value for key {}", key))?;
@@ -76,16 +84,16 @@ impl kv::Kv for KvAzureBlob {
     }
 
     /// Create a key-value pair
-    fn set(
+    fn kv_set(
         &mut self,
-        rd: ResourceDescriptorParam,
+        self_: &Self::Kv,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
         let map = Map::lock(&mut self.host_state)?;
-        let inner = map.get::<Arc<ContainerClient>>(rd)?;
+        let inner = map.get::<Arc<ContainerClient>>(self_)?;
         let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
         block_on(azure::set(blob_client, value))
@@ -94,20 +102,20 @@ impl kv::Kv for KvAzureBlob {
     }
 
     /// Delete a key-value pair
-    fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
+        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
         let map = Map::lock(&mut self.host_state)?;
-        let inner = map.get::<Arc<ContainerClient>>(rd)?;
+        let inner = map.get::<Arc<ContainerClient>>(self_)?;
 
         let blob_client = inner.as_blob_client(key);
         block_on(azure::delete(blob_client)).with_context(|| "failed to delete key's value")?;
         Ok(())
     }
 
-    fn watch(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<Observable, Error> {
+    fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
         Ok(Observable {
-            rd: rd.to_string(),
+            rd: self_.to_string(),
             key: key.to_string(),
         })
     }
