@@ -65,9 +65,6 @@ pub trait Resource: AsAny {
     /// Get inner representation of the resource
     fn get_inner(&self) -> &dyn Any;
 
-    /// Add resource map to resource
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
-
     /// check if the resource has changed on key.
     fn watch(
         &mut self,
@@ -80,8 +77,10 @@ pub trait Resource: AsAny {
 
 /// A trait for wit-bindgen host resource composed of a resource
 pub trait RuntimeResource {
+    type State: Sized;
     fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
-    fn build_data() -> Result<DataT>;
+    fn build_data(state: Self::State) -> Result<DataT>;
+    fn from_state(state: Self::State) -> Self;
 }
 
 /// Dynamically dispatch to respective host resource

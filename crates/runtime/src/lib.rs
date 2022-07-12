@@ -58,17 +58,13 @@ impl Builder {
     pub fn link_capability<T: RuntimeResource>(
         &mut self,
         config: ResourceConfig,
+        state: T::State,
     ) -> Result<&mut Self> {
-        self.store.data_mut().data.insert(config, T::build_data()?);
+        self.store
+            .data_mut()
+            .data
+            .insert(config, T::build_data(state)?);
         T::add_to_linker(&mut self.linker)?;
-        Ok(self)
-    }
-
-    /// Link resource maps
-    pub fn link_resource_map(&mut self, rd_map: ResourceMap) -> Result<&mut Self> {
-        for (_, v) in self.store.data_mut().data.iter_mut() {
-            v.0.add_resource_map(rd_map.clone())?;
-        }
         Ok(self)
     }
 

@@ -26,7 +26,7 @@ const SCHEME_NAME: &str = "filekv";
 pub struct KvFilesystem {
     /// The root directory of the filesystem
     inner: Option<String>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
     wathchers: Vec<Arc<Mutex<RecommendedWatcher>>>,
 }
 
@@ -42,7 +42,7 @@ impl kv::Kv for KvFilesystem {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
@@ -51,7 +51,7 @@ impl kv::Kv for KvFilesystem {
     fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(rd)?;
         fs::create_dir_all(&base)
             .with_context(|| "failed to create base directory for kv store instance")?;
@@ -73,7 +73,7 @@ impl kv::Kv for KvFilesystem {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(rd)?;
 
         fs::create_dir_all(&base)
@@ -91,7 +91,7 @@ impl kv::Kv for KvFilesystem {
     fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(rd)?;
 
         fs::create_dir_all(&base)
@@ -107,11 +107,6 @@ impl kv::Kv for KvFilesystem {
 }
 
 impl Resource for KvFilesystem {
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
-        self.resource_map = Some(resource_map);
-        Ok(())
-    }
-
     fn get_inner(&self) -> &dyn std::any::Any {
         self.inner.as_ref().unwrap()
     }

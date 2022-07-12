@@ -25,7 +25,7 @@ const SCHEME_NAME: &str = "etcdlockd";
 #[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct LockdEtcd {
     inner: Option<Arc<Mutex<Client>>>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
 }
 
 impl LockdEtcd {
@@ -37,7 +37,7 @@ impl LockdEtcd {
         // ^^^ from my tests with localhost client, this never fails
         Self {
             inner: Some(Arc::new(Mutex::new(client))),
-            resource_map: None,
+            host_state: None,
         }
     }
 }
@@ -52,7 +52,7 @@ impl lockd::Lockd for LockdEtcd {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
@@ -65,7 +65,7 @@ impl lockd::Lockd for LockdEtcd {
     ) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         let pr = block_on(etcd::lock(&mut inner.lock().unwrap(), lock_name))
@@ -82,7 +82,7 @@ impl lockd::Lockd for LockdEtcd {
     ) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         let pr = block_on(etcd::lock_with_lease(
@@ -102,7 +102,7 @@ impl lockd::Lockd for LockdEtcd {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
 
         block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))

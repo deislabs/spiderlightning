@@ -24,7 +24,7 @@ const SCHEME_NAME: &str = "azblobkv";
 #[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct KvAzureBlob {
     inner: Option<Arc<ContainerClient>>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
 }
 
 impl KvAzureBlob {
@@ -41,7 +41,7 @@ impl KvAzureBlob {
         );
         Self {
             inner,
-            resource_map: None,
+            host_state: None,
         }
     }
 }
@@ -59,7 +59,7 @@ impl kv::Kv for KvAzureBlob {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
@@ -68,7 +68,7 @@ impl kv::Kv for KvAzureBlob {
     fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
         let blob_client = inner.as_blob_client(key);
         let res = block_on(azure::get(blob_client))
@@ -85,7 +85,7 @@ impl kv::Kv for KvAzureBlob {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
         let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
@@ -98,7 +98,7 @@ impl kv::Kv for KvAzureBlob {
     fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<ContainerClient>>(rd)?;
 
         let blob_client = inner.as_blob_client(key);

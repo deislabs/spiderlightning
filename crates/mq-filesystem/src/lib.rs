@@ -26,7 +26,7 @@ const SCHEME_NAME: &str = "filemq";
 pub struct MqFilesystem {
     queue: String,
     inner: Option<String>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
 }
 
 // vvv we implement default manually because of the `queue` attribute
@@ -35,7 +35,7 @@ impl Default for MqFilesystem {
         Self {
             queue: ".queue".to_string(),
             inner: Some(String::default()),
-            resource_map: None,
+            host_state: None,
         }
     }
 }
@@ -53,7 +53,7 @@ impl mq::Mq for MqFilesystem {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
@@ -62,7 +62,7 @@ impl mq::Mq for MqFilesystem {
     fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(rd)?;
 
         // get a random name for a queue element
@@ -96,7 +96,7 @@ impl mq::Mq for MqFilesystem {
     fn receive(&mut self, rd: ResourceDescriptorParam) -> Result<PayloadResult, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(rd)?;
 
         fs::create_dir_all(&base)?;
