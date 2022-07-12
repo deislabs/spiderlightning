@@ -91,7 +91,7 @@ impl RuntimeResource for Events {
     }
 
     fn build_data(state: ResourceMap) -> Result<runtime::resource::DataT> {
-        let mut events = Self {
+        let events = Self {
             host_state: Some(state),
             ..Default::default()
         };
