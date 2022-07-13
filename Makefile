@@ -33,4 +33,4 @@ run:
 	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm -c './examples/pubsub-producer-demo/wc.toml'
 
 run-c:
-	./target/release/wasi-cloud -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm -c './examples/kv-mq-demo-clang/wc.toml'
+	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/filemq-wc.toml' && ./target/release/wasi-cloud -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm -c './examples/kv-mq-demo-clang/wc.toml'
