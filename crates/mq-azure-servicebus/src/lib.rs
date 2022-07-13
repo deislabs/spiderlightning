@@ -35,7 +35,8 @@ pub struct MqAzureServiceBus {
 impl_resource!(
     MqAzureServiceBus,
     mq::MqTables<MqAzureServiceBus>,
-    ResourceMap
+    ResourceMap,
+    SCHEME_NAME.to_string()
 );
 
 impl MqAzureServiceBus {
@@ -97,7 +98,8 @@ impl mq::Mq for MqAzureServiceBus {
 
     /// Send a message to your service bus' queue
     fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
@@ -114,7 +116,8 @@ impl mq::Mq for MqAzureServiceBus {
 
     /// Receive the top message from your service bus' queue
     fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;

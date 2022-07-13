@@ -34,10 +34,16 @@ pub struct KvFilesystem {
     wathchers: Vec<Arc<Mutex<RecommendedWatcher>>>,
 }
 
-impl_resource!(KvFilesystem, kv::KvTables<KvFilesystem>, ResourceMap);
+impl_resource!(
+    KvFilesystem,
+    kv::KvTables<KvFilesystem>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 impl kv::Kv for KvFilesystem {
     type Kv = String;
+    /// Contruct a new `KvFilesystem` from a folder name. This folder will be created under `/tmp`
     fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
         let path = Path::new("/tmp").join(name);
         let path = path
@@ -53,8 +59,10 @@ impl kv::Kv for KvFilesystem {
         Ok(rd)
     }
 
+    /// Output the value of a set key
     fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(self_)?;
@@ -69,13 +77,15 @@ impl kv::Kv for KvFilesystem {
         Ok(buf)
     }
 
+    /// Create a key-value pair
     fn kv_set(
         &mut self,
         self_: &Self::Kv,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(self_)?;
@@ -91,8 +101,10 @@ impl kv::Kv for KvFilesystem {
         Ok(())
     }
 
+    /// Delete a key-value pair
     fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(self_)?;

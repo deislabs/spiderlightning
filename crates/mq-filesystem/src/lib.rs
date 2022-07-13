@@ -31,7 +31,12 @@ pub struct MqFilesystem {
     host_state: Option<ResourceMap>,
 }
 
-impl_resource!(MqFilesystem, mq::MqTables<MqFilesystem>, ResourceMap);
+impl_resource!(
+    MqFilesystem,
+    mq::MqTables<MqFilesystem>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 // vvv we implement default manually because of the `queue` attribute
 impl Default for MqFilesystem {
@@ -65,7 +70,8 @@ impl mq::Mq for MqFilesystem {
 
     /// Send a message to the message queue
     fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(self_)?;
@@ -99,7 +105,8 @@ impl mq::Mq for MqFilesystem {
 
     /// Receive a message from the message queue
     fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let base = map.get::<String>(self_)?;

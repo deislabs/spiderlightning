@@ -32,7 +32,12 @@ pub struct LockdEtcd {
     host_state: Option<ResourceMap>,
 }
 
-impl_resource!(LockdEtcd, lockd::LockdTables<LockdEtcd>, ResourceMap);
+impl_resource!(
+    LockdEtcd,
+    lockd::LockdTables<LockdEtcd>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 impl LockdEtcd {
     /// Create a new `LockdEtcd`
@@ -70,7 +75,8 @@ impl lockd::Lockd for LockdEtcd {
         self_: &Self::Lockd,
         lock_name: PayloadParam<'_>,
     ) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
@@ -87,7 +93,8 @@ impl lockd::Lockd for LockdEtcd {
         lock_name: PayloadParam<'_>,
         time_to_live_in_secs: i64,
     ) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
@@ -107,7 +114,8 @@ impl lockd::Lockd for LockdEtcd {
         self_: &Self::Lockd,
         lock_key: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;

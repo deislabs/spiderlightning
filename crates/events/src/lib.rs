@@ -38,7 +38,12 @@ pub struct Events {
     store: Option<Arc<Mutex<Store<Ctx>>>>,
 }
 
-impl_resource!(Events, events::EventsTables<Events>, ResourceMap);
+impl_resource!(
+    Events,
+    events::EventsTables<Events>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 /// An owned observable
 struct Observable {

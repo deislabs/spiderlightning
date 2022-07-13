@@ -10,14 +10,14 @@ WASI-Cloud is a set of consistent, modular, and portable interfaces that provide
 
 ## wasi-cloud capabilities
 
-| Capability  | Implemented Resource Examples | Future Resource Examples | Description | Work Status |
-| ----------- | ----------------- | ---------- | ----------- | ----------- |
-| distributed lock service | [etcd](https://etcd.io/) | [Apache Zookeeper](https://zookeeper.apache.org/) |   / | ✅ `lockd.wit`  |
-| key-value store | [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs) | [Redis](https://redis.io/) | / | ✅ `kv.wit` |
-| sql database | / | [MySQL](https://www.mysql.com/), [PostgresSQL](https://www.postgresql.org/) | / | ❌ TBD |
-| message queue | [Azure Service Bus](https://azure.microsoft.com/services/service-bus/) | [Amazon SQS](https://aws.amazon.com/sqs/) | / | ✅ `mq.wit` 
-| pub/sub | [Confluent Kafka](https://kafka.apache.org/) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ✅ `pubsub.wit`  |
-| custom pluggable functions | TBD | TBD | / | ❌ TBD |
+| Capability                 | Implemented Resource Examples                                            | Future Resource Examples                                                                                        | Description | Work Status    |
+| -------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
+| distributed lock service   | [etcd](https://etcd.io/)                                                 | [Apache Zookeeper](https://zookeeper.apache.org/)                                                               | /           | ✅ `lockd.wit`  |
+| key-value store            | [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs) | [Redis](https://redis.io/)                                                                                      | /           | ✅ `kv.wit`     |
+| sql database               | /                                                                        | [MySQL](https://www.mysql.com/), [PostgresSQL](https://www.postgresql.org/)                                     | /           | ❌ TBD          |
+| message queue              | [Azure Service Bus](https://azure.microsoft.com/services/service-bus/)   | [Amazon SQS](https://aws.amazon.com/sqs/)                                                                       | /           | ✅ `mq.wit`     |
+| pub/sub                    | [Confluent Kafka](https://kafka.apache.org/)                             | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | /           | ✅ `pubsub.wit` |
+| custom pluggable functions | TBD                                                                      | TBD                                                                                                             | /           | ❌ TBD          |
 
 ## WebAssembly Interface Types
 WASI-Cloud capability interfaces are written in WIT files. WIT is becoming the next standard for defining Wasm interfaces. WASI, for example, is transitioning to [use](https://github.com/bytecodealliance/wit-bindgen/blob/32e63116d469d8046727fae3c1333a7d35d0c5d3/tests/codegen/wasi-next/wasi_next.wit) this textual format, together with the [Interface Types](https://github.com/WebAssembly/interface-types/blob/main/proposals/interface-types/Explainer.md), and the [Canonical ABI](https://github.com/WebAssembly/interface-types/pull/140). 
@@ -28,14 +28,16 @@ Below is an exmaple of a WIT file - defining a message queue capability.
 use { error, payload } from types
 use * from resources
 
-// get the resource-descriptor for the message queue
-get-mq: function() -> expected<resource-descriptor, error>
+resource mq {
+    // open message queue
+    static open: function() -> expected<mq, error>
 
-// send a message to the queue
-send: function(rd: resource-descriptor, msg: payload) -> expected<unit, error> 
+    // send a message to the queue
+    send: function(msg: payload) -> expected<unit, error> 
 
-// receive a message from the queue
-receive: function(rd: resource-descriptor) -> expected<payload, error>
+    // receive a message from the queue
+    receive: function() -> expected<payload, error>
+}
 ```
 
 [Bytecode Alliance](https://bytecodealliance.org/) has a project called [`wit-bindgen`](https://github.com/bytecodealliance/wit-bindgen) that will generate language bindings for WIT files. The bindings can be used to import or export the capability functions.

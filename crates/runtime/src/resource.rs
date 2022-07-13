@@ -87,19 +87,19 @@ pub trait RuntimeResource {
 #[macro_export]
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
-    ($resource:ident, $resource_table:ty, $state:ident) => {
+    ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
         impl RuntimeResource for $resource {
             type State = $state;
             fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
                 crate::add_to_linker(linker, |cx| {
-                    get_table::<Self, $resource_table>(cx, SCHEME_NAME.to_string())
+                    get_table::<Self, $resource_table>(cx, $scheme_name)
                 })
             }
 
             fn build_data(state: Self::State) -> Result<DataT> {
-                /// We prepare a default resource without any inner data, and then we modify the resource with host-provided state.
-                /// In the last step, the resource will be fully configured by the guest application. This is done in the
-                /// `get-<capability>` function.
+                /// We prepare a default resource with host-provided state.
+                /// Then the guest will pass other configuration state to the resource.
+                /// This is done in the `<Capability>::open` function.
                 let mut resource = Self {
                     host_state: Some(state),
                     ..Default::default()

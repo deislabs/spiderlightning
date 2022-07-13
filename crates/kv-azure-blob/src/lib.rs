@@ -31,7 +31,12 @@ pub struct KvAzureBlob {
     host_state: Option<ResourceMap>,
 }
 
-impl_resource!(KvAzureBlob, kv::KvTables<KvAzureBlob>, ResourceMap);
+impl_resource!(
+    KvAzureBlob,
+    kv::KvTables<KvAzureBlob>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 impl KvAzureBlob {
     /// Create a new `KvAzureBlob`
@@ -73,7 +78,8 @@ impl kv::Kv for KvAzureBlob {
 
     /// Output the value of a set key
     fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<ContainerClient>>(self_)?;
@@ -90,7 +96,8 @@ impl kv::Kv for KvAzureBlob {
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<ContainerClient>>(self_)?;
@@ -103,7 +110,8 @@ impl kv::Kv for KvAzureBlob {
 
     /// Delete a key-value pair
     fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<Arc<ContainerClient>>(self_)?;

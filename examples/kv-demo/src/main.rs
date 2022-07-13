@@ -12,23 +12,23 @@ wit_bindgen_rust::export!("../../wit/event-handler.wit");
 fn main() -> Result<()> {
     // application devleoper does not need to know the host implementation details.
 
-    let rd1 = Kv::open("my-container")?;
-    let rd2 = Kv::open("my-container2")?;
+    let kv1 = Kv::open("my-container")?;
+    let kv2 = Kv::open("my-container2")?;
     let value = "wasi-cloud".as_bytes();
-    rd1.set("key", value)?;
-    rd2.set("key", value)?;
+    kv1.set("key", value)?;
+    kv2.set("key", value)?;
     println!(
-        "Hello, world! the value for rd1 is: {}, rd2 is {}",
-        std::str::from_utf8(&rd1.get("key")?)?,
-        std::str::from_utf8(&rd2.get("key")?)?,
+        "Hello, world! the value for kv1 is: {}, kv2 is {}",
+        std::str::from_utf8(&kv1.get("key")?)?,
+        std::str::from_utf8(&kv2.get("key")?)?,
     );
-    rd1.delete("key")?;
-    rd2.delete("key")?;
-    let value = rd1.get("key");
+    kv1.delete("key")?;
+    kv2.delete("key")?;
+    let value = kv1.get("key");
     assert!(value.is_err());
 
-    let ob1 = rd1.watch("my-key")?;
-    let ob2 = rd1.watch("my-key2")?;
+    let ob1 = kv1.watch("my-key")?;
+    let ob2 = kv1.watch("my-key2")?;
     let events = events::Events::get()?;
     // TODO (mosssaka): I had to construct a copy of Observable because wit_bindgen generates two
     // observables in different mods: events::Observable vs. kv::Observable.
@@ -43,8 +43,8 @@ fn main() -> Result<()> {
         })?
         .exec(5)?;
 
-    drop(rd1); // drop != close
-    drop(rd2);
+    drop(kv1); // drop != close
+    drop(kv2);
     Ok(())
 }
 
@@ -52,9 +52,9 @@ pub struct EventHandler {}
 
 impl event_handler::EventHandler for EventHandler {
     fn handle_event(ev: Event) -> Result<Option<Event>, String> {
-        let rd = Kv::open("my-container").unwrap();
+        let kv = Kv::open("my-container").unwrap();
         let key = ev.data.unwrap();
-        let value = rd.get(&key).unwrap();
+        let value = kv.get(&key).unwrap();
         println!(
             "received event of type {}, key: {}, new value: {}",
             &ev.event_type,

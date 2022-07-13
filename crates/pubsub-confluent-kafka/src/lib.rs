@@ -33,7 +33,8 @@ pub struct PubSubConfluentKafka {
 impl_resource!(
     PubSubConfluentKafka,
     pubsub::PubsubTables<PubSubConfluentKafka>,
-    ResourceMap
+    ResourceMap,
+    SCHEME_NAME.to_string()
 );
 
 impl PubSubConfluentKafka {
@@ -118,7 +119,8 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
@@ -133,7 +135,8 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         self_: &Self::Pubsub,
         topic: Vec<&str>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
@@ -150,7 +153,8 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         self_: &Self::Pubsub,
         timeout_in_secs: u64,
     ) -> Result<Message, Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
