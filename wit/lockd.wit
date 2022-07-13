@@ -3,7 +3,7 @@ use { error, payload } from types
 use * from resources
 
 resource lockd {
-	// get a resource descriptor for a lockd object
+	// open a lockd object
 	static open: function() -> expected<lockd, error>
 
 	// creates a lock with a name, returns the lock key

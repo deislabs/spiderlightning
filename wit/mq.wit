@@ -3,7 +3,7 @@ use { error, payload } from types
 use * from resources
 
 resource mq {
-	// get the resource-descriptor for the message queue
+	// open a message queue
 	static open: function(name: string) -> expected<mq, error>
 
 	// send a message to the queue

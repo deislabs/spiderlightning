@@ -7,7 +7,6 @@
 
 __attribute__((export_name("main"))) int main(int argc, char *argv[])
 {
-  // get resource descriptor
   kv_expected_kv_error_t kv_result;
   kv_kv_t kv;
   mq_expected_mq_error_t mq_result;

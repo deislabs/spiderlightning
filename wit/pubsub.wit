@@ -3,7 +3,7 @@ use { message, error, payload } from types
 use * from resources
 
 resource pubsub {
-	// get the resource-descriptor for pub/sub
+	// open a pub/sub object
 	static open: function() -> expected<pubsub, error>
 
 	// pub a message

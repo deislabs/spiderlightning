@@ -3,7 +3,7 @@ use { error, payload } from types
 use { observable } from resources
 
 resource kv {
-	// get a key-value store resource descriptor.
+	// open a key-value store
 	static open: function(name: string) -> expected<kv, error>
 
 	// get the payload for a given key.
