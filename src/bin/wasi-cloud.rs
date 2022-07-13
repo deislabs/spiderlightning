@@ -1,10 +1,11 @@
-use std::fs::OpenOptions;
+use std::{fs::OpenOptions, env};
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use wasi_cloud_cli::commands::{run::handle_run, secret::handle_secret};
 
 const DEFAULT_CONFIG_FILEPATH: &str = "./wc-config.toml";
+pub const CFP_ENV_VAR_NAME: &str = "WASI_CLOUD_CFP"; 
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -41,6 +42,7 @@ async fn main() -> Result<()> {
     } else {
         DEFAULT_CONFIG_FILEPATH
     };
+    env::set_var(CFP_ENV_VAR_NAME, &toml_file_path);
 
     let mut toml_file = OpenOptions::new()
         .read(true)

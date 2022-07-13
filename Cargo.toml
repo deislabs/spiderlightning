@@ -24,7 +24,7 @@ events = { path = "crates/events" }
 toml = "0.5.9"
 serde = "1.0.137"
 as-any = "0.3"
-argon2rs = "0.2.5"
+short-crypt = "1"
 rand = "0.8.5"
 
 [dev-dependencies]
@@ -56,7 +56,8 @@ members = [
     "examples/multi_capability-demo",
     "examples/lockd-demo",
     "examples/pubsub-consumer-demo",
-    "examples/pubsub-producer-demo"
+    "examples/pubsub-producer-demo",
+    "crates/configs"
 ]
 
 [[bin]]

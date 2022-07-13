@@ -1,25 +1,25 @@
 use std::{env, fs::File, io::Write};
 
-use crate::wc_config::{Config, Secret};
+use crate::wc_config::{TomlFile, Config};
 use anyhow::Result;
-use argon2rs::argon2i_simple;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use short_crypt::ShortCrypt;
 
-const ENV_VAR_NAME: &str = "WASI_CLOUD_SALT";
+const EKEY_ENV_VAR_NAME: &str = "WASI_CLOUD_KEY";
 
 pub fn handle_secret(
     key: &str,
     value: &str,
-    toml: &mut Config,
+    toml: &mut TomlFile,
     toml_file: &mut File,
 ) -> Result<()> {
-    // check if salt env var is present
-    let salt = if let Ok(s) = env::var(ENV_VAR_NAME) {
+    // check if encryption key env var is present
+    let encryption_key = if let Ok(s) = env::var(EKEY_ENV_VAR_NAME) {
         s
     } else {
-        // if it isn't, create
-        let s = generate_salt();
-        env::set_var(ENV_VAR_NAME, &s);
+        // if it isn't, create it
+        let s = generate_key();
+        env::set_var(EKEY_ENV_VAR_NAME, &s);
         s
     };
 
@@ -31,6 +31,7 @@ pub fn handle_secret(
         Some(vec![])
     };
 
+    // find position of secret in toml's secret array
     let pos = toml
         .secret_settings
         .as_ref()
@@ -38,11 +39,10 @@ pub fn handle_secret(
         .iter()
         .position(|s| s.name == key);
 
-    let hash = argon2i_simple(&value, &salt)
-        .iter()
-        .map(|b| format!("{:02x}", b))
-        .collect::<String>();
-    let secret = Secret::new(key.to_string(), hash);
+    // create encrypter instance w/ our encryption key
+    let sc = ShortCrypt::new(encryption_key);
+    let encrypted_value = sc.encrypt_to_url_component(&value); // encrypt our value to a random-like string
+    let secret = Config::new(key.to_string(), encrypted_value);
     if pos.is_some() {
         // check if key doesn't already exist
         // if it does, we want to modify the existing field
@@ -59,7 +59,7 @@ pub fn handle_secret(
     Ok(())
 }
 
-fn generate_salt() -> String {
+fn generate_key() -> String {
     thread_rng()
         .sample_iter(&Alphanumeric)
         .take(30)

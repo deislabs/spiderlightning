@@ -301,10 +301,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "base32"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23ce669cd6c8588f79e15cf450314f9638f967fc5770ff1c7c1deb0925ea7cfa"
+
+[[package]]
 name = "base64"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
+
+[[package]]
+name = "base64-url"
+version = "1.4.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67a99c239d0c7e77c85dddfa9cebce48704b3c49550fcd3b84dd637e4484899f"
+dependencies = [
+ "base64",
+]
 
 [[package]]
 name = "bincode"
@@ -513,6 +528,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "configs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2rs",
+ "crossbeam-channel",
+ "proc_macro_utils",
+ "rand",
+ "runtime",
+ "uuid",
+ "wasi-cloud-cli",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -642,6 +673,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "crc-any"
+version = "2.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "774646b687f63643eb0f4bf13dc263cb581c8c9e57973b6ddf78bda3994d88df"
+dependencies = [
+ "debug-helper",
+]
+
+[[package]]
 name = "crc32fast"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -704,6 +744,12 @@ dependencies = [
  "generic-array",
  "typenum",
 ]
+
+[[package]]
+name = "debug-helper"
+version = "0.3.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f578e8e2c440e7297e008bb5486a3a8a194775224bbc23729b0dbdfaeebf162e"
 
 [[package]]
 name = "digest"
@@ -2620,6 +2666,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "short-crypt"
+version = "1.0.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9390ffa06e3e28467db763682c95a1848dfa11ae7f8d9dbcc433827ba652eff"
+dependencies = [
+ "base32",
+ "base64-url",
+ "crc-any",
+ "debug-helper",
+]
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3207,7 +3265,6 @@ name = "wasi-cloud-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "argon2rs",
  "as-any",
  "cargo-target-dep",
  "clap",
@@ -3224,6 +3281,7 @@ dependencies = [
  "rand",
  "runtime",
  "serde",
+ "short-crypt",
  "temp-dir",
  "tokio",
  "toml",

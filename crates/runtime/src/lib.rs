@@ -1,5 +1,5 @@
 pub mod resource;
-use std::collections::HashMap;
+use std::{collections::HashMap, fs::File};
 
 use anyhow::Result;
 use resource::{Ctx, GuestState, ResourceConfig, ResourceMap, RuntimeResource};

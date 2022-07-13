@@ -13,9 +13,9 @@ use runtime::{
 };
 use std::sync::{Arc, Mutex};
 
-use crate::wc_config::Config;
+use crate::wc_config::TomlFile;
 
-pub fn handle_run(module: &str, toml: &Config) -> Result<()> {
+pub fn handle_run(module: &str, toml: &TomlFile) -> Result<()> {
     let resource_map = Arc::new(Mutex::new(Map::default()));
 
     let mut host_builder = Builder::new_default()?;
