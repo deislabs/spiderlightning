@@ -1,12 +1,13 @@
 // An App Configuration Interface
 use { error, payload } from types
-use * from resources
 
-// Obtain an app config store, identifiable through a resource descriptor
-init-configs: function(name: string) -> expected<resource-descriptor, error>
+resource configs {
+    // Obtain an app config store, identifiable through a resource descriptor
+    static open: function(name: string) -> expected<configs, error>
 
-// Get an app configuration given a config store, and an identifiable key
-get-config: function(rd: resource-descriptor, key: string) -> expected<payload, error>
+    // Get an app configuration given a config store, and an identifiable key
+    get: function(key: string) -> expected<payload, error>
 
-// Set an app configuration given a config store, an identifiable key, and its' value
-set-config: function(rd: resource-descriptor, key: string, value: payload) -> expected<unit, error>
+    // Set an app configuration given a config store, an identifiable key, and its' value
+    set: function(key: string, value: payload) -> expected<unit, error>
+}

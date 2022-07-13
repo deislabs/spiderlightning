@@ -26,6 +26,7 @@ serde = "1.0.137"
 as-any = "0.3"
 short-crypt = "1"
 rand = "0.8.5"
+events-api = { path = "crates/events-api" }
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
@@ -50,6 +51,7 @@ members = [
     "crates/runtime",
     "crates/kv-azure-blob",
     "crates/events/",
+    "crates/events-api",
     "examples/kv-demo",
     "examples/mq-sender-demo",
     "examples/mq-receiver-demo",

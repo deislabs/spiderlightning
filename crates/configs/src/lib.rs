@@ -1,10 +1,11 @@
 use anyhow::{Context, Result};
-use configs::add_to_linker;
 use configs::*;
 use crossbeam_channel::Sender;
-use proc_macro_utils::{Resource, RuntimeResource};
+use events_api::Event;
+use proc_macro_utils::Resource;
+use runtime::impl_resource;
 use runtime::resource::{
-    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+    get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
 };
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
@@ -17,11 +18,18 @@ mod providers;
 const SCHEME_NAME: &str = "configs";
 
 // Struct Representer for wit_bindgen's Config
-#[derive(Default, Clone, Resource, RuntimeResource)]
+#[derive(Default, Clone, Resource)]
 struct Configs {
     inner: Option<Arc<ConfigType>>, // have to wrap it in Option<Arc<>> due to Resource derive proc macro
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
 }
+
+impl_resource!(
+    Configs,
+    configs::ConfigsTables<Configs>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 // Currently supported configuration types
 enum ConfigType {
@@ -44,8 +52,10 @@ impl Default for ConfigType {
 
 // implements wit-bindgen's Configs for our Configs struct
 impl configs::Configs for Configs {
-    // initiates our config store dependant on the provided type
-    fn init_configs(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
+    type Configs = String;
+
+    // opens our config store dependant on the provided type
+    fn configs_open(&mut self, name: &str) -> Result<Self::Configs, Error> {
         // set global config type
         self.inner = match name {
             "usersecrets" => ConfigType::new(ConfigType::UserSecrets),
@@ -59,54 +69,38 @@ impl configs::Configs for Configs {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
 
         Ok(rd)
     }
 
-    fn get_config(
-        &mut self,
-        rd: ResourceDescriptorParam<'_>,
-        key: &str,
-    ) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn configs_get(&mut self, self_: &Self::Configs, key: &str) -> Result<Vec<u8>, Error> {
+        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let inner = map.get::<Arc<ConfigType>>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let inner = map.get::<Arc<ConfigType>>(self_)?;
 
         match *inner.clone() {
             ConfigType::Local => todo!("local get is still not implemented"),
             ConfigType::UserSecrets => Ok(providers::usersecrets::get_config_usersecrets(key)?),
-            _ => {
-                return Err(configs::Error::ErrorWithDescription(
-                    "failed to match config name to any known service implementations".to_string(),
-                ))
-            }
         }
     }
 
-    fn set_config(
+    fn configs_set(
         &mut self,
-        rd: ResourceDescriptorParam<'_>,
+        self_: &Self::Configs,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let inner = map.get::<Arc<ConfigType>>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let inner = map.get::<Arc<ConfigType>>(self_)?;
 
         match *inner.clone() {
             ConfigType::Local => todo!("local set is still not implemented"),
-            ConfigType::UserSecrets => {
-                Ok(providers::usersecrets::set_config_usersecrets(key, value)?)
-            }
-            _ => {
-                return Err(configs::Error::ErrorWithDescription(
-                    "failed to match config name to any known service implementations".to_string(),
-                ))
-            }
+            ConfigType::UserSecrets => Ok(providers::usersecrets::set_config_usersecrets(key, value)?)
         }
     }
 }

@@ -9,6 +9,12 @@ extern "C"
   #include <stdbool.h>
   
   typedef struct {
+    uint32_t idx;
+  } kv_kv_t;
+  void kv_kv_free(kv_kv_t *ptr);
+  kv_kv_t kv_kv_clone(kv_kv_t *ptr);
+  
+  typedef struct {
     char *ptr;
     size_t len;
   } kv_string_t;
@@ -16,21 +22,60 @@ extern "C"
   void kv_string_set(kv_string_t *ret, const char *s);
   void kv_string_dup(kv_string_t *ret, const char *s);
   void kv_string_free(kv_string_t *ret);
-  typedef uint8_t kv_error_t;
-  #define KV_ERROR_DESCRIPTOR_ERROR 0
-  #define KV_ERROR_IO_ERROR 1
-  #define KV_ERROR_OTHER_ERROR 2
+  typedef struct {
+    uint8_t tag;
+    union {
+      kv_string_t error_with_description;
+    } val;
+  } kv_error_t;
+  #define KV_ERROR_ERROR_WITH_DESCRIPTION 0
+  void kv_error_free(kv_error_t *ptr);
   typedef struct {
     uint8_t *ptr;
     size_t len;
   } kv_payload_t;
   void kv_payload_free(kv_payload_t *ptr);
-  typedef kv_string_t kv_resource_descriptor_t;
-  void kv_resource_descriptor_free(kv_resource_descriptor_t *ptr);
-  kv_error_t kv_get_kv(kv_string_t *name, kv_resource_descriptor_t *ret0);
-  kv_error_t kv_get(kv_resource_descriptor_t *rd, kv_string_t *key, kv_payload_t *ret0);
-  kv_error_t kv_set(kv_resource_descriptor_t *rd, kv_string_t *key, kv_payload_t *value);
-  kv_error_t kv_delete(kv_resource_descriptor_t *rd, kv_string_t *key);
+  typedef struct {
+    kv_string_t rd;
+    kv_string_t key;
+  } kv_observable_t;
+  void kv_observable_free(kv_observable_t *ptr);
+  typedef struct {
+    bool is_err;
+    union {
+      kv_kv_t ok;
+      kv_error_t err;
+    } val;
+  } kv_expected_kv_error_t;
+  void kv_expected_kv_error_free(kv_expected_kv_error_t *ptr);
+  typedef struct {
+    bool is_err;
+    union {
+      kv_payload_t ok;
+      kv_error_t err;
+    } val;
+  } kv_expected_payload_error_t;
+  void kv_expected_payload_error_free(kv_expected_payload_error_t *ptr);
+  typedef struct {
+    bool is_err;
+    union {
+      kv_error_t err;
+    } val;
+  } kv_expected_unit_error_t;
+  void kv_expected_unit_error_free(kv_expected_unit_error_t *ptr);
+  typedef struct {
+    bool is_err;
+    union {
+      kv_observable_t ok;
+      kv_error_t err;
+    } val;
+  } kv_expected_observable_error_t;
+  void kv_expected_observable_error_free(kv_expected_observable_error_t *ptr);
+  void kv_kv_open(kv_string_t *name, kv_expected_kv_error_t *ret0);
+  void kv_kv_get(kv_kv_t self, kv_string_t *key, kv_expected_payload_error_t *ret0);
+  void kv_kv_set(kv_kv_t self, kv_string_t *key, kv_payload_t *value, kv_expected_unit_error_t *ret0);
+  void kv_kv_delete(kv_kv_t self, kv_string_t *key, kv_expected_unit_error_t *ret0);
+  void kv_kv_watch(kv_kv_t self, kv_string_t *key, kv_expected_observable_error_t *ret0);
   #ifdef __cplusplus
 }
 #endif

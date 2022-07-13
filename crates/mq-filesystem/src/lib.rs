@@ -1,9 +1,11 @@
 use anyhow::{Context, Result};
 use crossbeam_channel::Sender;
+use events_api::Event;
 use mq::*;
-use proc_macro_utils::{Resource, RuntimeResource};
+use proc_macro_utils::Resource;
+use runtime::impl_resource;
 use runtime::resource::{
-    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+    get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
 };
 use std::sync::{Arc, Mutex};
 use std::{
@@ -22,12 +24,19 @@ wit_error_rs::impl_from!(std::io::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "filemq";
 
 /// A Filesystem implementation for the mq interface.
-#[derive(Clone, Resource, RuntimeResource)]
+#[derive(Clone, Resource)]
 pub struct MqFilesystem {
     queue: String,
     inner: Option<String>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
 }
+
+impl_resource!(
+    MqFilesystem,
+    mq::MqTables<MqFilesystem>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 // vvv we implement default manually because of the `queue` attribute
 impl Default for MqFilesystem {
@@ -35,14 +44,15 @@ impl Default for MqFilesystem {
         Self {
             queue: ".queue".to_string(),
             inner: Some(String::default()),
-            resource_map: None,
+            host_state: None,
         }
     }
 }
 
 impl mq::Mq for MqFilesystem {
+    type Mq = String;
     /// Construct a new `MqFilesystem` instance provided a folder name. The folder will be created under `/tmp`.
-    fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
+    fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
@@ -53,17 +63,18 @@ impl mq::Mq for MqFilesystem {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 
     /// Send a message to the message queue
-    fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let base = map.get::<String>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let base = map.get::<String>(self_)?;
 
         // get a random name for a queue element
         let rand_file_name = format!(
@@ -93,11 +104,12 @@ impl mq::Mq for MqFilesystem {
     }
 
     /// Receive a message from the message queue
-    fn receive(&mut self, rd: ResourceDescriptorParam) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let base = map.get::<String>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let base = map.get::<String>(self_)?;
 
         fs::create_dir_all(&base)?;
 

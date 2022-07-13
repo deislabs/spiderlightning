@@ -1,10 +1,14 @@
 use std::env;
 
 use anyhow::{Context, Result};
-use proc_macro_utils::{Resource, RuntimeResource};
+use events_api::Event;
+use proc_macro_utils::Resource;
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::{
-    get, Ctx, DataT, Event, Linker, Map, Resource, ResourceMap, RuntimeResource,
+use runtime::{
+    impl_resource,
+    resource::{
+        get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+    },
 };
 
 use pubsub::*;
@@ -20,11 +24,18 @@ mod confluent;
 const SCHEME_NAME: &str = "ckpubsub";
 
 /// A Confluent Apache Kafka implementation for the pubsub interface.
-#[derive(Default, Clone, Resource, RuntimeResource)]
+#[derive(Default, Clone, Resource)]
 pub struct PubSubConfluentKafka {
     inner: Option<(Arc<BaseProducer>, Arc<BaseConsumer>)>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
 }
+
+impl_resource!(
+    PubSubConfluentKafka,
+    pubsub::PubsubTables<PubSubConfluentKafka>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 impl PubSubConfluentKafka {
     /// Create a new `PubSubConfluentKafka`
@@ -61,14 +72,15 @@ impl PubSubConfluentKafka {
 
         Self {
             inner: Some((Arc::new(producer), Arc::new(consumer))),
-            resource_map: None,
+            host_state: None,
         }
     }
 }
 
 impl pubsub::Pubsub for PubSubConfluentKafka {
+    type Pubsub = String;
     /// Construct a new `PubSubConfluentKafka`
-    fn get_pubsub(&mut self) -> Result<ResourceDescriptorResult, Error> {
+    fn pubsub_open(&mut self) -> Result<Self::Pubsub, Error> {
         let bootstap_servers = env::var("CK_ENDPOINT")
             .with_context(|| "failed to read CK_ENDPOINT environment variable")?;
         let security_protocol = env::var("CK_SECURITY_PROTOCOL")
@@ -94,38 +106,40 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 
     /// Send messages to a topic
-    fn send_message_to_topic(
+    fn pubsub_send_message_to_topic(
         &mut self,
-        rd: ResourceDescriptorParam,
+        self_: &Self::Pubsub,
         msg_key: PayloadParam<'_>,
         msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
 
         Ok(confluent::send(&inner.0, msg_key, msg_value, topic)
             .with_context(|| "failed to send message to a topic")?)
     }
 
     /// Subscribe to a topic
-    fn subscribe_to_topic(
+    fn pubsub_subscribe_to_topic(
         &mut self,
-        rd: ResourceDescriptorParam,
+        self_: &Self::Pubsub,
         topic: Vec<&str>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
 
         Ok(
             confluent::subscribe(&inner.1, topic)
@@ -134,15 +148,16 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     }
 
     /// Receive/poll for messages
-    fn poll_for_message(
+    fn pubsub_poll_for_message(
         &mut self,
-        rd: ResourceDescriptorParam,
+        self_: &Self::Pubsub,
         timeout_in_secs: u64,
-    ) -> Result<pubsub::Message, Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    ) -> Result<Message, Error> {
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
 
         Ok(confluent::poll(&inner.1, timeout_in_secs)
             .map(|f| pubsub::Message {

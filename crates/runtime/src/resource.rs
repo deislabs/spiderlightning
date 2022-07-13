@@ -8,6 +8,7 @@ pub use crate::RuntimeContext;
 use anyhow::{Context, Result};
 use as_any::{AsAny, Downcast};
 use crossbeam_channel::Sender;
+use events_api::{Event, EventHandlerData};
 pub use wasmtime::Linker;
 
 pub type DataT = (
@@ -17,6 +18,7 @@ pub type DataT = (
 pub type ResourceConfig = String;
 pub type ResourceMap = Arc<Mutex<Map>>;
 pub type Ctx = RuntimeContext<DataT>;
+pub type GuestState = EventHandlerData;
 
 /// A map wrapper type for the resource map
 #[derive(Default)]
@@ -65,9 +67,6 @@ pub trait Resource: AsAny {
     /// Get inner representation of the resource
     fn get_inner(&self) -> &dyn Any;
 
-    /// Add resource map to resource
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
-
     /// check if the resource has changed on key.
     fn watch(
         &mut self,
@@ -80,9 +79,43 @@ pub trait Resource: AsAny {
 
 /// A trait for wit-bindgen host resource composed of a resource
 pub trait RuntimeResource {
+    type State: Sized;
     fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
-    fn build_data() -> Result<DataT>;
+    fn build_data(state: Self::State) -> Result<DataT>;
 }
+
+#[macro_export]
+#[allow(clippy::crate_in_macro_def)]
+macro_rules! impl_resource {
+    ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
+        impl RuntimeResource for $resource {
+            type State = $state;
+            fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
+                crate::add_to_linker(linker, |cx| {
+                    get_table::<Self, $resource_table>(cx, $scheme_name)
+                })
+            }
+
+            fn build_data(state: Self::State) -> Result<DataT> {
+                /// We prepare a default resource with host-provided state.
+                /// Then the guest will pass other configuration state to the resource.
+                /// This is done in the `<Capability>::open` function.
+                let mut resource = Self {
+                    host_state: Some(state),
+                    ..Default::default()
+                };
+                Ok((
+                    Box::new(resource),
+                    Some(Box::new(<$resource_table>::default())),
+                ))
+            }
+        }
+
+        impl ResourceTables<dyn Resource> for $resource_table {}
+    };
+}
+
+pub use impl_resource;
 
 /// Dynamically dispatch to respective host resource
 pub fn get<T>(cx: &mut Ctx, resource_key: String) -> &mut T
@@ -138,38 +171,4 @@ where
                 )
             }),
     )
-}
-
-// guest resource
-use event_handler::EventHandlerData;
-
-wit_bindgen_wasmtime::import!("../../wit/event-handler.wit");
-
-pub type GuestState = EventHandlerData;
-
-#[derive(Debug, Default, Clone)]
-pub struct Event {
-    pub source: String,
-    pub event_type: String,
-    pub specversion: String,
-    pub id: String,
-    pub data: Option<String>,
-}
-
-impl Event {
-    pub fn new(
-        source: String,
-        event_type: String,
-        specversion: String,
-        id: String,
-        data: Option<String>,
-    ) -> Self {
-        Self {
-            source,
-            event_type,
-            specversion,
-            id,
-            data,
-        }
-    }
 }

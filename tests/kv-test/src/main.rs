@@ -7,47 +7,46 @@ wit_error_rs::impl_error!(Error);
 
 fn main() -> Result<()> {
     // test get, set, delete
-    let rd = get_kv("rand")?; // TODO: this should be a random name
+    let kv = Kv::open("rand")?;
     let value = "wasi-cloud".as_bytes();
-    set(&rd, "key", value)?;
+    kv.set("key", value)?;
     println!(
         "Hello, world! the value is: {}",
-        std::str::from_utf8(&get(&rd, "key")?)?
+        std::str::from_utf8(&kv.get("key")?)?
     );
-    delete(&rd, "key")?;
-    let value = get(&rd, "key");
+    kv.delete("key")?;
+    let value = kv.get("key");
     assert!(value.is_err());
 
     // test get_kv() will have a unique allocation in the resource table.
     // so two `get_kv()` with different names will return different allocations.
-    let rd1 = get_kv("random1")?;
-    let rd2 = get_kv("random2")?;
-    set(&rd1, "key1", "value1".as_bytes())?;
-    set(&rd2, "key2", "value2".as_bytes())?;
+    let kv1 = Kv::open("random1")?;
+    let kv2 = Kv::open("random2")?;
+    kv1.set("key1", "value1".as_bytes())?;
+    kv2.set("key2", "value2".as_bytes())?;
 
-    assert!(get(&rd1, "key2").is_err());
-    delete(&rd1, "key1")?;
-    delete(&rd2, "key2")?;
+    assert!(kv1.get("key2").is_err());
+    kv1.delete("key1")?;
+    kv2.delete("key2")?;
 
     // test two get_kv() with the same name will return the same allocation.
     // but the resource descriptors are not the same.
-    let rd1 = get_kv("random1")?;
-    let rd2 = get_kv("random1")?;
-    assert!(rd1 != rd2);
-    set(&rd1, "key1", "value1".as_bytes())?;
-    set(&rd2, "key2", "value2".as_bytes())?;
-    assert!(get(&rd1, "key2")? == "value2".as_bytes());
-    delete(&rd1, "key1")?;
-    delete(&rd2, "key2")?;
+    let kv1 = Kv::open("random1")?;
+    let kv2 = Kv::open("random1")?;
+    kv1.set("key1", "value1".as_bytes())?;
+    kv2.set("key2", "value2".as_bytes())?;
+    assert!(kv1.get("key2")? == "value2".as_bytes());
+    kv1.delete("key1")?;
+    kv2.delete("key2")?;
 
     // test get empty key
-    let rd = get_kv("random3")?;
-    let value = get(&rd, "");
+    let kv3 = Kv::open("random3")?;
+    let value = kv3.get("");
     assert!(value.is_err());
 
     // test delete empty key
-    let rd = get_kv("random4")?;
-    let ret = delete(&rd, "key");
+    let kv4 = Kv::open("random4")?;
+    let ret = kv4.delete("key");
     assert!(ret.is_err());
 
     println!("finished running kv-test");
