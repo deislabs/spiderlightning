@@ -53,32 +53,32 @@ async fn main() -> Result<()> {
             match resource_type {
             "events" => {
                 events_enabled = true;
-                host_builder.link_capability::<Events>(resource_type.to_string())?;
-                guest_builder.link_capability::<Events>(resource_type.to_string())?;
+                host_builder.link_capability::<Events>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<Events>(resource_type.to_string(), resource_map.clone())?;
             },
             "azblobkv" => {
-                host_builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
-                guest_builder.link_capability::<KvAzureBlob>(resource_type.to_string())?;
+                host_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), resource_map.clone())?;
             },
             "filekv" => {
-                host_builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
-                guest_builder.link_capability::<KvFilesystem>(resource_type.to_string())?;
+                host_builder.link_capability::<KvFilesystem>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<KvFilesystem>(resource_type.to_string(), resource_map.clone())?;
             },
             "filemq" => {
-                host_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
-                guest_builder.link_capability::<MqFilesystem>(resource_type.to_string())?;
+                host_builder.link_capability::<MqFilesystem>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<MqFilesystem>(resource_type.to_string(), resource_map.clone())?;
             },
             "azsbusmq" => {
-                host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
-                guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string())?;
+                host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), resource_map.clone())?;
             },
             "etcdlockd" => {
-                host_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
-                guest_builder.link_capability::<LockdEtcd>(resource_type.to_string())?;
+                host_builder.link_capability::<LockdEtcd>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<LockdEtcd>(resource_type.to_string(), resource_map.clone())?;
             },
             "ckpubsub" => {
-                host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
-                guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string())?;
+                host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), resource_map.clone())?;
             }
             _ => bail!("invalid url: currently wasi-cloud only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
@@ -86,10 +86,7 @@ async fn main() -> Result<()> {
     } else {
         bail!("unsupported toml spec version");
     }
-    host_builder.link_resource_map(resource_map.clone())?;
     let (_, mut store, instance) = host_builder.build(&args.module)?;
-
-    guest_builder.link_resource_map(resource_map)?;
     let (_, mut store2, instance2) = guest_builder.build(&args.module)?;
     if events_enabled {
         let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;

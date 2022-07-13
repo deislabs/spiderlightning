@@ -28,7 +28,7 @@ const SCHEME_NAME: &str = "events";
 #[derive(Default)]
 pub struct Events {
     observables: Vec<Observable>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
     event_handler: Option<Arc<Mutex<EventHandler<Ctx>>>>,
     store: Option<Arc<Mutex<Store<Ctx>>>>,
 }
@@ -67,11 +67,6 @@ impl Events {
 }
 
 impl Resource for Events {
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()> {
-        self.resource_map = Some(resource_map);
-        Ok(())
-    }
-
     fn get_inner(&self) -> &dyn std::any::Any {
         unimplemented!("events will not be dynamically dispatched to a specific resource")
     }
@@ -88,14 +83,18 @@ impl Resource for Events {
 }
 
 impl RuntimeResource for Events {
+    type State = ResourceMap;
     fn add_to_linker(linker: &mut runtime::resource::Linker<runtime::resource::Ctx>) -> Result<()> {
         crate::add_to_linker(linker, |cx| {
             get_table::<Self, events::EventsTables<Self>>(cx, SCHEME_NAME.to_string())
         })
     }
 
-    fn build_data() -> Result<runtime::resource::DataT> {
-        let events = Self::default();
+    fn build_data(state: ResourceMap) -> Result<runtime::resource::DataT> {
+        let events = Self {
+            host_state: Some(state),
+            ..Default::default()
+        };
         Ok((
             Box::new(events),
             Some(Box::new(events::EventsTables::<Self>::default())),
@@ -126,7 +125,7 @@ impl events::Events for Events {
     fn events_exec(&mut self, _events: &Self::Events, duration: u64) -> Result<(), Error> {
         for ob in &self.observables {
             // check if observable has changed
-            let map = self.resource_map.as_mut().unwrap();
+            let map = self.host_state.as_mut().unwrap();
 
             let mut map = map.lock().unwrap();
             let data = map.get::<String>(&ob.rd).unwrap().to_string();

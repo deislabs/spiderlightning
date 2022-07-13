@@ -21,7 +21,7 @@ const SCHEME_NAME: &str = "ckpubsub";
 #[derive(Default, Clone, Resource, RuntimeResource)]
 pub struct PubSubConfluentKafka {
     inner: Option<(Arc<BaseProducer>, Arc<BaseConsumer>)>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
 }
 
 impl PubSubConfluentKafka {
@@ -59,7 +59,7 @@ impl PubSubConfluentKafka {
 
         Self {
             inner: Some((Arc::new(producer), Arc::new(consumer))),
-            resource_map: None,
+            host_state: None,
         }
     }
 }
@@ -92,7 +92,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
@@ -107,7 +107,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
         Ok(confluent::send(&inner.0, msg_key, msg_value, topic)
@@ -122,7 +122,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     ) -> Result<(), Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
         Ok(
@@ -139,7 +139,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     ) -> Result<pubsub::Message, Error> {
         Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
+        let map = Map::lock(&mut self.host_state)?;
         let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(rd)?;
 
         Ok(confluent::poll(&inner.1, timeout_in_secs)
