@@ -27,6 +27,6 @@ fn cargo_wasi_build(path: &str) {
     if code != 0 {
         stdout().write_all(&output.stdout).unwrap();
         stderr().write_all(&output.stderr).unwrap();
-        panic!("failed to build wasi-cloud with command cargo build --target=wasm32-wasi");
+        panic!("failed to build slight with command cargo build --target=wasm32-wasi");
     }
 }

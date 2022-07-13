@@ -8,7 +8,7 @@ wit_error_rs::impl_error!(Error);
 fn main() -> Result<()> {
     // test get, set, delete
     let kv = Kv::open("rand")?;
-    let value = "wasi-cloud".as_bytes();
+    let value = "spiderlightning".as_bytes();
     kv.set("key", value)?;
     println!(
         "Hello, world! the value is: {}",

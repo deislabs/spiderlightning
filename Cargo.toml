@@ -1,10 +1,12 @@
 [package]
-name = "wasi-cloud-cli"
+name = "spiderlightning"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
+default-run = "slight"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "slight"
 
 [dependencies]
 anyhow = "1.0"
@@ -58,7 +60,3 @@ members = [
     "examples/pubsub-consumer-demo",
     "examples/pubsub-producer-demo",
 ]
-
-[[bin]]
-name = "wasi-cloud"
-path = "src/bin/wasi-cloud.rs"

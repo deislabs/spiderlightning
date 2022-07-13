@@ -18,7 +18,7 @@ If anything doesn't make sense, or doesn't work when you run it, please open a b
 
 ### Find an Issue
 
-We have good first issues for new contributors and more involved issues suitable for seasoned contributors. [1️⃣ good first issue](https://github.com/deislabs/wasi-cloud/issues?q=is%3Aopen+is%3Aissue+label%3A%221%EF%B8%8F%E2%83%A3+good+first+issue%22+first+issue%22) has extra information to help you make your first contribution. [🧩 more involved issue](https://github.com/deislabs/wasi-cloud/issues?q=is%3Aopen+is%3Aissue+label%3A%22%F0%9F%A7%A9+more+involved+issue%22+) are issues suitable for someone who isn't a core maintainer and is good to move onto after your first pull request.
+We have good first issues for new contributors and more involved issues suitable for seasoned contributors. [1️⃣ good first issue](https://github.com/deislabs/spiderlightning/issues?q=is%3Aopen+is%3Aissue+label%3A%221%EF%B8%8F%E2%83%A3+good+first+issue%22+first+issue%22) has extra information to help you make your first contribution. [🧩 more involved issue](https://github.com/deislabs/spiderlightning/issues?q=is%3Aopen+is%3Aissue+label%3A%22%F0%9F%A7%A9+more+involved+issue%22+) are issues suitable for someone who isn't a core maintainer and is good to move onto after your first pull request.
 
 We will always try to have at least some issues with these labels, but, if there are not, feel free to file an issue asking if there is any place that could use some collaboration — in the future, we plan to have a Zulip/Slack/Gitter/Discord channel to make this process smoother.
 
