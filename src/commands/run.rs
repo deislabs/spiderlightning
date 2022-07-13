@@ -11,7 +11,7 @@ use pubsub_confluent_kafka::PubSubConfluentKafka;
 use runtime::{resource::Map, Builder};
 use std::sync::{Arc, Mutex};
 
-use crate::wc_config::TomlFile;
+use crate::slightfile::TomlFile;
 
 pub fn handle_run(module: &str, toml: &TomlFile) -> Result<()> {
     let resource_map = Arc::new(Mutex::new(Map::default()));
@@ -60,7 +60,7 @@ pub fn handle_run(module: &str, toml: &TomlFile) -> Result<()> {
     } else {
         bail!("unsupported toml spec version");
     }
-    let (_, mut store, _) = host_builder.build(module)?;
+    let (_, mut store, instance) = host_builder.build(module)?;
     let (_, mut store2, instance2) = guest_builder.build(module)?;
     if events_enabled {
         let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;
@@ -78,5 +78,8 @@ pub fn handle_run(module: &str, toml: &TomlFile) -> Result<()> {
                 Arc::new(Mutex::new(event_handler)),
             )?;
     }
+    instance
+        .get_typed_func::<(), _, _>(&mut store, "_start")?
+        .call(&mut store, ())?;
     Ok(())
 }

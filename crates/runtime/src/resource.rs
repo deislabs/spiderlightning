@@ -85,7 +85,6 @@ pub trait RuntimeResource {
 }
 
 #[macro_export]
-#[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
     ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
         impl RuntimeResource for $resource {

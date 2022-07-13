@@ -538,8 +538,8 @@ dependencies = [
  "proc_macro_utils",
  "rand",
  "runtime",
+ "spiderlightning",
  "uuid",
- "wasi-cloud-cli",
  "wit-bindgen-wasmtime",
  "wit-error-rs",
 ]
@@ -2725,6 +2725,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "spiderlightning"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "as-any",
+ "cargo-target-dep",
+ "clap",
+ "env_logger",
+ "events",
+ "events-api",
+ "hyper",
+ "kv-azure-blob",
+ "kv-filesystem",
+ "lockd-etcd",
+ "log",
+ "mq-azure-servicebus",
+ "mq-filesystem",
+ "pubsub-confluent-kafka",
+ "rand",
+ "runtime",
+ "serde",
+ "short-crypt",
+ "temp-dir",
+ "tokio",
+ "toml",
+ "vergen",
+ "wit-bindgen-wasmtime",
+]
+
+[[package]]
 name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3274,36 +3304,6 @@ dependencies = [
  "tracing",
  "wasi-common",
  "winapi",
-]
-
-[[package]]
-name = "wasi-cloud-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "as-any",
- "cargo-target-dep",
- "clap",
- "env_logger",
- "events",
- "events-api",
- "hyper",
- "kv-azure-blob",
- "kv-filesystem",
- "lockd-etcd",
- "log",
- "mq-azure-servicebus",
- "mq-filesystem",
- "pubsub-confluent-kafka",
- "rand",
- "runtime",
- "serde",
- "short-crypt",
- "temp-dir",
- "tokio",
- "toml",
- "vergen",
- "wit-bindgen-wasmtime",
 ]
 
 [[package]]

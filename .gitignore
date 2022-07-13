@@ -4,5 +4,9 @@ main.wasm
 key
 bindings.rs
 *.o
+<<<<<<< HEAD
 examples/kv-filesystem-c/kv-filesystem-c.wasm
 wc-config.toml
+=======
+examples/kv-filesystem-c/kv-filesystem-c.wasm
+>>>>>>> danbugs/spiderlightning

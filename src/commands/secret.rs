@@ -1,6 +1,6 @@
 use std::{env, fs::File, io::Write};
 
-use crate::wc_config::{TomlFile, Config};
+use crate::slightfile::{TomlFile, Config};
 use anyhow::Result;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use short_crypt::ShortCrypt;

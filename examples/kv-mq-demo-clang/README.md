@@ -10,4 +10,4 @@ tar xvf wasi-sdk-${WASI_VERSION_FULL}-linux.tar.gz
 
 After that, inside the `./examples/kv-mq-demo-clang`, run `make build`.
 
-Next, `cd` back to the root of the `wasi-cloud` repo (i.e., `cd ../..`), and `make run-c`.
+Next, `cd` back to the root of the `spiderlightning` repo (i.e., `cd ../..`), and `make run-c`.

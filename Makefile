@@ -1,4 +1,6 @@
 INSTALL_DIR_PREFIX ?= /usr/local
+SLIGHT ?= ./target/release/slight
+
 
 .PHONY: build
 build:
@@ -22,20 +24,28 @@ check:
 
 .PHONY: run
 run:
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/multi_capability-demo.wasm -c './examples/multi_capability-demo/wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c './examples/kv-demo/filekv-wc.toml' & python ./examples/kv-demo/simulate.py
-	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c './examples/kv-demo/azblobkv-wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/filemq-wc.toml' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c './examples/mq-receiver-demo/filemq-wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/azsbusmq-wc.toml' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c './examples/mq-receiver-demo/azsbusmq-wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/lockd-demo.wasm -c './examples/lockd-demo/wc.toml' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/lockd-demo.wasm -c './examples/lockd-demo/wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm -c './examples/pubsub-consumer-demo/wc.toml' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm -c './examples/pubsub-producer-demo/wc.toml'
+	### running multi capability example
+	$(SLIGHT) -c './examples/multi_capability-demo/wc.toml' run -m ./target/wasm32-wasi/release/multi_capability-demo.wasm
+	### running watch example
+	$(SLIGHT) -c './examples/kv-demo/filekv-wc.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm & python ./examples/kv-demo/simulate.py
+	### running azblobkv example
+	# $(SLIGHT) -c './examples/kv-demo/azblobkv-wc.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
+	### running filemq example
+	$(SLIGHT) -c './examples/mq-sender-demo/filemq-wc.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
+	$(SLIGHT) -c './examples/mq-receiver-demo/filemq-wc.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
+	### running azsbusmq example
+	$(SLIGHT) -c './examples/mq-sender-demo/azsbusmq-wc.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
+	$(SLIGHT) -c './examples/mq-receiver-demo/azsbusmq-wc.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
+	### running etcdlockd example
+	$(SLIGHT) -c './examples/lockd-demo/wc.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm &
+	$(SLIGHT) -c './examples/lockd-demo/wc.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm
+	### running ckpubsub example
+	$(SLIGHT) -c './examples/pubsub-consumer-demo/wc.toml' run -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm &
+	$(SLIGHT) -c './examples/pubsub-producer-demo/wc.toml' run -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm
 
 run-c:
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/filemq-wc.toml' && ./target/release/wasi-cloud -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm -c './examples/kv-mq-demo-clang/wc.toml'
+	### running c example
+	$(SLIGHT) -c './examples/mq-sender-demo/filemq-wc.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/kv-mq-demo-clang/wc.toml' run -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm
 
 install:
-	./target/release/wasi-cloud $(INSTALL_DIR_PREFIX)/bin
+	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin

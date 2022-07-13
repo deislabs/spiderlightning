@@ -1,2 +1,2 @@
 pub mod commands;
-pub mod wc_config;
+pub mod slightfile;

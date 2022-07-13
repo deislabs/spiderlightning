@@ -16,5 +16,5 @@ argon2rs = "0.2.5"
 rand = "0.8.5"
 crossbeam-channel = "0.5.5"
 uuid = "1"
-wasi-cloud-cli = { path = "../.." }
+spiderlightning = { path = "../.." }
 events-api = { path = "../events-api" }

@@ -2,10 +2,10 @@ use std::{fs::OpenOptions, env};
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use wasi_cloud_cli::commands::{run::handle_run, secret::handle_secret};
+use spiderlightning::commands::{run::handle_run, secret::handle_secret};
 
-const DEFAULT_CONFIG_FILEPATH: &str = "./wc-config.toml";
-pub const CFP_ENV_VAR_NAME: &str = "WASI_CLOUD_CFP"; 
+const DEFAULT_SLIGHTFILE_PATH: &str = "./slightfile.toml";
+pub const SLIGHTFILE_PATH: &str = "SLIGHTFILE_PATH"; 
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -40,9 +40,9 @@ async fn main() -> Result<()> {
     let toml_file_path = if let Some(c) = &args.config {
         c
     } else {
-        DEFAULT_CONFIG_FILEPATH
+        DEFAULT_SLIGHTFILE_PATH
     };
-    env::set_var(CFP_ENV_VAR_NAME, &toml_file_path);
+    env::set_var(SLIGHTFILE_PATH, &toml_file_path);
 
     let mut toml_file = OpenOptions::new()
         .read(true)
