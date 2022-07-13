@@ -84,6 +84,39 @@ pub trait RuntimeResource {
     fn build_data(state: Self::State) -> Result<DataT>;
 }
 
+#[macro_export]
+#[allow(clippy::crate_in_macro_def)]
+macro_rules! impl_resource {
+    ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
+        impl RuntimeResource for $resource {
+            type State = $state;
+            fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
+                crate::add_to_linker(linker, |cx| {
+                    get_table::<Self, $resource_table>(cx, $scheme_name)
+                })
+            }
+
+            fn build_data(state: Self::State) -> Result<DataT> {
+                /// We prepare a default resource with host-provided state.
+                /// Then the guest will pass other configuration state to the resource.
+                /// This is done in the `<Capability>::open` function.
+                let mut resource = Self {
+                    host_state: Some(state),
+                    ..Default::default()
+                };
+                Ok((
+                    Box::new(resource),
+                    Some(Box::new(<$resource_table>::default())),
+                ))
+            }
+        }
+
+        impl ResourceTables<dyn Resource> for $resource_table {}
+    };
+}
+
+pub use impl_resource;
+
 /// Dynamically dispatch to respective host resource
 pub fn get<T>(cx: &mut Ctx, resource_key: String) -> &mut T
 where

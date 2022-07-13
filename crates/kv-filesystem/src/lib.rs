@@ -1,8 +1,10 @@
 use anyhow::{Context, Result};
 use events_api::Event;
 use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
-use proc_macro_utils::RuntimeResource;
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use runtime::impl_resource;
+use runtime::resource::{
+    get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+};
 use std::sync::{Arc, Mutex};
 
 use crossbeam_channel::Sender;
@@ -22,7 +24,7 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "filekv";
 
 /// A Filesystem implementation for the kv interface
-#[derive(Default, Clone, RuntimeResource)]
+#[derive(Default, Clone)]
 pub struct KvFilesystem {
     /// The root directory of the filesystem
     inner: Option<String>,
@@ -32,9 +34,17 @@ pub struct KvFilesystem {
     wathchers: Vec<Arc<Mutex<RecommendedWatcher>>>,
 }
 
+impl_resource!(
+    KvFilesystem,
+    kv::KvTables<KvFilesystem>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
+
 impl kv::Kv for KvFilesystem {
+    type Kv = String;
     /// Contruct a new `KvFilesystem` from a folder name. This folder will be created under `/tmp`
-    fn get_kv(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
+    fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
@@ -50,11 +60,12 @@ impl kv::Kv for KvFilesystem {
     }
 
     /// Output the value of a set key
-    fn get(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
-        let base = map.get::<String>(rd)?;
+        let base = map.get::<String>(self_)?;
         fs::create_dir_all(&base)
             .with_context(|| "failed to create base directory for kv store instance")?;
         let mut file =
@@ -67,16 +78,17 @@ impl kv::Kv for KvFilesystem {
     }
 
     /// Create a key-value pair
-    fn set(
+    fn kv_set(
         &mut self,
-        rd: ResourceDescriptorParam,
+        self_: &Self::Kv,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
-        let base = map.get::<String>(rd)?;
+        let base = map.get::<String>(self_)?;
 
         fs::create_dir_all(&base)
             .with_context(|| "failed to create base directory for kv store instance")?;
@@ -90,11 +102,12 @@ impl kv::Kv for KvFilesystem {
     }
 
     /// Delete a key-value pair
-    fn delete(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
         let map = Map::lock(&mut self.host_state)?;
-        let base = map.get::<String>(rd)?;
+        let base = map.get::<String>(self_)?;
 
         fs::create_dir_all(&base)
             .with_context(|| "failed to create base directory for kv store instance")?;
@@ -103,8 +116,8 @@ impl kv::Kv for KvFilesystem {
         Ok(())
     }
 
-    fn watch(&mut self, rd: ResourceDescriptorParam, key: &str) -> Result<Observable, Error> {
-        Ok(Observable::new(rd, key))
+    fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
+        Ok(Observable::new(self_, key))
     }
 }
 
