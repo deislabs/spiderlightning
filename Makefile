@@ -29,7 +29,7 @@ run:
 	### running watch example
 	$(SLIGHT) -c './examples/kv-demo/filekv-wc.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm & python ./examples/kv-demo/simulate.py
 	### running azblobkv example
-	# $(SLIGHT) -c './examples/kv-demo/azblobkv-wc.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
+	# 	
 	### running filemq example
 	$(SLIGHT) -c './examples/mq-sender-demo/filemq-wc.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
 	$(SLIGHT) -c './examples/mq-receiver-demo/filemq-wc.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
@@ -49,3 +49,6 @@ run-c:
 
 install:
 	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin
+
+feature-run:
+	$(SLIGHT) -c './examples/kv-demo/azblobkv-wc.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm

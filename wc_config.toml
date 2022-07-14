@@ -1,8 +1,0 @@
-specversion = "0.1"
-
-secrets = [
-    { name = "azure_whatever", value = "asfasfasgfasa"}
-]
-
-[[capability]]
-name = "filekv"

@@ -19,7 +19,7 @@ const SCHEME_NAME: &str = "configs";
 
 // Struct Representer for wit_bindgen's Config
 #[derive(Default, Clone, Resource)]
-struct Configs {
+pub struct Configs {
     inner: Option<Arc<ConfigType>>, // have to wrap it in Option<Arc<>> due to Resource derive proc macro
     host_state: Option<ResourceMap>,
 }
@@ -33,7 +33,7 @@ impl_resource!(
 
 // Currently supported configuration types
 enum ConfigType {
-    Local,       // user creates configs in plain text at runtime
+    EnvVars,
     UserSecrets, // user creates configs at compile time that are encrypted and stored in the toml file
 }
 
@@ -46,7 +46,7 @@ impl ConfigType {
 // Must implement Default due to struct Config reqs
 impl Default for ConfigType {
     fn default() -> Self {
-        ConfigType::Local
+        ConfigType::EnvVars
     }
 }
 
@@ -59,7 +59,7 @@ impl configs::Configs for Configs {
         // set global config type
         self.inner = match name {
             "usersecrets" => ConfigType::new(ConfigType::UserSecrets),
-            "local" => ConfigType::new(ConfigType::Local),
+            "envvars" => ConfigType::new(ConfigType::EnvVars),
             _ => {
                 return Err(configs::Error::ErrorWithDescription(
                     "failed to match config name to any known service implementations".to_string(),
@@ -82,8 +82,8 @@ impl configs::Configs for Configs {
         let inner = map.get::<Arc<ConfigType>>(self_)?;
 
         match *inner.clone() {
-            ConfigType::Local => todo!("local get is still not implemented"),
-            ConfigType::UserSecrets => Ok(providers::usersecrets::get_config_usersecrets(key)?),
+            ConfigType::EnvVars => Ok(providers::envvars::get(key)?),
+            ConfigType::UserSecrets => Ok(providers::usersecrets::get(key)?),
         }
     }
 
@@ -99,8 +99,8 @@ impl configs::Configs for Configs {
         let inner = map.get::<Arc<ConfigType>>(self_)?;
 
         match *inner.clone() {
-            ConfigType::Local => todo!("local set is still not implemented"),
-            ConfigType::UserSecrets => Ok(providers::usersecrets::set_config_usersecrets(key, value)?)
+            ConfigType::EnvVars => Ok(providers::envvars::set(key, value)?),
+            ConfigType::UserSecrets => Ok(providers::usersecrets::set(key, value)?),
         }
     }
 }

@@ -11,6 +11,7 @@ use runtime::{
         get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
     },
 };
+use spiderlightning::constants::SLIGHTKEY;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
@@ -19,8 +20,12 @@ use kv::*;
 pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
+wit_bindgen_rust::import!("../../wit/configs.wit");
 wit_error_rs::impl_error!(Error);
+wit_error_rs::impl_error!(configs::Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_from!(configs::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "azblobkv";
 
@@ -61,10 +66,13 @@ impl kv::Kv for KvAzureBlob {
     type Kv = String;
     /// Construct a new `KvAzureBlob` from a container name. For example, a container name could be "my-container"
     fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
-        let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")
-            .with_context(|| "failed to read AZURE_STORAGE_ACCOUNT environment variable")?;
-        let storage_account_key = std::env::var("AZURE_STORAGE_KEY")
-            .with_context(|| "failed to read AZURE_STORAGE_KEY environment variable")?;
+        let secret_store = std::env::var(SLIGHTKEY).with_context(|| "failed to determine secret store type to read from. In your config toml file, make sure you've inputted a secret store (e.g., `secret-store = \"envvars\"`)")?;
+        let configs = configs::Configs::open(&secret_store)?;
+        let storage_account_name = String::from_utf8(configs.get("AZURE_STORAGE_ACCOUNT")?)?;
+        let storage_account_key = String::from_utf8(configs.get("AZURE_STORAGE_KEY")?)?;
+        dbg!(&configs);
+        dbg!(&storage_account_key);
+        dbg!(&storage_account_name);
 
         let kv_azure_blob = KvAzureBlob::new(&storage_account_name, &storage_account_key, name);
         self.inner = kv_azure_blob.inner;

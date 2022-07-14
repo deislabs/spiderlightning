@@ -1,5 +1,13 @@
 specversion = "0.1"
 
+[[secret_settings]]
+name = "AZURE_STORAGE_ACCOUNT"
+value = "SgyOYAF8X3umCkpJkQ3ZY7VsI"
+
+[[secret_settings]]
+name = "AZURE_STORAGE_KEY"
+value = "WRkd-Nyr1Nb_8tm92Zla1_DMz4T5itqC3cpOjM6nwcj-2Z-Z7af-iwOJ_cyDrd-H6QqLR2BGuhfPLnJueZpIc4_uKg5jPtFr5pY3y3vHw6tLBfNiWmIPx8Q"
+
 [[capability]]
 name = "azblobkv"
 

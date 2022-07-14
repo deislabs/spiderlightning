@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TomlFile {
     pub specversion: Option<String>,
+    pub secret_store: Option<String>,
     pub secret_settings: Option<Vec<Config>>,
     pub capability: Option<Vec<Capability>>,
 }

@@ -538,7 +538,9 @@ dependencies = [
  "proc_macro_utils",
  "rand",
  "runtime",
+ "short-crypt",
  "spiderlightning",
+ "toml",
  "uuid",
  "wit-bindgen-wasmtime",
  "wit-error-rs",
@@ -1495,12 +1497,15 @@ dependencies = [
  "azure_storage",
  "azure_storage_blobs",
  "bytes",
+ "configs",
  "crossbeam-channel",
  "events-api",
  "futures",
  "proc_macro_utils",
  "runtime",
+ "spiderlightning",
  "uuid",
+ "wit-bindgen-rust",
  "wit-bindgen-wasmtime",
  "wit-error-rs",
 ]
@@ -2729,13 +2734,27 @@ name = "spiderlightning"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "as-any",
  "cargo-target-dep",
+ "hyper",
+ "rand",
+ "serde",
+ "short-crypt",
+ "temp-dir",
+ "toml",
+ "vergen",
+]
+
+[[package]]
+name = "spiderlightning-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "as-any",
  "clap",
+ "configs",
  "env_logger",
  "events",
  "events-api",
- "hyper",
  "kv-azure-blob",
  "kv-filesystem",
  "lockd-etcd",
@@ -2743,14 +2762,10 @@ dependencies = [
  "mq-azure-servicebus",
  "mq-filesystem",
  "pubsub-confluent-kafka",
- "rand",
  "runtime",
- "serde",
- "short-crypt",
- "temp-dir",
+ "spiderlightning",
  "tokio",
  "toml",
- "vergen",
  "wit-bindgen-wasmtime",
 ]
 

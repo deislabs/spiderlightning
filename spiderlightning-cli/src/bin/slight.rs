@@ -1,11 +1,13 @@
-use std::{fs::OpenOptions, env};
+use std::{env, fs::OpenOptions};
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::{Parser, Subcommand};
-use spiderlightning::commands::{run::handle_run, secret::handle_secret};
-
-const DEFAULT_SLIGHTFILE_PATH: &str = "./slightfile.toml";
-pub const SLIGHTFILE_PATH: &str = "SLIGHTFILE_PATH"; 
+use spiderlightning::{
+    constants::{DEFAULT_SLIGHTFILE_PATH, SLIGHTFILE_PATH, SLIGHT_SECRET_STORE},
+    core::secret::handle_secret,
+    slightfile::TomlFile,
+};
+use spiderlightning_cli::commands::run::handle_run;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -18,7 +20,7 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Run wasi-cloud providing a config and a module
+    /// Run slight providing a config and a module
     Run {
         #[clap(short, long, value_parser)]
         module: String,
@@ -50,7 +52,15 @@ async fn main() -> Result<()> {
         .create(true)
         .open(toml_file_path)?;
     let toml_file_contents = std::fs::read_to_string(toml_file_path)?;
-    let mut toml = toml::from_str(&toml_file_contents)?;
+    let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+
+    if let Some(ss) = &toml.secret_store {
+        match ss.as_str() {
+            "envvars" => env::set_var(SLIGHT_SECRET_STORE, "envvars"),
+            "usersecrets" => env::set_var(SLIGHT_SECRET_STORE, "usersecrets"),
+            _ => bail!("failed at recognizing secret store type: slight only accepts envvars, or usersecrets")
+        }
+    }
 
     match &args.command {
         Commands::Run { module } => handle_run(&module, &toml),

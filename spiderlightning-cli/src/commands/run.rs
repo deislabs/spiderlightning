@@ -1,5 +1,6 @@
 use anyhow::{bail, Result};
 use as_any::Downcast;
+use configs::Configs;
 use events::Events;
 use events_api::event_handler::EventHandler;
 use kv_azure_blob::KvAzureBlob;
@@ -11,7 +12,7 @@ use pubsub_confluent_kafka::PubSubConfluentKafka;
 use runtime::{resource::Map, Builder};
 use std::sync::{Arc, Mutex};
 
-use crate::slightfile::TomlFile;
+use spiderlightning::slightfile::TomlFile;
 
 pub fn handle_run(module: &str, toml: &TomlFile) -> Result<()> {
     let resource_map = Arc::new(Mutex::new(Map::default()));
@@ -54,12 +55,15 @@ pub fn handle_run(module: &str, toml: &TomlFile) -> Result<()> {
                 host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), resource_map.clone())?;
                 guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), resource_map.clone())?;
             }
-            _ => bail!("invalid url: currently wasi-cloud only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
+            _ => bail!("invalid url: currently slight only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
         }
     } else {
         bail!("unsupported toml spec version");
     }
+    host_builder.link_capability::<Configs>("configs".to_string(), resource_map.clone())?;
+    guest_builder.link_capability::<Configs>("configs".to_string(), resource_map.clone())?;
+
     let (_, mut store, instance) = host_builder.build(module)?;
     let (_, mut store2, instance2) = guest_builder.build(module)?;
     if events_enabled {

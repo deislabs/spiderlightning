@@ -1,0 +1,29 @@
+[package]
+name = "spiderlightning-cli"
+version = "0.1.0"
+edition = "2021"
+default-run = "slight"
+
+[[bin]]
+name = "slight"
+
+[dependencies]
+spiderlightning = { path = "../" }
+runtime = { path = "../crates/runtime" }
+kv-azure-blob = { path = "../crates/kv-azure-blob" }
+kv-filesystem = { path = "../crates/kv-filesystem" }
+mq-filesystem = { path = "../crates/mq-filesystem" }
+mq-azure-servicebus = { path = "../crates/mq-azure-servicebus" }
+lockd-etcd = { path = "../crates/lockd-etcd" }
+pubsub-confluent-kafka = { path = "../crates/pubsub-confluent-kafka" }
+configs = { path = "../crates/configs" }
+events = { path = "../crates/events" }
+events-api = { path = "../crates/events-api" }
+anyhow = "1.0"
+env_logger = "0.9"
+log = { version = "0.4", default-features = false }
+tokio = { version = "1", features = ["full"] }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+clap = { version = "3", features = ["derive"] }
+toml = "0.5"
+as-any = "0.3"
