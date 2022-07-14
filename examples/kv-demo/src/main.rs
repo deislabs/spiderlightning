@@ -14,7 +14,7 @@ fn main() -> Result<()> {
 
     let kv1 = Kv::open("my-container")?;
     let kv2 = Kv::open("my-container2")?;
-    let value = "wasi-cloud".as_bytes();
+    let value = "spiderlightning".as_bytes();
     kv1.set("key", value)?;
     kv2.set("key", value)?;
     println!(

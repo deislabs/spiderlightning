@@ -5,7 +5,7 @@ mod kv_test {
     use crate::common::run;
     use anyhow::Result;
 
-    const WASI_CLOUD_BINARY: &str = "./target/release/wasi-cloud";
+    const WASI_CLOUD_BINARY: &str = "./target/release/slight";
     const KV_TEST_MODULE: &str = "tests/kv-test/target/wasm32-wasi/debug/kv-test.wasm";
 
     #[test]

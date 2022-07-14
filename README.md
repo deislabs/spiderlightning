@@ -1,9 +1,9 @@
 <img align="right" src="docs/images/tmp-logo.png" width="150px" />
 
-# WASI-Cloud
-WASI-Cloud defines a set of WebAssembly Interface Types (i.e., WIT) files that abstract the cloud-provider specific knowledge required behind utilizing a Cloud serivce (e.g., key-value store, message queue, etc.).
+# SpiderLightning (or, `slight`)
+SpiderLightning defines a set of WebAssembly Interface Types (i.e., WIT) files that abstract the cloud-provider specific knowledge required behind utilizing a Cloud serivce (e.g., key-value store, message queue, etc.).
 
-In simple terms, WASI-Cloud allows you to go:
+In simple terms, SpiderLightning allows you to go:
 <table>
 <tr>
     <th>From this:</th>
@@ -17,16 +17,16 @@ In simple terms, WASI-Cloud allows you to go:
 
 
 ## Repository Structure
-- `/wit`: the wasi-cloud specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
-- `/src`: the wasi-cloud host cli 
+- `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
+- `/src`: the SpiderLightning host cli (i.e., Slight)
 - `/crates`: service implementations
 - `/examples`: guest examples
 - `/tests`: guest tests
 
 ## Looking for Contributors
-Do you want to contribute to WASI-Cloud's growth? 
+Do you want to contribute to SpiderLightning's growth? 
 
-<p align="center">Start with our <a href="https://github.com/deislabs/wasi-cloud/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a></p>
+<p align="center">Start with our <a href="https://github.com/deislabs/spiderlightning/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a></p>
 
 ## Build
 - Run `make build`

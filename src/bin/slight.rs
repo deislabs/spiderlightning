@@ -34,7 +34,7 @@ struct Config {
 struct CapabilityConfig {
     name: Option<String>,
 }
-/// The entry point for wasi-cloud CLI
+/// The entry point for the slight CLI
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
@@ -80,7 +80,7 @@ async fn main() -> Result<()> {
                 host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), resource_map.clone())?;
                 guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), resource_map.clone())?;
             }
-            _ => bail!("invalid url: currently wasi-cloud only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
+            _ => bail!("invalid url: currently slight only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
         }
     } else {
