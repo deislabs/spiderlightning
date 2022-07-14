@@ -4,7 +4,7 @@ use anyhow::{bail, Result};
 use short_crypt::ShortCrypt;
 use spiderlightning::{
     constants::{SLIGHTFILE_PATH, SLIGHTKEY},
-    core::secret::handle_secret,
+    core::secret::create_secret,
     slightfile::TomlFile,
 };
 
@@ -56,5 +56,5 @@ pub fn set(key: &str, value: &[u8]) -> Result<()> {
         .open(&toml_file_path)?;
     let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
     let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
-    handle_secret(key, std::str::from_utf8(value)?, &mut toml, &mut toml_file)
+    create_secret(key, std::str::from_utf8(value)?, &mut toml, &mut toml_file)
 }

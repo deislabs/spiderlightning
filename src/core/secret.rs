@@ -8,7 +8,7 @@ use anyhow::Result;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use short_crypt::ShortCrypt;
 
-pub fn handle_secret(
+pub fn create_secret(
     key: &str,
     value: &str,
     toml: &mut TomlFile,

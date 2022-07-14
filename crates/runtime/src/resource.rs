@@ -90,7 +90,7 @@ macro_rules! impl_resource {
         impl RuntimeResource for $resource {
             type State = $state;
             fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
-                crate::add_to_linker(linker, |cx| {
+                $crate::add_to_linker(linker, |cx| {
                     get_table::<Self, $resource_table>(cx, $scheme_name)
                 })
             }

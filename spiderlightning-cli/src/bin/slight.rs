@@ -4,10 +4,9 @@ use anyhow::{bail, Result};
 use clap::{Parser, Subcommand};
 use spiderlightning::{
     constants::{DEFAULT_SLIGHTFILE_PATH, SLIGHTFILE_PATH, SLIGHT_SECRET_STORE},
-    core::secret::handle_secret,
     slightfile::TomlFile,
 };
-use spiderlightning_cli::commands::run::handle_run;
+use spiderlightning_cli::commands::{run::handle_run, secret::handle_secret};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
