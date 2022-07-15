@@ -11,10 +11,7 @@ mod kv_test {
     #[test]
     fn test_kv_filesystem() -> Result<()> {
         let file_config = "../examples/kv-demo/filekv-wc.toml";
-        run(
-            SLIGHT,
-            vec!["-m", KV_TEST_MODULE, "-c", file_config],
-        );
+        run(SLIGHT, vec!["-m", KV_TEST_MODULE, "-c", file_config]);
         Ok(())
     }
 }

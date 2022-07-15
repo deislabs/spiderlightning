@@ -14,11 +14,7 @@ use std::sync::{Arc, Mutex};
 
 use spiderlightning::core::slightfile::TomlFile;
 
-pub fn handle_run(
-    module: &str,
-    toml: &TomlFile,
-    toml_file_path: &str,
-) -> Result<()> {
+pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
     let resource_map = Arc::new(Mutex::new(Map::default()));
 
     let mut host_builder = Builder::new_default()?;
