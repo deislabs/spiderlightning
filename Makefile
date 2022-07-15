@@ -6,6 +6,7 @@ SLIGHT ?= ./target/release/slight
 build:
 	cargo build --release
 	cargo build --release --manifest-path ./slight/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/watch-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml
@@ -27,10 +28,13 @@ check:
 run:
 	### running multi capability example
 	$(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/multi_capability-demo.wasm
-	### running filekv/watch example
-	$(SLIGHT) -c './examples/kv-demo/filekv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm & python ./examples/kv-demo/simulate.py
+	### running filekv example
+	$(SLIGHT) -c './examples/kv-demo/filekv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
 	### running azblobkv example
-	# $(SLIGHT) -c './examples/kv-demo/azblobkv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
+	$(SLIGHT) -c './examples/kv-demo/azblobkv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
+	### running watch example
+	$(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/watch-demo.wasm & 
+	python ./examples/watch-demo/simulate.py
 	### running filemq example
 	$(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
 	$(SLIGHT) -c './examples/mq-receiver-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
