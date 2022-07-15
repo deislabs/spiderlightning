@@ -528,25 +528,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "configs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argon2rs",
- "crossbeam-channel",
- "events-api",
- "proc_macro_utils",
- "rand",
- "runtime",
- "short-crypt",
- "spiderlightning",
- "toml",
- "uuid",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1497,12 +1478,12 @@ dependencies = [
  "azure_storage",
  "azure_storage_blobs",
  "bytes",
- "configs",
  "crossbeam-channel",
  "events-api",
  "futures",
  "proc_macro_utils",
  "runtime",
+ "runtime-configs",
  "uuid",
  "wit-bindgen-rust",
  "wit-bindgen-wasmtime",
@@ -1605,13 +1586,13 @@ name = "lockd-etcd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "configs",
  "crossbeam-channel",
  "etcd-client",
  "events-api",
  "futures",
  "proc_macro_utils",
  "runtime",
+ "runtime-configs",
  "tokio",
  "url",
  "uuid",
@@ -1726,13 +1707,13 @@ dependencies = [
  "azure_core 0.2.2 (git+https://github.com/danbugs/azure-sdk-for-rust?rev=40deff431c8a87ba60d93c59ea35fd11c4f9caad)",
  "azure_messaging_servicebus",
  "chrono",
- "configs",
  "crossbeam-channel",
  "events-api",
  "futures",
  "http",
  "proc_macro_utils",
  "runtime",
+ "runtime-configs",
  "url",
  "uuid",
  "wit-bindgen-wasmtime",
@@ -2210,12 +2191,12 @@ name = "pubsub-confluent-kafka"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "configs",
  "crossbeam-channel",
  "events-api",
  "proc_macro_utils",
  "rdkafka",
  "runtime",
+ "runtime-configs",
  "url",
  "uuid",
  "wit-bindgen-wasmtime",
@@ -2483,6 +2464,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "runtime-configs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2rs",
+ "crossbeam-channel",
+ "events-api",
+ "proc_macro_utils",
+ "rand",
+ "runtime",
+ "short-crypt",
+ "spiderlightning",
+ "toml",
+ "uuid",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2722,7 +2722,6 @@ dependencies = [
  "anyhow",
  "as-any",
  "clap",
- "configs",
  "env_logger",
  "events",
  "events-api",
@@ -2734,6 +2733,7 @@ dependencies = [
  "mq-filesystem",
  "pubsub-confluent-kafka",
  "runtime",
+ "runtime-configs",
  "spiderlightning",
  "tokio",
  "toml",
@@ -2762,9 +2762,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cargo-target-dep",
+ "hyper",
  "rand",
  "serde",
  "short-crypt",
+ "temp-dir",
  "toml",
  "vergen",
 ]
@@ -2859,15 +2861,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bab24d30b911b2376f3a13cc2cd443142f0c81dda04c118693e35b3835757755"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "tests"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "hyper",
- "temp-dir",
 ]
 
 [[package]]

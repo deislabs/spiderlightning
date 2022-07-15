@@ -1,6 +1,5 @@
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use configs::{Configs, ConfigsState};
 use events::Events;
 use events_api::event_handler::EventHandler;
 use kv_azure_blob::KvAzureBlob;
@@ -13,6 +12,7 @@ use runtime::{
     resource::{BasicState, Map},
     Builder,
 };
+use runtime_configs::{Configs, ConfigsState};
 use std::sync::{Arc, Mutex};
 
 use spiderlightning::core::slightfile::TomlFile;

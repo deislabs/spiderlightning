@@ -8,7 +8,7 @@ use proc_macro_utils::Resource;
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource, BasicState,
+        get_table, BasicState, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource,
     },
 };
 
@@ -73,17 +73,17 @@ impl mq::Mq for MqAzureServiceBus {
     /// Construct a new `MqAzureServiceBus` instance provided a queue name.
     fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
         let queue_name = name;
-        let service_bus_namespace = String::from_utf8(configs::providers::get(
+        let service_bus_namespace = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "AZURE_SERVICE_BUS_NAMESPACE",
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
-        let policy_name = String::from_utf8(configs::providers::get(
+        let policy_name = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "AZURE_POLICY_NAME",
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
-        let policy_key = String::from_utf8(configs::providers::get(
+        let policy_key = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "AZURE_POLICY_KEY",
             &self.host_state.as_ref().unwrap().config_toml_file_path,

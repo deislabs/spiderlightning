@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
 proc-macro = true
+test = false
+doctest = false
 
 [dependencies]
 syn = "1.0.96"

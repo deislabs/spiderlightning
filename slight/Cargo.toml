@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
 
+[[bin]]
+name = "slight"
+test = false
+
 [dependencies]
 spiderlightning = { path = "../" }
 runtime = { path = "../crates/runtime" }
@@ -13,7 +17,7 @@ mq-filesystem = { path = "../crates/mq-filesystem" }
 mq-azure-servicebus = { path = "../crates/mq-azure-servicebus" }
 lockd-etcd = { path = "../crates/lockd-etcd" }
 pubsub-confluent-kafka = { path = "../crates/pubsub-confluent-kafka" }
-configs = { path = "../crates/configs" }
+runtime-configs = { path = "../crates/runtime-configs" }
 events = { path = "../crates/events" }
 events-api = { path = "../crates/events-api" }
 anyhow = "1.0"

@@ -8,7 +8,7 @@ use proc_macro_utils::Resource;
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, DataT, Linker, Map, Resource, BasicState, ResourceTables, RuntimeResource,
+        get_table, BasicState, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource,
     },
 };
 use std::sync::{Arc, Mutex};
@@ -62,12 +62,12 @@ impl kv::Kv for KvAzureBlob {
     type Kv = String;
     /// Construct a new `KvAzureBlob` from a container name. For example, a container name could be "my-container"
     fn kv_open(&mut self, name: &str) -> Result<Self::Kv, kv::Error> {
-        let storage_account_name = String::from_utf8(configs::providers::get(
+        let storage_account_name = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "AZURE_STORAGE_ACCOUNT",
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
-        let storage_account_key = String::from_utf8(configs::providers::get(
+        let storage_account_key = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "AZURE_STORAGE_KEY",
             &self.host_state.as_ref().unwrap().config_toml_file_path,

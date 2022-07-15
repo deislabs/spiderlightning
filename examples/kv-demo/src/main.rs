@@ -5,8 +5,8 @@ use event_handler::Event;
 use kv::*;
 wit_bindgen_rust::import!("../../wit/kv.wit");
 wit_error_rs::impl_error!(Error);
-// wit_error_rs::impl_error!(events::Error);
-// wit_bindgen_rust::import!("../../wit/events.wit");
+wit_error_rs::impl_error!(events::Error);
+wit_bindgen_rust::import!("../../wit/events.wit");
 wit_bindgen_rust::export!("../../wit/event-handler.wit");
 
 fn main() -> Result<()> {
@@ -26,24 +26,24 @@ fn main() -> Result<()> {
     let value = kv1.get("key");
     assert!(value.is_err());
 
-    // let ob1 = kv1.watch("my-key")?;
-    // let ob2 = kv1.watch("my-key2")?;
-    // let events = events::Events::get()?;
-    // // TODO (mosssaka): I had to construct a copy of Observable because wit_bindgen generates two
-    // // observables in different mods: events::Observable vs. kv::Observable.
-    // events
-    //     .listen(events::Observable {
-    //         rd: ob1.rd.as_str(),
-    //         key: ob1.key.as_str(),
-    //     })?
-    //     .listen(events::Observable {
-    //         rd: ob2.rd.as_str(),
-    //         key: ob2.key.as_str(),
-    //     })?
-    //     .exec(5)?;
+    let ob1 = kv1.watch("my-key")?;
+    let ob2 = kv1.watch("my-key2")?;
+    let events = events::Events::get()?;
+    // TODO (mosssaka): I had to construct a copy of Observable because wit_bindgen generates two
+    // observables in different mods: events::Observable vs. kv::Observable.
+    events
+        .listen(events::Observable {
+            rd: ob1.rd.as_str(),
+            key: ob1.key.as_str(),
+        })?
+        .listen(events::Observable {
+            rd: ob2.rd.as_str(),
+            key: ob2.key.as_str(),
+        })?
+        .exec(5)?;
 
-    // drop(kv1); // drop != close
-    // drop(kv2);
+    drop(kv1); // drop != close
+    drop(kv2);
     Ok(())
 }
 

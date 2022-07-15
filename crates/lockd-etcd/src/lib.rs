@@ -17,7 +17,7 @@ use proc_macro_utils::Resource;
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource, BasicState,
+        get_table, BasicState, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource,
     },
 };
 use uuid::Uuid;
@@ -58,7 +58,7 @@ impl lockd::Lockd for LockdEtcd {
     type Lockd = String;
     /// Construct a new `LockdEtcd` instance
     fn lockd_open(&mut self) -> Result<Self::Lockd, Error> {
-        let endpoint = String::from_utf8(configs::providers::get(
+        let endpoint = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "ETCD_ENDPOINT",
             &self.host_state.as_ref().unwrap().config_toml_file_path,

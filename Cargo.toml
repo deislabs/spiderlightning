@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
 
+[lib]
+test = false
+doctest = false
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -20,6 +24,10 @@ vergen = { version = "7", default-features = false, features = [
     "git",
 ] }
 
+[dev-dependencies]
+hyper = { version = "0.14", features = ["full"] }
+temp-dir = "0.1"
+
 [workspace]
 members = [
     "slight",
@@ -33,8 +41,7 @@ members = [
     "crates/runtime",
     "crates/events/",
     "crates/events-api",
-    "crates/configs",
-    "tests",
+    "crates/runtime-configs",
     "examples/kv-demo",
     "examples/mq-sender-demo",
     "examples/mq-receiver-demo",

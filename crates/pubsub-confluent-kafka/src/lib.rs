@@ -80,33 +80,33 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     type Pubsub = String;
     /// Construct a new `PubSubConfluentKafka`
     fn pubsub_open(&mut self) -> Result<Self::Pubsub, Error> {
-        let bootstap_servers = String::from_utf8(configs::providers::get(
+        let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "CK_ENDPOINT",
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
-        let security_protocol = String::from_utf8(configs::providers::get(
+        let security_protocol = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "CK_SECURITY_PROTOCOL",
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
-        let sasl_mechanisms = String::from_utf8(configs::providers::get(
+        let sasl_mechanisms = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "CK_SASL_MECHANISMS",
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
-        let sasl_username = String::from_utf8(configs::providers::get(
+        let sasl_username = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "CK_SASL_USERNAME",
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
 
-        let sasl_password = String::from_utf8(configs::providers::get(
+        let sasl_password = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "CK_SASL_PASSWORD",
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
-        let group_id = String::from_utf8(configs::providers::get(
+        let group_id = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.as_ref().unwrap().secret_store,
             "CK_GROUP_ID",
             &self.host_state.as_ref().unwrap().config_toml_file_path,

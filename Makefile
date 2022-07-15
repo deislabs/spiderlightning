@@ -27,7 +27,7 @@ check:
 run:
 	### running multi capability example
 	$(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/multi_capability-demo.wasm
-	### running watch example
+	### running filekv/watch example
 	$(SLIGHT) -c './examples/kv-demo/filekv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm & python ./examples/kv-demo/simulate.py
 	### running azblobkv example
 	# $(SLIGHT) -c './examples/kv-demo/azblobkv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
@@ -50,6 +50,3 @@ run-c:
 
 install:
 	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin
-
-feature-run:
-	$(SLIGHT) -c './examples/kv-demo/azblobkv-wc.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm

@@ -86,7 +86,7 @@ impl configs::Configs for Configs {
     type Configs = String;
 
     // opens our config store dependant on the provided type
-    fn configs_open(&mut self, name: &str) -> Result<Self::Configs, Error> {
+    fn configs_open(&mut self, name: &str) -> Result<Self::Configs, configs::Error> {
         // set global config type
         self.inner = Some(Arc::new(name.into()));
         let rd = Uuid::new_v4().to_string();
@@ -97,7 +97,7 @@ impl configs::Configs for Configs {
         Ok(rd)
     }
 
-    fn configs_get(&mut self, self_: &Self::Configs, key: &str) -> Result<Vec<u8>, Error> {
+    fn configs_get(&mut self, self_: &Self::Configs, key: &str) -> Result<Vec<u8>, configs::Error> {
         Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
         let mut mut_host_state = self.clone().host_state.unwrap();
@@ -115,7 +115,7 @@ impl configs::Configs for Configs {
         self_: &Self::Configs,
         key: &str,
         value: PayloadParam<'_>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), configs::Error> {
         Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
         let mut mut_host_state = self.clone().host_state.unwrap();
