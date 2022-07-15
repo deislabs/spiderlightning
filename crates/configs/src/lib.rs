@@ -13,7 +13,7 @@ wit_bindgen_wasmtime::export!("../../wit/configs.wit");
 wit_error_rs::impl_error!(configs::Error);
 wit_error_rs::impl_from!(anyhow::Error, configs::Error::ErrorWithDescription);
 
-mod providers;
+pub mod providers;
 
 const SCHEME_NAME: &str = "configs";
 
@@ -21,25 +21,56 @@ const SCHEME_NAME: &str = "configs";
 #[derive(Default, Clone, Resource)]
 pub struct Configs {
     inner: Option<Arc<ConfigType>>, // have to wrap it in Option<Arc<>> due to Resource derive proc macro
-    host_state: Option<ResourceMap>,
+    host_state: Option<ConfigsState>,
+}
+
+#[derive(Clone)]
+pub struct ConfigsState {
+    pub resource_map: Option<ResourceMap>,
+    pub config_toml_file_path: String,
+}
+
+impl ConfigsState {
+    pub fn new(resource_map: ResourceMap, config_toml_file_path: &str) -> Self {
+        Self {
+            resource_map: Some(resource_map),
+            config_toml_file_path: config_toml_file_path.to_string(),
+        }
+    }
 }
 
 impl_resource!(
     Configs,
     configs::ConfigsTables<Configs>,
-    ResourceMap,
+    ConfigsState,
     SCHEME_NAME.to_string()
 );
 
 // Currently supported configuration types
-enum ConfigType {
+#[derive(Clone, Copy)]
+pub enum ConfigType {
     EnvVars,
     UserSecrets, // user creates configs at compile time that are encrypted and stored in the toml file
 }
 
-impl ConfigType {
-    fn new(what: ConfigType) -> Option<Arc<ConfigType>> {
-        Some(Arc::new(what))
+impl From<ConfigType> for String {
+    fn from(from_ct: ConfigType) -> Self {
+        match from_ct {
+            ConfigType::UserSecrets => "usersecrets".to_string(),
+            ConfigType::EnvVars => "envvars".to_string(),
+        }
+    }
+}
+
+impl Into<ConfigType> for &str {
+    fn into(self) -> ConfigType {
+        match self {
+            "usersecrets" => ConfigType::UserSecrets,
+            "envvars" => ConfigType::EnvVars,
+            _ => {
+                panic!("failed to match config name to any known service implementations")
+            }
+        }
     }
 }
 
@@ -57,19 +88,10 @@ impl configs::Configs for Configs {
     // opens our config store dependant on the provided type
     fn configs_open(&mut self, name: &str) -> Result<Self::Configs, Error> {
         // set global config type
-        self.inner = match name {
-            "usersecrets" => ConfigType::new(ConfigType::UserSecrets),
-            "envvars" => ConfigType::new(ConfigType::EnvVars),
-            _ => {
-                return Err(configs::Error::ErrorWithDescription(
-                    "failed to match config name to any known service implementations".to_string(),
-                ))
-            }
-        };
-
+        self.inner = Some(Arc::new(name.into()));
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
-        let mut map = Map::lock(&mut self.host_state)?;
+        let mut map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         map.set(rd.clone(), (Box::new(cloned), None));
 
         Ok(rd)
@@ -78,13 +100,14 @@ impl configs::Configs for Configs {
     fn configs_get(&mut self, self_: &Self::Configs, key: &str) -> Result<Vec<u8>, Error> {
         Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.host_state)?;
+        let mut mut_host_state = self.clone().host_state.unwrap();
+        let map = Map::lock(&mut mut_host_state.resource_map)?;
         let inner = map.get::<Arc<ConfigType>>(self_)?;
-
-        match *inner.clone() {
-            ConfigType::EnvVars => Ok(providers::envvars::get(key)?),
-            ConfigType::UserSecrets => Ok(providers::usersecrets::get(key)?),
-        }
+        Ok(providers::get(
+            &String::from(*inner.clone()),
+            key,
+            &self.host_state.as_ref().unwrap().config_toml_file_path,
+        )?)
     }
 
     fn configs_set(
@@ -95,12 +118,14 @@ impl configs::Configs for Configs {
     ) -> Result<(), Error> {
         Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
 
-        let map = Map::lock(&mut self.host_state)?;
+        let mut mut_host_state = self.clone().host_state.unwrap();
+        let map = Map::lock(&mut mut_host_state.resource_map)?;
         let inner = map.get::<Arc<ConfigType>>(self_)?;
-
-        match *inner.clone() {
-            ConfigType::EnvVars => Ok(providers::envvars::set(key, value)?),
-            ConfigType::UserSecrets => Ok(providers::usersecrets::set(key, value)?),
-        }
+        Ok(providers::set(
+            &String::from(*inner.clone()),
+            key,
+            value,
+            &self.host_state.as_ref().unwrap().config_toml_file_path,
+        )?)
     }
 }

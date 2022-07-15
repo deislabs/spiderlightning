@@ -1,23 +1,22 @@
-use std::{env, fs::OpenOptions};
+use std::fs::OpenOptions;
 
 use anyhow::{bail, Result};
 use short_crypt::ShortCrypt;
-use spiderlightning::{
-    constants::{SLIGHTFILE_PATH, SLIGHTKEY},
-    core::secret::create_secret,
+use spiderlightning::core::{
+    secret::{create_secret, get_key},
     slightfile::TomlFile,
 };
 
-pub fn get(key: &str) -> Result<Vec<u8>> {
+pub fn get(key: &str, toml_file_path: &str) -> Result<Vec<u8>> {
     // check if encryption key env var is present
-    let encryption_key = if let Ok(s) = env::var(SLIGHTKEY) {
+    let encryption_key = if let Ok(s) = get_key() {
         s
     } else {
         bail!("failed because user secrets has never been initialized")
     };
 
     // serialize toml file to get key
-    let toml_file_path = env::var(SLIGHTFILE_PATH)?;
+    let toml_file_path = toml_file_path;
     let toml_file_contents = std::fs::read_to_string(toml_file_path)?;
     let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
     if toml.secret_settings.is_none() {
@@ -46,9 +45,9 @@ pub fn get(key: &str) -> Result<Vec<u8>> {
         .map_err(|err| anyhow::anyhow!(err))
 }
 
-pub fn set(key: &str, value: &[u8]) -> Result<()> {
+pub fn set(key: &str, value: &[u8], toml_file_path: &str) -> Result<()> {
     // call in to slight to handle config creation
-    let toml_file_path = env::var(SLIGHTFILE_PATH)?;
+    let toml_file_path = toml_file_path;
     let mut toml_file = OpenOptions::new()
         .read(true)
         .write(true)

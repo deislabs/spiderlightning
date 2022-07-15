@@ -4,16 +4,14 @@ version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [dependencies]
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }
 short-crypt = "1"
 rand = "0.8"
 toml = "0.5"
-
-[dev-dependencies]
-hyper = { version = "0.14", features = ["full"] }
-temp-dir = "0.1"
 
 [build-dependencies]
 cargo-target-dep = { git = "https://github.com/fermyon/cargo-target-dep", rev = "b7b1989fe0984c0f7c4966398304c6538e52fe49" }
@@ -22,19 +20,21 @@ vergen = { version = "7", default-features = false, features = [
     "git",
 ] }
 
-
 [workspace]
 members = [
+    "slight",
+    "crates/kv-filesystem",
+    "crates/kv-azure-blob",
+    "crates/mq-filesystem",
+    "crates/mq-azure-servicebus",
     "crates/lockd-etcd",
     "crates/pubsub-confluent-kafka",
     "crates/proc_macro_utils",
-    "crates/mq-azure-servicebus",
-    "crates/mq-filesystem",
-    "crates/kv-filesystem",
     "crates/runtime",
-    "crates/kv-azure-blob",
     "crates/events/",
     "crates/events-api",
+    "crates/configs",
+    "tests",
     "examples/kv-demo",
     "examples/mq-sender-demo",
     "examples/mq-receiver-demo",
@@ -42,6 +42,4 @@ members = [
     "examples/lockd-demo",
     "examples/pubsub-consumer-demo",
     "examples/pubsub-producer-demo",
-    "crates/configs",
-    "spiderlightning-cli"
 ]

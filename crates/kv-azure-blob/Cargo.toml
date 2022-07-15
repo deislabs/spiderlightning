@@ -22,4 +22,3 @@ wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1
 crossbeam-channel = "0.5.5"
 events-api = { path = "../events-api" }
 configs = { path = "../configs" }
-spiderlightning = { path = "../.." }

@@ -1,11 +1,8 @@
 [package]
-name = "spiderlightning-cli"
+name = "slight"
 version = "0.1.0"
 edition = "2021"
-default-run = "slight"
-
-[[bin]]
-name = "slight"
+authors = ["DeisLabs Engineering Team"]
 
 [dependencies]
 spiderlightning = { path = "../" }

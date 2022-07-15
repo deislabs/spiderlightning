@@ -1,12 +1,13 @@
 specversion = "0.1"
+secret_store = "usersecrets"
 
 [[secret_settings]]
 name = "AZURE_STORAGE_ACCOUNT"
-value = "SgyOYAF8X3umCkpJkQ3ZY7VsI"
+value = "8u__-nP7_qZivo3r3i2i37_9v"
 
 [[secret_settings]]
 name = "AZURE_STORAGE_KEY"
-value = "WRkd-Nyr1Nb_8tm92Zla1_DMz4T5itqC3cpOjM6nwcj-2Z-Z7af-iwOJ_cyDrd-H6QqLR2BGuhfPLnJueZpIc4_uKg5jPtFr5pY3y3vHw6tLBfNiWmIPx8Q"
+value = "8uh6svq5qX-D53Dy7E2Q773KUOb0Xpi6u-l1tfu_jXOoyDar2PDYQs_j9VPG2c4jLqdx5zrB4iu6J7DK04Uab23P7Koz6YMrB_NZb1MQkguqA6XGxrVe2yQ"
 
 [[capability]]
 name = "azblobkv"

@@ -5,6 +5,7 @@ SLIGHT ?= ./target/release/slight
 .PHONY: build
 build:
 	cargo build --release
+	cargo build --release --manifest-path ./slight/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml
@@ -29,7 +30,7 @@ run:
 	### running watch example
 	$(SLIGHT) -c './examples/kv-demo/filekv-wc.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm & python ./examples/kv-demo/simulate.py
 	### running azblobkv example
-	# 	
+	# $(SLIGHT) -c './examples/kv-demo/azblobkv-wc.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
 	### running filemq example
 	$(SLIGHT) -c './examples/mq-sender-demo/filemq-wc.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
 	$(SLIGHT) -c './examples/mq-receiver-demo/filemq-wc.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm

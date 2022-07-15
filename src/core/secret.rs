@@ -1,12 +1,15 @@
-use std::{env, fs::File, io::Write};
-
-use crate::{
-    constants::SLIGHTKEY,
-    slightfile::{Config, TomlFile},
+use std::{
+    fs::{File, OpenOptions},
+    io::Write,
+    path::Path,
 };
-use anyhow::Result;
+
+use crate::core::slightfile::{Config, TomlFile};
+use anyhow::{bail, Result};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use short_crypt::ShortCrypt;
+
+pub const SLIGHTKEY: &str = "/tmp/.slightkey";
 
 pub fn create_secret(
     key: &str,
@@ -14,15 +17,8 @@ pub fn create_secret(
     toml: &mut TomlFile,
     toml_file: &mut File,
 ) -> Result<()> {
-    // check if encryption key env var is present
-    let encryption_key = if let Ok(s) = env::var(SLIGHTKEY) {
-        s
-    } else {
-        // if it isn't, create it
-        let s = generate_key();
-        env::set_var(SLIGHTKEY, &s);
-        s
-    };
+    maybe_set_key()?;
+    let encryption_key = get_key()?;
 
     toml.secret_settings = if let Some(s) = &toml.secret_settings {
         // check that the secrets field is present
@@ -66,4 +62,29 @@ pub fn generate_key() -> String {
         .take(30)
         .map(char::from)
         .collect()
+}
+
+pub fn get_key() -> Result<String> {
+    if Path::new(SLIGHTKEY).exists() {
+        Ok(std::fs::read_to_string(SLIGHTKEY)?)
+    } else {
+        bail!("usersecrets haven't been initialized yet, you can set your user secrets with `slight -c <config_file> -k <some_key> -v <some_value`.")
+    }
+}
+
+pub fn maybe_set_key() -> Result<()> {
+    let mut keyfile = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(SLIGHTKEY)?;
+
+    if keyfile.metadata().unwrap().len() == 0 {
+        // check file is empty
+        keyfile.write_all(generate_key().as_bytes())?;
+    }
+
+    // if not empty, we keep the original key
+
+    Ok(())
 }

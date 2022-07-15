@@ -11,7 +11,6 @@ wit_bindgen_rust::export!("../../wit/event-handler.wit");
 
 fn main() -> Result<()> {
     // application devleoper does not need to know the host implementation details.
-
     let kv1 = Kv::open("my-container")?;
     let kv2 = Kv::open("my-container2")?;
     let value = "spiderlightning".as_bytes();

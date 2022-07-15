@@ -1,0 +1,15 @@
+[package]
+name = "tests"
+version = "0.1.0"
+edition = "2021"
+authors = [ "DeisLabs Engineering Team" ]
+publish = false
+
+[dev-dependencies]
+anyhow = "1"
+hyper = { version = "0.14", features = ["full"] }
+temp-dir = "0.1"
+
+[[test]]
+name = "kv_test"
+path = "kv_test.rs"
