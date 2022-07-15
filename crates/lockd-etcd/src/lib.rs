@@ -6,6 +6,7 @@ use lockd::*;
 wit_bindgen_wasmtime::export!("../../wit/lockd.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
 
 use anyhow::{Context, Result};
 use crossbeam_channel::Sender;
@@ -16,7 +17,7 @@ use proc_macro_utils::Resource;
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+        get_table, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource, BasicState,
     },
 };
 use uuid::Uuid;
@@ -29,13 +30,13 @@ const SCHEME_NAME: &str = "etcdlockd";
 #[derive(Default, Clone, Resource)]
 pub struct LockdEtcd {
     inner: Option<Arc<Mutex<Client>>>,
-    host_state: Option<ResourceMap>,
+    host_state: Option<BasicState>,
 }
 
 impl_resource!(
     LockdEtcd,
     lockd::LockdTables<LockdEtcd>,
-    ResourceMap,
+    BasicState,
     SCHEME_NAME.to_string()
 );
 
@@ -57,14 +58,17 @@ impl lockd::Lockd for LockdEtcd {
     type Lockd = String;
     /// Construct a new `LockdEtcd` instance
     fn lockd_open(&mut self) -> Result<Self::Lockd, Error> {
-        let endpoint = std::env::var("ETCD_ENDPOINT")
-            .with_context(|| "failed to read ETCD_ENDPOINT environment variable")?;
+        let endpoint = String::from_utf8(configs::providers::get(
+            &self.host_state.as_ref().unwrap().secret_store,
+            "ETCD_ENDPOINT",
+            &self.host_state.as_ref().unwrap().config_toml_file_path,
+        )?)?;
         let etcd_lockd = Self::new(&endpoint);
         self.inner = etcd_lockd.inner;
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = Map::lock(&mut self.host_state)?;
+        let mut map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
@@ -78,7 +82,7 @@ impl lockd::Lockd for LockdEtcd {
         Uuid::parse_str(self_)
             .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.host_state)?;
+        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
 
         let pr = block_on(etcd::lock(&mut inner.lock().unwrap(), lock_name))
@@ -96,7 +100,7 @@ impl lockd::Lockd for LockdEtcd {
         Uuid::parse_str(self_)
             .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.host_state)?;
+        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
 
         let pr = block_on(etcd::lock_with_lease(
@@ -117,7 +121,7 @@ impl lockd::Lockd for LockdEtcd {
         Uuid::parse_str(self_)
             .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.host_state)?;
+        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
 
         block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))

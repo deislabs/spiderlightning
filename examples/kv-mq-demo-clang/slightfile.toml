@@ -1,7 +1,8 @@
 specversion = "0.1"
+secret_store = "envvars"
 
 [[capability]]
 name = "filekv"
 
 [[capability]]
-name = "events"
+name = "filemq"

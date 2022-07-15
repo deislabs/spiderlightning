@@ -8,7 +8,7 @@ use proc_macro_utils::Resource;
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+        get_table, Ctx, DataT, Linker, Map, Resource, BasicState, ResourceTables, RuntimeResource,
     },
 };
 use std::sync::{Arc, Mutex};
@@ -29,30 +29,13 @@ const SCHEME_NAME: &str = "azblobkv";
 #[derive(Default, Clone, Resource)]
 pub struct KvAzureBlob {
     inner: Option<Arc<ContainerClient>>,
-    host_state: Option<KvAzureBlobState>,
-}
-
-#[derive(Clone)]
-pub struct KvAzureBlobState {
-    pub resource_map: Option<ResourceMap>,
-    pub secret_store: String,
-    pub config_toml_file_path: String,
-}
-
-impl KvAzureBlobState {
-    pub fn new(resource_map: ResourceMap, secret_store: &str, config_toml_file_path: &str) -> Self {
-        Self {
-            resource_map: Some(resource_map),
-            secret_store: secret_store.to_string(),
-            config_toml_file_path: config_toml_file_path.to_string(),
-        }
-    }
+    host_state: Option<BasicState>,
 }
 
 impl_resource!(
     KvAzureBlob,
     kv::KvTables<KvAzureBlob>,
-    KvAzureBlobState,
+    BasicState,
     SCHEME_NAME.to_string()
 );
 

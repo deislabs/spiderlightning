@@ -1,7 +1,0 @@
-specversion = "0.1"
-
-[[capability]]
-name = "azblobkv"
-
-[[capability]]
-name = "azsbusmq"

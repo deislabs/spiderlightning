@@ -1605,6 +1605,7 @@ name = "lockd-etcd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "configs",
  "crossbeam-channel",
  "etcd-client",
  "events-api",
@@ -1725,6 +1726,7 @@ dependencies = [
  "azure_core 0.2.2 (git+https://github.com/danbugs/azure-sdk-for-rust?rev=40deff431c8a87ba60d93c59ea35fd11c4f9caad)",
  "azure_messaging_servicebus",
  "chrono",
+ "configs",
  "crossbeam-channel",
  "events-api",
  "futures",
@@ -2208,6 +2210,7 @@ name = "pubsub-confluent-kafka"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "configs",
  "crossbeam-channel",
  "events-api",
  "proc_macro_utils",
