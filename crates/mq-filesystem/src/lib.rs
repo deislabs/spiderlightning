@@ -2,10 +2,11 @@ use anyhow::{Context, Result};
 use crossbeam_channel::Sender;
 use events_api::Event;
 use mq::*;
-use proc_macro_utils::Resource;
+use proc_macro_utils::{Resource, Watch};
 use runtime::impl_resource;
 use runtime::resource::{
-    get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+    get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+    Watch,
 };
 use std::sync::{Arc, Mutex};
 use std::{
@@ -24,11 +25,9 @@ wit_error_rs::impl_from!(std::io::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "filemq";
 
 /// A Filesystem implementation for the mq interface.
-#[derive(Clone, Resource)]
+#[derive(Clone, Resource, Default)]
 pub struct MqFilesystem {
-    queue: String,
-    inner: Option<String>,
-    host_state: Option<ResourceMap>,
+    host_state: ResourceMap,
 }
 
 impl_resource!(
@@ -38,19 +37,24 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
+#[derive(Clone, Debug, Watch)]
+pub struct MqFileSystemInner {
+    queue: String,
+    base: String,
+}
+
 // vvv we implement default manually because of the `queue` attribute
-impl Default for MqFilesystem {
-    fn default() -> Self {
+impl MqFileSystemInner {
+    fn new(base: String) -> Self {
         Self {
             queue: ".queue".to_string(),
-            inner: Some(String::default()),
-            host_state: None,
+            base,
         }
     }
 }
 
 impl mq::Mq for MqFilesystem {
-    type Mq = String;
+    type Mq = MqFileSystemInner;
     /// Construct a new `MqFilesystem` instance provided a folder name. The folder will be created under `/tmp`.
     fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
         let path = Path::new("/tmp").join(name);
@@ -59,22 +63,20 @@ impl mq::Mq for MqFilesystem {
             .with_context(|| format!("failed due to invalid path: {}", name))?
             .to_string();
 
-        self.inner = Some(path);
+        let mq_fs_guest = Self::Mq::new(path);
 
         let rd = Uuid::new_v4().to_string();
-        let cloned = self.clone();
-        let mut map = Map::lock(&mut self.host_state)?;
-        map.set(rd.clone(), (Box::new(cloned), None));
-        Ok(rd)
+        self.host_state
+            .lock()
+            .unwrap()
+            .set(rd, Box::new(mq_fs_guest.clone()));
+        Ok(mq_fs_guest)
     }
 
     /// Send a message to the message queue
     fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state)?;
-        let base = map.get::<String>(self_)?;
+        let base = &self_.base;
+        let queue = &self_.queue;
 
         // get a random name for a queue element
         let rand_file_name = format!(
@@ -82,7 +84,7 @@ impl mq::Mq for MqFilesystem {
             SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
         );
 
-        fs::create_dir_all(&base)?;
+        fs::create_dir_all(base)?;
 
         // create a file to store the queue element data
         let mut file = File::create(PathBuf::from(base).join(&rand_file_name))?;
@@ -95,7 +97,7 @@ impl mq::Mq for MqFilesystem {
             .write(true)
             .append(true)
             .create(true)
-            .open(PathBuf::from(base).join(&self.queue))?;
+            .open(PathBuf::from(base).join(queue))?;
 
         // add queue element name to the bottom of the queue
         writeln!(queue, "{}", rand_file_name)?;
@@ -105,20 +107,16 @@ impl mq::Mq for MqFilesystem {
 
     /// Receive a message from the message queue
     fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
+        let base = &self_.base;
 
-        let map = Map::lock(&mut self.host_state)?;
-        let base = map.get::<String>(self_)?;
-
-        fs::create_dir_all(&base)?;
+        fs::create_dir_all(base)?;
 
         // get the queue
         let queue = OpenOptions::new()
             .create(true)
             .read(true)
             .write(true)
-            .open(PathBuf::from(base).join(&self.queue))?;
+            .open(PathBuf::from(base).join(&self_.queue))?;
 
         if queue.metadata().unwrap().len() != 0 {
             // get top element in the queue
@@ -139,7 +137,7 @@ impl mq::Mq for MqFilesystem {
             }
 
             // update queue status
-            fs::write(PathBuf::from(base).join(&self.queue), queue_post_receive)?;
+            fs::write(PathBuf::from(base).join(&self_.queue), queue_post_receive)?;
 
             // remove \n char from end of queue element
             to_receive.pop();

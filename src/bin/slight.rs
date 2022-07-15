@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use clap::Parser;
-use events::Events;
+use events::{Events, EventsState};
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
 use lockd_etcd::LockdEtcd;
@@ -12,7 +12,7 @@ use mq_filesystem::MqFilesystem;
 use pubsub_confluent_kafka::PubSubConfluentKafka;
 
 use events_api::event_handler::EventHandler;
-use runtime::{resource::Map, Builder};
+use runtime::{resource::StateTable, Builder};
 use serde::Deserialize;
 
 #[derive(Parser, Debug)]
@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
         .init();
     tracing::info!("Starting slight");
     let args = Args::parse();
-    let resource_map = Arc::new(Mutex::new(Map::default()));
+    let resource_map = Arc::new(Mutex::new(StateTable::default()));
     let toml_file = std::fs::read_to_string(args.config)?;
     let toml: Config = toml::from_str(&toml_file)?;
 
@@ -58,8 +58,8 @@ async fn main() -> Result<()> {
             match resource_type {
             "events" => {
                 events_enabled = true;
-                host_builder.link_capability::<Events>(resource_type.to_string(), resource_map.clone())?;
-                guest_builder.link_capability::<Events>(resource_type.to_string(), resource_map.clone())?;
+                host_builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
+                guest_builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
             },
             "azblobkv" => {
                 host_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), resource_map.clone())?;

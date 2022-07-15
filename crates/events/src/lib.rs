@@ -4,8 +4,9 @@ use std::{
     time::{Duration, Instant},
 };
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use crossbeam_utils::thread;
+use proc_macro_utils::Resource;
 
 use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
@@ -15,9 +16,11 @@ use events_api::{AttributesReader, Event, EventHandler, EventParam};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, DataT, Linker, Resource, ResourceMap, ResourceTables, RuntimeResource,
+        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+        StateTable,
     },
 };
+use uuid::Uuid;
 use wasmtime::Store;
 
 use crate::events::add_to_linker;
@@ -28,22 +31,41 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "events";
 
 /// Events capability
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct Events {
-    observables: Vec<Observable>,
-    host_state: Option<ResourceMap>,
+    host_state: EventsState,
+}
+
+#[derive(Default)]
+pub struct EventsState {
+    resource_map: ResourceMap,
     event_handler: Option<Arc<Mutex<EventHandler<Ctx>>>>,
     store: Option<Arc<Mutex<Store<Ctx>>>>,
+}
+
+impl EventsState {
+    pub fn new(resource_map: Arc<Mutex<StateTable>>) -> Self {
+        Self {
+            resource_map,
+            ..Default::default()
+        }
+    }
 }
 
 impl_resource!(
     Events,
     events::EventsTables<Events>,
-    ResourceMap,
+    EventsState,
     SCHEME_NAME.to_string()
 );
 
+#[derive(Clone, Debug, Default)]
+pub struct EventsGuest {
+    observables: Vec<Observable>,
+}
+
 /// An owned observable
+#[derive(Clone, Debug)]
 struct Observable {
     rd: String,
     key: String,
@@ -70,61 +92,48 @@ impl Events {
         store: Arc<Mutex<Store<Ctx>>>,
         event_handler: Arc<Mutex<EventHandler<Ctx>>>,
     ) -> Result<()> {
-        self.event_handler = Some(event_handler);
-        self.store = Some(store);
+        self.host_state.event_handler = Some(event_handler);
+        self.host_state.store = Some(store);
         Ok(())
-    }
-}
-
-impl Resource for Events {
-    fn get_inner(&self) -> &dyn std::any::Any {
-        unimplemented!("events will not be dynamically dispatched to a specific resource")
-    }
-
-    fn watch(
-        &mut self,
-        _data: &str,
-        _rd: &str,
-        _key: &str,
-        _sender: Arc<Mutex<Sender<Event>>>,
-    ) -> Result<()> {
-        unimplemented!("events will not be listened to")
     }
 }
 
 impl events::Events for Events {
-    type Events = ();
+    type Events = EventsGuest;
     fn events_get(&mut self) -> Result<Self::Events, Error> {
-        Ok(())
+        Ok(Default::default())
     }
 
     fn events_listen(
         &mut self,
-        _events: &Self::Events,
+        self_: &Self::Events,
         ob: GeneratedObservable<'_>,
-    ) -> Result<(), Error> {
-        // TODO (Joe): I can't figure out how to not deep copy the Observable here to satisfy the
-        // Rust lifetime rules.
-        let ob2 = ob.into();
-        self.observables.push(ob2);
-        Ok(())
+    ) -> Result<Self::Events, Error> {
+        Uuid::parse_str(ob.rd)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
+        let ob = ob.into();
+        // FIXME: the reason I had to clone the observable is because the observable is owned by
+        // self_ which is not a mutable reference.
+        let mut observables = self_.observables.clone();
+        observables.push(ob);
+        Ok(Self::Events { observables })
     }
 
-    fn events_exec(&mut self, _events: &Self::Events, duration: u64) -> Result<(), Error> {
-        for ob in &self.observables {
+    fn events_exec(&mut self, self_: &Self::Events, duration: u64) -> Result<(), Error> {
+        for ob in &self_.observables {
             // check if observable has changed
-            let map = self.host_state.as_mut().unwrap();
+
+            let map = self.host_state.resource_map.clone();
 
             let mut map = map.lock().unwrap();
-            let data = map.get::<String>(&ob.rd).unwrap().to_string();
-            let resource = &mut map.get_dynamic_mut(&ob.rd).unwrap().0;
-            resource.watch(&data, &ob.rd, &ob.key, ob.sender.clone())?;
+            let resource = map.get_mut(&ob.rd).unwrap();
+            resource.watch(&ob.key, ob.sender.clone())?;
         }
         thread::scope(|s| -> Result<()> {
             let mut thread_handles = vec![];
-            for ob in &self.observables {
-                let handler = self.event_handler.as_ref().unwrap().clone();
-                let store = self.store.as_mut().unwrap().clone();
+            for ob in &self_.observables {
+                let handler = self.host_state.event_handler.as_ref().unwrap().clone();
+                let store = self.host_state.store.as_mut().unwrap().clone();
                 let receiver = ob.receiver.clone();
                 let receive_thread = s.spawn(move |_| loop {
                     match receiver

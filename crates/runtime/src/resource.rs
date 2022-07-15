@@ -1,59 +1,61 @@
 use std::{
-    any::Any,
     collections::HashMap,
-    sync::{Arc, Mutex, MutexGuard},
+    sync::{Arc, Mutex},
 };
 
 pub use crate::RuntimeContext;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use as_any::{AsAny, Downcast};
 use crossbeam_channel::Sender;
 use events_api::{Event, EventHandlerData};
 pub use wasmtime::Linker;
 
-pub type DataT = (
+/// HostState abstract out generated bindings for the resource,
+/// and the resource table. It is used as a type in the `RuntimeContext`
+/// primarily for linking host defined resources for capabilities.
+pub type HostState = (
     Box<dyn Resource + Send + Sync>,
     Option<Box<dyn ResourceTables<dyn Resource> + Send + Sync>>,
 );
-pub type ResourceConfig = String;
-pub type ResourceMap = Arc<Mutex<Map>>;
-pub type Ctx = RuntimeContext<DataT>;
-pub type GuestState = EventHandlerData;
 
-/// A map wrapper type for the resource map
+/// Watch state is a dynamic type for resources that implement the `watch` function.
+pub type WatchState = Box<dyn Watch + Send + Sync>;
+
+/// A alias to sharable state table
+pub type ResourceMap = Arc<Mutex<StateTable>>;
+
+/// Runtime Context for the wasm module
+pub type Ctx = RuntimeContext<HostState>;
+
+/// Guest data for event handler
+/// TODO (Joe): abstract this to a general guest data
+pub type GuestData = EventHandlerData;
+
+/// A state table that is indexed by each resource unique identifier.
+/// The state table stores each resource inner of type WatchState.
 #[derive(Default)]
-pub struct Map(HashMap<String, DataT>);
+pub struct StateTable(HashMap<String, WatchState>);
 
-impl Map {
-    /// A convinience function for grabbing a lock provided a map
-    pub fn lock(wrapped_map: &mut Option<Arc<Mutex<Map>>>) -> Result<MutexGuard<Map>> {
-        wrapped_map
-            .as_mut()
-            .with_context(|| "failed because resource map is not initialized")?
-            .lock()
-            .map_err(|_| anyhow::anyhow!("failed to acquire lock on resource map"))
-    }
-
-    /// A wrapper function for inserting a key in the map
-    pub fn set(&mut self, key: String, value: DataT) {
+impl StateTable {
+    /// A wrapper function for inserting a key, value pair in the map
+    pub fn set(&mut self, key: String, value: WatchState) {
         self.0.insert(key, value);
     }
 
-    /// A wrapper funciton around getting a value from a map
-    pub fn get<T: 'static>(&self, key: &str) -> Result<&T> {
-        let value = self.0.get(key).with_context(|| {
-            "failed to match resource descriptor in map of instantiated resources"
-        })?;
-        let inner = value.0.get_inner();
-        <&dyn std::any::Any>::clone(&inner)
-            .downcast_ref::<T>()
-            .with_context(|| "failed to acquire matched resource descriptor service")
-    }
-
-    pub fn get_dynamic_mut(&mut self, key: &str) -> Result<&mut DataT> {
+    /// A wrapper function for getting a mutable value from the map
+    pub fn get_mut(&mut self, key: &str) -> Result<&mut WatchState> {
         let value = self
             .0
             .get_mut(key)
+            .ok_or_else(|| anyhow::anyhow!("failed because key '{}' was not found", &key))?;
+        Ok(value)
+    }
+
+    /// A wrapper function for getting a value from the map
+    pub fn get(&mut self, key: &str) -> Result<&WatchState> {
+        let value = self
+            .0
+            .get(key)
             .ok_or_else(|| anyhow::anyhow!("failed because key '{}' was not found", &key))?;
         Ok(value)
     }
@@ -63,25 +65,18 @@ impl Map {
 pub trait ResourceTables<T: ?Sized>: AsAny {}
 
 /// An implemented service interface
-pub trait Resource: AsAny {
-    /// Get inner representation of the resource
-    fn get_inner(&self) -> &dyn Any;
+pub trait Resource: AsAny {}
 
-    /// check if the resource has changed on key.
-    fn watch(
-        &mut self,
-        data: &str,
-        rd: &str,
-        key: &str,
-        sender: Arc<Mutex<Sender<Event>>>,
-    ) -> Result<()>;
+/// A trait for inner representation of the resource
+pub trait Watch {
+    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()>;
 }
 
 /// A trait for wit-bindgen host resource composed of a resource
-pub trait RuntimeResource {
+pub trait ResourceBuilder {
     type State: Sized;
     fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
-    fn build_data(state: Self::State) -> Result<DataT>;
+    fn build_data(state: Self::State) -> Result<HostState>;
 }
 
 #[macro_export]
@@ -89,7 +84,7 @@ pub trait RuntimeResource {
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
     ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
-        impl RuntimeResource for $resource {
+        impl ResourceBuilder for $resource {
             type State = $state;
             fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
                 crate::add_to_linker(linker, |cx| {
@@ -97,14 +92,11 @@ macro_rules! impl_resource {
                 })
             }
 
-            fn build_data(state: Self::State) -> Result<DataT> {
+            fn build_data(state: Self::State) -> Result<HostState> {
                 /// We prepare a default resource with host-provided state.
                 /// Then the guest will pass other configuration state to the resource.
                 /// This is done in the `<Capability>::open` function.
-                let mut resource = Self {
-                    host_state: Some(state),
-                    ..Default::default()
-                };
+                let mut resource = Self { host_state: state };
                 Ok((
                     Box::new(resource),
                     Some(Box::new(<$resource_table>::default())),
@@ -119,24 +111,6 @@ macro_rules! impl_resource {
 pub use impl_resource;
 
 /// Dynamically dispatch to respective host resource
-pub fn get<T>(cx: &mut Ctx, resource_key: String) -> &mut T
-where
-    T: 'static,
-{
-    let data = cx
-        .data
-        .get_mut(&resource_key)
-        .expect("internal error: Runtime context data is None");
-
-    data.0.as_mut().downcast_mut().unwrap_or_else(|| {
-        panic!(
-            "internal error: context has key {} but can't be downcast to resource {}",
-            &resource_key,
-            std::any::type_name::<T>()
-        )
-    })
-}
-
 pub fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)
 where
     T: 'static,

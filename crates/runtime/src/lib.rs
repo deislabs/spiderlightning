@@ -2,7 +2,7 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{Ctx, GuestState, ResourceConfig, RuntimeResource};
+use resource::{Ctx, GuestData, ResourceBuilder};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
@@ -13,7 +13,7 @@ use wasmtime_wasi::*;
 pub struct RuntimeContext<Host> {
     pub wasi: Option<WasiCtx>,
     pub data: HashMap<String, Host>,
-    pub state: GuestState,
+    pub state: GuestData,
 }
 
 /// A wasmtime-based runtime builder.
@@ -34,7 +34,7 @@ impl Builder {
         let ctx = RuntimeContext {
             wasi: Some(wasi),
             data: HashMap::new(),
-            state: GuestState::default(),
+            state: GuestData::default(),
         };
 
         let store = Store::new(&engine, ctx);
@@ -55,16 +55,16 @@ impl Builder {
     }
 
     /// Link a host capability to the wasmtime::Linker
-    pub fn link_capability<T: RuntimeResource>(
+    pub fn link_capability<T: ResourceBuilder>(
         &mut self,
-        config: ResourceConfig,
+        name: String,
         state: T::State,
     ) -> Result<&mut Self> {
-        tracing::log::info!("Adding capability: {}", &config);
+        tracing::log::info!("Adding capability: {}", &name);
         self.store
             .data_mut()
             .data
-            .insert(config, T::build_data(state)?);
+            .insert(name, T::build_data(state)?);
         T::add_to_linker(&mut self.linker)?;
         Ok(self)
     }
