@@ -37,6 +37,11 @@ struct CapabilityConfig {
 /// The entry point for the slight CLI
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
+    tracing::info!("Starting slight");
     let args = Args::parse();
     let resource_map = Arc::new(Mutex::new(Map::default()));
     let toml_file = std::fs::read_to_string(args.config)?;
@@ -104,6 +109,7 @@ async fn main() -> Result<()> {
                 Arc::new(Mutex::new(event_handler)),
             )?;
     }
+    tracing::info!("Executing {}", &args.module);
     instance
         .get_typed_func::<(), _, _>(&mut store, "_start")?
         .call(&mut store, ())?;
