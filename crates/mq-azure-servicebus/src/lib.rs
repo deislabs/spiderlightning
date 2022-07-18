@@ -4,8 +4,13 @@ use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
 use events_api::Event;
 use futures::executor::block_on;
-use proc_macro_utils::{Resource, RuntimeResource};
-use runtime::resource::{get, Ctx, DataT, Linker, Map, Resource, ResourceMap, RuntimeResource};
+use proc_macro_utils::Resource;
+use runtime::{
+    impl_resource,
+    resource::{
+        get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+    },
+};
 
 use crossbeam_channel::Sender;
 pub use mq::add_to_linker;
@@ -21,11 +26,18 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "azsbusmq";
 
 /// A Azure ServiceBus Message Queue service implementation for the mq interface
-#[derive(Default, Clone, Resource, RuntimeResource)]
+#[derive(Default, Clone, Resource)]
 pub struct MqAzureServiceBus {
     inner: Option<Arc<Mutex<Client>>>,
-    resource_map: Option<ResourceMap>,
+    host_state: Option<ResourceMap>,
 }
+
+impl_resource!(
+    MqAzureServiceBus,
+    mq::MqTables<MqAzureServiceBus>,
+    ResourceMap,
+    SCHEME_NAME.to_string()
+);
 
 impl MqAzureServiceBus {
     /// Create a new `MqAzureServiceBus`
@@ -50,14 +62,15 @@ impl MqAzureServiceBus {
         )));
         Self {
             inner,
-            resource_map: None,
+            host_state: None,
         }
     }
 }
 
 impl mq::Mq for MqAzureServiceBus {
+    type Mq = String;
     /// Construct a new `MqAzureServiceBus` instance provided a queue name.
-    fn get_mq(&mut self, name: &str) -> Result<ResourceDescriptorResult, Error> {
+    fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
         let queue_name = name;
         let service_bus_namespace = std::env::var("AZURE_SERVICE_BUS_NAMESPACE")
             .with_context(|| "failed to read AZURE_SERVICE_BUS_NAMESPACE environment variable")?;
@@ -78,17 +91,18 @@ impl mq::Mq for MqAzureServiceBus {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = Map::lock(&mut self.resource_map)?;
+        let mut map = Map::lock(&mut self.host_state)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
 
     /// Send a message to your service bus' queue
-    fn send(&mut self, rd: ResourceDescriptorParam, msg: PayloadParam<'_>) -> Result<(), Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
 
         block_on(azure::send(
             &mut inner.lock().unwrap(),
@@ -101,11 +115,12 @@ impl mq::Mq for MqAzureServiceBus {
     }
 
     /// Receive the top message from your service bus' queue
-    fn receive(&mut self, rd: ResourceDescriptorParam) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(rd).with_context(|| "failed to parse resource descriptor")?;
+    fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
+        Uuid::parse_str(self_)
+            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.resource_map)?;
-        let inner = map.get::<Arc<Mutex<Client>>>(rd)?;
+        let map = Map::lock(&mut self.host_state)?;
+        let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
 
         let result = block_on(azure::receive(&mut inner.lock().unwrap()))
             .with_context(|| "failed to receive message from Azure Service Bus")?;

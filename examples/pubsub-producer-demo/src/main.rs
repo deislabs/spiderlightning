@@ -6,11 +6,10 @@ wit_bindgen_rust::import!("../../wit/pubsub.wit");
 wit_error_rs::impl_error!(Error);
 
 fn main() -> Result<()> {
-    let resource_descriptor = get_pubsub()?;
+    let pubsub = Pubsub::open()?;
     for i in 0..3 {
         println!("sending message");
-        send_message_to_topic(
-            &resource_descriptor,
+        pubsub.send_message_to_topic(
             format!("key-{}", i).as_bytes(),
             format!("value-{}", i).as_bytes(),
             "rust",

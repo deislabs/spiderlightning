@@ -67,9 +67,6 @@ pub trait Resource: AsAny {
     /// Get inner representation of the resource
     fn get_inner(&self) -> &dyn Any;
 
-    /// Add resource map to resource
-    fn add_resource_map(&mut self, resource_map: ResourceMap) -> Result<()>;
-
     /// check if the resource has changed on key.
     fn watch(
         &mut self,
@@ -82,9 +79,44 @@ pub trait Resource: AsAny {
 
 /// A trait for wit-bindgen host resource composed of a resource
 pub trait RuntimeResource {
+    type State: Sized;
     fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
-    fn build_data() -> Result<DataT>;
+    fn build_data(state: Self::State) -> Result<DataT>;
 }
+
+#[macro_export]
+#[allow(unknown_lints)]
+#[allow(clippy::crate_in_macro_def)]
+macro_rules! impl_resource {
+    ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
+        impl RuntimeResource for $resource {
+            type State = $state;
+            fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
+                crate::add_to_linker(linker, |cx| {
+                    get_table::<Self, $resource_table>(cx, $scheme_name)
+                })
+            }
+
+            fn build_data(state: Self::State) -> Result<DataT> {
+                /// We prepare a default resource with host-provided state.
+                /// Then the guest will pass other configuration state to the resource.
+                /// This is done in the `<Capability>::open` function.
+                let mut resource = Self {
+                    host_state: Some(state),
+                    ..Default::default()
+                };
+                Ok((
+                    Box::new(resource),
+                    Some(Box::new(<$resource_table>::default())),
+                ))
+            }
+        }
+
+        impl ResourceTables<dyn Resource> for $resource_table {}
+    };
+}
+
+pub use impl_resource;
 
 /// Dynamically dispatch to respective host resource
 pub fn get<T>(cx: &mut Ctx, resource_key: String) -> &mut T

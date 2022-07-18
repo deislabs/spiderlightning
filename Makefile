@@ -20,17 +20,17 @@ check:
 
 .PHONY: run
 run:
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/multi_capability-demo.wasm -c './examples/multi_capability-demo/wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c './examples/kv-demo/filekv-wc.toml' & python ./examples/kv-demo/simulate.py
-	# ./target/release/wasi-cloud -m ./target/wasm32-wasi/release/kv-demo.wasm -c './examples/kv-demo/azblobkv-wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/filemq-wc.toml' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c './examples/mq-receiver-demo/filemq-wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/azsbusmq-wc.toml' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c './examples/mq-receiver-demo/azsbusmq-wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/lockd-demo.wasm -c './examples/lockd-demo/wc.toml' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/lockd-demo.wasm -c './examples/lockd-demo/wc.toml'
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm -c './examples/pubsub-consumer-demo/wc.toml' &
-	./target/release/wasi-cloud -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm -c './examples/pubsub-producer-demo/wc.toml'
+	./target/release/slight -m ./target/wasm32-wasi/release/multi_capability-demo.wasm -c './examples/multi_capability-demo/wc.toml'
+	./target/release/slight -m ./target/wasm32-wasi/release/kv-demo.wasm -c './examples/kv-demo/filekv-wc.toml' & python ./examples/kv-demo/simulate.py
+	# ./target/release/slight -m ./target/wasm32-wasi/release/kv-demo.wasm -c './examples/kv-demo/azblobkv-wc.toml'
+	./target/release/slight -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/filemq-wc.toml' &
+	./target/release/slight -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c './examples/mq-receiver-demo/filemq-wc.toml'
+	./target/release/slight -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/azsbusmq-wc.toml' &
+	./target/release/slight -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm -c './examples/mq-receiver-demo/azsbusmq-wc.toml'
+	./target/release/slight -m ./target/wasm32-wasi/release/lockd-demo.wasm -c './examples/lockd-demo/wc.toml' &
+	./target/release/slight -m ./target/wasm32-wasi/release/lockd-demo.wasm -c './examples/lockd-demo/wc.toml'
+	./target/release/slight -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm -c './examples/pubsub-consumer-demo/wc.toml' &
+	./target/release/slight -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm -c './examples/pubsub-producer-demo/wc.toml'
 
 run-c:
-	./target/release/wasi-cloud -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm -c './examples/kv-mq-demo-clang/wc.toml'
+	./target/release/slight -m ./target/wasm32-wasi/release/mq-sender-demo.wasm -c './examples/mq-sender-demo/filemq-wc.toml' && ./target/release/slight -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm -c './examples/kv-mq-demo-clang/wc.toml'

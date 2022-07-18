@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use event_handler::Event;
-use events::Events;
+
 use kv::*;
 wit_bindgen_rust::import!("../../wit/kv.wit");
 wit_error_rs::impl_error!(Error);
@@ -12,24 +12,24 @@ wit_bindgen_rust::export!("../../wit/event-handler.wit");
 fn main() -> Result<()> {
     // application devleoper does not need to know the host implementation details.
 
-    let rd1 = get_kv("my-container")?;
-    let rd2 = get_kv("my-container2")?;
-    let value = "wasi-cloud".as_bytes();
-    set(&rd1, "key", value)?;
-    set(&rd2, "key", value)?;
+    let kv1 = Kv::open("my-container")?;
+    let kv2 = Kv::open("my-container2")?;
+    let value = "spiderlightning".as_bytes();
+    kv1.set("key", value)?;
+    kv2.set("key", value)?;
     println!(
-        "Hello, world! the value for rd1 is: {}, rd2 is {}",
-        std::str::from_utf8(&get(&rd1, "key")?)?,
-        std::str::from_utf8(&get(&rd2, "key")?)?,
+        "Hello, world! the value for kv1 is: {}, kv2 is {}",
+        std::str::from_utf8(&kv1.get("key")?)?,
+        std::str::from_utf8(&kv2.get("key")?)?,
     );
-    delete(&rd1, "key")?;
-    delete(&rd2, "key")?;
-    let value = get(&rd1, "key");
-    assert_eq!(value.is_err(), true);
+    kv1.delete("key")?;
+    kv2.delete("key")?;
+    let value = kv1.get("key");
+    assert!(value.is_err());
 
-    let ob1 = watch(&rd1, "my-key")?;
-    let ob2 = watch(&rd1, "my-key2")?;
-    let events = Events::get()?;
+    let ob1 = kv1.watch("my-key")?;
+    let ob2 = kv1.watch("my-key2")?;
+    let events = events::Events::get()?;
     // TODO (mosssaka): I had to construct a copy of Observable because wit_bindgen generates two
     // observables in different mods: events::Observable vs. kv::Observable.
     events
@@ -43,8 +43,8 @@ fn main() -> Result<()> {
         })?
         .exec(5)?;
 
-    drop(rd1); // drop != close
-    drop(rd2);
+    drop(kv1); // drop != close
+    drop(kv2);
     Ok(())
 }
 
@@ -53,13 +53,14 @@ pub struct EventHandler {}
 impl event_handler::EventHandler for EventHandler {
     fn handle_event(ev: Event) -> Result<Option<Event>, String> {
         // event.data has value: "String data: key: my-key2"
-        let rd = get_kv("my-container").unwrap();
+        let kv = Kv::open("my-container").unwrap();
         let data = ev.data.unwrap();
+        println!("{}", std::str::from_utf8(&data).unwrap());
         let value =
             serde_json::from_str::<serde_json::Value>(std::str::from_utf8(&data).unwrap()).unwrap();
         let key = value["key"].as_str().unwrap();
         dbg!("key: {}", &key);
-        let value = get(&rd, key).unwrap();
+        let value = kv.get(&key).unwrap();
         println!(
             "received event of type {}, key: {}, new value: {}",
             &ev.ty,

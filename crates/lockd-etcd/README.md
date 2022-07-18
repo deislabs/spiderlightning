@@ -1,6 +1,6 @@
 # lockd-etcd
 
-Just like in `etcd`, the `d` in `lockd` stands for "distributed" — This is a service implementation for `wasi-cloud` that leverages `etcd` to provide distributed locking.
+Just like in `etcd`, the `d` in `lockd` stands for "distributed" — This is a service implementation for SpiderLightning that leverages `etcd` to provide distributed locking.
 
 ## How to Run the Examples
 

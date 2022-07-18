@@ -18,6 +18,6 @@ pub fn run(executable: &str, args: Vec<&str>) {
     stdout().write_all(&output.stdout).unwrap();
     if code != 0 {
         stderr().write_all(&output.stderr).unwrap();
-        panic!("failed to run wasi-cloud");
+        panic!("failed to run spiderlightning");
     }
 }
