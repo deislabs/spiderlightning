@@ -55,12 +55,10 @@ impl event_handler::EventHandler for EventHandler {
         // event.data has value: "String data: key: my-key2"
         let kv = Kv::open("my-container").unwrap();
         let data = ev.data.unwrap();
-        println!("{}", std::str::from_utf8(&data).unwrap());
         let value =
             serde_json::from_str::<serde_json::Value>(std::str::from_utf8(&data).unwrap()).unwrap();
         let key = value["key"].as_str().unwrap();
-        dbg!("key: {}", &key);
-        let value = kv.get(&key).unwrap();
+        let value = kv.get(key).unwrap();
         println!(
             "received event of type {}, key: {}, new value: {}",
             &ev.ty,
