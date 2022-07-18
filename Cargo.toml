@@ -15,13 +15,6 @@ short-crypt = "1"
 rand = "0.8"
 toml = "0.5"
 
-[build-dependencies]
-cargo-target-dep = { git = "https://github.com/fermyon/cargo-target-dep", rev = "b7b1989fe0984c0f7c4966398304c6538e52fe49" }
-vergen = { version = "7", default-features = false, features = [
-    "build",
-    "git",
-] }
-
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
 temp-dir = "0.1"
@@ -47,5 +40,5 @@ members = [
     "examples/lockd-demo",
     "examples/pubsub-consumer-demo",
     "examples/pubsub-producer-demo",
-    "examples/watch-demo"
+    "examples/watch-demo",
 ]

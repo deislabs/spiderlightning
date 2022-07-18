@@ -3,6 +3,8 @@ use std::{
     process::Command,
 };
 
+pub const SLIGHT: &str = "./target/release/slight";
+
 pub fn run(executable: &str, args: Vec<&str>) {
     let mut cmd = Command::new(executable);
     for arg in args {
@@ -23,19 +25,25 @@ pub fn run(executable: &str, args: Vec<&str>) {
 }
 
 #[cfg(test)]
-mod filekv_test {
-    use crate::run;
+mod kv_test {
+    use crate::{run, SLIGHT};
     use anyhow::Result;
 
-    const SLIGHT: &str = "./target/release/slight";
-    const KV_TEST_MODULE: &str = "./target/wasm32-wasi/release/kv-demo.wasm";
+    const KV_TEST_MODULE: &str = "./tests/kv-test/target/wasm32-wasi/debug/kv-test.wasm";
 
     #[test]
-    fn test_kv_filesystem() -> Result<()> {
-        let file_config = "./examples/kv-demo/filekv.toml";
+    fn filekv_test() -> Result<()> {
+        let file_config = "./tests/kv-test/filekv.toml";
+        run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+        Ok(())
+    }
+
+    #[test]
+    fn azblobkv_test() -> Result<()> {
+        let file_config = "./tests/kv-test/azblobkv.toml";
         run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
         Ok(())
     }
 }
 
-// TODO: We need to add azblobkv_test, filemq_test, azsbusmq_test, etcdlockd_test, and ckpubsub_test modules
+// TODO: We need to mq_test, etcdlockd_test, and ckpubsub_test modules
