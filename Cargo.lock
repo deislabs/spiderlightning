@@ -1499,6 +1499,7 @@ dependencies = [
  "proc_macro_utils",
  "runtime",
  "serde_json",
+ "tracing",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime",
  "wit-error-rs",

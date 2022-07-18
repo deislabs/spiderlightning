@@ -1,10 +1,10 @@
 use std::{
-    ops::DerefMut,
+    ops::{self, DerefMut},
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use crossbeam_utils::thread;
 
 use crate::events::Error;
@@ -145,10 +145,7 @@ impl events::Events for Events {
                         Ok(mut event) => {
                             let mut store = store.lock().unwrap();
                             let spec = event.specversion();
-                            let data: Option<String> = event
-                                .take_data()
-                                .2
-                                .map(|d| d.try_into().expect("event data is not a string"));
+                            let data: Option<String> = event.take_data().2.map(|d| d.to_string());
                             let time = event.time().take().map(|d| d.to_rfc2822());
                             let event_param = EventParam {
                                 specversion: spec.as_str(),

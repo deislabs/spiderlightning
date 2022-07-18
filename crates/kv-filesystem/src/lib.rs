@@ -145,12 +145,20 @@ impl Resource for KvFilesystem {
                         .time(Utc::now())
                         .data(content_type, data)
                         .build()
-                        .expect("failed to build event");
+                        .with_context(|| "failed to build event")
+                        .unwrap_or_else(|e| {
+                            tracing::error!("failed to build event: {}, sending default event", e);
+                            Event::default()
+                        });
                     sender
                         .lock()
                         .unwrap()
                         .send(event)
-                        .expect("internal error: send");
+                        .with_context(|| "internal error: send")
+                        .unwrap_or_else(|e| {
+                            tracing::error!("failed to send event: {}", e);
+                            panic!("internal error: failed to send event")
+                        });
                 }
                 Err(e) => println!("watch error: {:?}", e),
             })?;
