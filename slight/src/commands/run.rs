@@ -26,14 +26,6 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
     guest_builder.link_wasi()?;
     let mut events_enabled = false;
     if toml.specversion.as_ref().unwrap() == "0.1" {
-        host_builder.link_capability::<Configs>(
-            "configs".to_string(),
-            ConfigsState::new(resource_map.clone(), toml_file_path),
-        )?;
-        guest_builder.link_capability::<Configs>(
-            "configs".to_string(),
-            ConfigsState::new(resource_map.clone(), toml_file_path),
-        )?;
         for c in toml.capability.as_ref().unwrap() {
             let resource_type: &str = c.name.as_str();
             match resource_type {
@@ -81,6 +73,16 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                 } else {
                     bail!("the ckpubsub capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CK_SECURITY_PROTOCOL, CK_SASL_MECHANISMS, CK_SASL_USERNAME, CK_SASL_PASSWORD, and CK_GROUP_ID.")
                 }
+            },
+            "configs" => {
+                host_builder.link_capability::<Configs>(
+                    resource_type.to_string(),
+                    ConfigsState::new(resource_map.clone(), toml_file_path),
+                )?;
+                guest_builder.link_capability::<Configs>(
+                    resource_type.to_string(),
+                    ConfigsState::new(resource_map.clone(), toml_file_path),
+                )?;
             }
             _ => bail!("invalid url: currently slight only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }

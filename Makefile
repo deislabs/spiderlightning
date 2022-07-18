@@ -6,6 +6,7 @@ SLIGHT ?= ./target/release/slight
 build:
 	cargo build --release
 	cargo build --release --manifest-path ./slight/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/configs-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/watch-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
@@ -35,6 +36,8 @@ run:
 	### running watch example
 	$(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/watch-demo.wasm & 
 	python ./examples/watch-demo/simulate.py
+	### running configs example
+	$(SLIGHT) -c './examples/configs-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
 	### running filemq example
 	$(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
 	$(SLIGHT) -c './examples/mq-receiver-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
@@ -54,3 +57,6 @@ run-c:
 
 install:
 	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin
+
+feat-run:
+	$(SLIGHT) -c './examples/configs-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm

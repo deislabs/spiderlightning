@@ -41,4 +41,5 @@ members = [
     "examples/pubsub-consumer-demo",
     "examples/pubsub-producer-demo",
     "examples/watch-demo",
+    "examples/configs-demo"
 ]

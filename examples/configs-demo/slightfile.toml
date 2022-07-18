@@ -1,0 +1,8 @@
+specversion = "0.1"
+
+[[secret_settings]]
+name = "THIS_IS_ANOTHER_TEST_CONFIG_1061408"
+value = "m7N0Muoz0ICs7Owemrg"
+
+[[capability]]
+name = "configs"

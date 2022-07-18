@@ -3,3 +3,6 @@ secret_store = "envvars"
 
 [[capability]]
 name = "filekv"
+
+[[capability]]
+name = "events"
