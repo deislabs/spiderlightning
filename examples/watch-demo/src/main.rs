@@ -10,6 +10,8 @@ wit_bindgen_rust::import!("../../wit/events.wit");
 wit_bindgen_rust::export!("../../wit/event-handler.wit");
 
 fn main() -> Result<()> {
+    // application devleoper does not need to know the host implementation details.
+
     let kv1 = Kv::open("my-container")?;
     let kv2 = Kv::open("my-container2")?;
     let value = "spiderlightning".as_bytes();
@@ -28,7 +30,7 @@ fn main() -> Result<()> {
     let ob1 = kv1.watch("my-key")?;
     let ob2 = kv1.watch("my-key2")?;
     let events = events::Events::get()?;
-    // TODO (Mossaka): I had to construct a copy of Observable because wit_bindgen generates two
+    // TODO (mosssaka): I had to construct a copy of Observable because wit_bindgen generates two
     // observables in different mods: events::Observable vs. kv::Observable.
     events
         .listen(events::Observable {
@@ -50,13 +52,17 @@ pub struct EventHandler {}
 
 impl event_handler::EventHandler for EventHandler {
     fn handle_event(ev: Event) -> Result<Option<Event>, String> {
+        // event.data has value: "String data: key: my-key2"
         let kv = Kv::open("my-container").unwrap();
-        let key = ev.data.unwrap();
-        let value = kv.get(&key).unwrap();
+        let data = ev.data.unwrap();
+        let value =
+            serde_json::from_str::<serde_json::Value>(std::str::from_utf8(&data).unwrap()).unwrap();
+        let key = value["key"].as_str().unwrap();
+        let value = kv.get(key).unwrap();
         println!(
             "received event of type {}, key: {}, new value: {}",
-            &ev.event_type,
-            &key,
+            &ev.ty,
+            key,
             std::str::from_utf8(&value).unwrap()
         );
         Ok(None)

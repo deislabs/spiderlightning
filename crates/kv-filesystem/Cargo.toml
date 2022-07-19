@@ -18,3 +18,6 @@ wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1
 notify = "5.0.0-pre.15"
 crossbeam-channel = "0.5.5"
 events-api = { path = "../events-api" }
+chrono = "0.4.19"
+serde_json = "^1.0"
+tracing = { version = "0.1", features = ["log"] }
