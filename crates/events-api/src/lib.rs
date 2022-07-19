@@ -1,31 +1,9 @@
 // guest resource
-pub use event_handler::EventHandlerData;
+pub use event_handler::{EventHandler, EventHandlerData, EventParam};
 
 wit_bindgen_wasmtime::import!("../../wit/event-handler.wit");
-
-#[derive(Debug, Default, Clone)]
-pub struct Event {
-    pub source: String,
-    pub event_type: String,
-    pub specversion: String,
-    pub id: String,
-    pub data: Option<String>,
-}
-
-impl Event {
-    pub fn new(
-        source: String,
-        event_type: String,
-        specversion: String,
-        id: String,
-        data: Option<String>,
-    ) -> Self {
-        Self {
-            source,
-            event_type,
-            specversion,
-            id,
-            data,
-        }
-    }
-}
+pub use cloudevents::AttributesReader;
+pub use cloudevents::AttributesWriter;
+pub use cloudevents::Event;
+pub use cloudevents::EventBuilder;
+pub use cloudevents::EventBuilderV10;
