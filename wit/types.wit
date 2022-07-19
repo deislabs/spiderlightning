@@ -9,10 +9,17 @@ record message {
 	value: option<payload>
 }
 
+// Cloudevents spec: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md
+// We assume the type of the data is a byte sequence. It is up to the data schema to determine
+// what type of the data payload the event contains. 
 record event {
 	specversion: string,
-	event-type: string,
+	ty: string,
 	source: string,
 	id: string,
-	data: option<string>
+	data: option<payload>,
+	datacontenttype: option<string>,
+	dataschema: option<string>,
+	subject: option<string>,
+	time: option<string>,
 } 

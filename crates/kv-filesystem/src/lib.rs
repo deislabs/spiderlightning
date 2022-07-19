@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use events_api::Event;
+use events_api::{Event, EventBuilder, EventBuilderV10};
 use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use runtime::impl_resource;
 use runtime::resource::{
@@ -7,6 +7,7 @@ use runtime::resource::{
 };
 use std::sync::{Arc, Mutex};
 
+use chrono::Utc;
 use crossbeam_channel::Sender;
 use std::{
     fs::{self, File},
@@ -145,18 +146,29 @@ impl Resource for KvFilesystem {
                         .get(0)
                         .map(|x| format!("{}", x.display()))
                         .unwrap_or_default();
-                    let event = Event::new(
-                        path,
-                        format!("{:#?}", event.kind),
-                        "1.0".to_string(),
-                        id,
-                        Some(key.clone()),
-                    );
+                    let content_type = "application/json";
+                    let data = serde_json::json!({ "key": key });
+                    let event = EventBuilderV10::new()
+                        .id(id)
+                        .source(path)
+                        .ty(format!("{:#?}", event.kind))
+                        .time(Utc::now())
+                        .data(content_type, data)
+                        .build()
+                        .with_context(|| "failed to build event")
+                        .unwrap_or_else(|e| {
+                            tracing::error!("failed to build event: {}, sending default event", e);
+                            Event::default()
+                        });
                     sender
                         .lock()
                         .unwrap()
                         .send(event)
-                        .expect("internal error: send");
+                        .with_context(|| "internal error: send")
+                        .unwrap_or_else(|e| {
+                            tracing::error!("failed to send event: {}", e);
+                            panic!("internal error: failed to send event")
+                        });
                 }
                 Err(e) => println!("watch error: {:?}", e),
             })?;
