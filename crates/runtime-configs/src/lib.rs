@@ -27,13 +27,15 @@ pub struct Configs {
 #[derive(Clone)]
 pub struct ConfigsState {
     pub resource_map: Option<ResourceMap>,
+    pub config_type: String,
     pub config_toml_file_path: String,
 }
 
 impl ConfigsState {
-    pub fn new(resource_map: ResourceMap, config_toml_file_path: &str) -> Self {
+    pub fn new(resource_map: ResourceMap, config_type: &str, config_toml_file_path: &str) -> Self {
         Self {
             resource_map: Some(resource_map),
+            config_type: config_type.to_string(),
             config_toml_file_path: config_toml_file_path.to_string(),
         }
     }
@@ -56,8 +58,8 @@ pub enum ConfigType {
 impl From<ConfigType> for String {
     fn from(from_ct: ConfigType) -> Self {
         match from_ct {
-            ConfigType::UserSecrets => "usersecrets".to_string(),
-            ConfigType::EnvVars => "envvars".to_string(),
+            ConfigType::UserSecrets => "usersecrets_configs".to_string(),
+            ConfigType::EnvVars => "envvars_configs".to_string(),
         }
     }
 }
@@ -65,8 +67,8 @@ impl From<ConfigType> for String {
 impl Into<ConfigType> for &str {
     fn into(self) -> ConfigType {
         match self {
-            "usersecrets" => ConfigType::UserSecrets,
-            "envvars" => ConfigType::EnvVars,
+            "usersecrets_configs" => ConfigType::UserSecrets,
+            "envvars_configs" => ConfigType::EnvVars,
             _ => {
                 panic!("failed to match config name to any known service implementations")
             }
@@ -86,9 +88,16 @@ impl configs::Configs for Configs {
     type Configs = String;
 
     // opens our config store dependant on the provided type
-    fn configs_open(&mut self, name: &str) -> Result<Self::Configs, configs::Error> {
+    fn configs_open(&mut self) -> Result<Self::Configs, configs::Error> {
         // set global config type
-        self.inner = Some(Arc::new(name.into()));
+        self.inner = Some(Arc::new(
+            self.host_state
+                .as_ref()
+                .unwrap()
+                .config_type
+                .as_str()
+                .into(),
+        ));
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone(); // have to clone here because of the mutable borrow below
         let mut map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;

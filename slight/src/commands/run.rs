@@ -74,17 +74,17 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                     bail!("the ckpubsub capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CK_SECURITY_PROTOCOL, CK_SASL_MECHANISMS, CK_SASL_USERNAME, CK_SASL_PASSWORD, and CK_GROUP_ID.")
                 }
             },
-            "configs" => {
+            "usersecrets_configs" | "envvars_configs" => {
                 host_builder.link_capability::<Configs>(
-                    resource_type.to_string(),
-                    ConfigsState::new(resource_map.clone(), toml_file_path),
+                    "configs".to_string(),
+                    ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
                 )?;
                 guest_builder.link_capability::<Configs>(
-                    resource_type.to_string(),
-                    ConfigsState::new(resource_map.clone(), toml_file_path),
+                    "configs".to_string(),
+                    ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
                 )?;
             }
-            _ => bail!("invalid url: currently slight only supports 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
+            _ => bail!("invalid url: currently slight only supports 'usersecrets_configs', 'envvars_configs', 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
         }
     } else {
