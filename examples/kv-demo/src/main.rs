@@ -10,11 +10,11 @@ wit_bindgen_rust::import!("../../wit/events.wit");
 wit_bindgen_rust::export!("../../wit/event-handler.wit");
 
 fn main() -> Result<()> {
-    // application devleoper does not need to know the host implementation details.
+    // application developer does not need to know the host implementation details.
 
     let kv1 = Kv::open("my-container")?;
     let kv2 = Kv::open("my-container2")?;
-    let value = "spiderlightning".as_bytes();
+    let value = b"spiderlightning";
     kv1.set("key", value)?;
     kv2.set("key", value)?;
     println!(
@@ -30,7 +30,7 @@ fn main() -> Result<()> {
     let ob1 = kv1.watch("my-key")?;
     let ob2 = kv1.watch("my-key2")?;
     let events = events::Events::get()?;
-    // TODO (mosssaka): I had to construct a copy of Observable because wit_bindgen generates two
+    // TODO (mossaka): I had to construct a copy of Observable because wit_bindgen generates two
     // observables in different mods: events::Observable vs. kv::Observable.
     events
         .listen(events::Observable {
