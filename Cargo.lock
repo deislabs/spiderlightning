@@ -1247,6 +1247,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "http-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "crossbeam-utils",
+ "events-api",
+ "futures",
+ "hyper",
+ "routerify",
+ "runtime",
+ "tokio",
+ "url",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
 name = "http-body"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1255,6 +1277,15 @@ dependencies = [
  "bytes",
  "http",
  "pin-project-lite",
+]
+
+[[package]]
+name = "http-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-rust",
+ "wit-error-rs",
 ]
 
 [[package]]
@@ -2483,6 +2514,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "routerify"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "496c1d3718081c45ba9c31fbfc07417900aa96f4070ff90dc29961836b7a9945"
+dependencies = [
+ "http",
+ "hyper",
+ "lazy_static",
+ "percent-encoding",
+ "regex",
+]
+
+[[package]]
 name = "runtime"
 version = "0.1.0"
 dependencies = [
@@ -2766,6 +2810,7 @@ dependencies = [
  "env_logger",
  "events",
  "events-api",
+ "http-api",
  "kv",
  "lockd-etcd",
  "log",

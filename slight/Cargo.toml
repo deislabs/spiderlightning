@@ -19,6 +19,7 @@ pubsub-confluent-kafka = { path = "../crates/pubsub-confluent-kafka" }
 runtime-configs = { path = "../crates/runtime-configs" }
 events = { path = "../crates/events" }
 events-api = { path = "../crates/events-api" }
+http-api = { path = "../crates/http-api" }
 anyhow = "1.0"
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }

@@ -1,0 +1,26 @@
+[package]
+name = "http-api"
+version = "0.1.0"
+edition = "2021"
+authors = ["DeisLabs Engineering Team"]
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wasmtime = "0.35"
+wasmtime-wasi = "0.35"
+wasi-common = "0.35"
+wasi-cap-std-sync = "0.35"
+anyhow = "1.0"
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+runtime = { path = "../runtime" }
+url = "2.2"
+wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
+routerify = "3.0.0"
+crossbeam-utils = "0.8"
+crossbeam-channel = "0.5.5"
+events-api = { path = "../events-api" }
+hyper = "0.14.20"
+futures = "0.3.21"
+tokio = { version = "1.18.2", features = ["full"] }

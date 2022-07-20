@@ -24,10 +24,11 @@ members = [
     "crates/kv",
     "crates/mq-filesystem",
     "crates/mq-azure-servicebus",
+    "crates/http-api",
     "crates/lockd-etcd",
     "crates/pubsub-confluent-kafka",
     "crates/runtime",
-    "crates/events/",
+    "crates/events",
     "crates/events-api",
     "crates/runtime-configs",
     "examples/kv-demo",
@@ -38,5 +39,6 @@ members = [
     "examples/pubsub-consumer-demo",
     "examples/pubsub-producer-demo",
     "examples/watch-demo",
-    "examples/configs-demo"
+    "examples/configs-demo",
+    "examples/http-demo",
 ]

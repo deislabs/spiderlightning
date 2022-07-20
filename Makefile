@@ -51,6 +51,7 @@ build-rust:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/lockd-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-producer-demo/Cargo.toml
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-consumer-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-demo/Cargo.toml
 
 .PHONY: run-rust
 run-rust:
@@ -69,6 +70,8 @@ run-rust:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-consumer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm &
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-producer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/http-demp/wc.toml' run -m ./target/wasm32-wasi/release/http-demo.wasm
+
 ### END OF RUST EXAMPLES
 
 ### C EXAMPLES

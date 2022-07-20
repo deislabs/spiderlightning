@@ -1,0 +1,22 @@
+use { uri } from http-types
+use { error } from types
+
+resource router {
+	// create a new HTTP router
+	static new: function() -> expected<router, error>
+
+    // create a new HTTP router
+	static new-with-base: function(base: uri) -> expected<router, error>
+
+	// register a HTTP GET route
+	get: function(route: string, handler: string) -> expected<router, error>
+
+	// put:
+	// post:
+	// delete:
+}
+
+resource server {
+    static serve: function(address: string, router: router) -> expected<server, error> // non-blocking
+    stop: function() -> expected<unit, error>
+}

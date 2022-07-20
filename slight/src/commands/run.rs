@@ -7,19 +7,22 @@ use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
 use pubsub_confluent_kafka::PubSubConfluentKafka;
+use http_api::HttpApi;
 use runtime::{
     resource::{BasicState, StateTable},
     Builder,
 };
 use runtime_configs::{Configs, ConfigsState};
 use std::sync::{Arc, Mutex};
+use wit_bindgen_wasmtime::wasmtime::Store;
+use runtime::resource::{Ctx, Resource};
 
 use spiderlightning::core::slightfile::TomlFile;
 
 const KV_HOST_IMPLEMENTORS: [&str; 2] = ["kv.filesystem", "kv.azblob"];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 2] = ["configs.usersecrets", "configs.envvars"];
 
-pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
+pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
     tracing::info!("Starting slight");
 
     let resource_map = Arc::new(Mutex::new(StateTable::default()));
@@ -29,6 +32,7 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
     host_builder.link_wasi()?;
     guest_builder.link_wasi()?;
     let mut events_enabled = false;
+    let mut http_enabled = false;
     if toml.specversion.as_ref().unwrap() == "0.1" {
         for c in toml.capability.as_ref().unwrap() {
             let resource_type: &str = c.name.as_str();
@@ -83,6 +87,11 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                     "configs".to_string(),
                     ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
                 )?;
+            },
+            "http-api" => {
+                http_enabled = true;
+                host_builder.link_capability::<HttpApi>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<HttpApi>(resource_type.to_string(), resource_map.clone())?;
             }
             _ => bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', and 'pubsub.confluent_kafka' schemes"),
         }
@@ -95,16 +104,8 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
     let (_, mut store2, instance2) = guest_builder.build(module)?;
     if events_enabled {
         let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;
-        store
-            .data_mut()
-            .data
-            .get_mut("events")
-            .expect("internal error: resource_map does not contain key events")
-            .0
-            .as_mut()
-            .downcast_mut::<Events>()
-            .expect("internal error: resource map contains key events but can't downcast to Events")
-            .update_state(
+        let event_handler_resource: &mut Events = get_resource(&mut store, "events");
+        event_handler_resource.update_state(
                 Arc::new(Mutex::new(store2)),
                 Arc::new(Mutex::new(event_handler)),
             )?;
@@ -113,5 +114,30 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
     instance
         .get_typed_func::<(), _, _>(&mut store, "_start")?
         .call(&mut store, ())?;
+
+    if http_enabled {
+        shutdown_signal().await;
+        let http_api_resource: &mut HttpApi = get_resource(&mut store, "http-api");
+        let _ = http_api_resource.close();
+    }
     Ok(())
+}
+
+fn get_resource<'a, T>(store: &'a mut Store<Ctx>, scheme_name: &'a str) -> &'a mut T where T: Resource {
+    store
+        .data_mut()
+        .data
+        .get_mut(scheme_name)
+        .expect("internal error: resource_map does not contain key events")
+        .0
+        .as_mut()
+        .downcast_mut::<T>()
+        .expect("internal error: resource map contains key events but can't downcast")
+}
+
+async fn shutdown_signal() {
+    // Wait for the CTRL+C signal
+    tokio::signal::ctrl_c()
+        .await
+        .expect("failed to install CTRL+C signal handler");
 }
