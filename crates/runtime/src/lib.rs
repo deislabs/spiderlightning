@@ -60,6 +60,7 @@ impl Builder {
         config: ResourceConfig,
         state: T::State,
     ) -> Result<&mut Self> {
+        tracing::log::info!("Adding capability: {}", &config);
         self.store
             .data_mut()
             .data
