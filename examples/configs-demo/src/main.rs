@@ -5,12 +5,6 @@ wit_bindgen_rust::import!("../../wit/configs.wit");
 wit_error_rs::impl_error!(Error);
 
 fn main() -> Result<()> {
-    // below is how to interact w/ envvars configs
-    // let ev_configs = Configs::open()?;
-    // ev_configs.set("THIS_IS_A_TEST_CONFIG", "Hello, World!".as_bytes())?;
-    // dbg!(String::from_utf8(ev_configs.get("THIS_IS_A_TEST_CONFIG")?)?);
-    // ^^^ these configs are transient
-
     let ptr = Box::into_raw(Box::new(123));
     // ^^^ getting a random number to differentiate non-transient configs created below
 

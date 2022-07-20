@@ -49,7 +49,7 @@ impl_resource!(
 );
 
 // Currently supported configuration types
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug, Copy)]
 pub enum ConfigType {
     EnvVars,
     UserSecrets, // user creates configs at compile time that are encrypted and stored in the toml file

@@ -8,6 +8,6 @@ pub fn handle_secret(
     toml: &mut TomlFile,
     toml_file: &mut File,
 ) -> Result<()> {
-    toml.secret_store = Some("usersecrets".to_string());
+    toml.secret_store = Some("usersecrets_configs".to_string());
     create_secret(key, value, toml, toml_file)
 }
