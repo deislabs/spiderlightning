@@ -5,7 +5,6 @@ edition = "2021"
 authors = ["DeisLabs Engineering Team"]
 
 [lib]
-test = false
 doctest = false
 
 [dependencies]
@@ -14,10 +13,10 @@ serde = { version = "1", features = ["derive"] }
 short-crypt = "1"
 rand = "0.8"
 toml = "0.5"
+tempdir = "0.3"
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
-temp-dir = "0.1"
 
 [workspace]
 members = [

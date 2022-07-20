@@ -57,3 +57,21 @@ pub fn set(key: &str, value: &[u8], toml_file_path: &str) -> Result<()> {
     let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
     create_secret(key, std::str::from_utf8(value)?, &mut toml, &mut toml_file)
 }
+
+#[cfg(test)]
+mod unittests {
+    use anyhow::Result;
+    use tempdir::TempDir;
+
+    use super::{get, set};
+
+    #[test]
+    fn set_then_get_test() -> Result<()> {
+        let dir = TempDir::new("tmp")?;
+        let file_path = dir.path().join("slightfile.toml");
+        let toml_file_path = file_path.to_str().unwrap();
+        set("key", "value".as_bytes(), toml_file_path)?;
+        assert!(get("key", toml_file_path).is_ok());
+        Ok(())
+    }
+}

@@ -88,3 +88,32 @@ pub fn maybe_set_key() -> Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod unittests {
+    use std::fs::OpenOptions;
+
+    use anyhow::Result;
+    use tempdir::TempDir;
+
+    use super::create_secret;
+    use crate::core::slightfile::TomlFile;
+
+    #[test]
+    fn create_secret_test() -> Result<()> {
+        let dir = TempDir::new("tmp")?;
+        let file_path = dir.path().join("slightfile.toml");
+        let toml_file_path = file_path.to_str().unwrap();
+
+        let mut tmp_toml = toml::from_str::<TomlFile>("")?;
+        let mut toml_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&toml_file_path)?;
+
+        assert!(create_secret("key", "value", &mut tmp_toml, &mut toml_file).is_ok());
+
+        Ok(())
+    }
+}
