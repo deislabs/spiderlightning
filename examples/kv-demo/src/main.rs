@@ -7,7 +7,7 @@ wit_error_rs::impl_error!(Error);
 fn main() -> Result<()> {
     let kv1 = Kv::open("my-container")?;
     let kv2 = Kv::open("my-container2")?;
-    let value = "spiderlightning".as_bytes();
+    let value = b"spiderlightning";
     kv1.set("key", value)?;
     kv2.set("key", value)?;
     println!(

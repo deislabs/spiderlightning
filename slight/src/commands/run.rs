@@ -18,6 +18,12 @@ use std::sync::{Arc, Mutex};
 use spiderlightning::core::slightfile::TomlFile;
 
 pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
+    tracing::info!("Starting slight");
+
     let resource_map = Arc::new(Mutex::new(Map::default()));
 
     let mut host_builder = Builder::new_default()?;
@@ -109,6 +115,7 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                 Arc::new(Mutex::new(event_handler)),
             )?;
     }
+    tracing::info!("Executing {}", module);
     instance
         .get_typed_func::<(), _, _>(&mut store, "_start")?
         .call(&mut store, ())?;

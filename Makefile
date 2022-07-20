@@ -1,6 +1,9 @@
 INSTALL_DIR_PREFIX ?= /usr/local
 SLIGHT ?= ./target/release/slight
 
+# If you want to see individual crate's trace, please use LOG_LEVEL=<crate_name>=trace
+# Example: LOG_LEVEL=runtime=trace
+LOG_LEVEL ?= slight=trace
 
 .PHONY: build
 build:
@@ -27,36 +30,23 @@ check:
 
 .PHONY: run
 run:
-	### running multi capability example
-	$(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/multi_capability-demo.wasm
-	### running filekv example
-	$(SLIGHT) -c './examples/kv-demo/filekv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
-	### running azblobkv example
-	$(SLIGHT) -c './examples/kv-demo/azblobkv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
-	### running watch example
-	$(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/watch-demo.wasm & 
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/multi_capability-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/filekv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/azblobkv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/watch-demo.wasm & 
 	python ./examples/watch-demo/simulate.py
-	### running configs example
-	$(SLIGHT) -c './examples/configs-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
-	### running filemq example
-	$(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
-	$(SLIGHT) -c './examples/mq-receiver-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
-	### running azsbusmq example
-	$(SLIGHT) -c './examples/mq-sender-demo/azsbusmq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
-	$(SLIGHT) -c './examples/mq-receiver-demo/azsbusmq.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
-	### running etcdlockd example
-	$(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm &
-	$(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm
-	### running ckpubsub example
-	$(SLIGHT) -c './examples/pubsub-consumer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm &
-	$(SLIGHT) -c './examples/pubsub-producer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/azsbusmq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/azsbusmq.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-consumer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-producer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm
 
 run-c:
-	### running c example
-	$(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/kv-mq-demo-clang/slightfile.toml' run -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/kv-mq-demo-clang/slightfile.toml' run -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm
 
 install:
 	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin
-
-feat-run:
-	$(SLIGHT) -c './examples/configs-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
