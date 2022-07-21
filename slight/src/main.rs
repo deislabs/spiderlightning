@@ -35,6 +35,10 @@ enum Commands {
 /// The entry point for wasi-cloud CLI
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt()
+        .with_writer(std::io::stderr)
+        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .init();
     let args = Args::parse();
     let toml_file_path = args.config;
     let mut toml_file = OpenOptions::new()
