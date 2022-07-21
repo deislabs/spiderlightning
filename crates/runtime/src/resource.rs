@@ -24,6 +24,24 @@ pub type GuestState = EventHandlerData;
 #[derive(Default)]
 pub struct Map(HashMap<String, DataT>);
 
+/// A convenient Struct for the most basic state a resource can have
+#[derive(Clone)]
+pub struct BasicState {
+    pub resource_map: Option<ResourceMap>,
+    pub secret_store: String,
+    pub config_toml_file_path: String,
+}
+
+impl BasicState {
+    pub fn new(resource_map: ResourceMap, secret_store: &str, config_toml_file_path: &str) -> Self {
+        Self {
+            resource_map: Some(resource_map),
+            secret_store: secret_store.to_string(),
+            config_toml_file_path: config_toml_file_path.to_string(),
+        }
+    }
+}
+
 impl Map {
     /// A convinience function for grabbing a lock provided a map
     pub fn lock(wrapped_map: &mut Option<Arc<Mutex<Map>>>) -> Result<MutexGuard<Map>> {

@@ -8,7 +8,7 @@ use proc_macro_utils::Resource;
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+        get_table, BasicState, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource,
     },
 };
 
@@ -22,6 +22,7 @@ pub mod azure;
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "azsbusmq";
 
@@ -29,13 +30,13 @@ const SCHEME_NAME: &str = "azsbusmq";
 #[derive(Default, Clone, Resource)]
 pub struct MqAzureServiceBus {
     inner: Option<Arc<Mutex<Client>>>,
-    host_state: Option<ResourceMap>,
+    host_state: Option<BasicState>,
 }
 
 impl_resource!(
     MqAzureServiceBus,
     mq::MqTables<MqAzureServiceBus>,
-    ResourceMap,
+    BasicState,
     SCHEME_NAME.to_string()
 );
 
@@ -72,14 +73,21 @@ impl mq::Mq for MqAzureServiceBus {
     /// Construct a new `MqAzureServiceBus` instance provided a queue name.
     fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
         let queue_name = name;
-        let service_bus_namespace = std::env::var("AZURE_SERVICE_BUS_NAMESPACE")
-            .with_context(|| "failed to read AZURE_SERVICE_BUS_NAMESPACE environment variable")?;
-        // get environment var AZURE_POLICY_NAME
-        let policy_name = std::env::var("AZURE_POLICY_NAME")
-            .with_context(|| "failed to read AZURE_POLICY_NAME environment variable")?;
-        // get environment var AZURE_POLICY_KEY
-        let policy_key = std::env::var("AZURE_POLICY_KEY")
-            .with_context(|| "failed to read AZURE_POLICY_KEY environment variable")?;
+        let service_bus_namespace = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.as_ref().unwrap().secret_store,
+            "AZURE_SERVICE_BUS_NAMESPACE",
+            &self.host_state.as_ref().unwrap().config_toml_file_path,
+        )?)?;
+        let policy_name = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.as_ref().unwrap().secret_store,
+            "AZURE_POLICY_NAME",
+            &self.host_state.as_ref().unwrap().config_toml_file_path,
+        )?)?;
+        let policy_key = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.as_ref().unwrap().secret_store,
+            "AZURE_POLICY_KEY",
+            &self.host_state.as_ref().unwrap().config_toml_file_path,
+        )?)?;
 
         let mq_azure_serivcebus = MqAzureServiceBus::new(
             &service_bus_namespace,
@@ -91,7 +99,7 @@ impl mq::Mq for MqAzureServiceBus {
 
         let rd = Uuid::new_v4().to_string();
         let cloned = self.clone();
-        let mut map = Map::lock(&mut self.host_state)?;
+        let mut map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         map.set(rd.clone(), (Box::new(cloned), None));
         Ok(rd)
     }
@@ -101,7 +109,7 @@ impl mq::Mq for MqAzureServiceBus {
         Uuid::parse_str(self_)
             .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.host_state)?;
+        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
 
         block_on(azure::send(
@@ -119,7 +127,7 @@ impl mq::Mq for MqAzureServiceBus {
         Uuid::parse_str(self_)
             .with_context(|| "internal error: failed to parse internal handle to this resource")?;
 
-        let map = Map::lock(&mut self.host_state)?;
+        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
 
         let result = block_on(azure::receive(&mut inner.lock().unwrap()))
