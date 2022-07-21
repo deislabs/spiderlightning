@@ -22,4 +22,10 @@ mod unittests {
         assert!(get("key").is_ok());
         Ok(())
     }
+
+    #[test]
+    fn check_path_env_var_test() -> Result<()> {
+        assert!(!get("PATH")?.is_empty());
+        Ok(())
+    }
 }
