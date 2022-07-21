@@ -8,7 +8,7 @@ use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
         Watch,
     },
 };
@@ -20,21 +20,22 @@ use kv::*;
 pub mod azure;
 
 wit_bindgen_wasmtime::export!("../../wit/kv.wit");
-wit_error_rs::impl_error!(Error);
-wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_error!(kv::Error);
+wit_error_rs::impl_from!(anyhow::Error, kv::Error::ErrorWithDescription);
+wit_error_rs::impl_from!(std::string::FromUtf8Error, kv::Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "azblobkv";
 
 /// A Azure Blob Storage implementation for the kv interface
 #[derive(Default, Clone, Resource)]
 pub struct KvAzureBlob {
-    host_state: ResourceMap,
+    host_state: BasicState,
 }
 
 impl_resource!(
     KvAzureBlob,
     kv::KvTables<KvAzureBlob>,
-    ResourceMap,
+    BasicState,
     SCHEME_NAME.to_string()
 );
 
@@ -70,11 +71,17 @@ impl KvAzureBlobInner {
 impl kv::Kv for KvAzureBlob {
     type Kv = KvAzureBlobInner;
     /// Construct a new `KvAzureBlob` from a container name. For example, a container name could be "my-container"
-    fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
-        let storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT")
-            .with_context(|| "failed to read AZURE_STORAGE_ACCOUNT environment variable")?;
-        let storage_account_key = std::env::var("AZURE_STORAGE_KEY")
-            .with_context(|| "failed to read AZURE_STORAGE_KEY environment variable")?;
+    fn kv_open(&mut self, name: &str) -> Result<Self::Kv, kv::Error> {
+        let storage_account_name = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "AZURE_STORAGE_ACCOUNT",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let storage_account_key = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "AZURE_STORAGE_KEY",
+            &self.host_state.config_toml_file_path,
+        )?)?;
 
         let rd = Uuid::new_v4().to_string();
         let kv_azure_blob_guest = KvAzureBlobInner::new(
@@ -85,6 +92,7 @@ impl kv::Kv for KvAzureBlob {
         );
 
         self.host_state
+            .resource_map
             .lock()
             .unwrap()
             .set(rd, Box::new(kv_azure_blob_guest.clone()));
@@ -108,10 +116,11 @@ impl kv::Kv for KvAzureBlob {
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
         let inner = self_.container_client.as_ref().unwrap();
+
         let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
         block_on(azure::set(blob_client, value))
-            .with_context(|| format!("failed to set value for key {}", key))?;
+            .with_context(|| format!("failed to set value for key '{}'", key))?;
         Ok(())
     }
 

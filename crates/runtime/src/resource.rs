@@ -31,6 +31,23 @@ pub type Ctx = RuntimeContext<HostState>;
 /// TODO (Joe): abstract this to a general guest data
 pub type GuestData = EventHandlerData;
 
+/// A convenient Struct for the most basic state a resource can have
+#[derive(Clone, Default)]
+pub struct BasicState {
+    pub resource_map: ResourceMap,
+    pub secret_store: String,
+    pub config_toml_file_path: String,
+}
+
+impl BasicState {
+    pub fn new(resource_map: ResourceMap, secret_store: &str, config_toml_file_path: &str) -> Self {
+        Self {
+            resource_map: resource_map,
+            secret_store: secret_store.to_string(),
+            config_toml_file_path: config_toml_file_path.to_string(),
+        }
+    }
+}
 /// A state table that is indexed by each resource unique identifier.
 /// The state table stores each resource inner of type WatchState.
 #[derive(Default)]

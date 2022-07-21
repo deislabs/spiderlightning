@@ -7,6 +7,8 @@ use lockd::*;
 wit_bindgen_wasmtime::export!("../../wit/lockd.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
+
 use anyhow::{Context, Result};
 use crossbeam_channel::Sender;
 use etcd_client::Client;
@@ -16,7 +18,7 @@ use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
         Watch,
     },
 };
@@ -29,13 +31,13 @@ const SCHEME_NAME: &str = "etcdlockd";
 /// An etcd implementation for the lockd (i.e., distributed locking) Interface
 #[derive(Default, Clone, Resource)]
 pub struct LockdEtcd {
-    host_state: ResourceMap,
+    host_state: BasicState,
 }
 
 impl_resource!(
     LockdEtcd,
     lockd::LockdTables<LockdEtcd>,
-    ResourceMap,
+    BasicState,
     SCHEME_NAME.to_string()
 );
 
@@ -67,12 +69,16 @@ impl lockd::Lockd for LockdEtcd {
     type Lockd = LockdEtcdInner;
     /// Construct a new `LockdEtcd` instance
     fn lockd_open(&mut self) -> Result<Self::Lockd, Error> {
-        let endpoint = std::env::var("ETCD_ENDPOINT")
-            .with_context(|| "failed to read ETCD_ENDPOINT environment variable")?;
+        let endpoint = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "ETCD_ENDPOINT",
+            &self.host_state.config_toml_file_path,
+        )?)?;
         let etcd_lockd_guest = Self::Lockd::new(&endpoint);
 
         let rd = Uuid::new_v4().to_string();
         self.host_state
+            .resource_map
             .lock()
             .unwrap()
             .set(rd, Box::new(etcd_lockd_guest.clone()));

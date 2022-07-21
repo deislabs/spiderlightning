@@ -6,7 +6,7 @@ use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
         Watch,
     },
 };
@@ -23,19 +23,20 @@ pub mod azure;
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
 
 const SCHEME_NAME: &str = "azsbusmq";
 
 /// A Azure ServiceBus Message Queue service implementation for the mq interface
 #[derive(Default, Clone, Resource)]
 pub struct MqAzureServiceBus {
-    host_state: ResourceMap,
+    host_state: BasicState,
 }
 
 impl_resource!(
     MqAzureServiceBus,
     mq::MqTables<MqAzureServiceBus>,
-    ResourceMap,
+    BasicState,
     SCHEME_NAME.to_string()
 );
 
@@ -81,14 +82,21 @@ impl mq::Mq for MqAzureServiceBus {
     /// Construct a new `MqAzureServiceBus` instance provided a queue name.
     fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
         let queue_name = name;
-        let service_bus_namespace = std::env::var("AZURE_SERVICE_BUS_NAMESPACE")
-            .with_context(|| "failed to read AZURE_SERVICE_BUS_NAMESPACE environment variable")?;
-        // get environment var AZURE_POLICY_NAME
-        let policy_name = std::env::var("AZURE_POLICY_NAME")
-            .with_context(|| "failed to read AZURE_POLICY_NAME environment variable")?;
-        // get environment var AZURE_POLICY_KEY
-        let policy_key = std::env::var("AZURE_POLICY_KEY")
-            .with_context(|| "failed to read AZURE_POLICY_KEY environment variable")?;
+        let service_bus_namespace = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "AZURE_SERVICE_BUS_NAMESPACE",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let policy_name = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "AZURE_POLICY_NAME",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let policy_key = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "AZURE_POLICY_KEY",
+            &self.host_state.config_toml_file_path,
+        )?)?;
 
         let mq_azure_serivcebus_guest = Self::Mq::new(
             &service_bus_namespace,
@@ -99,6 +107,7 @@ impl mq::Mq for MqAzureServiceBus {
 
         let rd = Uuid::new_v4().to_string();
         self.host_state
+            .resource_map
             .lock()
             .unwrap()
             .set(rd, Box::new(mq_azure_serivcebus_guest.clone()));

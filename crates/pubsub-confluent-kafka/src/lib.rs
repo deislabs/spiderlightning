@@ -1,5 +1,3 @@
-use std::env;
-
 use anyhow::{Context, Result};
 use events_api::Event;
 use proc_macro_utils::{Resource, Watch};
@@ -7,7 +5,7 @@ use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
         Watch,
     },
 };
@@ -18,6 +16,7 @@ use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/pubsub.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
 use crossbeam_channel::Sender;
 use std::sync::{Arc, Mutex};
 
@@ -28,13 +27,13 @@ const SCHEME_NAME: &str = "ckpubsub";
 /// A Confluent Apache Kafka implementation for the pubsub interface.
 #[derive(Default, Clone, Resource)]
 pub struct PubSubConfluentKafka {
-    host_state: ResourceMap,
+    host_state: BasicState,
 }
 
 impl_resource!(
     PubSubConfluentKafka,
     pubsub::PubsubTables<PubSubConfluentKafka>,
-    ResourceMap,
+    BasicState,
     SCHEME_NAME.to_string()
 );
 
@@ -94,18 +93,37 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     type Pubsub = PubSubConfluentKafkaInner;
     /// Construct a new `PubSubConfluentKafka`
     fn pubsub_open(&mut self) -> Result<Self::Pubsub, Error> {
-        let bootstap_servers = env::var("CK_ENDPOINT")
-            .with_context(|| "failed to read CK_ENDPOINT environment variable")?;
-        let security_protocol = env::var("CK_SECURITY_PROTOCOL")
-            .with_context(|| "failed to read CK_SECURITY_PROTOCOL environment variable")?;
-        let sasl_mechanisms = env::var("CK_SASL_MECHANISMS")
-            .with_context(|| "failed to read CK_SASL_MECHANISMS environment variable")?;
-        let sasl_username = env::var("CK_SASL_USERNAME")
-            .with_context(|| "failed to read CK_SASL_USERNAME environment variable")?;
-        let sasl_password = env::var("CK_SASL_PASSWORD")
-            .with_context(|| "failed to read CK_SASL_PASSWORD environment variable")?;
-        let group_id = env::var("CK_GROUP_ID")
-            .with_context(|| "failed to read CK_GROUP_ID environment variable")?;
+        let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_ENDPOINT",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let security_protocol = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_SECURITY_PROTOCOL",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let sasl_mechanisms = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_SASL_MECHANISMS",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let sasl_username = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_SASL_USERNAME",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+
+        let sasl_password = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_SASL_PASSWORD",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let group_id = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_GROUP_ID",
+            &self.host_state.config_toml_file_path,
+        )?)?;
 
         let ck_pubsub_guest = Self::Pubsub::new(
             &bootstap_servers,
@@ -118,6 +136,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
 
         let rd = Uuid::new_v4().to_string();
         self.host_state
+            .resource_map
             .lock()
             .unwrap()
             .set(rd, Box::new(ck_pubsub_guest.clone()));
