@@ -21,7 +21,7 @@ build:
 	
 .PHONY: test
 test:
-	cargo test --all --no-fail-fast -- --nocapture
+	RUST_LOG=kv=trace cargo test --all --no-fail-fast -- --nocapture
 
 .PHONY: check
 check:

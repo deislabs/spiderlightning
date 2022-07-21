@@ -1504,6 +1504,7 @@ dependencies = [
  "proc_macro_utils",
  "runtime",
  "runtime-configs",
+ "tracing",
  "uuid 1.1.2",
  "wit-bindgen-rust",
  "wit-bindgen-wasmtime",

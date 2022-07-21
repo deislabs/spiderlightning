@@ -73,6 +73,7 @@ impl kv::Kv for KvAzureBlob {
             &self.host_state.as_ref().unwrap().config_toml_file_path,
         )?)?;
 
+        tracing::info!("Opening Azure Blob Storage KV with name: {}", name);
         let kv_azure_blob = KvAzureBlob::new(&storage_account_name, &storage_account_key, name);
         self.inner = kv_azure_blob.inner;
 
@@ -92,6 +93,7 @@ impl kv::Kv for KvAzureBlob {
         let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
         let inner = map.get::<Arc<ContainerClient>>(self_)?;
         let blob_client = inner.as_blob_client(key);
+        tracing::info!("Getting blob: {}", key);
         let res = block_on(azure::get(blob_client))
             .with_context(|| format!("failed to get value for key {}", key))?;
         Ok(res)
@@ -112,6 +114,7 @@ impl kv::Kv for KvAzureBlob {
         let inner = map.get::<Arc<ContainerClient>>(self_)?;
         let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
+        tracing::info!("Setting blob: {}", key);
         block_on(azure::set(blob_client, value))
             .with_context(|| format!("failed to set value for key '{}'", key))?;
         Ok(())
@@ -127,6 +130,7 @@ impl kv::Kv for KvAzureBlob {
         let inner = map.get::<Arc<ContainerClient>>(self_)?;
 
         let blob_client = inner.as_blob_client(key);
+        tracing::info!("Deleting blob: {}", key);
         block_on(azure::delete(blob_client)).with_context(|| "failed to delete key's value")?;
         Ok(())
     }
