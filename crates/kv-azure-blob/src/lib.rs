@@ -115,8 +115,7 @@ impl kv::Kv for KvAzureBlob {
         let blob_client = inner.as_blob_client(key);
         let value = Vec::from(value);
         tracing::info!("Setting blob: {}", key);
-        block_on(azure::set(blob_client, value))
-            .with_context(|| format!("failed to set value for key '{}'", key))?;
+        block_on(azure::set(blob_client, value)).unwrap();
         Ok(())
     }
 
