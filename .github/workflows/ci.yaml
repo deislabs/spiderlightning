@@ -7,7 +7,7 @@ on:
     branches: [main]
   pull_request_target:
     types: [assigned, opened, synchronize, reopened]
-
+    branches: [main]
 env:
   CARGO_TERM_COLOR: always
 
