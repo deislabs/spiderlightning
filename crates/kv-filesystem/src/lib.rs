@@ -1,9 +1,11 @@
 use anyhow::{Context, Result};
 use events_api::{Event, EventBuilder, EventBuilderV10};
 use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
+use proc_macro_utils::Resource;
 use runtime::impl_resource;
 use runtime::resource::{
-    get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+    get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+    Watch,
 };
 use std::sync::{Arc, Mutex};
 
@@ -25,14 +27,11 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "filekv";
 
 /// A Filesystem implementation for the kv interface
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Resource)]
 pub struct KvFilesystem {
-    /// The root directory of the filesystem
-    inner: Option<String>,
     /// The host state. Currently this is a map of resource names to resource descriptors.
     /// If there are more host-specified states, they can be added here.
-    host_state: Option<ResourceMap>,
-    wathchers: Vec<Arc<Mutex<RecommendedWatcher>>>,
+    host_state: ResourceMap,
 }
 
 impl_resource!(
@@ -42,8 +41,32 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
+/// A Filesystem implementation for the kv interface
+#[derive(Default, Debug, Clone)]
+pub struct KvFileSystemInner {
+    /// The root directory of the filesystem
+    base: String,
+
+    /// A list of watchers for the filesystem
+    watchers: Vec<Arc<Mutex<RecommendedWatcher>>>,
+
+    /// resource descriptor
+    rd: String,
+}
+
+impl KvFileSystemInner {
+    /// Create a new KvFileSystemInner
+    pub fn new(base: String) -> Self {
+        Self {
+            base,
+            watchers: Vec::new(),
+            rd: Uuid::new_v4().to_string(),
+        }
+    }
+}
+
 impl kv::Kv for KvFilesystem {
-    type Kv = String;
+    type Kv = KvFileSystemInner;
     /// Contruct a new `KvFilesystem` from a folder name. This folder will be created under `/tmp`
     fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
         let path = Path::new("/tmp").join(name);
@@ -51,22 +74,18 @@ impl kv::Kv for KvFilesystem {
             .to_str()
             .with_context(|| format!("failed due to invalid path: {}", name))?
             .to_string();
-        self.inner = Some(path);
 
-        let rd = Uuid::new_v4().to_string();
-        let cloned = self.clone(); // have to clone here because of the mutable borrow below
-        let mut map = Map::lock(&mut self.host_state)?;
-        map.set(rd.clone(), (Box::new(cloned), None));
-        Ok(rd)
+        let kv_guest = Self::Kv::new(path);
+        self.host_state
+            .lock()
+            .unwrap()
+            .set(kv_guest.rd.clone(), Box::new(kv_guest.clone()));
+        Ok(kv_guest)
     }
 
     /// Output the value of a set key
     fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state)?;
-        let base = map.get::<String>(self_)?;
+        let base = &self_.base;
         fs::create_dir_all(&base)
             .with_context(|| "failed to create base directory for kv store instance")?;
         let mut file =
@@ -85,13 +104,8 @@ impl kv::Kv for KvFilesystem {
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state)?;
-        let base = map.get::<String>(self_)?;
-
-        fs::create_dir_all(&base)
+        let base = &self_.base;
+        fs::create_dir_all(base)
             .with_context(|| "failed to create base directory for kv store instance")?;
 
         let mut file =
@@ -104,37 +118,24 @@ impl kv::Kv for KvFilesystem {
 
     /// Delete a key-value pair
     fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
+        let base = &self_.base;
 
-        let map = Map::lock(&mut self.host_state)?;
-        let base = map.get::<String>(self_)?;
-
-        fs::create_dir_all(&base)
+        fs::create_dir_all(base)
             .with_context(|| "failed to create base directory for kv store instance")?;
         fs::remove_file(PathBuf::from(base).join(key))
             .with_context(|| "failed to delete key's value")?;
         Ok(())
     }
 
+    /// Watch for changes to a key-value pair
     fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
-        Ok(Observable::new(self_, key))
+        Ok(Observable::new(&self_.rd, key))
     }
 }
 
-impl Resource for KvFilesystem {
-    fn get_inner(&self) -> &dyn std::any::Any {
-        self.inner.as_ref().unwrap()
-    }
-
-    fn watch(
-        &mut self,
-        base: &str,
-        _rd: &str,
-        key: &str,
-        sender: Arc<Mutex<Sender<Event>>>,
-    ) -> Result<()> {
-        let path = path(key, base);
+impl Watch for KvFileSystemInner {
+    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
+        let path = path(key, &self.base);
         let key = key.to_string();
         let mut watcher =
             notify::recommended_watcher(move |res: Result<NotifyEvent, _>| match res {
@@ -178,7 +179,7 @@ impl Resource for KvFilesystem {
         watcher.watch(&path, RecursiveMode::Recursive)?;
         // we don't want to destruct the watcher after the function exit. We
         // want to keep the watcher alive until the resource is dropped.
-        self.wathchers.push(Arc::new(Mutex::new(watcher)));
+        self.watchers.push(Arc::new(Mutex::new(watcher)));
         Ok(())
     }
 }
