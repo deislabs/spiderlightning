@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use events::Events;
+use events::{Events, EventsState};
 use events_api::event_handler::EventHandler;
 use kv_azure_blob::KvAzureBlob;
 use kv_filesystem::KvFilesystem;
@@ -9,7 +9,7 @@ use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
 use pubsub_confluent_kafka::PubSubConfluentKafka;
 use runtime::{
-    resource::{BasicState, Map},
+    resource::{BasicState, StateTable},
     Builder,
 };
 use runtime_configs::{Configs, ConfigsState};
@@ -20,7 +20,7 @@ use spiderlightning::core::slightfile::TomlFile;
 pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
     tracing::info!("Starting slight");
 
-    let resource_map = Arc::new(Mutex::new(Map::default()));
+    let resource_map = Arc::new(Mutex::new(StateTable::default()));
 
     let mut host_builder = Builder::new_default()?;
     let mut guest_builder = Builder::new_default()?;
@@ -33,8 +33,8 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
             match resource_type {
             "events" => {
                 events_enabled = true;
-                host_builder.link_capability::<Events>(resource_type.to_string(), resource_map.clone())?;
-                guest_builder.link_capability::<Events>(resource_type.to_string(), resource_map.clone())?;
+                host_builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
+                guest_builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
             },
             "azblobkv" => {
                 if let Some(ss) = &toml.secret_store {

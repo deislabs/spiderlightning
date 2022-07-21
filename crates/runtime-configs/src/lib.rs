@@ -2,10 +2,13 @@ use anyhow::{Context, Result};
 use configs::*;
 use crossbeam_channel::Sender;
 use events_api::Event;
-use proc_macro_utils::Resource;
-use runtime::impl_resource;
-use runtime::resource::{
-    get_table, Ctx, DataT, Linker, Map, Resource, ResourceMap, ResourceTables, RuntimeResource,
+use proc_macro_utils::{Resource, Watch};
+use runtime::{
+    impl_resource,
+    resource::{
+        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+        Watch,
+    },
 };
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
@@ -20,13 +23,17 @@ const SCHEME_NAME: &str = "configs";
 // Struct Representer for wit_bindgen's Config
 #[derive(Default, Clone, Resource)]
 pub struct Configs {
-    inner: Option<Arc<ConfigType>>, // have to wrap it in Option<Arc<>> due to Resource derive proc macro
-    host_state: Option<ConfigsState>,
+    host_state: ConfigsState,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Watch, Debug)]
+pub struct ConfigsInner {
+    config_type: Arc<ConfigType>,
+}
+
+#[derive(Clone, Default)]
 pub struct ConfigsState {
-    pub resource_map: Option<ResourceMap>,
+    pub resource_map: ResourceMap,
     pub config_type: String,
     pub config_toml_file_path: String,
 }
@@ -34,7 +41,7 @@ pub struct ConfigsState {
 impl ConfigsState {
     pub fn new(resource_map: ResourceMap, config_type: &str, config_toml_file_path: &str) -> Self {
         Self {
-            resource_map: Some(resource_map),
+            resource_map: resource_map,
             config_type: config_type.to_string(),
             config_toml_file_path: config_toml_file_path.to_string(),
         }
@@ -85,37 +92,29 @@ impl Default for ConfigType {
 
 // implements wit-bindgen's Configs for our Configs struct
 impl configs::Configs for Configs {
-    type Configs = String;
+    type Configs = ConfigsInner;
 
     // opens our config store dependant on the provided type
     fn configs_open(&mut self) -> Result<Self::Configs, configs::Error> {
         // set global config type
-        self.inner = Some(Arc::new(
-            self.host_state
-                .as_ref()
-                .unwrap()
-                .config_type
-                .as_str()
-                .into(),
-        ));
+        let inner = Self::Configs {
+            config_type: Arc::new(self.host_state.config_type.as_str().into()),
+        };
         let rd = Uuid::new_v4().to_string();
-        let cloned = self.clone(); // have to clone here because of the mutable borrow below
-        let mut map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        map.set(rd.clone(), (Box::new(cloned), None));
-
-        Ok(rd)
+        self.host_state
+            .resource_map
+            .lock()
+            .unwrap()
+            .set(rd, Box::new(inner.clone()));
+        Ok(inner)
     }
 
     fn configs_get(&mut self, self_: &Self::Configs, key: &str) -> Result<Vec<u8>, configs::Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
-
-        let mut mut_host_state = self.clone().host_state.unwrap();
-        let map = Map::lock(&mut mut_host_state.resource_map)?;
-        let inner = map.get::<Arc<ConfigType>>(self_)?;
+        let inner = &self_.config_type;
         Ok(providers::get(
             &String::from(*inner.clone()),
             key,
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)
     }
 
@@ -125,16 +124,12 @@ impl configs::Configs for Configs {
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), configs::Error> {
-        Uuid::parse_str(self_).with_context(|| "failed to parse resource descriptor")?;
-
-        let mut mut_host_state = self.clone().host_state.unwrap();
-        let map = Map::lock(&mut mut_host_state.resource_map)?;
-        let inner = map.get::<Arc<ConfigType>>(self_)?;
+        let inner = &self_.config_type;
         Ok(providers::set(
             &String::from(*inner.clone()),
             key,
             value,
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)
     }
 }
