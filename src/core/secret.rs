@@ -149,24 +149,21 @@ mod unittests {
             .as_ref()
             .unwrap()
             .iter()
-            .position(|s| s.name == "foo")
-            .is_some());
+            .any(|s| s.name == "foo"));
 
         assert!(tmp_toml
             .secret_settings
             .as_ref()
             .unwrap()
             .iter()
-            .position(|s| s.name == "bar")
-            .is_some());
+            .any(|s| s.name == "bar"));
 
         assert!(tmp_toml
             .secret_settings
             .as_ref()
             .unwrap()
             .iter()
-            .position(|s| s.name == "baz")
-            .is_some());
+            .any(|s| s.name == "baz"));
 
         Ok(())
     }
