@@ -91,7 +91,7 @@ pub fn maybe_set_key() -> Result<()> {
 
 #[cfg(test)]
 mod unittests {
-    use std::fs::OpenOptions;
+    use std::{fs::OpenOptions, io::Write};
 
     use anyhow::Result;
     use tempdir::TempDir;
@@ -102,17 +102,159 @@ mod unittests {
     #[test]
     fn create_secret_test() -> Result<()> {
         let dir = TempDir::new("tmp")?;
-        let file_path = dir.path().join("slightfile.toml");
-        let toml_file_path = file_path.to_str().unwrap();
+        let toml_file_pathpuf = dir.path().join("slightfile.toml");
+        let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
         let mut tmp_toml = toml::from_str::<TomlFile>("")?;
         let mut toml_file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open(&toml_file_path)?;
+            .open(&toml_file_pathstr)?;
 
         assert!(create_secret("key", "value", &mut tmp_toml, &mut toml_file).is_ok());
+
+        Ok(())
+    }
+
+    #[test]
+    fn add_new_secret() -> Result<()> {
+        let dir = TempDir::new("tmp")?;
+        let toml_file_pathpuf = dir.path().join("slightfile.toml");
+        let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
+
+        let toml_str = r#"
+        specversion = "0.1"
+        [[secret_settings]]
+        name = "foo"
+        value = "foo_val_unencrypted"
+
+        [[secret_settings]]
+        name = "bar"
+        value = "bar_val)_unencrypted"
+        "#;
+
+        let mut tmp_toml = toml::from_str::<TomlFile>(toml_str)?;
+        let mut toml_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&toml_file_pathstr)?;
+
+        toml_file.write_all(toml::to_string(&tmp_toml)?.as_bytes())?;
+        create_secret("baz", "baz_val_encrypted", &mut tmp_toml, &mut toml_file)?;
+
+        assert!(tmp_toml
+            .secret_settings
+            .as_ref()
+            .unwrap()
+            .iter()
+            .position(|s| s.name == "foo")
+            .is_some());
+
+        assert!(tmp_toml
+            .secret_settings
+            .as_ref()
+            .unwrap()
+            .iter()
+            .position(|s| s.name == "bar")
+            .is_some());
+
+        assert!(tmp_toml
+            .secret_settings
+            .as_ref()
+            .unwrap()
+            .iter()
+            .position(|s| s.name == "baz")
+            .is_some());
+
+        Ok(())
+    }
+
+    #[test]
+    fn change_existing_secret() -> Result<()> {
+        let dir = TempDir::new("tmp")?;
+        let toml_file_pathpuf = dir.path().join("slightfile.toml");
+        let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
+
+        let toml_str = r#"
+        specversion = "0.1"
+        [[secret_settings]]
+        name = "foo"
+        value = "foo_val_unencrypted"
+        "#;
+
+        let mut tmp_toml = toml::from_str::<TomlFile>(toml_str)?;
+
+        assert_eq!(
+            tmp_toml.secret_settings.as_ref().unwrap()[0].value,
+            "foo_val_unencrypted"
+        );
+
+        let mut toml_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&toml_file_pathstr)?;
+
+        toml_file.write_all(toml::to_string(&tmp_toml)?.as_bytes())?;
+        create_secret("foo", "foo_val_encrypted", &mut tmp_toml, &mut toml_file)?;
+
+        assert_ne!(
+            tmp_toml.secret_settings.as_ref().unwrap()[0].value,
+            "foo_val_unencrypted"
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn change_duplicate_secret() -> Result<()> {
+        let dir = TempDir::new("tmp")?;
+        let toml_file_pathpuf = dir.path().join("slightfile.toml");
+        let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
+
+        let toml_str = r#"
+        specversion = "0.1"
+        [[secret_settings]]
+        name = "foo"
+        value = "foo_val_unencrypted"
+
+        [[secret_settings]]
+        name = "foo"
+        value = "duplicate_foo_val_unencrypted"
+        "#;
+
+        let mut tmp_toml = toml::from_str::<TomlFile>(toml_str)?;
+
+        assert_eq!(
+            tmp_toml.secret_settings.as_ref().unwrap()[0].value,
+            "foo_val_unencrypted"
+        );
+
+        assert_eq!(
+            tmp_toml.secret_settings.as_ref().unwrap()[1].value,
+            "duplicate_foo_val_unencrypted"
+        );
+
+        let mut toml_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&toml_file_pathstr)?;
+
+        toml_file.write_all(toml::to_string(&tmp_toml)?.as_bytes())?;
+        create_secret("foo", "foo_val_encrypted", &mut tmp_toml, &mut toml_file)?;
+
+        assert_ne!(
+            tmp_toml.secret_settings.as_ref().unwrap()[0].value,
+            "foo_val_unencrypted"
+        );
+
+        assert_eq!(
+            tmp_toml.secret_settings.as_ref().unwrap()[1].value,
+            "duplicate_foo_val_unencrypted"
+        );
 
         Ok(())
     }
