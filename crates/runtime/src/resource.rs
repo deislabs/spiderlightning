@@ -42,7 +42,7 @@ pub struct BasicState {
 impl BasicState {
     pub fn new(resource_map: ResourceMap, secret_store: &str, config_toml_file_path: &str) -> Self {
         Self {
-            resource_map: resource_map,
+            resource_map,
             secret_store: secret_store.to_string(),
             config_toml_file_path: config_toml_file_path.to_string(),
         }

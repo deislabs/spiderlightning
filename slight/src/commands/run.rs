@@ -38,8 +38,8 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
             },
             "azblobkv" => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), &ss, toml_file_path))?;
-                    guest_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), &ss, toml_file_path))?;
+                    host_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    guest_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
                 } else {
                     bail!("the azblobkv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
                 }
@@ -54,24 +54,24 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
             },
             "azsbusmq" => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), BasicState::new(resource_map.clone(), &ss, toml_file_path))?;
-                    guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), BasicState::new(resource_map.clone(), &ss, toml_file_path))?;
+                    host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
                 } else {
                     bail!("the azsbusmq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
                 }
             },
             "etcdlockd" => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), &ss, toml_file_path))?;
-                    guest_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), &ss, toml_file_path))?;
+                    host_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    guest_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
                 } else {
                     bail!("the etcdlockd capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the ETCD_ENDPOINT.")
                 }
             },
             "ckpubsub" => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), BasicState::new(resource_map.clone(), &ss, toml_file_path))?;
-                    guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), BasicState::new(resource_map.clone(), &ss, toml_file_path))?;
+                    host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
                 } else {
                     bail!("the ckpubsub capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CK_SECURITY_PROTOCOL, CK_SASL_MECHANISMS, CK_SASL_USERNAME, CK_SASL_PASSWORD, and CK_GROUP_ID.")
                 }

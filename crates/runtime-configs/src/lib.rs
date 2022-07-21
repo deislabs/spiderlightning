@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Result};
 use configs::*;
 use crossbeam_channel::Sender;
 use events_api::Event;
@@ -41,7 +41,7 @@ pub struct ConfigsState {
 impl ConfigsState {
     pub fn new(resource_map: ResourceMap, config_type: &str, config_toml_file_path: &str) -> Self {
         Self {
-            resource_map: resource_map,
+            resource_map,
             config_type: config_type.to_string(),
             config_toml_file_path: config_toml_file_path.to_string(),
         }
