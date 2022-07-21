@@ -1,13 +1,15 @@
 use anyhow::{Context, Result};
 use events_api::Event;
-use proc_macro_utils::Resource;
+use proc_macro_utils::{Resource, Watch};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, BasicState, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource,
+        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
+        Watch,
     },
 };
+use std::fmt::Debug;
 
 use pubsub::*;
 use uuid::Uuid;
@@ -25,8 +27,7 @@ const SCHEME_NAME: &str = "ckpubsub";
 /// A Confluent Apache Kafka implementation for the pubsub interface.
 #[derive(Default, Clone, Resource)]
 pub struct PubSubConfluentKafka {
-    inner: Option<(Arc<BaseProducer>, Arc<BaseConsumer>)>,
-    host_state: Option<BasicState>,
+    host_state: BasicState,
 }
 
 impl_resource!(
@@ -36,7 +37,19 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
-impl PubSubConfluentKafka {
+#[derive(Clone, Watch)]
+pub struct PubSubConfluentKafkaInner {
+    producer: Arc<BaseProducer>,
+    consumer: Arc<BaseConsumer>,
+}
+
+impl Debug for PubSubConfluentKafkaInner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "PubSubConfluentKafkaInner")
+    }
+}
+
+impl PubSubConfluentKafkaInner {
     /// Create a new `PubSubConfluentKafka`
     pub fn new(
         bootstap_servers: &str,
@@ -70,49 +83,49 @@ impl PubSubConfluentKafka {
             .unwrap(); // panic if we fail to create client
 
         Self {
-            inner: Some((Arc::new(producer), Arc::new(consumer))),
-            host_state: None,
+            producer: Arc::new(producer),
+            consumer: Arc::new(consumer),
         }
     }
 }
 
 impl pubsub::Pubsub for PubSubConfluentKafka {
-    type Pubsub = String;
+    type Pubsub = PubSubConfluentKafkaInner;
     /// Construct a new `PubSubConfluentKafka`
     fn pubsub_open(&mut self) -> Result<Self::Pubsub, Error> {
         let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
-            &self.host_state.as_ref().unwrap().secret_store,
+            &self.host_state.secret_store,
             "CK_ENDPOINT",
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)?;
         let security_protocol = String::from_utf8(runtime_configs::providers::get(
-            &self.host_state.as_ref().unwrap().secret_store,
+            &self.host_state.secret_store,
             "CK_SECURITY_PROTOCOL",
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)?;
         let sasl_mechanisms = String::from_utf8(runtime_configs::providers::get(
-            &self.host_state.as_ref().unwrap().secret_store,
+            &self.host_state.secret_store,
             "CK_SASL_MECHANISMS",
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)?;
         let sasl_username = String::from_utf8(runtime_configs::providers::get(
-            &self.host_state.as_ref().unwrap().secret_store,
+            &self.host_state.secret_store,
             "CK_SASL_USERNAME",
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)?;
 
         let sasl_password = String::from_utf8(runtime_configs::providers::get(
-            &self.host_state.as_ref().unwrap().secret_store,
+            &self.host_state.secret_store,
             "CK_SASL_PASSWORD",
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)?;
         let group_id = String::from_utf8(runtime_configs::providers::get(
-            &self.host_state.as_ref().unwrap().secret_store,
+            &self.host_state.secret_store,
             "CK_GROUP_ID",
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)?;
 
-        let ck_pubsub = Self::new(
+        let ck_pubsub_guest = Self::Pubsub::new(
             &bootstap_servers,
             &security_protocol,
             &sasl_mechanisms,
@@ -120,13 +133,14 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             &sasl_password,
             &group_id,
         );
-        self.inner = ck_pubsub.inner;
 
         let rd = Uuid::new_v4().to_string();
-        let cloned = self.clone();
-        let mut map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        map.set(rd.clone(), (Box::new(cloned), None));
-        Ok(rd)
+        self.host_state
+            .resource_map
+            .lock()
+            .unwrap()
+            .set(rd, Box::new(ck_pubsub_guest.clone()));
+        Ok(ck_pubsub_guest)
     }
 
     /// Send messages to a topic
@@ -137,13 +151,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
-
-        Ok(confluent::send(&inner.0, msg_key, msg_value, topic)
+        Ok(confluent::send(&self_.producer, msg_key, msg_value, topic)
             .with_context(|| "failed to send message to a topic")?)
     }
 
@@ -153,16 +161,8 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         self_: &Self::Pubsub,
         topic: Vec<&str>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
-
-        Ok(
-            confluent::subscribe(&inner.1, topic)
-                .with_context(|| "failed to subscribe to topic")?,
-        )
+        Ok(confluent::subscribe(&self_.consumer, topic)
+            .with_context(|| "failed to subscribe to topic")?)
     }
 
     /// Receive/poll for messages
@@ -171,13 +171,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         self_: &Self::Pubsub,
         timeout_in_secs: u64,
     ) -> Result<Message, Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        let inner = map.get::<(Arc<BaseProducer>, Arc<BaseConsumer>)>(self_)?;
-
-        Ok(confluent::poll(&inner.1, timeout_in_secs)
+        Ok(confluent::poll(&self_.consumer, timeout_in_secs)
             .map(|f| pubsub::Message {
                 key: f.0,
                 value: f.1,

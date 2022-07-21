@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 
 pub use lockd::add_to_linker;
@@ -13,11 +14,12 @@ use crossbeam_channel::Sender;
 use etcd_client::Client;
 use events_api::Event;
 use futures::executor::block_on;
-use proc_macro_utils::Resource;
+use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, BasicState, Ctx, DataT, Linker, Map, Resource, ResourceTables, RuntimeResource,
+        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
+        Watch,
     },
 };
 use uuid::Uuid;
@@ -29,8 +31,7 @@ const SCHEME_NAME: &str = "etcdlockd";
 /// An etcd implementation for the lockd (i.e., distributed locking) Interface
 #[derive(Default, Clone, Resource)]
 pub struct LockdEtcd {
-    inner: Option<Arc<Mutex<Client>>>,
-    host_state: Option<BasicState>,
+    host_state: BasicState,
 }
 
 impl_resource!(
@@ -40,7 +41,18 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
-impl LockdEtcd {
+#[derive(Default, Clone, Watch)]
+pub struct LockdEtcdInner {
+    client: Option<Arc<Mutex<Client>>>,
+}
+
+impl Debug for LockdEtcdInner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "LockdEtcdInner")
+    }
+}
+
+impl LockdEtcdInner {
     /// Create a new `LockdEtcd`
     fn new(endpoint: &str) -> Self {
         let client = block_on(Client::connect([endpoint], None))
@@ -48,29 +60,29 @@ impl LockdEtcd {
             .unwrap();
         // ^^^ from my tests with localhost client, this never fails
         Self {
-            inner: Some(Arc::new(Mutex::new(client))),
-            host_state: None,
+            client: Some(Arc::new(Mutex::new(client))),
         }
     }
 }
 
 impl lockd::Lockd for LockdEtcd {
-    type Lockd = String;
+    type Lockd = LockdEtcdInner;
     /// Construct a new `LockdEtcd` instance
     fn lockd_open(&mut self) -> Result<Self::Lockd, Error> {
         let endpoint = String::from_utf8(runtime_configs::providers::get(
-            &self.host_state.as_ref().unwrap().secret_store,
+            &self.host_state.secret_store,
             "ETCD_ENDPOINT",
-            &self.host_state.as_ref().unwrap().config_toml_file_path,
+            &self.host_state.config_toml_file_path,
         )?)?;
-        let etcd_lockd = Self::new(&endpoint);
-        self.inner = etcd_lockd.inner;
+        let etcd_lockd_guest = Self::Lockd::new(&endpoint);
 
         let rd = Uuid::new_v4().to_string();
-        let cloned = self.clone();
-        let mut map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        map.set(rd.clone(), (Box::new(cloned), None));
-        Ok(rd)
+        self.host_state
+            .resource_map
+            .lock()
+            .unwrap()
+            .set(rd, Box::new(etcd_lockd_guest.clone()));
+        Ok(etcd_lockd_guest)
     }
 
     /// Create a lock without a time to live
@@ -79,12 +91,7 @@ impl lockd::Lockd for LockdEtcd {
         self_: &Self::Lockd,
         lock_name: PayloadParam<'_>,
     ) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
-
+        let inner = self_.client.as_ref().unwrap();
         let pr = block_on(etcd::lock(&mut inner.lock().unwrap(), lock_name))
             .with_context(|| "failed to acquire lock")?;
         Ok(pr)
@@ -97,12 +104,7 @@ impl lockd::Lockd for LockdEtcd {
         lock_name: PayloadParam<'_>,
         time_to_live_in_secs: i64,
     ) -> Result<PayloadResult, Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
-
+        let inner = self_.client.as_ref().unwrap();
         let pr = block_on(etcd::lock_with_lease(
             &mut inner.lock().unwrap(),
             lock_name,
@@ -118,12 +120,7 @@ impl lockd::Lockd for LockdEtcd {
         self_: &Self::Lockd,
         lock_key: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Uuid::parse_str(self_)
-            .with_context(|| "internal error: failed to parse internal handle to this resource")?;
-
-        let map = Map::lock(&mut self.host_state.as_mut().unwrap().resource_map)?;
-        let inner = map.get::<Arc<Mutex<Client>>>(self_)?;
-
+        let inner = self_.client.as_ref().unwrap();
         block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))
             .with_context(|| "failed to unlock")?;
         Ok(())

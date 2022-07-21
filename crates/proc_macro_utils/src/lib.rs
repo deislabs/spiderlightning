@@ -10,12 +10,19 @@ pub fn resource(input: TokenStream) -> TokenStream {
     let name = &input.ident;
     let expanded = quote! {
         impl Resource for #name {
-            fn get_inner(&self) -> &dyn std::any::Any {
-                self.inner.as_ref().unwrap()
-            }
+        }
+    };
+    TokenStream::from(expanded)
+}
 
-            fn watch(&mut self, data: &str, rd: &str, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-                Ok(())
+#[proc_macro_derive(Watch)]
+pub fn resource_guest(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+    let expanded = quote! {
+        impl Watch for #name {
+            fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
+                todo!()
             }
         }
     };
