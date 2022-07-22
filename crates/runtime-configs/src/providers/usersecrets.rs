@@ -31,9 +31,8 @@ pub fn get(key: &str, toml_file_path: &str) -> Result<Vec<u8>> {
         .iter()
         .position(|s| s.name == key);
 
-    let value = if pos.is_some() {
-        &toml.secret_settings.as_ref().unwrap()[pos.unwrap()].value
-        // ^^^ note: both of these unwraps cannot fail
+    let value = if let Some(pos) = pos {
+        &toml.secret_settings.as_ref().unwrap()[pos].value
     } else {
         // if it isn't, we will just create new
         bail!("failed because this secret isn't encrypted in the toml file")

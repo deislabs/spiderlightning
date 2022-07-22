@@ -25,7 +25,7 @@ test:
 
 .PHONY: check
 check:
-	cargo clippy --all-targets --all-features -- -D warnings
+	cargo clippy --all-targets --all-features --all -- -D warnings
 	cargo fmt --all -- --check
 
 .PHONY: run

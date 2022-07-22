@@ -71,14 +71,12 @@ impl From<ConfigType> for String {
     }
 }
 
-impl Into<ConfigType> for &str {
-    fn into(self) -> ConfigType {
-        match self {
+impl From<&str> for ConfigType {
+    fn from(from_str: &str) -> Self {
+        match from_str {
             "usersecrets_configs" => ConfigType::UserSecrets,
             "envvars_configs" => ConfigType::EnvVars,
-            _ => {
-                panic!("failed to match config name to any known service implementations")
-            }
+            _ => panic!("Unknown config type: {}", from_str),
         }
     }
 }

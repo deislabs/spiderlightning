@@ -136,11 +136,11 @@ impl events::Events for Events {
                 let store = self.host_state.store.as_mut().unwrap().clone();
                 let receiver = ob.receiver.clone();
                 let receive_thread = s.spawn(move |_| loop {
-                    match receiver
+                    let event = receiver
                         .lock()
                         .unwrap()
-                        .recv_deadline(Instant::now() + Duration::from_secs(duration))
-                    {
+                        .recv_deadline(Instant::now() + Duration::from_secs(duration));
+                    match event {
                         Ok(mut event) => {
                             let mut store = store.lock().unwrap();
                             let spec = event.specversion();
@@ -165,11 +165,11 @@ impl events::Events for Events {
                                 subject: event.subject(),
                                 time: time.as_deref(),
                             };
-                            match handler
+                            let event = handler
                                 .lock()
                                 .unwrap()
-                                .handle_event(store.deref_mut(), event_param)
-                            {
+                                .handle_event(store.deref_mut(), event_param);
+                            match event {
                                 Ok(_) => (),
                                 Err(e) => {
                                     return Err(events::Error::ErrorWithDescription(format!(
