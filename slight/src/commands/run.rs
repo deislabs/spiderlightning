@@ -2,8 +2,6 @@ use anyhow::{bail, Result};
 use as_any::Downcast;
 use events::{Events, EventsState};
 use events_api::event_handler::EventHandler;
-use kv_azure_blob::KvAzureBlob;
-use kv_filesystem::KvFilesystem;
 use lockd_etcd::LockdEtcd;
 use mq_azure_servicebus::MqAzureServiceBus;
 use mq_filesystem::MqFilesystem;
@@ -13,6 +11,8 @@ use runtime::{
     Builder,
 };
 use runtime_configs::{Configs, ConfigsState};
+use state_store_azblob::StateStoreAzureBlob;
+use state_store_filesystem::StateStoreFilesystem;
 use std::sync::{Arc, Mutex};
 
 use spiderlightning::core::slightfile::TomlFile;
@@ -36,17 +36,17 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                 host_builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
                 guest_builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
             },
-            "azblobkv" => {
+            "state_store.azblob" => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
-                    guest_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    host_builder.link_capability::<StateStoreAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    guest_builder.link_capability::<StateStoreAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
                 } else {
-                    bail!("the azblobkv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
+                    bail!("the azblob host implementation requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
                 }
             },
-            "filekv" => {
-                host_builder.link_capability::<KvFilesystem>(resource_type.to_string(), resource_map.clone())?;
-                guest_builder.link_capability::<KvFilesystem>(resource_type.to_string(), resource_map.clone())?;
+            "state_store.filesystem" => {
+                host_builder.link_capability::<StateStoreFilesystem>(resource_type.to_string(), resource_map.clone())?;
+                guest_builder.link_capability::<StateStoreFilesystem>(resource_type.to_string(), resource_map.clone())?;
             },
             "filemq" => {
                 host_builder.link_capability::<MqFilesystem>(resource_type.to_string(), resource_map.clone())?;
@@ -86,7 +86,7 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                     ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
                 )?;
             }
-            _ => bail!("invalid url: currently slight only supports 'usersecrets_configs', 'envvars_configs', 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
+            _ => bail!("invalid url: currently slight only supports 'usersecrets_configs', 'envvars_configs', 'events', 'state_store.filesystem', 'state_store.azblob', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
         }
         }
     } else {

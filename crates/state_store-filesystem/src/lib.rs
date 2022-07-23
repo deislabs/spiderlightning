@@ -18,32 +18,32 @@ use std::{
 };
 use uuid::Uuid;
 
-use kv::*;
+use state_store::*;
 
-wit_bindgen_wasmtime::export!("../../wit/kv.wit");
-wit_error_rs::impl_error!(Error);
-wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_bindgen_wasmtime::export!("../../wit/state_store.wit");
+wit_error_rs::impl_error!(state_store::Error);
+wit_error_rs::impl_from!(anyhow::Error, state_store::Error::ErrorWithDescription);
 
-const SCHEME_NAME: &str = "filekv";
+const SCHEME_NAME: &str = "state_store.filesystem";
 
-/// A Filesystem implementation for the kv interface
+/// A Filesystem implementation for the state_store interface
 #[derive(Default, Clone, Resource)]
-pub struct KvFilesystem {
+pub struct StateStoreFilesystem {
     /// The host state. Currently this is a map of resource names to resource descriptors.
     /// If there are more host-specified states, they can be added here.
     host_state: ResourceMap,
 }
 
 impl_resource!(
-    KvFilesystem,
-    kv::KvTables<KvFilesystem>,
+    StateStoreFilesystem,
+    state_store::StateStoreTables<StateStoreFilesystem>,
     ResourceMap,
     SCHEME_NAME.to_string()
 );
 
-/// A Filesystem implementation for the kv interface
+/// A Filesystem implementation for the state_store interface
 #[derive(Default, Debug, Clone)]
-pub struct KvFileSystemInner {
+pub struct StateStoreFilesystemInner {
     /// The root directory of the filesystem
     base: String,
 
@@ -54,8 +54,8 @@ pub struct KvFileSystemInner {
     rd: String,
 }
 
-impl KvFileSystemInner {
-    /// Create a new KvFileSystemInner
+impl StateStoreFilesystemInner {
+    /// Create a new StateStoreFilesystemInner
     pub fn new(base: String) -> Self {
         Self {
             base,
@@ -65,29 +65,33 @@ impl KvFileSystemInner {
     }
 }
 
-impl kv::Kv for KvFilesystem {
-    type Kv = KvFileSystemInner;
-    /// Contruct a new `KvFilesystem` from a folder name. This folder will be created under `/tmp`
-    fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
+impl state_store::StateStore for StateStoreFilesystem {
+    type StateStore = StateStoreFilesystemInner;
+    /// Contruct a new `StateStoreFilesystem` from a folder name. This folder will be created under `/tmp`
+    fn state_store_open(&mut self, name: &str) -> Result<Self::StateStore, Error> {
         let path = Path::new("/tmp").join(name);
         let path = path
             .to_str()
             .with_context(|| format!("failed due to invalid path: {}", name))?
             .to_string();
 
-        let kv_guest = Self::Kv::new(path);
-        self.host_state
-            .lock()
-            .unwrap()
-            .set(kv_guest.rd.clone(), Box::new(kv_guest.clone()));
-        Ok(kv_guest)
+        let state_store_guest = Self::StateStore::new(path);
+        self.host_state.lock().unwrap().set(
+            state_store_guest.rd.clone(),
+            Box::new(state_store_guest.clone()),
+        );
+        Ok(state_store_guest)
     }
 
     /// Output the value of a set key
-    fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
+    fn state_store_get(
+        &mut self,
+        self_: &Self::StateStore,
+        key: &str,
+    ) -> Result<PayloadResult, Error> {
         let base = &self_.base;
         fs::create_dir_all(&base)
-            .with_context(|| "failed to create base directory for kv store instance")?;
+            .with_context(|| "failed to create base directory for state store instance")?;
         let mut file =
             File::open(PathBuf::from(base).join(key)).with_context(|| "failed to get key")?;
 
@@ -98,15 +102,15 @@ impl kv::Kv for KvFilesystem {
     }
 
     /// Create a key-value pair
-    fn kv_set(
+    fn state_store_set(
         &mut self,
-        self_: &Self::Kv,
+        self_: &Self::StateStore,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
         let base = &self_.base;
         fs::create_dir_all(base)
-            .with_context(|| "failed to create base directory for kv store instance")?;
+            .with_context(|| "failed to create base directory for state store instance")?;
 
         let mut file =
             File::create(PathBuf::from(base).join(key)).with_context(|| "failed to create key")?;
@@ -117,23 +121,27 @@ impl kv::Kv for KvFilesystem {
     }
 
     /// Delete a key-value pair
-    fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
+    fn state_store_delete(&mut self, self_: &Self::StateStore, key: &str) -> Result<(), Error> {
         let base = &self_.base;
 
         fs::create_dir_all(base)
-            .with_context(|| "failed to create base directory for kv store instance")?;
+            .with_context(|| "failed to create base directory for state store instance")?;
         fs::remove_file(PathBuf::from(base).join(key))
             .with_context(|| "failed to delete key's value")?;
         Ok(())
     }
 
     /// Watch for changes to a key-value pair
-    fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
+    fn state_store_watch(
+        &mut self,
+        self_: &Self::StateStore,
+        key: &str,
+    ) -> Result<Observable, Error> {
         Ok(Observable::new(&self_.rd, key))
     }
 }
 
-impl Watch for KvFileSystemInner {
+impl Watch for StateStoreFilesystemInner {
     fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
         let path = path(key, &self.base);
         let key = key.to_string();

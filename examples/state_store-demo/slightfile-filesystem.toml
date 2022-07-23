@@ -2,7 +2,4 @@ specversion = "0.1"
 secret_store = "envvars_configs"
 
 [[capability]]
-name = "filekv"
-
-[[capability]]
-name = "filemq"
+name = "state_store.filesystem"

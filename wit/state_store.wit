@@ -1,10 +1,10 @@
-// A key-value store interface.
+// A state store interface.
 use { error, payload } from types
 use { observable } from resources
 
-resource kv {
-	// open a key-value store
-	static open: function(name: string) -> expected<kv, error>
+resource state-store {
+	// open a state store
+	static open: function(name: string) -> expected<state-store, error>
 
 	// get the payload for a given key.
 	get: function(key: string) -> expected<payload, error> 

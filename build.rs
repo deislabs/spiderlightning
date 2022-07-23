@@ -4,13 +4,16 @@ use std::{
 };
 
 const WIT_DIRECTORY: &str = "wit/*";
-const KV_TEST_PATH: &str = "tests/kv-test";
+const STATE_STORE_TEST_PATH: &str = "tests/state_store-test";
 
 fn main() {
     println!("cargo:rerun-if-changed={}", WIT_DIRECTORY);
-    println!("cargo:rerun-if-changed={}/src/main.rs", KV_TEST_PATH);
+    println!(
+        "cargo:rerun-if-changed={}/src/main.rs",
+        STATE_STORE_TEST_PATH
+    );
 
-    cargo_wasi_build(KV_TEST_PATH);
+    cargo_wasi_build(STATE_STORE_TEST_PATH);
 }
 
 fn cargo_wasi_build(path: &str) {

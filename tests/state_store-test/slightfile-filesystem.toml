@@ -1,4 +1,4 @@
 specversion = "0.1"
 
 [[capability]]
-name = "filekv"
+name = "state_store.filesystem"

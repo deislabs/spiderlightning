@@ -1,11 +1,11 @@
 [package]
-name = "kv-test"
+name = "state_store-test"
 version = "0.1.0"
 edition = "2021"
 authors = [ "DeisLabs Engineering Team" ]
 
 [[bin]]
-name = "kv-test"
+name = "state_store-test"
 test = false
 
 [dependencies]

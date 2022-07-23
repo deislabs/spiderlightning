@@ -41,15 +41,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25a2bc672d1148e28034f176e01fffebb08b35768468cc954630da77a1449005"
 
 [[package]]
-name = "kv-test"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -82,6 +73,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bcdf212e9776fbcb2d23ab029360416bb1706b1aea2d1a5ba002727cbcab804"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "state_store-test"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-rust",
+ "wit-error-rs",
 ]
 
 [[package]]

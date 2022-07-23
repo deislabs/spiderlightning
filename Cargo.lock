@@ -488,9 +488,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.2.13"
+version = "3.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac2bd7a1eb07da9ac757c923f69373deb7bc2ba5efc951b873bcb5e693992dca"
+checksum = "54635806b078b7925d6e36810b1755f2a4b5b4d57560432c1ecf60bcbe10602b"
 dependencies = [
  "atty",
  "bitflags",
@@ -1492,55 +1492,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kv-azure-blob"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "azure_core 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "azure_storage",
- "azure_storage_blobs",
- "bytes",
- "crossbeam-channel",
- "events-api",
- "futures",
- "proc_macro_utils",
- "runtime",
- "runtime-configs",
- "uuid 1.1.2",
- "wit-bindgen-rust",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
-name = "kv-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde_json",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "kv-filesystem"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "crossbeam-channel",
- "events-api",
- "notify",
- "proc_macro_utils",
- "runtime",
- "serde_json",
- "tracing",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2385,9 +2336,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.2.13"
+version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62f25bc4c7e55e0b0b7a1d43fb893f4fa1361d0abe38b9ce4f323c2adfe6ef42"
+checksum = "534cfe58d6a18cc17120fbf4635d53d14691c1fe4d951064df9bd326178d7d5a"
 dependencies = [
  "bitflags",
 ]
@@ -2799,8 +2750,6 @@ dependencies = [
  "env_logger",
  "events",
  "events-api",
- "kv-azure-blob",
- "kv-filesystem",
  "lockd-etcd",
  "log",
  "mq-azure-servicebus",
@@ -2809,6 +2758,8 @@ dependencies = [
  "runtime",
  "runtime-configs",
  "spiderlightning",
+ "state_store-azblob",
+ "state_store-filesystem",
  "tokio",
  "toml",
  "tracing",
@@ -2877,6 +2828,55 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
+
+[[package]]
+name = "state_store-azblob"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "azure_core 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "azure_storage",
+ "azure_storage_blobs",
+ "bytes",
+ "crossbeam-channel",
+ "events-api",
+ "futures",
+ "proc_macro_utils",
+ "runtime",
+ "runtime-configs",
+ "uuid 1.1.2",
+ "wit-bindgen-rust",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "state_store-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde_json",
+ "wit-bindgen-rust",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "state_store-filesystem"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "crossbeam-channel",
+ "events-api",
+ "notify",
+ "proc_macro_utils",
+ "runtime",
+ "serde_json",
+ "tracing",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
 
 [[package]]
 name = "strsim"
@@ -3262,9 +3262,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.3.14"
+version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a713421342a5a666b7577783721d3117f1b69a393df803ee17bb73b1e122a59"
+checksum = "60db860322da191b40952ad9affe65ea23e7dd6a5c442c2c42865810c6ab8e6b"
 dependencies = [
  "ansi_term",
  "matchers",

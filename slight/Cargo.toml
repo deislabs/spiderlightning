@@ -11,8 +11,8 @@ test = false
 [dependencies]
 spiderlightning = { path = "../" }
 runtime = { path = "../crates/runtime" }
-kv-azure-blob = { path = "../crates/kv-azure-blob" }
-kv-filesystem = { path = "../crates/kv-filesystem" }
+state_store-azblob = { path = "../crates/state_store-azblob" }
+state_store-filesystem = { path = "../crates/state_store-filesystem" }
 mq-filesystem = { path = "../crates/mq-filesystem" }
 mq-azure-servicebus = { path = "../crates/mq-azure-servicebus" }
 lockd-etcd = { path = "../crates/lockd-etcd" }

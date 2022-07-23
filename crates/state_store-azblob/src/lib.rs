@@ -15,37 +15,40 @@ use runtime::{
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
-use kv::*;
+use state_store::*;
 
 pub mod azure;
 
-wit_bindgen_wasmtime::export!("../../wit/kv.wit");
-wit_error_rs::impl_error!(kv::Error);
-wit_error_rs::impl_from!(anyhow::Error, kv::Error::ErrorWithDescription);
-wit_error_rs::impl_from!(std::string::FromUtf8Error, kv::Error::ErrorWithDescription);
+wit_bindgen_wasmtime::export!("../../wit/state_store.wit");
+wit_error_rs::impl_error!(state_store::Error);
+wit_error_rs::impl_from!(anyhow::Error, state_store::Error::ErrorWithDescription);
+wit_error_rs::impl_from!(
+    std::string::FromUtf8Error,
+    state_store::Error::ErrorWithDescription
+);
 
-const SCHEME_NAME: &str = "azblobkv";
+const SCHEME_NAME: &str = "state_store.azblob";
 
-/// A Azure Blob Storage implementation for the kv interface
+/// A Azure Blob Storage implementation for the state_store interface
 #[derive(Default, Clone, Resource)]
-pub struct KvAzureBlob {
+pub struct StateStoreAzureBlob {
     host_state: BasicState,
 }
 
 impl_resource!(
-    KvAzureBlob,
-    kv::KvTables<KvAzureBlob>,
+    StateStoreAzureBlob,
+    state_store::StateStoreTables<StateStoreAzureBlob>,
     BasicState,
     SCHEME_NAME.to_string()
 );
 
 #[derive(Default, Clone, Debug, Watch)]
-pub struct KvAzureBlobInner {
+pub struct StateStoreAzureBlobInner {
     container_client: Option<Arc<ContainerClient>>,
     rd: String,
 }
 
-impl KvAzureBlobInner {
+impl StateStoreAzureBlobInner {
     pub fn new(
         storage_account_name: &str,
         storage_account_key: &str,
@@ -68,10 +71,10 @@ impl KvAzureBlobInner {
     }
 }
 
-impl kv::Kv for KvAzureBlob {
-    type Kv = KvAzureBlobInner;
-    /// Construct a new `KvAzureBlob` from a container name. For example, a container name could be "my-container"
-    fn kv_open(&mut self, name: &str) -> Result<Self::Kv, kv::Error> {
+impl state_store::StateStore for StateStoreAzureBlob {
+    type StateStore = StateStoreAzureBlobInner;
+    /// Construct a new `StateStoreAzureBlob` from a container name. For example, a container name could be "my-container"
+    fn state_store_open(&mut self, name: &str) -> Result<Self::StateStore, state_store::Error> {
         let storage_account_name = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.secret_store,
             "AZURE_STORAGE_ACCOUNT",
@@ -84,7 +87,7 @@ impl kv::Kv for KvAzureBlob {
         )?)?;
 
         let rd = Uuid::new_v4().to_string();
-        let kv_azure_blob_guest = KvAzureBlobInner::new(
+        let state_store_azure_blob_guest = StateStoreAzureBlobInner::new(
             &storage_account_name,
             &storage_account_key,
             name,
@@ -95,12 +98,16 @@ impl kv::Kv for KvAzureBlob {
             .resource_map
             .lock()
             .unwrap()
-            .set(rd, Box::new(kv_azure_blob_guest.clone()));
-        Ok(kv_azure_blob_guest)
+            .set(rd, Box::new(state_store_azure_blob_guest.clone()));
+        Ok(state_store_azure_blob_guest)
     }
 
     /// Output the value of a set key
-    fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
+    fn state_store_get(
+        &mut self,
+        self_: &Self::StateStore,
+        key: &str,
+    ) -> Result<PayloadResult, Error> {
         let inner = self_.container_client.as_ref().unwrap();
         let blob_client = inner.as_blob_client(key);
         let res = block_on(azure::get(blob_client))
@@ -109,9 +116,9 @@ impl kv::Kv for KvAzureBlob {
     }
 
     /// Create a key-value pair
-    fn kv_set(
+    fn state_store_set(
         &mut self,
-        self_: &Self::Kv,
+        self_: &Self::StateStore,
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
@@ -125,7 +132,7 @@ impl kv::Kv for KvAzureBlob {
     }
 
     /// Delete a key-value pair
-    fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
+    fn state_store_delete(&mut self, self_: &Self::StateStore, key: &str) -> Result<(), Error> {
         let inner = self_.container_client.as_ref().unwrap();
         let blob_client = inner.as_blob_client(key);
         block_on(azure::delete(blob_client)).with_context(|| "failed to delete key's value")?;
@@ -133,7 +140,11 @@ impl kv::Kv for KvAzureBlob {
     }
 
     /// Watch for changes to a key-value pair
-    fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
+    fn state_store_watch(
+        &mut self,
+        self_: &Self::StateStore,
+        key: &str,
+    ) -> Result<Observable, Error> {
         Ok(Observable {
             rd: self_.rd.clone(),
             key: key.to_string(),

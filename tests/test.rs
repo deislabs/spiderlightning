@@ -25,23 +25,30 @@ pub fn run(executable: &str, args: Vec<&str>) {
 }
 
 #[cfg(test)]
-mod kv_test {
+mod statestore_test {
     use crate::{run, SLIGHT};
     use anyhow::Result;
 
-    const KV_TEST_MODULE: &str = "./tests/kv-test/target/wasm32-wasi/debug/kv-test.wasm";
+    const STATESTORE_TEST_MODULE: &str =
+        "./tests/state_store-test/target/wasm32-wasi/debug/state_store-test.wasm";
 
     #[test]
-    fn filekv_test() -> Result<()> {
-        let file_config = "./tests/kv-test/filekv.toml";
-        run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+    fn statestore_filesystem_test() -> Result<()> {
+        let slightfile = "./tests/state_store-test/slightfile-filesystem.toml";
+        run(
+            SLIGHT,
+            vec!["-c", slightfile, "run", "-m", STATESTORE_TEST_MODULE],
+        );
         Ok(())
     }
 
     #[test]
-    fn azblobkv_test() -> Result<()> {
-        let file_config = "./tests/kv-test/azblobkv.toml";
-        run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+    fn statestore_azblob_test() -> Result<()> {
+        let slightfile = "./tests/state_store-test/slightfile-azblob.toml";
+        run(
+            SLIGHT,
+            vec!["-c", slightfile, "run", "-m", STATESTORE_TEST_MODULE],
+        );
         Ok(())
     }
 }

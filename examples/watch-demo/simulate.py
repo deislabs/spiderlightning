@@ -2,7 +2,7 @@ import os
 from time import sleep
 
 """
-This file simulate filesystem operations to test watch interface on kvstore. 
+This file simulate filesystem operations to test watch interface on state_store. 
 """
 if __name__ == "__main__":
     sleep(1)
