@@ -1,4 +1,4 @@
-use anyhow::{Result};
+use anyhow::Result;
 use configs::*;
 use crossbeam_channel::Sender;
 use events_api::Event;
