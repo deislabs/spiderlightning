@@ -32,12 +32,16 @@ jobs:
         run: |
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
-      - name: Build
+      - name: "Run clippy and fmt"
+        run: make improve        
+      - name: "Build SpiderLightning and Slight"
         run: make build
-      - name: Test
+      - name: "Build Rust Examples"
+        run: make build-rust
+      - name: "Build C Examples"
+        run: make build-c
+      - name: "Run test"
         env:
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         run: make test
-      - name: Check
-        run: make check
