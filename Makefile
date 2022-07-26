@@ -23,8 +23,8 @@ build:
 test:
 	cargo test --all --no-fail-fast -- --nocapture
 
-.PHONY: check
-check:
+.PHONY: improve
+improve:
 	cargo clippy --all-targets --all-features -- -D warnings
 	cargo fmt --all -- --check
 
@@ -46,8 +46,16 @@ run:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-consumer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm &
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-producer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm
 
-run-c:
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/kv-mq-demo-clang/slightfile.toml' run -m ./examples/kv-mq-demo-clang/kv-mq-filesystem-c.wasm
+.PHONY: build-c
+build-c:
+	$(MAKE) -C examples/multi_capability-demo-clang/ clean
+	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
+	$(MAKE) -C examples/multi_capability-demo-clang/ build
 
+.PHONY: run-c
+run-c:
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
+
+.PHONY: install
 install:
 	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin

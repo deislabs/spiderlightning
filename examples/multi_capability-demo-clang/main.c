@@ -25,7 +25,7 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
   kv = kv_result.val.ok;
 
   mq_string_t mq_name;
-  mq_string_set(&mq_name, "spiderlightning-queue");
+  mq_string_set(&mq_name, "wasi-cloud-queue");
   mq_mq_open(&mq_name, &mq_result);
 
   if (mq_result.is_err)
