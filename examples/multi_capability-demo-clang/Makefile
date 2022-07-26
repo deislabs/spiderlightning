@@ -20,6 +20,6 @@ bindings:
 	wit-bindgen c --import ../../wit/mq.wit --out-dir bindings/
 
 build:
-	$(WASI_CC) -Wall -I . -I ./bindings -c -o kv.o bindings/kv.c
-	$(WASI_CC) -Wall -I . -I ./bindings -c -o mq.o bindings/mq.c
+	$(WASI_CC) -I . -I ./bindings -c -o kv.o bindings/kv.c
+	$(WASI_CC) -I . -I ./bindings -c -o mq.o bindings/mq.c
 	$(WASI_CC) -Wall  main.c kv.o mq.o -o $(TARGET) --sysroot $(SYSROOT)
