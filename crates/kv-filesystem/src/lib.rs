@@ -24,7 +24,7 @@ wit_bindgen_wasmtime::export!("../../wit/kv.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
-const SCHEME_NAME: &str = "filekv";
+const SCHEME_NAME: &str = "kv.filesystem";
 
 /// A Filesystem implementation for the kv interface
 #[derive(Default, Clone, Resource)]

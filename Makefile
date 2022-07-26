@@ -31,16 +31,16 @@ improve:
 .PHONY: run
 run:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/multi_capability-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/filekv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/azblobkv.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvazblob_slightfile.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/watch-demo.wasm & 
 	python ./examples/watch-demo/simulate.py
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/usersecrets_configs.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/envvars_configs.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/azsbusmq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/azsbusmq.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/usersecrets_slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/envvars_slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/mqfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqazsbus_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/mqazsbus_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm &
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-consumer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm &
@@ -54,7 +54,7 @@ build-c:
 
 .PHONY: run-c
 run-c:
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/filemq.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
 
 .PHONY: install
 install:

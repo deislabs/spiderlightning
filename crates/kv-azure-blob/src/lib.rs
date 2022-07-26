@@ -24,7 +24,7 @@ wit_error_rs::impl_error!(kv::Error);
 wit_error_rs::impl_from!(anyhow::Error, kv::Error::ErrorWithDescription);
 wit_error_rs::impl_from!(std::string::FromUtf8Error, kv::Error::ErrorWithDescription);
 
-const SCHEME_NAME: &str = "azblobkv";
+const SCHEME_NAME: &str = "kv.azblob";
 
 /// A Azure Blob Storage implementation for the kv interface
 #[derive(Default, Clone, Resource)]

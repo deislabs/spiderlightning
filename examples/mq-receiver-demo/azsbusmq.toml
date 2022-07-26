@@ -1,5 +1,0 @@
-specversion = "0.1"
-secret_store = "envvars_configs"
-
-[[capability]]
-name = "azsbusmq"

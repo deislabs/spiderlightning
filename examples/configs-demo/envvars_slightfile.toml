@@ -6,7 +6,7 @@ value = "m7N0Muoz0ICs7Owemrg"
 
 [[secret_settings]]
 name = "THIS_IS_ANOTHER_TEST_CONFIG_1061296"
-value = "m7N0Muoz0ICs7Owemrg"
+value = "N8nvkUvfkMecQN8n4XA"
 
 [[capability]]
-name = "usersecrets_configs"
+name = "configs.usersecrets"

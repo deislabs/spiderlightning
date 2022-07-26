@@ -26,7 +26,7 @@ use uuid::Uuid;
 
 mod etcd;
 
-const SCHEME_NAME: &str = "etcdlockd";
+const SCHEME_NAME: &str = "lockd.etcd";
 
 /// An etcd implementation for the lockd (i.e., distributed locking) Interface
 #[derive(Default, Clone, Resource)]

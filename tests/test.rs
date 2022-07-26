@@ -32,18 +32,18 @@ mod kv_test {
     const KV_TEST_MODULE: &str = "./tests/kv-test/target/wasm32-wasi/debug/kv-test.wasm";
 
     #[test]
-    fn filekv_test() -> Result<()> {
-        let file_config = "./tests/kv-test/filekv.toml";
+    fn kvfilesystem_test() -> Result<()> {
+        let file_config = "./tests/kv-test/kvfilesystem_slightfile.toml";
         run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
         Ok(())
     }
 
     #[test]
-    fn azblobkv_test() -> Result<()> {
-        let file_config = "./tests/kv-test/azblobkv.toml";
+    fn kvazblob_test() -> Result<()> {
+        let file_config = "./tests/kv-test/kvazblob_slightfile.toml";
         run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
         Ok(())
     }
 }
 
-// TODO: We need to mq_test, etcdlockd_test, and ckpubsub_test modules
+// TODO: We need to mq_test, lockd_test, and pubsub_test modules
