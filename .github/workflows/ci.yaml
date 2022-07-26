@@ -3,9 +3,11 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request_target:
-    types: [assigned, opened, synchronize, reopened]
+  pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
 
 env:
   CARGO_TERM_COLOR: always
@@ -36,6 +38,8 @@ jobs:
       - name: "Build C Examples"
         run: make build-c
       - name: "Run test"
+        run: make test
+      - name: "Run test-integration"
         env:
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}

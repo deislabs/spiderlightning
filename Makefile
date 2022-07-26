@@ -17,7 +17,11 @@ build:
 
 .PHONY: test
 test:
-	cargo test --all --no-fail-fast -- --nocapture
+	RUST_LOG=$(LOG_LEVEL) cargo test --all --no-fail-fast -- --skip integration_tests --nocapture --include-ignored
+
+.PHONY: test-integration
+test-integration:
+	RUST_LOG=$(LOG_LEVEL) cargo test --test integration --no-fail-fast  -- --nocapture
 ### GENERAL COMMANDS
 
 ### INSTALLS
