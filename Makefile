@@ -4,6 +4,12 @@ LOG_LEVEL ?= slight=trace
 # ^^^ To see an individual crate's trace, use LOG_LEVEL=<crate_name>=trace
 # (e.g., LOG_LEVEL=runtime=trace)
 
+### GENERAL COMMANDS
+.PHONY: improve
+improve:
+	cargo clippy --all-targets --all-features -- -D warnings
+	cargo fmt --all -- --check
+
 .PHONY: build
 build:
 	cargo build --release
@@ -12,15 +18,22 @@ build:
 .PHONY: test
 test:
 	cargo test --all --no-fail-fast -- --nocapture
+### GENERAL COMMANDS
 
-.PHONY: improve
-improve:
-	cargo clippy --all-targets --all-features -- -D warnings
-	cargo fmt --all -- --check
+### INSTALLS
+.PHONY: install-deps
+install-deps:
+	set -x
+	curl -sS -L -O https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-linux.tar.gz
+	tar xf wasi-sdk-15.0-linux.tar.gz
+	sudo mkdir -p /opt/wasi-sdk
+	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
+	sudo rm -rf wasi-sdk-*
 
-.PHONY: install
-install:
+.PHONY: install-slight
+install-slight:
 	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin
+### END OF INSTALLS
 
 ### RUST EXAMPLES
 .PHONY: build-rust
@@ -60,7 +73,7 @@ build-c:
 	$(MAKE) -C examples/multi_capability-demo-clang/ clean
 	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
 	$(MAKE) -C examples/multi_capability-demo-clang/ build
-	
+
 .PHONY: run-c
 run-c:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm

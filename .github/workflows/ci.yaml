@@ -21,14 +21,9 @@ jobs:
           profile: minimal
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
-      - name: "Install wasi-sdk"
-        run: |
-          set -x
-          curl -sS -L -O https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-linux.tar.gz
-          tar xf wasi-sdk-15.0-linux.tar.gz
-          sudo mkdir -p /opt/wasi-sdk
-          sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
-      - name: "Install Wasm Rust targets"
+      - name: "Install Dependencies"
+        run: make install-deps
+      - name: "Install Rust Wasm targets"
         run: |
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
