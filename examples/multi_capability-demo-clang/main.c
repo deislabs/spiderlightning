@@ -25,14 +25,14 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
   kv = kv_result.val.ok;
 
   mq_string_t mq_name;
-  mq_string_set(&mq_name, "spiderlightning-queue");
+  mq_string_set(&mq_name, "wasi-cloud-queue");
   mq_mq_open(&mq_name, &mq_result);
 
   if (mq_result.is_err)
   {
     mq_error_t mq_error = mq_result.val.err;
     printf("kv_kv_open failed:  %.*s\n", (int)mq_error.val.error_with_description.len, mq_error.val.error_with_description.ptr);
-    kv_error_free(&mq_error);
+    mq_error_free(&mq_error);
     exit(1);
   }
   mq = mq_result.val.ok;
@@ -45,7 +45,7 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
     {
       mq_error_t mq_error = mq_ret.val.err;
       printf("mq_mq_receive failed:  %.*s\n", (int)mq_error.val.error_with_description.len, mq_error.val.error_with_description.ptr);
-      kv_error_free(&mq_error);
+      mq_error_free(&mq_error);
       exit(1);
     }
     mq_payload_t msg = mq_ret.val.ok;
@@ -55,10 +55,12 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
     snprintf(buf, 12, "mykey_%d", i);
     kv_string_t key;
     kv_string_set(&key, buf);
-    kv_payload_t value;
-    kv_string_set(&value, &msg);
     kv_expected_unit_error_t ret;
-    kv_kv_set(kv, &key, &msg, &ret);
+    kv_payload_t payload = {
+      .ptr = msg.ptr,
+      .len = msg.len
+    };
+    kv_kv_set(kv, &key, &payload, &ret);
     if (ret.is_err)
     {
       kv_error_t kv_error = ret.val.err;
