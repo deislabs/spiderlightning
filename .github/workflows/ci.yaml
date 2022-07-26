@@ -29,6 +29,8 @@ jobs:
         run: |
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
+      - name: "Install wit-bindgen-cli"
+        run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli
       - name: "Run clippy and fmt"
         run: make improve        
       - name: "Build SpiderLightning and Slight"
