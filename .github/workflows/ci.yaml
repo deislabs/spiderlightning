@@ -23,24 +23,25 @@ jobs:
           profile: minimal
           toolchain: stable
       - uses: Swatinem/rust-cache@v1
-      - name: "Install wasi-sdk"
-        run: |
-          set -x
-          curl -sS -L -O https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-linux.tar.gz
-          tar xf wasi-sdk-15.0-linux.tar.gz
-          sudo mkdir -p /opt/wasi-sdk
-          sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
-      - name: "Install Wasm Rust targets"
+      - name: "Install Dependencies"
+        run: make install-deps
+      - name: "Install Rust Wasm targets"
         run: |
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
-      - name: Build
+      - name: "Install wit-bindgen-cli"
+        run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --rev a79a4be33d76ddf62839ba71602c26a96610ef7c
+      - name: "Run clippy and fmt"
+        run: make improve        
+      - name: "Build SpiderLightning and Slight"
         run: make build
-      - name: Check
-        run: make improve
-      - name: Unit test
+      - name: "Build Rust Examples"
+        run: make build-rust
+      - name: "Build C Examples"
+        run: make build-c
+      - name: "Run test"
         run: make test
-      - name: Integration Test
+      - name: "Run test-integration"
         env:
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}

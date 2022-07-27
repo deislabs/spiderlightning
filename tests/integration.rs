@@ -47,5 +47,5 @@ mod integration_tests {
         }
     }
 
-    // TODO: We need to mq_test, etcdlockd_test, and ckpubsub_test modules
+    // TODO: We need to mq_test, lockd_test, and pubsub_test modules
 }
