@@ -3,8 +3,11 @@ use { message, error, payload } from types
 use * from resources
 
 resource pubsub {
-	// open a pub/sub object
-	static open: function() -> expected<pubsub, error>
+	// open a pub object
+	static open-pub: function() -> expected<pubsub, error>
+
+	// open a sub object
+	static open-sub: function() -> expected<pubsub, error>
 
 	// pub a message
 	send-message-to-topic: function(msg-key: payload, msg-value: payload, topic: string) -> expected<unit, error> 
@@ -12,6 +15,6 @@ resource pubsub {
 	// sub to a topic
 	subscribe-to-topic: function(topic: list<string>) -> expected<unit, error>
 
-	// print messages under subbed topic
+	// read messages under subbed topic
 	poll-for-message: function(timeout-in-secs: u64) -> expected<message, error>
 }

@@ -39,8 +39,8 @@ impl_resource!(
 
 #[derive(Clone, Watch)]
 pub struct PubSubConfluentKafkaInner {
-    producer: Arc<BaseProducer>,
-    consumer: Arc<BaseConsumer>,
+    producer: Option<Arc<BaseProducer>>,
+    consumer: Option<Arc<BaseConsumer>>,
 }
 
 impl Debug for PubSubConfluentKafkaInner {
@@ -50,14 +50,13 @@ impl Debug for PubSubConfluentKafkaInner {
 }
 
 impl PubSubConfluentKafkaInner {
-    /// Create a new `PubSubConfluentKafka`
-    pub fn new(
+    /// Populate the pub bit for a new `PubSubConfluentKafka`
+    pub fn new_pub(
         bootstap_servers: &str,
         security_protocol: &str,
         sasl_mechanisms: &str,
         sasl_username: &str,
         sasl_password: &str,
-        group_id: &str,
     ) -> Self {
         // basic producer
         let producer: BaseProducer = ClientConfig::new()
@@ -70,6 +69,21 @@ impl PubSubConfluentKafkaInner {
             .with_context(|| "failed to create producer client")
             .unwrap(); // panic if we fail to create client
 
+        Self {
+            producer: Some(Arc::new(producer)),
+            consumer: None,
+        }
+    }
+
+    /// Populate the pub bit for a new `PubSubConfluentKafka`
+    pub fn new_sub(
+        bootstap_servers: &str,
+        security_protocol: &str,
+        sasl_mechanisms: &str,
+        sasl_username: &str,
+        sasl_password: &str,
+        group_id: &str,
+    ) -> Self {
         // basic consumer
         let consumer: BaseConsumer = ClientConfig::new()
             .set("bootstrap.servers", bootstap_servers)
@@ -83,8 +97,8 @@ impl PubSubConfluentKafkaInner {
             .unwrap(); // panic if we fail to create client
 
         Self {
-            producer: Arc::new(producer),
-            consumer: Arc::new(consumer),
+            producer: None,
+            consumer: Some(Arc::new(consumer)),
         }
     }
 }
@@ -92,7 +106,52 @@ impl PubSubConfluentKafkaInner {
 impl pubsub::Pubsub for PubSubConfluentKafka {
     type Pubsub = PubSubConfluentKafkaInner;
     /// Construct a new `PubSubConfluentKafka`
-    fn pubsub_open(&mut self) -> Result<Self::Pubsub, Error> {
+    fn pubsub_open_pub(&mut self) -> Result<Self::Pubsub, Error> {
+        let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_ENDPOINT",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let security_protocol = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_SECURITY_PROTOCOL",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let sasl_mechanisms = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_SASL_MECHANISMS",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+        let sasl_username = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_SASL_USERNAME",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+
+        let sasl_password = String::from_utf8(runtime_configs::providers::get(
+            &self.host_state.secret_store,
+            "CK_SASL_PASSWORD",
+            &self.host_state.config_toml_file_path,
+        )?)?;
+
+        let ck_pubsub_guest = Self::Pubsub::new_pub(
+            &bootstap_servers,
+            &security_protocol,
+            &sasl_mechanisms,
+            &sasl_username,
+            &sasl_password,
+        );
+
+        let rd = Uuid::new_v4().to_string();
+        self.host_state
+            .resource_map
+            .lock()
+            .unwrap()
+            .set(rd, Box::new(ck_pubsub_guest.clone()));
+        Ok(ck_pubsub_guest)
+    }
+
+    fn pubsub_open_sub(&mut self) -> Result<Self::Pubsub, Error> {
         let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.secret_store,
             "CK_ENDPOINT",
@@ -125,7 +184,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             &self.host_state.config_toml_file_path,
         )?)?;
 
-        let ck_pubsub_guest = Self::Pubsub::new(
+        let ck_pubsub_guest = Self::Pubsub::new_sub(
             &bootstap_servers,
             &security_protocol,
             &sasl_mechanisms,
@@ -151,8 +210,19 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        Ok(confluent::send(&self_.producer, msg_key, msg_value, topic)
-            .with_context(|| "failed to send message to a topic")?)
+        Ok(confluent::send(
+            self_
+                .producer
+                .as_ref()
+                .ok_or(anyhow::anyhow!(
+                    "cannot send a message without a pub object"
+                ))
+                .unwrap(),
+            msg_key,
+            msg_value,
+            topic,
+        )
+        .with_context(|| "failed to send message to a topic")?)
     }
 
     /// Subscribe to a topic
@@ -161,8 +231,17 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         self_: &Self::Pubsub,
         topic: Vec<&str>,
     ) -> Result<(), Error> {
-        Ok(confluent::subscribe(&self_.consumer, topic)
-            .with_context(|| "failed to subscribe to topic")?)
+        Ok(confluent::subscribe(
+            self_
+                .consumer
+                .as_ref()
+                .ok_or(anyhow::anyhow!(
+                    "cannot subscribe to topic without a sub object"
+                ))
+                .unwrap(),
+            topic,
+        )
+        .with_context(|| "failed to subscribe to topic")?)
     }
 
     /// Receive/poll for messages
@@ -171,11 +250,20 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         self_: &Self::Pubsub,
         timeout_in_secs: u64,
     ) -> Result<Message, Error> {
-        Ok(confluent::poll(&self_.consumer, timeout_in_secs)
-            .map(|f| pubsub::Message {
-                key: f.0,
-                value: f.1,
-            })
-            .with_context(|| "failed to poll for message")?)
+        Ok(confluent::poll(
+            self_
+                .consumer
+                .as_ref()
+                .ok_or(anyhow::anyhow!(
+                    "cannot poll for message without a sub object"
+                ))
+                .unwrap(),
+            timeout_in_secs,
+        )
+        .map(|f| pubsub::Message {
+            key: f.0,
+            value: f.1,
+        })
+        .with_context(|| "failed to poll for message")?)
     }
 }
