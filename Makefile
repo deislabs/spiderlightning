@@ -22,7 +22,7 @@ test:
 .PHONY: test-integration
 test-integration:
 	RUST_LOG=$(LOG_LEVEL) cargo test --test integration --no-fail-fast  -- --nocapture
-### GENERAL COMMANDS
+### END OF GENERAL COMMANDS
 
 ### INSTALLS
 .PHONY: install-deps
@@ -81,11 +81,4 @@ build-c:
 .PHONY: run-c
 run-c:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
-<<<<<<< HEAD
 ### END OF C EXAMPLES
-=======
-
-.PHONY: install
-install:
-	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin
->>>>>>> danbugs/schema-rename
