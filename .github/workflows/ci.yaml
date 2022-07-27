@@ -3,9 +3,11 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request_target:
-    types: [assigned, opened, synchronize, reopened]
+  pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
 
 env:
   CARGO_TERM_COLOR: always
@@ -34,10 +36,12 @@ jobs:
           rustup target add wasm32-unknown-unknown
       - name: Build
         run: make build
-      - name: Test
+      - name: Check
+        run: make improve
+      - name: Unit test
+        run: make test
+      - name: Integration Test
         env:
           AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
           AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-        run: make test
-      - name: Check
-        run: make check
+        run: make test-integration
