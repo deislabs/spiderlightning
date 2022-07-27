@@ -17,6 +17,8 @@ use std::sync::{Arc, Mutex};
 
 use spiderlightning::core::slightfile::TomlFile;
 
+const CONFIGS_HOST_IMPLEMENTORS: [&str; 2] = ["configs.usersecrets", "configs.envvars"];
+
 pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
     tracing::info!("Starting slight");
 
@@ -76,7 +78,7 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                     bail!("the pubsub.confluent_kafka capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CK_SECURITY_PROTOCOL, CK_SASL_MECHANISMS, CK_SASL_USERNAME, CK_SASL_PASSWORD, and CK_GROUP_ID.")
                 }
             },
-            _ if resource_type.contains("configs.") => {
+            _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 host_builder.link_capability::<Configs>(
                     "configs".to_string(),
                     ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
