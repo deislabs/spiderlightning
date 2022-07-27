@@ -6,7 +6,7 @@ wit_bindgen_rust::import!("../../wit/pubsub.wit");
 wit_error_rs::impl_error!(Error);
 
 fn main() -> Result<()> {
-    let pubobj = Pubsub::open_pub()?;
+    let pubobj = Pub::open()?;
     for i in 0..3 {
         println!("sending message");
         pubobj.send_message_to_topic(

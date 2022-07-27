@@ -24,10 +24,20 @@ mod confluent;
 
 const SCHEME_NAME: &str = "pubsub.confluent_kafka";
 
-/// A Confluent Apache Kafka implementation for the pubsub interface.
+/// A Confluent Apache Kafka implementation for the pub interface.
 #[derive(Default, Clone, Resource)]
 pub struct PubSubConfluentKafka {
     host_state: BasicState,
+}
+
+#[derive(Clone, Watch)]
+pub struct PubConfluentKafkaInner {
+    producer: Option<Arc<BaseProducer>>,
+}
+
+#[derive(Clone, Watch)]
+pub struct SubConfluentKafkaInner {
+    consumer: Option<Arc<BaseConsumer>>,
 }
 
 impl_resource!(
@@ -37,21 +47,21 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
-#[derive(Clone, Watch)]
-pub struct PubSubConfluentKafkaInner {
-    producer: Option<Arc<BaseProducer>>,
-    consumer: Option<Arc<BaseConsumer>>,
-}
-
-impl Debug for PubSubConfluentKafkaInner {
+impl Debug for PubConfluentKafkaInner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PubSubConfluentKafkaInner")
     }
 }
 
-impl PubSubConfluentKafkaInner {
-    /// Populate the pub bit for a new `PubSubConfluentKafka`
-    pub fn new_pub(
+impl Debug for SubConfluentKafkaInner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SubConfluentKafkaInner")
+    }
+}
+
+impl PubConfluentKafkaInner {
+    /// Create a new producer
+    pub fn new(
         bootstap_servers: &str,
         security_protocol: &str,
         sasl_mechanisms: &str,
@@ -71,12 +81,13 @@ impl PubSubConfluentKafkaInner {
 
         Self {
             producer: Some(Arc::new(producer)),
-            consumer: None,
         }
     }
+}
 
-    /// Populate the pub bit for a new `PubSubConfluentKafka`
-    pub fn new_sub(
+impl SubConfluentKafkaInner {
+    /// Create a new consumer
+    pub fn new(
         bootstap_servers: &str,
         security_protocol: &str,
         sasl_mechanisms: &str,
@@ -97,16 +108,17 @@ impl PubSubConfluentKafkaInner {
             .unwrap(); // panic if we fail to create client
 
         Self {
-            producer: None,
             consumer: Some(Arc::new(consumer)),
         }
     }
 }
 
 impl pubsub::Pubsub for PubSubConfluentKafka {
-    type Pubsub = PubSubConfluentKafkaInner;
-    /// Construct a new `PubSubConfluentKafka`
-    fn pubsub_open_pub(&mut self) -> Result<Self::Pubsub, Error> {
+    type Pub = PubConfluentKafkaInner;
+    type Sub = SubConfluentKafkaInner;
+
+    /// Construct a new `PubConfluentKafka`
+    fn pub_open(&mut self) -> Result<Self::Pub, Error> {
         let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.secret_store,
             "CK_ENDPOINT",
@@ -134,7 +146,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             &self.host_state.config_toml_file_path,
         )?)?;
 
-        let ck_pubsub_guest = Self::Pubsub::new_pub(
+        let ck_pubsub_guest = Self::Pub::new(
             &bootstap_servers,
             &security_protocol,
             &sasl_mechanisms,
@@ -151,7 +163,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
         Ok(ck_pubsub_guest)
     }
 
-    fn pubsub_open_sub(&mut self) -> Result<Self::Pubsub, Error> {
+    fn sub_open(&mut self) -> Result<Self::Sub, Error> {
         let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
             &self.host_state.secret_store,
             "CK_ENDPOINT",
@@ -184,7 +196,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             &self.host_state.config_toml_file_path,
         )?)?;
 
-        let ck_pubsub_guest = Self::Pubsub::new_sub(
+        let ck_pubsub_guest = Self::Sub::new(
             &bootstap_servers,
             &security_protocol,
             &sasl_mechanisms,
@@ -203,9 +215,9 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     }
 
     /// Send messages to a topic
-    fn pubsub_send_message_to_topic(
+    fn pub_send_message_to_topic(
         &mut self,
-        self_: &Self::Pubsub,
+        self_: &Self::Pub,
         msg_key: PayloadParam<'_>,
         msg_value: PayloadParam<'_>,
         topic: &str,
@@ -226,11 +238,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     }
 
     /// Subscribe to a topic
-    fn pubsub_subscribe_to_topic(
-        &mut self,
-        self_: &Self::Pubsub,
-        topic: Vec<&str>,
-    ) -> Result<(), Error> {
+    fn sub_subscribe_to_topic(&mut self, self_: &Self::Sub, topic: Vec<&str>) -> Result<(), Error> {
         Ok(confluent::subscribe(
             self_
                 .consumer
@@ -245,9 +253,9 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     }
 
     /// Receive/poll for messages
-    fn pubsub_poll_for_message(
+    fn sub_poll_for_message(
         &mut self,
-        self_: &Self::Pubsub,
+        self_: &Self::Sub,
         timeout_in_secs: u64,
     ) -> Result<Message, Error> {
         Ok(confluent::poll(
