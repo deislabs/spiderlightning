@@ -22,7 +22,7 @@ use std::sync::{Arc, Mutex};
 
 mod confluent;
 
-const SCHEME_NAME: &str = "ckpubsub";
+const SCHEME_NAME: &str = "pubsub.confluent_kafka";
 
 /// A Confluent Apache Kafka implementation for the pubsub interface.
 #[derive(Default, Clone, Resource)]

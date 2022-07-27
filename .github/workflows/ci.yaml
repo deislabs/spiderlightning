@@ -37,7 +37,7 @@ jobs:
       - name: Build
         run: make build
       - name: Check
-        run: make check
+        run: make improve
       - name: Unit test
         run: make test
       - name: Integration Test

@@ -34,14 +34,14 @@ mod integration_tests {
 
         #[test]
         fn filekv_test() -> Result<()> {
-            let file_config = "./tests/kv-test/filekv.toml";
+            let file_config = "./tests/kv-test/kvfilesystem_slightfile.toml";
             run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
             Ok(())
         }
 
         #[test]
         fn azblobkv_test() -> Result<()> {
-            let file_config = "./tests/kv-test/azblobkv.toml";
+            let file_config = "./tests/kv-test/kvazblob_slightfile.toml";
             run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
             Ok(())
         }

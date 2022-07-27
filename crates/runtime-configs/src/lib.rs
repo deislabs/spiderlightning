@@ -65,8 +65,8 @@ pub enum ConfigType {
 impl From<ConfigType> for String {
     fn from(from_ct: ConfigType) -> Self {
         match from_ct {
-            ConfigType::UserSecrets => "usersecrets_configs".to_string(),
-            ConfigType::EnvVars => "envvars_configs".to_string(),
+            ConfigType::UserSecrets => "configs.usersecrets".to_string(),
+            ConfigType::EnvVars => "configs.envvars".to_string(),
         }
     }
 }
@@ -74,8 +74,8 @@ impl From<ConfigType> for String {
 impl Into<ConfigType> for &str {
     fn into(self) -> ConfigType {
         match self {
-            "usersecrets_configs" => ConfigType::UserSecrets,
-            "envvars_configs" => ConfigType::EnvVars,
+            "configs.usersecrets" => ConfigType::UserSecrets,
+            "configs.envvars" => ConfigType::EnvVars,
             _ => {
                 panic!("failed to match config name to any known service implementations")
             }

@@ -25,7 +25,7 @@ wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
 
-const SCHEME_NAME: &str = "azsbusmq";
+const SCHEME_NAME: &str = "mq.azsbus";
 
 /// A Azure ServiceBus Message Queue service implementation for the mq interface
 #[derive(Default, Clone, Resource)]

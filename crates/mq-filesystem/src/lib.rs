@@ -22,7 +22,7 @@ wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 wit_error_rs::impl_from!(std::io::Error, Error::ErrorWithDescription);
 
-const SCHEME_NAME: &str = "filemq";
+const SCHEME_NAME: &str = "mq.filesystem";
 
 /// A Filesystem implementation for the mq interface.
 #[derive(Clone, Resource, Default)]
