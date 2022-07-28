@@ -21,6 +21,7 @@ hyper = { version = "0.14", features = ["full"] }
 [workspace]
 members = [
     "slight",
+    "crates/kv",
     "crates/kv-filesystem",
     "crates/kv-azure-blob",
     "crates/mq-filesystem",

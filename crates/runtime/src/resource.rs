@@ -101,15 +101,17 @@ pub trait ResourceBuilder {
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
     ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
-        impl ResourceBuilder for $resource {
+        impl runtime::resource::ResourceBuilder for $resource {
             type State = $state;
-            fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
+            fn add_to_linker(
+                linker: &mut runtime::resource::Linker<runtime::resource::Ctx>,
+            ) -> anyhow::Result<()> {
                 crate::add_to_linker(linker, |cx| {
-                    get_table::<Self, $resource_table>(cx, $scheme_name)
+                    runtime::resource::get_table::<Self, $resource_table>(cx, $scheme_name)
                 })
             }
 
-            fn build_data(state: Self::State) -> Result<HostState> {
+            fn build_data(state: Self::State) -> anyhow::Result<runtime::resource::HostState> {
                 /// We prepare a default resource with host-provided state.
                 /// Then the guest will pass other configuration state to the resource.
                 /// This is done in the `<Capability>::open` function.
@@ -121,7 +123,10 @@ macro_rules! impl_resource {
             }
         }
 
-        impl ResourceTables<dyn Resource> for $resource_table {}
+        impl runtime::resource::ResourceTables<dyn runtime::resource::Resource>
+            for $resource_table
+        {
+        }
     };
 }
 
