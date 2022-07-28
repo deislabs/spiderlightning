@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use events_api::{Event, EventBuilder, EventBuilderV10};
 use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
-use proc_macro_utils::Resource;
 use runtime::impl_resource;
 use runtime::resource::{
     ResourceMap,
@@ -27,7 +26,7 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "kv.filesystem";
 
 /// A Filesystem implementation for the kv interface
-#[derive(Default, Clone, Resource)]
+#[derive(Default, Clone)]
 pub struct KvFilesystem {
     /// The host state. Currently this is a map of resource names to resource descriptors.
     /// If there are more host-specified states, they can be added here.

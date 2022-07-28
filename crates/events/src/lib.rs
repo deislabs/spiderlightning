@@ -6,7 +6,6 @@ use std::{
 
 use anyhow::{Context, Result};
 use crossbeam_utils::thread;
-use proc_macro_utils::Resource;
 
 use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
@@ -31,7 +30,7 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "events";
 
 /// Events capability
-#[derive(Default, Resource)]
+#[derive(Default)]
 pub struct Events {
     host_state: EventsState,
 }

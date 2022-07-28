@@ -22,5 +22,4 @@ wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1
 crossbeam-utils = "0.8"
 crossbeam-channel = "0.5.5"
 tracing = { version = "0.1", features = ["log"] }
-proc_macro_utils = { path = "../proc_macro_utils" }
 uuid = { version = "1.1.2", features = ["v4"] }

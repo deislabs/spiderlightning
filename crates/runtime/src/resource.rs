@@ -78,16 +78,11 @@ impl StateTable {
     }
 }
 
-/// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
-pub trait ResourceTables<T: ?Sized>: AsAny {}
-
-/// An implemented service interface
+/// A trait for wit-bindgen resources
 pub trait Resource: AsAny {}
 
-/// A trait for inner representation of the resource
-pub trait Watch {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()>;
-}
+/// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
+pub trait ResourceTables<T: ?Sized>: AsAny {}
 
 /// A trait for wit-bindgen host resource composed of a resource
 pub trait ResourceBuilder {
@@ -123,14 +118,22 @@ macro_rules! impl_resource {
             }
         }
 
+        impl runtime::resource::Resource for $resource {}
+
         impl runtime::resource::ResourceTables<dyn runtime::resource::Resource>
             for $resource_table
         {
         }
     };
 }
-
 pub use impl_resource;
+
+/// A trait for inner representation of the resource
+pub trait Watch {
+    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
+        todo!("received {}, and {:#?}, but there's nothing to do with it yet", key, sender);
+    }
+}
 
 /// Dynamically dispatch to respective host resource
 pub fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)

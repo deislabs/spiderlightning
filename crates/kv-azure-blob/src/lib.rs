@@ -4,7 +4,6 @@ use azure_storage_blobs::prelude::*;
 use crossbeam_channel::Sender;
 use events_api::Event;
 use futures::executor::block_on;
-use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
@@ -27,7 +26,7 @@ wit_error_rs::impl_from!(std::string::FromUtf8Error, kv::Error::ErrorWithDescrip
 const SCHEME_NAME: &str = "kv.azblob";
 
 /// A Azure Blob Storage implementation for the kv interface
-#[derive(Default, Clone, Resource)]
+#[derive(Default, Clone)]
 pub struct KvAzureBlob {
     host_state: BasicState,
 }
@@ -39,11 +38,13 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
-#[derive(Default, Clone, Debug, Watch)]
+#[derive(Default, Clone, Debug)]
 pub struct KvAzureBlobInner {
     container_client: Option<Arc<ContainerClient>>,
     rd: String,
 }
+
+impl Watch for KvAzureBlobInner {}
 
 impl KvAzureBlobInner {
     pub fn new(

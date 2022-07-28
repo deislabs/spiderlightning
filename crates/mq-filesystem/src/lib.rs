@@ -1,14 +1,10 @@
 use anyhow::{Context, Result};
-use crossbeam_channel::Sender;
-use events_api::Event;
 use mq::*;
-use proc_macro_utils::{Resource, Watch};
 use runtime::impl_resource;
 use runtime::resource::{
     ResourceMap,
     Watch,
 };
-use std::sync::{Arc, Mutex};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
@@ -25,7 +21,7 @@ wit_error_rs::impl_from!(std::io::Error, Error::ErrorWithDescription);
 const SCHEME_NAME: &str = "mq.filesystem";
 
 /// A Filesystem implementation for the mq interface.
-#[derive(Clone, Resource, Default)]
+#[derive(Clone, Default)]
 pub struct MqFilesystem {
     host_state: ResourceMap,
 }
@@ -37,7 +33,7 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
-#[derive(Clone, Debug, Watch)]
+#[derive(Clone, Debug)]
 pub struct MqFileSystemInner {
     queue: String,
     base: String,
@@ -52,6 +48,8 @@ impl MqFileSystemInner {
         }
     }
 }
+
+impl Watch for MqFileSystemInner {}
 
 impl mq::Mq for MqFilesystem {
     type Mq = MqFileSystemInner;

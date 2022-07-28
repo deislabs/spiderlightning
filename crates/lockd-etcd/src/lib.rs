@@ -14,7 +14,6 @@ use crossbeam_channel::Sender;
 use etcd_client::Client;
 use events_api::Event;
 use futures::executor::block_on;
-use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
@@ -29,7 +28,7 @@ mod etcd;
 const SCHEME_NAME: &str = "lockd.etcd";
 
 /// An etcd implementation for the lockd (i.e., distributed locking) Interface
-#[derive(Default, Clone, Resource)]
+#[derive(Default, Clone)]
 pub struct LockdEtcd {
     host_state: BasicState,
 }
@@ -41,10 +40,12 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
-#[derive(Default, Clone, Watch)]
+#[derive(Default, Clone)]
 pub struct LockdEtcdInner {
     client: Option<Arc<Mutex<Client>>>,
 }
+
+impl Watch for LockdEtcdInner {}
 
 impl Debug for LockdEtcdInner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

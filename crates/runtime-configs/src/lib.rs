@@ -2,7 +2,6 @@ use anyhow::Result;
 use configs::*;
 use crossbeam_channel::Sender;
 use events_api::Event;
-use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
@@ -21,15 +20,17 @@ pub mod providers;
 const SCHEME_NAME: &str = "configs";
 
 // Struct Representer for wit_bindgen's Config
-#[derive(Default, Clone, Resource)]
+#[derive(Default, Clone)]
 pub struct Configs {
     host_state: ConfigsState,
 }
 
-#[derive(Clone, Watch, Debug)]
+#[derive(Clone, Debug)]
 pub struct ConfigsInner {
     config_type: Arc<ConfigType>,
 }
+
+impl Watch for ConfigsInner {}
 
 #[derive(Clone, Default)]
 pub struct ConfigsState {
