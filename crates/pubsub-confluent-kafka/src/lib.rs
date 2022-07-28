@@ -49,7 +49,7 @@ impl_resource!(
 
 impl Debug for PubConfluentKafkaInner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "PubSubConfluentKafkaInner")
+        write!(f, "PubConfluentKafkaInner")
     }
 }
 
