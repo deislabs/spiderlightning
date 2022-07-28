@@ -5,7 +5,7 @@ use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
+        BasicState,
         Watch,
     },
 };

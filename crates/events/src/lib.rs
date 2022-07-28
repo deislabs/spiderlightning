@@ -16,7 +16,7 @@ use events_api::{AttributesReader, Event, EventHandler, EventParam};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+        Ctx, ResourceMap,
         StateTable,
     },
 };

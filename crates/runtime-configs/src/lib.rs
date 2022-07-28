@@ -6,7 +6,7 @@ use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+        ResourceMap,
         Watch,
     },
 };

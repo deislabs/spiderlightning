@@ -18,7 +18,7 @@ use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
     resource::{
-        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
+        BasicState,
         Watch,
     },
 };

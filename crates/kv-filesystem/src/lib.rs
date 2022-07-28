@@ -4,7 +4,7 @@ use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use proc_macro_utils::Resource;
 use runtime::impl_resource;
 use runtime::resource::{
-    get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
+    ResourceMap,
     Watch,
 };
 use std::sync::{Arc, Mutex};

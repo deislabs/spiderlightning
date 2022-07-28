@@ -79,28 +79,28 @@ impl_resource!(Kv, kv::KvTables<Kv>, KvState, SCHEME_NAME.to_string());
 impl kv::Kv for Kv {
     type Kv = KvInner;
 
-    fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
+    fn kv_open(&mut self, _name: &str) -> Result<Self::Kv, Error> {
         todo!()
     }
 
-    fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
+    fn kv_get(&mut self, _self_: &Self::Kv, _key: &str) -> Result<PayloadResult, Error> {
         todo!()
     }
 
     fn kv_set(
         &mut self,
-        self_: &Self::Kv,
-        key: &str,
-        value: PayloadParam<'_>,
+        _self_: &Self::Kv,
+        _key: &str,
+        _value: PayloadParam<'_>,
     ) -> Result<(), Error> {
         todo!()
     }
 
-    fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
+    fn kv_delete(&mut self, _self_: &Self::Kv, _key: &str) -> Result<(), Error> {
         todo!()
     }
 
-    fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
+    fn kv_watch(&mut self, _self_: &Self::Kv, _key: &str) -> Result<Observable, Error> {
         todo!()
     }
 }
