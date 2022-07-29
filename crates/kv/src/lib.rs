@@ -15,7 +15,11 @@ use uuid::Uuid;
 
 use runtime::{impl_resource, resource::BasicState};
 
+<<<<<<< HEAD
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
+=======
+/// It is mandatory to `use kv::*` due to `impl_resource!`.
+>>>>>>> main
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use kv::*;
@@ -107,7 +111,10 @@ impl KvProvider {
         match kv_provider {
             "kv.filesystem" => Self::Filesystem(FilesystemProvider::new(name)),
             "kv.azblob" => Self::AzBlob(AzBlobProvider::new(slight_state, name)),
-            _ => panic!("failed to match provided kv name to any known host implementations"),
+            p => panic!(
+                "failed to match provided kv name (i.e., '{}' to any known host implementations",
+                p
+            ),
         }
     }
 }
