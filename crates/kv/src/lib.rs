@@ -15,7 +15,7 @@ use uuid::Uuid;
 
 use runtime::{impl_resource, resource::BasicState};
 
-/// It is mandatory to `use kv::*` due to `impl_resource!`.
+/// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use kv::*;
@@ -36,7 +36,7 @@ pub struct Kv {
 /// It holds:
 ///     - a `kv_provider` `String` — this comes directly from a
 ///     user's `slightfile` and it is what allows us to dynamically
-///     dispatch to a specific provider implentaiton, and
+///     dispatch to a specific provider implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `config_toml_file_path`).
@@ -112,12 +112,15 @@ impl KvProvider {
     }
 }
 
-// This implements the `ResourceBuilder` trait for our `Kv` `struct`,
-// and `ResourceTables` for our `kv::KvTables` object.
+// This implements the `ResourceBuilder`, and `Resource` trait
+// for our `Kv` `struct`, and `ResourceTables` for our `kv::KvTables` object.
 //
 // The `ResourceBuilder` trait provides two functions:
 // - `add_to_linker`, and
 // - `builda_data`.
+//
+// The `Resource` and `ResourceTables` traits are empty traits that allow
+// grouping of resources through `dyn Resource`, and `dyn ResourceTables`.
 impl_resource!(Kv, kv::KvTables<Kv>, KvState, SCHEME_NAME.to_string());
 
 /// This is the implementation for the generated `kv::Kv` trait from the `kv.wit` file.

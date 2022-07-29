@@ -4,8 +4,7 @@ use events::{Events, EventsState};
 use events_api::event_handler::EventHandler;
 use kv::{Kv, KvState};
 use lockd_etcd::LockdEtcd;
-use mq_azure_servicebus::MqAzureServiceBus;
-use mq_filesystem::MqFilesystem;
+use mq::{Mq, MqState};
 use pubsub_confluent_kafka::PubSubConfluentKafka;
 use runtime::{
     resource::{BasicState, StateTable},
@@ -17,6 +16,7 @@ use std::sync::{Arc, Mutex};
 use spiderlightning::core::slightfile::TomlFile;
 
 const KV_HOST_IMPLEMENTORS: [&str; 2] = ["kv.filesystem", "kv.azblob"];
+const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 2] = ["configs.usersecrets", "configs.envvars"];
 
 pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
@@ -45,19 +45,15 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                 } else {
                     bail!("the kv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab, say, the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
                 }
-            }
-            "mq.filesystem" => {
-                host_builder.link_capability::<MqFilesystem>(resource_type.to_string(), resource_map.clone())?;
-                guest_builder.link_capability::<MqFilesystem>(resource_type.to_string(), resource_map.clone())?;
             },
-            "mq.azsbus" => {
+            _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
-                    guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    host_builder.link_capability::<Mq>("mq".to_string(), MqState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    guest_builder.link_capability::<Mq>("mq".to_string(), MqState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
                 } else {
-                    bail!("the mq.azsbus capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
+                    bail!("the mq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
                 }
-            },
+            }
             "lockd.etcd" => {
                 if let Some(ss) = &toml.secret_store {
                     host_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;

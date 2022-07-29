@@ -22,8 +22,7 @@ hyper = { version = "0.14", features = ["full"] }
 members = [
     "slight",
     "crates/kv",
-    "crates/mq-filesystem",
-    "crates/mq-azure-servicebus",
+    "crates/mq",
     "crates/lockd-etcd",
     "crates/pubsub-confluent-kafka",
     "crates/runtime",
