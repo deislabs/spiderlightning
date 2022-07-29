@@ -1,15 +1,11 @@
 use anyhow::Result;
 use configs::*;
 
-
 use runtime::{
     impl_resource,
-    resource::{
-        ResourceMap,
-        Watch,
-    },
+    resource::{ResourceMap, Watch},
 };
-use std::sync::{Arc};
+use std::sync::Arc;
 use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/configs.wit");
 wit_error_rs::impl_error!(configs::Error);

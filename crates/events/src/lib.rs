@@ -14,10 +14,7 @@ use events_api::{AttributesReader, Event, EventHandler, EventParam};
 
 use runtime::{
     impl_resource,
-    resource::{
-        Ctx, ResourceMap,
-        StateTable,
-    },
+    resource::{Ctx, ResourceMap, StateTable},
 };
 use uuid::Uuid;
 use wasmtime::Store;

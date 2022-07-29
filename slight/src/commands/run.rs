@@ -40,8 +40,8 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
             },
             _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<Kv>(resource_type.to_string(), KvState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
-                    guest_builder.link_capability::<Kv>(resource_type.to_string(), KvState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    host_builder.link_capability::<Kv>("kv".to_string(), KvState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    guest_builder.link_capability::<Kv>("kv".to_string(), KvState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
                 } else {
                     bail!("the kv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab, say, the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
                 }

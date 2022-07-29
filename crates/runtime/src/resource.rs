@@ -31,9 +31,9 @@ pub type Ctx = RuntimeContext<HostState>;
 /// TODO (Joe): abstract this to a general guest data
 pub type GuestData = EventHandlerData;
 
-/// `BasicState` provides an attempt at a "fit-all" for basic scenarios 
+/// `BasicState` provides an attempt at a "fit-all" for basic scenarios
 /// of a host's state.
-/// 
+///
 /// It contains:
 ///     - a `resource_map`,
 ///     - a `secret_store`, and
@@ -102,6 +102,12 @@ pub trait ResourceBuilder {
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
     ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
+        impl runtime::resource::Resource for $resource {}
+        impl runtime::resource::ResourceTables<dyn runtime::resource::Resource>
+            for $resource_table
+        {
+        }
+
         impl runtime::resource::ResourceBuilder for $resource {
             type State = $state;
             fn add_to_linker(
@@ -123,13 +129,6 @@ macro_rules! impl_resource {
                 ))
             }
         }
-
-        impl runtime::resource::Resource for $resource {}
-
-        impl runtime::resource::ResourceTables<dyn runtime::resource::Resource>
-            for $resource_table
-        {
-        }
     };
 }
 pub use impl_resource;
@@ -137,7 +136,11 @@ pub use impl_resource;
 /// A trait for inner representation of the resource
 pub trait Watch {
     fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!("received {}, and {:#?}, but there's nothing to do with it yet", key, sender);
+        todo!(
+            "received {}, and {:#?}, but there's nothing to do with it yet",
+            key,
+            sender
+        );
     }
 }
 

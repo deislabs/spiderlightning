@@ -52,8 +52,8 @@ impl FilesystemProvider {
         fs::create_dir_all(&self.base)
             .with_context(|| "failed to create base directory for kv store instance")?;
 
-        let mut file =
-            File::create(PathBuf::from(&self.base).join(key)).with_context(|| "failed to create key")?;
+        let mut file = File::create(PathBuf::from(&self.base).join(key))
+            .with_context(|| "failed to create key")?;
 
         file.write_all(value)
             .with_context(|| "failed to set key's value")?;

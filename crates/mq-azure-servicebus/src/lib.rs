@@ -4,14 +4,10 @@ use azure_messaging_servicebus::prelude::*;
 use futures::executor::block_on;
 use runtime::{
     impl_resource,
-    resource::{
-        BasicState,
-        Watch,
-    },
+    resource::{BasicState, Watch},
 };
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
-
 
 pub use mq::add_to_linker;
 use mq::*;

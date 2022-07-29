@@ -1,10 +1,7 @@
 use anyhow::{Context, Result};
 use mq::*;
 use runtime::impl_resource;
-use runtime::resource::{
-    ResourceMap,
-    Watch,
-};
+use runtime::resource::{ResourceMap, Watch};
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},

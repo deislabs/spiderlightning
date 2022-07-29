@@ -3,10 +3,7 @@ use anyhow::{Context, Result};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use runtime::{
     impl_resource,
-    resource::{
-        BasicState,
-        Watch,
-    },
+    resource::{BasicState, Watch},
 };
 use std::fmt::Debug;
 
@@ -17,7 +14,7 @@ wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
 
-use std::sync::{Arc};
+use std::sync::Arc;
 
 mod confluent;
 

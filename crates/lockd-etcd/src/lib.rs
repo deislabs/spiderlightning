@@ -16,10 +16,7 @@ use etcd_client::Client;
 use futures::executor::block_on;
 use runtime::{
     impl_resource,
-    resource::{
-        BasicState,
-        Watch,
-    },
+    resource::{BasicState, Watch},
 };
 use uuid::Uuid;
 
