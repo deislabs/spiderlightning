@@ -40,7 +40,7 @@ pub struct EventsState {
 }
 
 impl EventsState {
-    pub fn new(resource_map: Arc<Mutex<StateTable>>) -> Self {
+    pub fn new(resource_map: ResourceMap) -> Self {
         Self {
             resource_map,
             ..Default::default()

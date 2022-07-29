@@ -25,6 +25,7 @@ members = [
     "crates/mq-filesystem",
     "crates/mq-azure-servicebus",
     "crates/http-api",
+    "crates/http-handler-macro",
     "crates/lockd-etcd",
     "crates/pubsub-confluent-kafka",
     "crates/runtime",

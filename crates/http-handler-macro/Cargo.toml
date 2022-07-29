@@ -1,0 +1,19 @@
+[package]
+name = "http-handler-macro"
+version = "0.1.0"
+edition = "2021"
+authors = ["DeisLabs Engineering Team"]
+
+[lib]
+name = "http_handler_macro"
+proc-macro = true
+
+[dependencies]
+anyhow = "1"
+bytes = "1"
+proc-macro2 = "1"
+quote = "1.0"
+syn = { version = "1.0", features = ["full"] }
+wit-bindgen-gen-rust-wasm = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+wit-bindgen-gen-core = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }

@@ -1,20 +1,20 @@
+use std::sync::{Arc, Mutex};
+use std::{convert::Infallible, net::SocketAddr};
+
 use anyhow::Result;
 use crossbeam_utils::thread;
 use futures::executor::block_on;
 use hyper::{Body, Request, Response, Server};
-use std::{convert::Infallible, net::SocketAddr};
-use std::sync::{Arc, Mutex};
-use tokio::sync::mpsc::{UnboundedSender, unbounded_channel, UnboundedReceiver};
 use routerify::{Router, RouterService};
-use runtime::{
-    impl_resource,
-    resource::{
-        get_table, Ctx, DataT, Linker, Resource, ResourceMap, ResourceTables, RuntimeResource,
-    },
-};
-use wasmtime::Store;
+use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 
 use http_api::*;
+use runtime::{
+    impl_resource,
+    resource::{Ctx, ResourceMap},
+};
+
+use wasmtime::Store;
 
 wit_bindgen_wasmtime::export!("../../wit/http-api.wit");
 wit_error_rs::impl_error!(Error);
@@ -40,7 +40,6 @@ struct Route {
 pub struct RouterProxy {
     /// The root directory of the filesystem
     base_uri: Option<String>,
-
     routes: Vec<Route>,
 }
 
@@ -69,7 +68,7 @@ impl RouterProxy {
 
 #[derive(Clone, Debug)]
 pub struct ServerProxy {
-    closer: Arc<Mutex<UnboundedSender<()>>>
+    closer: Arc<Mutex<UnboundedSender<()>>>,
 }
 
 impl ServerProxy {
@@ -83,7 +82,8 @@ impl ServerProxy {
                     closer.send(())
                 })
             });
-        }).unwrap();
+        })
+        .unwrap();
         Ok(())
     }
 }
@@ -91,43 +91,42 @@ impl ServerProxy {
 /// HttpApi capability
 #[derive(Default)]
 pub struct HttpApi {
-    host_state: Option<ResourceMap>,
-    closer: Option<Arc<Mutex<UnboundedSender<()>>>>
+    host_state: HttpApiState,
+}
+
+#[derive(Default)]
+pub struct HttpApiState {
+    resource_map: ResourceMap,
+    store: Option<Arc<Mutex<Store<Ctx>>>>,
+    closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
+}
+
+impl HttpApiState {
+    pub fn new(resource_map: ResourceMap) -> Self {
+        Self {
+            resource_map,
+            ..Default::default()
+        }
+    }
 }
 
 impl_resource!(
     HttpApi,
     http_api::HttpApiTables<HttpApi>,
-    ResourceMap,
+    HttpApiState,
     SCHEME_NAME.to_string()
 );
 
 impl HttpApi {
+    pub fn update_store(mut self, store: Arc<Mutex<Store<Ctx>>>) {
+        self.host_state.store = Some(store);
+    }
+
     pub fn close(&mut self) {
-        match self.closer.clone() {
-            Some(c) => {
-                // server was started, so send the termination message
-                let _ = c.lock().unwrap().send(());
-            },
-            // nothing to do b/c server wasn't started
-            _ => (),
+        if let Some(c) = self.host_state.closer.clone() {
+            // server was started, so send the termination message
+            let _ = c.lock().unwrap().send(());
         }
-    }
-}
-
-impl Resource for HttpApi {
-    fn get_inner(&self) -> &dyn std::any::Any {
-        unimplemented!("events will not be dynamically dispatched to a specific resource")
-    }
-
-    fn watch(
-        &mut self,
-        _data: &str,
-        _rd: &str,
-        _key: &str,
-        _sender: Arc<Mutex<crossbeam_channel::Sender<events_api::Event>>>,
-    ) -> Result<()> {
-        unimplemented!("events will not be listened to")
     }
 }
 
@@ -161,9 +160,7 @@ impl http_api::HttpApi for HttpApi {
         let mut builder = Router::builder();
         for route in router.routes.iter() {
             match route.method {
-                Methods::GET => {
-                    builder = builder.get(&route.route, handler)
-                },
+                Methods::GET => builder = builder.get(&route.route, handler),
             }
         }
 
@@ -176,11 +173,9 @@ impl http_api::HttpApi for HttpApi {
         tokio::task::spawn(graceful);
 
         let arc_tx = Arc::new(Mutex::new(tx));
-        self.closer = Some(arc_tx.clone());
+        self.host_state.closer = Some(arc_tx.clone());
 
-        Ok(ServerProxy{
-            closer: arc_tx,
-        })
+        Ok(ServerProxy { closer: arc_tx })
     }
 
     fn server_stop(&mut self, server: &Self::Server) -> Result<(), Error> {

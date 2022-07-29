@@ -1284,8 +1284,23 @@ name = "http-demo"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "http-handler-macro",
  "wit-bindgen-rust",
  "wit-error-rs",
+]
+
+[[package]]
+name = "http-handler-macro"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "wit-bindgen-gen-core",
+ "wit-bindgen-gen-rust-wasm",
+ "wit-bindgen-rust",
 ]
 
 [[package]]
