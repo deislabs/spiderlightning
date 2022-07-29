@@ -31,7 +31,13 @@ pub type Ctx = RuntimeContext<HostState>;
 /// TODO (Joe): abstract this to a general guest data
 pub type GuestData = EventHandlerData;
 
-/// A convenient Struct for the most basic state a resource can have
+/// `BasicState` provides an attempt at a "fit-all" for basic scenarios
+/// of a host's state.
+///
+/// It contains:
+///     - a `resource_map`,
+///     - a `secret_store`, and
+///     - the `config_toml_file_path`.
 #[derive(Clone, Default)]
 pub struct BasicState {
     pub resource_map: ResourceMap,
@@ -78,16 +84,11 @@ impl StateTable {
     }
 }
 
-/// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
-pub trait ResourceTables<T: ?Sized>: AsAny {}
-
-/// An implemented service interface
+/// A trait for wit-bindgen resources
 pub trait Resource: AsAny {}
 
-/// A trait for inner representation of the resource
-pub trait Watch {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()>;
-}
+/// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
+pub trait ResourceTables<T: ?Sized>: AsAny {}
 
 /// A trait for wit-bindgen host resource composed of a resource
 pub trait ResourceBuilder {
@@ -101,15 +102,23 @@ pub trait ResourceBuilder {
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
     ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
-        impl ResourceBuilder for $resource {
+        impl runtime::resource::Resource for $resource {}
+        impl runtime::resource::ResourceTables<dyn runtime::resource::Resource>
+            for $resource_table
+        {
+        }
+
+        impl runtime::resource::ResourceBuilder for $resource {
             type State = $state;
-            fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
+            fn add_to_linker(
+                linker: &mut runtime::resource::Linker<runtime::resource::Ctx>,
+            ) -> anyhow::Result<()> {
                 crate::add_to_linker(linker, |cx| {
-                    get_table::<Self, $resource_table>(cx, $scheme_name)
+                    runtime::resource::get_table::<Self, $resource_table>(cx, $scheme_name)
                 })
             }
 
-            fn build_data(state: Self::State) -> Result<HostState> {
+            fn build_data(state: Self::State) -> anyhow::Result<runtime::resource::HostState> {
                 /// We prepare a default resource with host-provided state.
                 /// Then the guest will pass other configuration state to the resource.
                 /// This is done in the `<Capability>::open` function.
@@ -120,12 +129,20 @@ macro_rules! impl_resource {
                 ))
             }
         }
-
-        impl ResourceTables<dyn Resource> for $resource_table {}
     };
 }
-
 pub use impl_resource;
+
+/// A trait for inner representation of the resource
+pub trait Watch {
+    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
+        todo!(
+            "received {}, and {:#?}, but there's nothing to do with it yet",
+            key,
+            sender
+        );
+    }
+}
 
 /// Dynamically dispatch to respective host resource
 pub fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)

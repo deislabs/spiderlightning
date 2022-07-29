@@ -1,19 +1,14 @@
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
-use events_api::Event;
+
 use futures::executor::block_on;
-use proc_macro_utils::{Resource, Watch};
 use runtime::{
     impl_resource,
-    resource::{
-        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
-        Watch,
-    },
+    resource::{BasicState, Watch},
 };
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 
-use crossbeam_channel::Sender;
 pub use mq::add_to_linker;
 use mq::*;
 use uuid::Uuid;
@@ -28,7 +23,7 @@ wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription
 const SCHEME_NAME: &str = "mq.azsbus";
 
 /// A Azure ServiceBus Message Queue service implementation for the mq interface
-#[derive(Default, Clone, Resource)]
+#[derive(Default, Clone)]
 pub struct MqAzureServiceBus {
     host_state: BasicState,
 }
@@ -40,11 +35,13 @@ impl_resource!(
     SCHEME_NAME.to_string()
 );
 
-#[derive(Default, Clone, Watch)]
+#[derive(Default, Clone)]
 pub struct MqAzureServiceBusInner {
     // FIXME: file an issue to azure-sdk-for-rust to impl Debug for this
     client: Option<Arc<Mutex<Client>>>,
 }
+
+impl Watch for MqAzureServiceBusInner {}
 
 impl Debug for MqAzureServiceBusInner {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

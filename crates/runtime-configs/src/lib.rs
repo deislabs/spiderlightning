@@ -1,16 +1,11 @@
 use anyhow::Result;
 use configs::*;
-use crossbeam_channel::Sender;
-use events_api::Event;
-use proc_macro_utils::{Resource, Watch};
+
 use runtime::{
     impl_resource,
-    resource::{
-        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
-        Watch,
-    },
+    resource::{ResourceMap, Watch},
 };
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/configs.wit");
 wit_error_rs::impl_error!(configs::Error);
@@ -21,15 +16,17 @@ pub mod providers;
 const SCHEME_NAME: &str = "configs";
 
 // Struct Representer for wit_bindgen's Config
-#[derive(Default, Clone, Resource)]
+#[derive(Default, Clone)]
 pub struct Configs {
     host_state: ConfigsState,
 }
 
-#[derive(Clone, Watch, Debug)]
+#[derive(Clone, Debug)]
 pub struct ConfigsInner {
     config_type: Arc<ConfigType>,
 }
+
+impl Watch for ConfigsInner {}
 
 #[derive(Clone, Default)]
 pub struct ConfigsState {

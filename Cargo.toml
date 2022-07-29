@@ -21,13 +21,11 @@ hyper = { version = "0.14", features = ["full"] }
 [workspace]
 members = [
     "slight",
-    "crates/kv-filesystem",
-    "crates/kv-azure-blob",
+    "crates/kv",
     "crates/mq-filesystem",
     "crates/mq-azure-servicebus",
     "crates/lockd-etcd",
     "crates/pubsub-confluent-kafka",
-    "crates/proc_macro_utils",
     "crates/runtime",
     "crates/events/",
     "crates/events-api",

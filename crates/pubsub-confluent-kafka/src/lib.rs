@@ -1,13 +1,9 @@
 use anyhow::{Context, Result};
-use events_api::Event;
-use proc_macro_utils::{Resource, Watch};
+
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use runtime::{
     impl_resource,
-    resource::{
-        get_table, BasicState, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceTables,
-        Watch,
-    },
+    resource::{BasicState, Watch},
 };
 use std::fmt::Debug;
 
@@ -17,28 +13,32 @@ wit_bindgen_wasmtime::export!("../../wit/pubsub.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 wit_error_rs::impl_from!(std::string::FromUtf8Error, Error::ErrorWithDescription);
-use crossbeam_channel::Sender;
-use std::sync::{Arc, Mutex};
+
+use std::sync::Arc;
 
 mod confluent;
 
 const SCHEME_NAME: &str = "pubsub.confluent_kafka";
 
 /// A Confluent Apache Kafka implementation for the pub interface.
-#[derive(Default, Clone, Resource)]
+#[derive(Default, Clone)]
 pub struct PubSubConfluentKafka {
     host_state: BasicState,
 }
 
-#[derive(Clone, Watch)]
+#[derive(Clone)]
 pub struct PubConfluentKafkaInner {
     producer: Option<Arc<BaseProducer>>,
 }
 
-#[derive(Clone, Watch)]
+impl Watch for PubConfluentKafkaInner {}
+
+#[derive(Clone)]
 pub struct SubConfluentKafkaInner {
     consumer: Option<Arc<BaseConsumer>>,
 }
+
+impl Watch for SubConfluentKafkaInner {}
 
 impl_resource!(
     PubSubConfluentKafka,
