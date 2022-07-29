@@ -7,15 +7,15 @@ use std::{
 
 use anyhow::Result;
 
-/// This is the underlying struct behind the `Filesystem` variant of the `MqProvider` enum.
+/// This is the underlying struct behind the `Filesystem` variant of the `MqImplementor` enum.
 ///
 /// It provides one property that pertains solely to the filesystem implementation of
 /// of this capability:
 ///     - `base`.
 ///
-/// As per its' usage in `MqProvider`, it must `derive` `Debug`, and `Clone`.
+/// As per its' usage in `MqImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
-pub struct FilesystemProvider {
+pub struct FilesystemImplementor {
     /// The base path for where the message queue can be found in your file-system
     base: String,
     /// The name of a hidden file that maintains the queue order and
@@ -23,7 +23,7 @@ pub struct FilesystemProvider {
     queue: String,
 }
 
-impl FilesystemProvider {
+impl FilesystemImplementor {
     pub fn new(name: &str) -> Self {
         Self {
             base: Path::new("/tmp").join(name).to_str().unwrap().to_owned(),

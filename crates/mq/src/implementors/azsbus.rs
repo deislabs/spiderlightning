@@ -5,20 +5,20 @@ use azure_messaging_servicebus::prelude::Client;
 use futures::executor::block_on;
 use runtime::resource::BasicState;
 
-use crate::clouds::azure;
+use crate::providers::azure;
 
 #[derive(Clone)]
-pub struct AzSbusProvider {
+pub struct AzSbusImplementor {
     client: Option<Arc<Mutex<Client>>>,
 }
 
-impl std::fmt::Debug for AzSbusProvider {
+impl std::fmt::Debug for AzSbusImplementor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "AzSbusProvider")
+        write!(f, "AzSbusImplementor")
     }
 }
 
-impl AzSbusProvider {
+impl AzSbusImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
         let service_bus_namespace = String::from_utf8(
             runtime_configs::providers::get(

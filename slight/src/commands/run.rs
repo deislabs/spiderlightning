@@ -3,7 +3,7 @@ use as_any::Downcast;
 use events::{Events, EventsState};
 use events_api::event_handler::EventHandler;
 use kv::{Kv, KvState};
-use lockd_etcd::LockdEtcd;
+use lockd::{Lockd, LockdState};
 use mq::{Mq, MqState};
 use pubsub_confluent_kafka::PubSubConfluentKafka;
 use runtime::{
@@ -17,6 +17,7 @@ use spiderlightning::core::slightfile::TomlFile;
 
 const KV_HOST_IMPLEMENTORS: [&str; 2] = ["kv.filesystem", "kv.azblob"];
 const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
+const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 2] = ["configs.usersecrets", "configs.envvars"];
 
 pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
@@ -54,12 +55,12 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                     bail!("the mq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
                 }
             }
-            "lockd.etcd" => {
+            _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
-                    guest_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    host_builder.link_capability::<Lockd>("lockd".to_string(), LockdState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    guest_builder.link_capability::<Lockd>("lockd".to_string(),LockdState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
                 } else {
-                    bail!("the lockd.etcd capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the ETCD_ENDPOINT.")
+                    bail!("the lockd capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the ETCD_ENDPOINT.")
                 }
             },
             "pubsub.confluent_kafka" => {

@@ -1,5 +1,5 @@
-pub mod clouds;
-mod providers;
+mod implementors;
+pub mod providers;
 
 /// The `SCHEME_NAME` defines the name under which a resource is
 /// identifiable by in a `ResourceMap`.
@@ -11,13 +11,14 @@ use anyhow::Result;
 use crossbeam_channel::Sender;
 use events_api::Event;
 
+use implementors::{azsbus::AzSbusImplementor, filesystem::FilesystemImplementor};
+use runtime::{impl_resource, resource::BasicState};
+use uuid::Uuid;
+
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use mq::*;
-use providers::{azsbus::AzSbusProvider, filesystem::FilesystemProvider};
-use runtime::{impl_resource, resource::BasicState};
-use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/mq.wit");
 wit_error_rs::impl_error!(mq::Error);
 wit_error_rs::impl_from!(anyhow::Error, mq::Error::ErrorWithDescription);
@@ -44,21 +45,21 @@ impl_resource!(Mq, mq::MqTables<Mq>, MqState, SCHEME_NAME.to_string());
 /// This is the type of the `host_state` property from our `Mq` structure.
 ///
 /// It holds:
-///     - a `mq_provider` `String` — this comes directly from a
+///     - a `mq_implementor` `String` — this comes directly from a
 ///     user's `slightfile` and it is what allows us to dynamically
-///     dispatch to a specific provider implentation, and
+///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `config_toml_file_path`).
 pub struct MqState {
-    mq_provider: String,
+    mq_implementor: String,
     slight_state: BasicState,
 }
 
 impl MqState {
-    pub fn new(mq_provider: String, slight_state: BasicState) -> Self {
+    pub fn new(mq_implementor: String, slight_state: BasicState) -> Self {
         Self {
-            mq_provider,
+            mq_implementor,
             slight_state,
         }
     }
@@ -68,11 +69,11 @@ impl mq::Mq for Mq {
     type Mq = MqInner;
 
     fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
-        // populate our inner kv object w/ the state received from `slight`
-        // (i.e., what type of kv provider we are using), and the assigned
+        // populate our inner mq object w/ the state received from `slight`
+        // (i.e., what type of mq implementor we are using), and the assigned
         // name of the object.
         let inner = Self::Mq::new(
-            &self.host_state.mq_provider,
+            &self.host_state.mq_implementor,
             &self.host_state.slight_state,
             &name,
         );
@@ -88,16 +89,16 @@ impl mq::Mq for Mq {
     }
 
     fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
-        Ok(match &self_.mq_provider {
-            MqProvider::Filesystem(fp) => fp.send(msg)?,
-            MqProvider::AzSbus(ap) => ap.send(msg)?,
+        Ok(match &self_.mq_implementor {
+            MqImplementor::Filesystem(fi) => fi.send(msg)?,
+            MqImplementor::AzSbus(ai) => ai.send(msg)?,
         })
     }
 
     fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
-        Ok(match &self_.mq_provider {
-            MqProvider::Filesystem(fp) => fp.receive()?,
-            MqProvider::AzSbus(ap) => ap.receive()?,
+        Ok(match &self_.mq_implementor {
+            MqImplementor::Filesystem(fi) => fi.receive()?,
+            MqImplementor::AzSbus(ai) => ai.receive()?,
         })
     }
 }
@@ -106,7 +107,7 @@ impl mq::Mq for Mq {
 /// implementation.
 ///
 /// It holds:
-///     - a `mq_provider` (i.e., a variant `MqProvider` `enum`), and
+///     - a `mq_implementor` (i.e., a variant `MqImplementor` `enum`), and
 ///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
 ///     resource's instance).
 ///
@@ -119,14 +120,14 @@ impl mq::Mq for Mq {
 /// a private type.
 #[derive(Debug, Clone)]
 pub struct MqInner {
-    mq_provider: MqProvider,
+    mq_implementor: MqImplementor,
     resource_descriptor: String,
 }
 
 impl MqInner {
-    fn new(mq_provider: &str, slight_state: &BasicState, name: &str) -> Self {
+    fn new(mq_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         Self {
-            mq_provider: MqProvider::new(mq_provider, slight_state, name),
+            mq_implementor: MqImplementor::new(mq_implementor, slight_state, name),
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
@@ -142,21 +143,21 @@ impl runtime::resource::Watch for MqInner {
     }
 }
 
-/// This defines the available provider implementations for the `Mq` interface.
+/// This defines the available implementor implementations for the `Mq` interface.
 ///
 /// As per its' usage in `MqInner`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
-enum MqProvider {
-    Filesystem(FilesystemProvider),
-    AzSbus(AzSbusProvider),
+enum MqImplementor {
+    Filesystem(FilesystemImplementor),
+    AzSbus(AzSbusImplementor),
 }
 
-impl MqProvider {
-    fn new(mq_provider: &str, slight_state: &BasicState, name: &str) -> Self {
-        match mq_provider {
-            "mq.filesystem" => Self::Filesystem(FilesystemProvider::new(name)),
-            "mq.azsbus" => Self::AzSbus(AzSbusProvider::new(slight_state, name)),
-            _ => panic!("failed to match provided kv name to any known host implementations"),
+impl MqImplementor {
+    fn new(mq_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
+        match mq_implementor {
+            "mq.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
+            "mq.azsbus" => Self::AzSbus(AzSbusImplementor::new(slight_state, name)),
+            _ => panic!("failed to match provided mq name to any known host implementations"),
         }
     }
 }
