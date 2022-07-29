@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::*;
-use events_api::Event;
+
 use futures::executor::block_on;
 use runtime::{
     impl_resource,
@@ -12,7 +12,7 @@ use runtime::{
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 
-use crossbeam_channel::Sender;
+
 pub use mq::add_to_linker;
 use mq::*;
 use uuid::Uuid;

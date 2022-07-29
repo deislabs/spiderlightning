@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use azure_storage::core::prelude::*;
 use azure_storage_blobs::prelude::*;
-use crossbeam_channel::Sender;
-use events_api::Event;
+
+
 use futures::executor::block_on;
 use runtime::{
     impl_resource,
@@ -11,7 +11,7 @@ use runtime::{
         Watch,
     },
 };
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use uuid::Uuid;
 
 use kv::*;

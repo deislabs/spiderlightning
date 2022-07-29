@@ -1,7 +1,7 @@
 use anyhow::Result;
 use configs::*;
-use crossbeam_channel::Sender;
-use events_api::Event;
+
+
 use runtime::{
     impl_resource,
     resource::{
@@ -9,7 +9,7 @@ use runtime::{
         Watch,
     },
 };
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc};
 use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/configs.wit");
 wit_error_rs::impl_error!(configs::Error);

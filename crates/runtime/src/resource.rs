@@ -31,7 +31,13 @@ pub type Ctx = RuntimeContext<HostState>;
 /// TODO (Joe): abstract this to a general guest data
 pub type GuestData = EventHandlerData;
 
-/// A convenient Struct for the most basic state a resource can have
+/// `BasicState` provides an attempt at a "fit-all" for basic scenarios 
+/// of a host's state.
+/// 
+/// It contains:
+///     - a `resource_map`,
+///     - a `secret_store`, and
+///     - the `config_toml_file_path`.
 #[derive(Clone, Default)]
 pub struct BasicState {
     pub resource_map: ResourceMap,
