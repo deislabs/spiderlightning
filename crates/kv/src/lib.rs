@@ -107,7 +107,10 @@ impl KvProvider {
         match kv_provider {
             "kv.filesystem" => Self::Filesystem(FilesystemProvider::new(name)),
             "kv.azblob" => Self::AzBlob(AzBlobProvider::new(slight_state, name)),
-            _ => panic!("failed to match provided kv name to any known host implementations"),
+            p => panic!(
+                "failed to match provided kv name (i.e., '{}' to any known host implementations",
+                p
+            ),
         }
     }
 }
