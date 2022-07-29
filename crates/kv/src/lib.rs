@@ -15,11 +15,7 @@ use uuid::Uuid;
 
 use runtime::{impl_resource, resource::BasicState};
 
-<<<<<<< HEAD
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
-=======
-/// It is mandatory to `use kv::*` due to `impl_resource!`.
->>>>>>> main
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use kv::*;
