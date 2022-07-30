@@ -10,7 +10,10 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use crossbeam_channel::Sender;
 use events_api::Event;
-use implementors::{azblob::AzBlobImplementor, filesystem::FilesystemImplementor};
+use implementors::{
+    awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
+    filesystem::FilesystemImplementor,
+};
 use uuid::Uuid;
 
 use runtime::{impl_resource, resource::BasicState};
@@ -100,6 +103,7 @@ impl runtime::resource::Watch for KvInner {
 enum KvImplementors {
     Filesystem(FilesystemImplementor),
     AzBlob(AzBlobImplementor),
+    AwsDynamoDb(AwsDynamoDbImplementor),
 }
 
 impl KvImplementors {
@@ -107,6 +111,7 @@ impl KvImplementors {
         match kv_implementor {
             "kv.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
             "kv.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name)),
+            "kv.awsdynamodb" => Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name)),
             p => panic!(
                 "failed to match provided kv name (i.e., '{}' to any known host implementations",
                 p
@@ -154,6 +159,7 @@ impl kv::Kv for Kv {
         Ok(match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.get(key)?,
             KvImplementors::AzBlob(ai) => ai.get(key)?,
+            KvImplementors::AwsDynamoDb(adp) => adp.get(key)?,
         })
     }
 
@@ -166,6 +172,7 @@ impl kv::Kv for Kv {
         Ok(match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.set(key, value)?,
             KvImplementors::AzBlob(ai) => ai.set(key, value)?,
+            KvImplementors::AwsDynamoDb(adp) => adp.set(key, value)?,
         })
     }
 
@@ -173,6 +180,7 @@ impl kv::Kv for Kv {
         Ok(match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.delete(key)?,
             KvImplementors::AzBlob(ai) => ai.delete(key)?,
+            KvImplementors::AwsDynamoDb(adp) => adp.delete(key)?,
         })
     }
 

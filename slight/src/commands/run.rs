@@ -15,7 +15,7 @@ use std::sync::{Arc, Mutex};
 
 use spiderlightning::core::slightfile::TomlFile;
 
-const KV_HOST_IMPLEMENTORS: [&str; 2] = ["kv.filesystem", "kv.azblob"];
+const KV_HOST_IMPLEMENTORS: [&str; 3] = ["kv.filesystem", "kv.azblob", "kv.awsdynamodb"];
 const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
 const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 2] = ["configs.usersecrets", "configs.envvars"];
@@ -81,7 +81,7 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                     ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
                 )?;
             }
-            _ => bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', and 'pubsub.confluent_kafka' schemes"),
+            _ => bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', and 'pubsub.confluent_kafka' schemes"),
         }
         }
     } else {

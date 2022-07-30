@@ -57,6 +57,7 @@ run-rust:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/multi_capability-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvazblob_slightfile.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvawsdynamodb_slightfile.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/watch-demo.wasm & 
 	python ./examples/watch-demo/simulate.py
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/usersecrets_slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
