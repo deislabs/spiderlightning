@@ -37,6 +37,23 @@ install-deps:
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 
+.PHONY: install-deps-macos
+install-deps-macos: install-deps
+	chmod +x /opt/wasi-sdk/bin/clang
+	brew install openssl
+
+.PHONY: install-deps-win
+install-deps-win:
+	# TODO: install the wasi-sdk on Windows took more than 10 mins. 
+	#       I'm not sure if it's a bug or if it's just a slow build.
+	#
+	# wget -O wasi-sdk-15.0-mingw.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
+	# tar -xvzf wasi-sdk-15.0-mingw.tar.gz
+	# mkdir -p /opt/wasi-sdk
+	# mv wasi-sdk-15.0/* /opt/wasi-sdk/
+
+	choco install openssl
+
 .PHONY: install-slight
 install-slight:
 	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin
