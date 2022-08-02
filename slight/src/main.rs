@@ -32,7 +32,7 @@ enum Commands {
     },
 }
 
-/// The entry point for wasi-cloud CLI
+/// The entry point for slight CLI
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
