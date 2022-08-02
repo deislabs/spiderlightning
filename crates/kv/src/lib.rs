@@ -176,7 +176,6 @@ impl kv::Kv for Kv {
             KvImplementors::AzBlob(ai) => ai.delete(key)?,
         };
         Ok(())
-
     }
 
     fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
