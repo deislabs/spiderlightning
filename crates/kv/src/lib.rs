@@ -1,5 +1,5 @@
-pub mod clouds;
-mod providers;
+mod implementors;
+pub mod providers;
 
 /// The `SCHEME_NAME` defines the name under which a resource is
 /// identifiable by in a `ResourceMap`.
@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use crossbeam_channel::Sender;
 use events_api::Event;
-use providers::{azblob::AzBlobProvider, filesystem::FilesystemProvider};
+use implementors::{azblob::AzBlobImplementor, filesystem::FilesystemImplementor};
 use uuid::Uuid;
 
 use runtime::{impl_resource, resource::BasicState};
@@ -34,21 +34,21 @@ pub struct Kv {
 /// This is the type of the `host_state` property from our `Kv` structure.
 ///
 /// It holds:
-///     - a `kv_provider` `String` — this comes directly from a
+///     - a `kv_implementor` `String` — this comes directly from a
 ///     user's `slightfile` and it is what allows us to dynamically
-///     dispatch to a specific provider implentation, and
+///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `config_toml_file_path`).
 pub struct KvState {
-    kv_provider: String,
+    kv_implementor: String,
     slight_state: BasicState,
 }
 
 impl KvState {
-    pub fn new(kv_provider: String, slight_state: BasicState) -> Self {
+    pub fn new(kv_implementor: String, slight_state: BasicState) -> Self {
         Self {
-            kv_provider,
+            kv_implementor,
             slight_state,
         }
     }
@@ -58,7 +58,7 @@ impl KvState {
 /// implementation.
 ///
 /// It holds:
-///     - a `kv_provider` (i.e., a variant `KvProvider` `enum`), and
+///     - a `kv_implementor` (i.e., a variant `KvImplementor` `enum`), and
 ///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
 ///     resource's instance).
 ///
@@ -71,14 +71,14 @@ impl KvState {
 /// a private type.
 #[derive(Debug, Clone)]
 pub struct KvInner {
-    kv_provider: KvProvider,
+    kv_implementor: KvImplementors,
     resource_descriptor: String,
 }
 
 impl KvInner {
-    fn new(kv_provider: &str, slight_state: &BasicState, name: &str) -> Self {
+    fn new(kv_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         Self {
-            kv_provider: KvProvider::new(kv_provider, slight_state, name),
+            kv_implementor: KvImplementors::new(kv_implementor, slight_state, name),
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
@@ -86,27 +86,27 @@ impl KvInner {
 
 impl runtime::resource::Watch for KvInner {
     fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        match &mut self.kv_provider {
-            KvProvider::Filesystem(fp) => fp.watch(key, sender),
+        match &mut self.kv_implementor {
+            KvImplementors::Filesystem(fi) => fi.watch(key, sender),
             _ => todo!(),
         }
     }
 }
 
-/// This defines the available provider implementations for the `Kv` interface.
+/// This defines the available implementor implementations for the `Kv` interface.
 ///
 /// As per its' usage in `KvInner`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
-enum KvProvider {
-    Filesystem(FilesystemProvider),
-    AzBlob(AzBlobProvider),
+enum KvImplementors {
+    Filesystem(FilesystemImplementor),
+    AzBlob(AzBlobImplementor),
 }
 
-impl KvProvider {
-    fn new(kv_provider: &str, slight_state: &BasicState, name: &str) -> Self {
-        match kv_provider {
-            "kv.filesystem" => Self::Filesystem(FilesystemProvider::new(name)),
-            "kv.azblob" => Self::AzBlob(AzBlobProvider::new(slight_state, name)),
+impl KvImplementors {
+    fn new(kv_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
+        match kv_implementor {
+            "kv.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
+            "kv.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name)),
             p => panic!(
                 "failed to match provided kv name (i.e., '{}' to any known host implementations",
                 p
@@ -132,10 +132,10 @@ impl kv::Kv for Kv {
 
     fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
         // populate our inner kv object w/ the state received from `slight`
-        // (i.e., what type of kv provider we are using), and the assigned
+        // (i.e., what type of kv implementor we are using), and the assigned
         // name of the object.
         let inner = Self::Kv::new(
-            &self.host_state.kv_provider,
+            &self.host_state.kv_implementor,
             &self.host_state.slight_state,
             &name,
         );
@@ -151,9 +151,9 @@ impl kv::Kv for Kv {
     }
 
     fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
-        Ok(match &self_.kv_provider {
-            KvProvider::Filesystem(fp) => fp.get(key)?,
-            KvProvider::AzBlob(ap) => ap.get(key)?,
+        Ok(match &self_.kv_implementor {
+            KvImplementors::Filesystem(fi) => fi.get(key)?,
+            KvImplementors::AzBlob(ai) => ai.get(key)?,
         })
     }
 
@@ -163,16 +163,16 @@ impl kv::Kv for Kv {
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Ok(match &self_.kv_provider {
-            KvProvider::Filesystem(fp) => fp.set(key, value)?,
-            KvProvider::AzBlob(ap) => ap.set(key, value)?,
+        Ok(match &self_.kv_implementor {
+            KvImplementors::Filesystem(fi) => fi.set(key, value)?,
+            KvImplementors::AzBlob(ai) => ai.set(key, value)?,
         })
     }
 
     fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
-        Ok(match &self_.kv_provider {
-            KvProvider::Filesystem(fp) => fp.delete(key)?,
-            KvProvider::AzBlob(ap) => ap.delete(key)?,
+        Ok(match &self_.kv_implementor {
+            KvImplementors::Filesystem(fi) => fi.delete(key)?,
+            KvImplementors::AzBlob(ai) => ai.delete(key)?,
         })
     }
 

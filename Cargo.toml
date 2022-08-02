@@ -23,7 +23,7 @@ members = [
     "slight",
     "crates/kv",
     "crates/mq",
-    "crates/lockd-etcd",
+    "crates/lockd",
     "crates/pubsub-confluent-kafka",
     "crates/runtime",
     "crates/events/",

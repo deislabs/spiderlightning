@@ -1567,16 +1567,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lockd-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "lockd-etcd"
+name = "lockd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1587,9 +1578,19 @@ dependencies = [
  "runtime",
  "runtime-configs",
  "tokio",
+ "tracing",
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "lockd-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-rust",
  "wit-error-rs",
 ]
 
@@ -2754,7 +2755,7 @@ dependencies = [
  "events",
  "events-api",
  "kv",
- "lockd-etcd",
+ "lockd",
  "log",
  "mq",
  "pubsub-confluent-kafka",

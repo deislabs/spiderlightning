@@ -13,7 +13,7 @@ spiderlightning = { path = "../" }
 runtime = { path = "../crates/runtime" }
 kv = { path =  "../crates/kv" }
 mq = { path =  "../crates/mq" }
-lockd-etcd = { path = "../crates/lockd-etcd" }
+lockd = { path = "../crates/lockd" }
 pubsub-confluent-kafka = { path = "../crates/pubsub-confluent-kafka" }
 runtime-configs = { path = "../crates/runtime-configs" }
 events = { path = "../crates/events" }

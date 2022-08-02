@@ -1,2 +1,1 @@
-pub mod azsbus;
-pub mod filesystem;
+pub mod azure;

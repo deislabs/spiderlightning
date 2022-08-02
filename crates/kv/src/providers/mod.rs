@@ -1,2 +1,1 @@
-pub mod azblob;
-pub mod filesystem;
+pub mod azure;

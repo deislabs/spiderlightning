@@ -12,23 +12,23 @@ use events_api::{Event, EventBuilder, EventBuilderV10};
 use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use uuid::Uuid;
 
-/// This is the underlying struct behind the `Filesystem` variant of the `KvProvider` enum.
+/// This is the underlying struct behind the `Filesystem` variant of the `KvImplementor` enum.
 ///
 /// It provides two properties that pertain solely to the filesystem implementation of
 /// of this capability:
 ///     - `base`, and
 ///     - `watchers`.
 ///
-/// As per its' usage in `KvProvider`, it must `derive` `Debug`, and `Clone`.
+/// As per its' usage in `KvImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
-pub struct FilesystemProvider {
+pub struct FilesystemImplementor {
     /// The base path for where the key-value store can be found in your file-system
     pub base: String,
     /// A group of `*Watcher`s that are observing a key
     pub watchers: Vec<Arc<Mutex<RecommendedWatcher>>>,
 }
 
-impl FilesystemProvider {
+impl FilesystemImplementor {
     pub fn new(name: &str) -> Self {
         Self {
             base: Path::new("/tmp").join(name).to_str().unwrap().to_owned(),

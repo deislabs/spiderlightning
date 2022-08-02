@@ -6,21 +6,21 @@ use azure_storage_blobs::prelude::{AsBlobClient, AsContainerClient, ContainerCli
 use futures::executor::block_on;
 use runtime::resource::BasicState;
 
-use crate::clouds::azure;
+use crate::providers::azure;
 
-/// This is the underlying struct behind the `AzBlob` variant of the `KvProvider` enum.
+/// This is the underlying struct behind the `AzBlob` variant of the `KvImplementor` enum.
 ///
 /// It provides a properties that pertains solely to the azblob implementation
 /// of this capability:
 ///     - `container_client`, and
 ///
-/// As per its' usage in `KvProvider`, it must `derive` `Debug`, and `Clone`.
+/// As per its' usage in `KvImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
-pub struct AzBlobProvider {
+pub struct AzBlobImplementor {
     container_client: Option<Arc<ContainerClient>>,
 }
 
-impl AzBlobProvider {
+impl AzBlobImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
         let storage_account_name = String::from_utf8(
             runtime_configs::providers::get(
