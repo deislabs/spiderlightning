@@ -7,7 +7,10 @@ LOG_LEVEL ?= slight=trace
 ### GENERAL COMMANDS
 .PHONY: improve
 improve:
-	cargo clippy --all-targets --all-features -- -D warnings
+	# --all-target: apply clippy to all targets
+	# --all-features: check all available features
+	# --workspace: check all packages in a workspace
+	cargo clippy --all-targets --all-features --workspace -- -D warnings
 	cargo fmt --all -- --check
 
 .PHONY: build

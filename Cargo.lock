@@ -1613,16 +1613,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lockd-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "lockd-etcd"
+name = "lockd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1633,9 +1624,19 @@ dependencies = [
  "runtime",
  "runtime-configs",
  "tokio",
+ "tracing",
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "lockd-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-rust",
  "wit-error-rs",
 ]
 
@@ -1754,7 +1755,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7843ec2de400bcbc6a6328c958dc38e5359da6e93e72e37bc5246bf1ae776389"
 
 [[package]]
-name = "mq-azure-servicebus"
+name = "mq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1767,20 +1768,7 @@ dependencies = [
  "http",
  "runtime",
  "runtime-configs",
- "url",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
-name = "mq-filesystem"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "events-api",
- "runtime",
+ "tracing",
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime",
@@ -2827,10 +2815,9 @@ dependencies = [
  "events-api",
  "http-api",
  "kv",
- "lockd-etcd",
+ "lockd",
  "log",
- "mq-azure-servicebus",
- "mq-filesystem",
+ "mq",
  "pubsub-confluent-kafka",
  "runtime",
  "runtime-configs",

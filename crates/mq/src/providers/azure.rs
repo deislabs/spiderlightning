@@ -2,13 +2,11 @@ use anyhow::{bail, Result};
 use azure_messaging_servicebus::prelude::*;
 use chrono::Duration;
 
-// Send a message
 pub async fn send(client: &mut Client, msg: String) -> Result<()> {
     client.send_message(&msg).await?;
     Ok(())
 }
 
-// Receive a message
 pub async fn receive(client: &mut Client) -> Result<Vec<u8>> {
     let peek_lock = client
         .peek_lock_message2(Some(Duration::seconds(60)))
