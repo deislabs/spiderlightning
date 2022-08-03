@@ -226,9 +226,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             self_
                 .producer
                 .as_ref()
-                .ok_or(anyhow::anyhow!(
-                    "cannot send a message without a pub object"
-                ))
+                .ok_or_else(|| anyhow::anyhow!("cannot send a message without a pub object"))
                 .unwrap(),
             msg_key,
             msg_value,
@@ -243,9 +241,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             self_
                 .consumer
                 .as_ref()
-                .ok_or(anyhow::anyhow!(
-                    "cannot subscribe to topic without a sub object"
-                ))
+                .ok_or_else(|| anyhow::anyhow!("cannot subscribe to topic without a sub object"))
                 .unwrap(),
             topic,
         )
@@ -262,9 +258,7 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
             self_
                 .consumer
                 .as_ref()
-                .ok_or(anyhow::anyhow!(
-                    "cannot poll for message without a sub object"
-                ))
+                .ok_or_else(|| anyhow::anyhow!("cannot poll for message without a sub object"))
                 .unwrap(),
             timeout_in_secs,
         )

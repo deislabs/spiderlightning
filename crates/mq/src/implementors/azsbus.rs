@@ -71,9 +71,9 @@ impl AzSbusImplementor {
         let client = Some(Arc::new(Mutex::new(
             Client::new(
                 http_client,
-                service_bus_namespace.to_owned(),
+                service_bus_namespace,
                 name.to_owned(),
-                policy_name.to_owned(),
+                policy_name,
                 policy_key,
             )
             .with_context(|| "failed to connect to Azure Service Bus")
