@@ -1,8 +1,8 @@
 use std::{
     fs::{self, File},
     io::{Read, Write},
-    path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    path::PathBuf,
+    sync::{Arc, Mutex}, env,
 };
 
 use anyhow::{Context, Result};
@@ -31,7 +31,7 @@ pub struct FilesystemImplementor {
 impl FilesystemImplementor {
     pub fn new(name: &str) -> Self {
         Self {
-            base: Path::new("/tmp").join(name).to_str().unwrap().to_owned(),
+            base: env::temp_dir().join(name).to_str().unwrap().to_owned(),
             watchers: Vec::new(),
         }
     }

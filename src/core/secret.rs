@@ -1,7 +1,7 @@
 use std::{
     fs::{File, OpenOptions},
     io::Write,
-    path::Path,
+    env,
 };
 
 use crate::core::slightfile::{Config, TomlFile};
@@ -9,7 +9,7 @@ use anyhow::{bail, Result};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use short_crypt::ShortCrypt;
 
-pub const SLIGHTKEY: &str = "/tmp/.slightkey";
+pub const SLIGHTKEY: &str = ".slightkey";
 
 pub fn create_secret(
     key: &str,
@@ -65,19 +65,23 @@ pub fn generate_key() -> String {
 }
 
 pub fn get_key() -> Result<String> {
-    if Path::new(SLIGHTKEY).exists() {
-        Ok(std::fs::read_to_string(SLIGHTKEY)?)
+    let slightkey = env::temp_dir().join(SLIGHTKEY);
+
+    if slightkey.exists() {
+        Ok(std::fs::read_to_string(slightkey)?)
     } else {
         bail!("usersecrets haven't been initialized yet, you can set your user secrets with `slight -c <config_file> -k <some_key> -v <some_value`.")
     }
 }
 
 pub fn maybe_set_key() -> Result<()> {
+    let slightkey = env::temp_dir().join(SLIGHTKEY);
+
     let mut keyfile = OpenOptions::new()
         .read(true)
         .write(true)
         .create(true)
-        .open(SLIGHTKEY)?;
+        .open(slightkey)?;
 
     if keyfile.metadata().unwrap().len() == 0 {
         // check file is empty

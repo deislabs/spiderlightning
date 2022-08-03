@@ -1,8 +1,8 @@
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
-    path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
+    path::PathBuf, env,
 };
 
 use anyhow::Result;
@@ -26,7 +26,7 @@ pub struct FilesystemImplementor {
 impl FilesystemImplementor {
     pub fn new(name: &str) -> Self {
         Self {
-            base: Path::new("/tmp").join(name).to_str().unwrap().to_owned(),
+            base: env::temp_dir().join(name).to_str().unwrap().to_owned(),
             queue: ".queue".to_string(),
         }
     }
