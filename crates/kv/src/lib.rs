@@ -142,7 +142,7 @@ impl kv::Kv for Kv {
         let inner = Self::Kv::new(
             &self.host_state.kv_implementor,
             &self.host_state.slight_state,
-            &name,
+            name,
         );
 
         self.host_state
@@ -169,19 +169,21 @@ impl kv::Kv for Kv {
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Ok(match &self_.kv_implementor {
+        match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.set(key, value)?,
             KvImplementors::AzBlob(ai) => ai.set(key, value)?,
             KvImplementors::AwsDynamoDb(adp) => adp.set(key, value)?,
-        })
+        };
+        Ok(())
     }
 
     fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
-        Ok(match &self_.kv_implementor {
+        match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.delete(key)?,
             KvImplementors::AzBlob(ai) => ai.delete(key)?,
             KvImplementors::AwsDynamoDb(adp) => adp.delete(key)?,
-        })
+        };
+        Ok(())
     }
 
     fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
