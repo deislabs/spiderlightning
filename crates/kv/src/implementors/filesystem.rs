@@ -1,8 +1,9 @@
 use std::{
+    env,
     fs::{self, File},
     io::{Read, Write},
     path::PathBuf,
-    sync::{Arc, Mutex}, env,
+    sync::{Arc, Mutex},
 };
 
 use anyhow::{Context, Result};

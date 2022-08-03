@@ -1,7 +1,7 @@
 use std::{
+    env,
     fs::{File, OpenOptions},
     io::Write,
-    env,
 };
 
 use crate::core::slightfile::{Config, TomlFile};
