@@ -1,8 +1,8 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use aws_sdk_dynamodb::model::{AttributeValue, Select};
-use aws_sdk_dynamodb::{Client, Error};
+use aws_sdk_dynamodb::{Client};
 use futures::executor::block_on;
-use runtime::resource::BasicState;
+
 use tracing::log;
 
 /// This is the underlying struct behind the "AWS DynamoDB" variant of the `KvImplementor` enum.
