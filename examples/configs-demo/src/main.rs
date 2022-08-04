@@ -9,9 +9,9 @@ fn main() -> Result<()> {
     // ^^^ getting a random number to differentiate non-transient configs created below
 
     let rand_key = format!("THIS_IS_ANOTHER_TEST_CONFIG_{}", ptr as usize);
-    let us_configs = Configs::open()?;
-    us_configs.set(&rand_key, "Hello, World!".as_bytes())?;
-    dbg!(String::from_utf8(us_configs.get(&rand_key)?)?);
+    let configs = Configs::open()?;
+    configs.set(&rand_key, "Hello, World!".as_bytes())?;
+    dbg!(String::from_utf8(configs.get(&rand_key)?)?);
     // ^^^ if you look in your spiderlightning config file after this, you should have the configs show up!
     Ok(())
 }

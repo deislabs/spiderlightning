@@ -2,11 +2,9 @@ use anyhow::{bail, Result};
 use as_any::Downcast;
 use events::{Events, EventsState};
 use events_api::event_handler::EventHandler;
-use kv_azure_blob::KvAzureBlob;
-use kv_filesystem::KvFilesystem;
-use lockd_etcd::LockdEtcd;
-use mq_azure_servicebus::MqAzureServiceBus;
-use mq_filesystem::MqFilesystem;
+use kv::{Kv, KvState};
+use lockd::{Lockd, LockdState};
+use mq::{Mq, MqState};
 use pubsub_confluent_kafka::PubSubConfluentKafka;
 use runtime::{
     resource::{BasicState, StateTable},
@@ -16,6 +14,11 @@ use runtime_configs::{Configs, ConfigsState};
 use std::sync::{Arc, Mutex};
 
 use spiderlightning::core::slightfile::TomlFile;
+
+const KV_HOST_IMPLEMENTORS: [&str; 2] = ["kv.filesystem", "kv.azblob"];
+const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
+const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
+const CONFIGS_HOST_IMPLEMENTORS: [&str; 2] = ["configs.usersecrets", "configs.envvars"];
 
 pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
     tracing::info!("Starting slight");
@@ -36,47 +39,39 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                 host_builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
                 guest_builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
             },
-            "azblobkv" => {
+            _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
-                    guest_builder.link_capability::<KvAzureBlob>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    host_builder.link_capability::<Kv>("kv".to_string(), KvState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    guest_builder.link_capability::<Kv>("kv".to_string(), KvState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
                 } else {
-                    bail!("the azblobkv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
+                    bail!("the kv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab, say, the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
                 }
             },
-            "filekv" => {
-                host_builder.link_capability::<KvFilesystem>(resource_type.to_string(), resource_map.clone())?;
-                guest_builder.link_capability::<KvFilesystem>(resource_type.to_string(), resource_map.clone())?;
-            },
-            "filemq" => {
-                host_builder.link_capability::<MqFilesystem>(resource_type.to_string(), resource_map.clone())?;
-                guest_builder.link_capability::<MqFilesystem>(resource_type.to_string(), resource_map.clone())?;
-            },
-            "azsbusmq" => {
+            _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
-                    guest_builder.link_capability::<MqAzureServiceBus>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                    host_builder.link_capability::<Mq>("mq".to_string(), MqState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    guest_builder.link_capability::<Mq>("mq".to_string(), MqState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
                 } else {
-                    bail!("the azsbusmq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
+                    bail!("the mq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
+                }
+            }
+            _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if let Some(ss) = &toml.secret_store {
+                    host_builder.link_capability::<Lockd>("lockd".to_string(), LockdState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    guest_builder.link_capability::<Lockd>("lockd".to_string(),LockdState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                } else {
+                    bail!("the lockd capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the ETCD_ENDPOINT.")
                 }
             },
-            "etcdlockd" => {
-                if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
-                    guest_builder.link_capability::<LockdEtcd>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
-                } else {
-                    bail!("the etcdlockd capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the ETCD_ENDPOINT.")
-                }
-            },
-            "ckpubsub" => {
+            "pubsub.confluent_kafka" => {
                 if let Some(ss) = &toml.secret_store {
                     host_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
                     guest_builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
                 } else {
-                    bail!("the ckpubsub capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CK_SECURITY_PROTOCOL, CK_SASL_MECHANISMS, CK_SASL_USERNAME, CK_SASL_PASSWORD, and CK_GROUP_ID.")
+                    bail!("the pubsub.confluent_kafka capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CK_SECURITY_PROTOCOL, CK_SASL_MECHANISMS, CK_SASL_USERNAME, CK_SASL_PASSWORD, and CK_GROUP_ID.")
                 }
             },
-            "usersecrets_configs" | "envvars_configs" => {
+            _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 host_builder.link_capability::<Configs>(
                     "configs".to_string(),
                     ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
@@ -86,7 +81,7 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
                     ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
                 )?;
             }
-            _ => bail!("invalid url: currently slight only supports 'usersecrets_configs', 'envvars_configs', 'events', 'filekv', 'azblobkv', 'filemq', 'azsbusmq', 'etcdlockd', and 'ckpubsub' schemes"),
+            _ => bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', and 'pubsub.confluent_kafka' schemes"),
         }
         }
     } else {

@@ -1,16 +1,11 @@
 use anyhow::Result;
 use configs::*;
-use crossbeam_channel::Sender;
-use events_api::Event;
-use proc_macro_utils::{Resource, Watch};
+
 use runtime::{
     impl_resource,
-    resource::{
-        get_table, Ctx, HostState, Linker, Resource, ResourceBuilder, ResourceMap, ResourceTables,
-        Watch,
-    },
+    resource::{ResourceMap, Watch},
 };
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use uuid::Uuid;
 wit_bindgen_wasmtime::export!("../../wit/configs.wit");
 wit_error_rs::impl_error!(configs::Error);
@@ -21,15 +16,17 @@ pub mod providers;
 const SCHEME_NAME: &str = "configs";
 
 // Struct Representer for wit_bindgen's Config
-#[derive(Default, Clone, Resource)]
+#[derive(Default, Clone)]
 pub struct Configs {
     host_state: ConfigsState,
 }
 
-#[derive(Clone, Watch, Debug)]
+#[derive(Clone, Debug)]
 pub struct ConfigsInner {
     config_type: Arc<ConfigType>,
 }
+
+impl Watch for ConfigsInner {}
 
 #[derive(Clone, Default)]
 pub struct ConfigsState {
@@ -65,20 +62,18 @@ pub enum ConfigType {
 impl From<ConfigType> for String {
     fn from(from_ct: ConfigType) -> Self {
         match from_ct {
-            ConfigType::UserSecrets => "usersecrets_configs".to_string(),
-            ConfigType::EnvVars => "envvars_configs".to_string(),
+            ConfigType::UserSecrets => "configs.usersecrets".to_string(),
+            ConfigType::EnvVars => "configs.envvars".to_string(),
         }
     }
 }
 
-impl Into<ConfigType> for &str {
-    fn into(self) -> ConfigType {
-        match self {
-            "usersecrets_configs" => ConfigType::UserSecrets,
-            "envvars_configs" => ConfigType::EnvVars,
-            _ => {
-                panic!("failed to match config name to any known service implementations")
-            }
+impl From<&str> for ConfigType {
+    fn from(from_str: &str) -> Self {
+        match from_str {
+            "configs.usersecrets" => ConfigType::UserSecrets,
+            "configs.envvars" => ConfigType::EnvVars,
+            _ => panic!("Unknown config type: {}", from_str),
         }
     }
 }

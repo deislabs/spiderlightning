@@ -11,11 +11,9 @@ test = false
 [dependencies]
 spiderlightning = { path = "../" }
 runtime = { path = "../crates/runtime" }
-kv-azure-blob = { path = "../crates/kv-azure-blob" }
-kv-filesystem = { path = "../crates/kv-filesystem" }
-mq-filesystem = { path = "../crates/mq-filesystem" }
-mq-azure-servicebus = { path = "../crates/mq-azure-servicebus" }
-lockd-etcd = { path = "../crates/lockd-etcd" }
+kv = { path =  "../crates/kv" }
+mq = { path =  "../crates/mq" }
+lockd = { path = "../crates/lockd" }
 pubsub-confluent-kafka = { path = "../crates/pubsub-confluent-kafka" }
 runtime-configs = { path = "../crates/runtime-configs" }
 events = { path = "../crates/events" }

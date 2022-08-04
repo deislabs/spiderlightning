@@ -28,8 +28,16 @@ Do you want to contribute to SpiderLightning's growth?
 
 <p align="center">Start with our <a href="https://github.com/deislabs/spiderlightning/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a></p>
 
-## Build
-- Run `make build`
+## Getting Started
 
-## Run
-- Run `make run`
+```sh
+$ git clone https://github.com/deislabs/spiderlightning.git && cd spiderlightning/ # clone our repo locally and go into it
+$ make install-deps # installs the WASI-SDK
+$ make build # builds SpiderLightning/Slight
+$ make build-c # builds our c example
+$ make run-c # runs our c example
+```
+
+> Note: There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, some of these examples have some dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.
+
+

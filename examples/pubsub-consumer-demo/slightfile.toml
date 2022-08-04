@@ -1,6 +1,6 @@
 specversion = "0.1"
-secret_store = "envvars_configs"
+secret_store = "configs.envvars"
 
 [[capability]]
-name = "ckpubsub"
+name = "pubsub.confluent_kafka"
 

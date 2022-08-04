@@ -1,7 +1,3 @@
-target
-.vscode
-main.wasm
-key
+target/
+.vscode/
 bindings.rs
-*.o
-examples/kv-filesystem-c/kv-filesystem-c.wasm
