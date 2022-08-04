@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use aws_sdk_dynamodb::model::{AttributeValue, Select};
-use aws_sdk_dynamodb::{Client};
+use aws_sdk_dynamodb::Client;
 use futures::executor::block_on;
 
 use tracing::log;
