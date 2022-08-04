@@ -1,7 +1,7 @@
 <img align="right" src="docs/images/tmp-logo.png" width="150px" />
 
 # SpiderLightning (or, `slight`)
-SpiderLightning defines a set of WebAssembly Interface Types (i.e., WIT) files that abstract distributed application capabilities, such as state management, pub/sub, event driven programming, and more.  
+SpiderLightning defines a set of [WebAssembly Interface Types](https://github.com/WebAssembly/interface-types/blob/main/proposals/interface-types/Explainer.md) (i.e., WIT) files that abstract distributed application capabilities, such as state management, pub/sub, event driven programming, and more.  
 
 In simple terms, SpiderLightning allows you to go:
 <table>
@@ -43,18 +43,18 @@ $ make run-c # runs our c example
 
 ## FAQ
 
-**What problems does SpiderLightning address?**
+### What problems does SpiderLightning address?
 
-Spiderlightning is a collection of common application interfaces exposed through WebAssembly that are intended to make cloud-native application development simpler. Spiderlightning interfaces are available to WebAssembly applications through the `slight` Command Line Interface (CLI) and host runtime.
+Spiderlightning is a collection of common application interfaces exposed through WebAssembly intended to make cloud-native application development simpler. These interfaces are available to WebAssembly applications through the `slight` Command Line Interface (CLI) and host runtime that implements these interfaces using a backend of choice. For example, for the "message queue" interface, SpiderLightning may provide backends implemented by Azure Storage Bus, Apache Kafka, and more.
 
-Spiderlightning's interfaces offer developers a provider agnostic set of APIs which enable developers to write portable applications without having to take dependencies on vendor specific APIs and SDKs.
+Spiderlightning's interfaces offer developers a set of provider-agnostic APIs which enable developers to write portable applications without having to take direct dependencies on vendor specific APIs and SDKs.
 
-Applications targeting Spiderlightning can leverage these interfaces to reduce the amount of code written to achieve tasks such as persisting key/values, participating in pub/sub, handling messages from message queue, and much more. By reducing the code footprint and corresponding Wasm binary, Spiderlightning also enables applications to be much lighter weight, often an order of magnitude lighter weight than corresponding container based applications. This further increases the portability of applications to target constrained runtime environments like edge and small devices.
+Applications targeting Spiderlightning can leverage these interfaces to reduce the amount of code written to achieve tasks such as persisting key/values, participating in pub/sub, handling messages from a message queue, and much more. By reducing the code footprint, Spiderlightning also enables application binaries to be much smaller, often an order of magnitude smaller than similar container-based applications. This feature further increases the portability of applications to target constrained runtime environments like edge devices.
 
-**What is the difference between SpiderLightning and WebAssembly System Interface (WASI)?**
+### What is the difference between SpiderLightning and WebAssembly System Interface (WASI)?
 
 WASI's primary goal is to provide operating system abstractions for Wasm applications running outside of browser environments. SpiderLightning interfaces extend WASI's goal to provide application capabilities, such as state management, event-driven pattern, or distributed locking. In the future, we hope that SpiderLightning interfaces become part of WASI specification. 
 
-**What is the difference between SpiderLightning and Dapr?**
+### What is the difference between SpiderLightning and Dapr?
 
-SpiderLightning and Dapr share the same goal of providing capabilities to distributed applications, but each products' approach to a solution is very different. That is, while Dapr runs as a sidecar using HTTP/gRPC to communicate with applications, SpiderLightning's chooses not take a dependency on network transport protocols. Instead, `slight`, for example, uses generated Wasm bindings to directly execute Wasm applications.
+SpiderLightning and Dapr share the same goal of providing capabilities to distributed applications, but each project's approach to achieving this goal is very different. For example, while Dapr runs as a sidecar container and provides an HTTP/gRPC interface for applications, SpiderLightning's chooses not take a dependency on network transport protocols. Instead, `slight` links applications directly to generated WASM bindings, then executes them directly.
