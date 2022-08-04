@@ -1,9 +1,9 @@
 use anyhow::Result;
 
-use http_api::*;
+use http::*;
 use http_handler_macro::register_handler;
 
-wit_bindgen_rust::import!("../../wit/http-api.wit");
+wit_bindgen_rust::import!("../../wit/http.wit");
 
 fn main() -> Result<()> {
     let router = Router::new().unwrap();
@@ -18,10 +18,19 @@ fn main() -> Result<()> {
 }
 
 #[register_handler]
+fn handle_http(req: Request) -> Result<Response, Error> {
+    Ok(Response {
+        headers: Some(req.headers),
+        body: Some("http".as_bytes().to_vec()),
+        status: 200,
+    })
+}
+
+#[register_handler]
 fn handle_hello(req: Request) -> Result<Response, Error> {
     Ok(Response {
         headers: Some(req.headers),
-        body: req.body,
+        body: Some("hello".as_bytes().to_vec()),
         status: 200,
     })
 }

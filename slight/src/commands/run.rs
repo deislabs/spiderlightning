@@ -6,7 +6,7 @@ use wit_bindgen_wasmtime::wasmtime::Store;
 
 use events::{Events, EventsState};
 use events_api::event_handler::EventHandler;
-use http_api::{HttpApi, HttpApiState};
+use http::{Http, HttpState};
 use kv::{Kv, KvState};
 use lockd::{Lockd, LockdState};
 use mq::{Mq, MqState};
@@ -86,13 +86,13 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
                         ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
                     )?;
                 }
-                "http-api" => {
+                "http" => {
                     http_enabled = true;
 
-                    host_builder.link_capability::<HttpApi>(resource_type.to_string(), HttpApiState::new(resource_map.clone()))?;
-                    guest_builder.link_capability::<HttpApi>(resource_type.to_string(), HttpApiState::new(resource_map.clone()))?;
+                    host_builder.link_capability::<Http>(resource_type.to_string(), HttpState::new(resource_map.clone()))?;
+                    guest_builder.link_capability::<Http>(resource_type.to_string(), HttpState::new(resource_map.clone()))?;
                 }
-                _ => bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_kafka', and 'http-api' schemes"),
+                _ => bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_kafka', and 'http' schemes"),
             }
         }
     } else {
@@ -101,20 +101,25 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
 
     let (_, mut store, instance) = host_builder.build(module)?;
     let (_, mut store2, instance2) = guest_builder.build(module)?;
-    if events_enabled {
-        let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;
-        let event_handler_resource: &mut Events = get_resource(&mut store, "events");
-        event_handler_resource.update_state(
+
+    // FIXME: store2 is not copyable
+
+    // if events_enabled {
+    //     let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;
+    //     let event_handler_resource: &mut Events = get_resource(&mut store, "events");
+    //     event_handler_resource.update_state(
+    //         Arc::new(Mutex::new(store2)),
+    //         Arc::new(Mutex::new(event_handler)),
+    //     )?;
+    // }
+
+    if http_enabled {
+        let http_api_resource: &mut Http = get_resource(&mut store, "http");
+        http_api_resource.update_state(
             Arc::new(Mutex::new(store2)),
-            Arc::new(Mutex::new(event_handler)),
+            Arc::new(Mutex::new(instance2)),
         )?;
     }
-
-    // if http_enabled {
-    //     let (_, mut store2, instance2) = guest_builder.build(module)?;
-    //     let http_api_resource: &mut HttpApi = get_resource(&mut store, "http-api");
-    //     http_api_resource.update_store(Arc::new(Mutex::new(store2)));
-    // }
 
     tracing::info!("Executing {}", module);
     instance
@@ -123,7 +128,7 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
 
     if http_enabled {
         shutdown_signal().await;
-        let http_api_resource: &mut HttpApi = get_resource(&mut store, "http-api");
+        let http_api_resource: &mut Http = get_resource(&mut store, "http");
         let _ = http_api_resource.close();
     }
     Ok(())

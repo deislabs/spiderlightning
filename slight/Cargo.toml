@@ -11,14 +11,14 @@ test = false
 [dependencies]
 spiderlightning = { path = "../" }
 runtime = { path = "../crates/runtime" }
-kv = { path =  "../crates/kv" }
-mq = { path =  "../crates/mq" }
+kv = { path = "../crates/kv" }
+mq = { path = "../crates/mq" }
 lockd = { path = "../crates/lockd" }
 pubsub-confluent-kafka = { path = "../crates/pubsub-confluent-kafka" }
 runtime-configs = { path = "../crates/runtime-configs" }
 events = { path = "../crates/events" }
 events-api = { path = "../crates/events-api" }
-http-api = { path = "../crates/http-api" }
+http = { path = "../crates/http" }
 anyhow = "1.0"
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }

@@ -1,5 +1,4 @@
 specversion = "0.1"
 
 [[capability]]
-name = "http-api"
-
+name = "http"

@@ -1,207 +1,47 @@
-use std::sync::{Arc, Mutex};
-use std::{convert::Infallible, net::SocketAddr};
+// guest resource
 
-use anyhow::Result;
-use crossbeam_utils::thread;
-use futures::executor::block_on;
-use hyper::{Body, Request, Response, Server};
-use routerify::{Router, RouterService};
-use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
-
-use http_api::*;
-use runtime::{
-    impl_resource,
-    resource::{Ctx, ResourceMap},
+pub use http_handler::{Error, HttpHandler, HttpHandlerData, Method, Request, Response};
+use hyper::{
+    header::{HeaderName, HeaderValue},
+    Body, HeaderMap, StatusCode,
 };
 
-use wasmtime::Store;
-
-wit_bindgen_wasmtime::export!("../../wit/http-api.wit");
 wit_error_rs::impl_error!(Error);
-wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
-const SCHEME_NAME: &str = "http-api";
-
-#[derive(Clone, Debug, Default)]
-enum Methods {
-    #[default]
-    GET,
-}
-
-#[derive(Clone, Debug)]
-struct Route {
-    method: Methods,
-    route: String,
-    // handler: String,
-}
-
-/// A Router implementation for the HTTP interface
-#[derive(Default, Clone, Debug)]
-pub struct RouterProxy {
-    /// The root directory of the filesystem
-    base_uri: Option<String>,
-    routes: Vec<Route>,
-}
-
-impl RouterProxy {
-    fn new() -> Self {
-        Self::new_with_base(None)
-    }
-
-    fn new_with_base(uri: Option<String>) -> Self {
-        Self {
-            base_uri: uri,
-            routes: Vec::new(),
+impl From<&hyper::Method> for Method {
+    fn from(method: &hyper::Method) -> Self {
+        match method {
+            &hyper::Method::GET => Method::Get,
+            &hyper::Method::POST => Method::Post,
+            &hyper::Method::PUT => Method::Put,
+            &hyper::Method::DELETE => Method::Delete,
+            &hyper::Method::PATCH => Method::Patch,
+            &hyper::Method::HEAD => Method::Head,
+            &hyper::Method::OPTIONS => Method::Options,
+            _ => panic!("unsupported method"),
         }
     }
+}
 
-    fn get(&mut self, route: String, _handler: String) -> Result<Self, Error> {
-        let route = Route {
-            method: Methods::GET,
-            route,
-            // handler,
+impl From<Response> for hyper::Response<Body> {
+    fn from(res: Response) -> Self {
+        let mut response = if let Some(body) = res.body {
+            hyper::Response::new(Body::from(body))
+        } else {
+            hyper::Response::new(Body::empty())
         };
-        self.routes.push(route);
-        Ok(self.clone())
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct ServerProxy {
-    closer: Arc<Mutex<UnboundedSender<()>>>,
-}
-
-impl ServerProxy {
-    fn close(self) -> Result<(), Error> {
-        let clone = self.closer.clone();
-        let closer = clone.lock().unwrap();
-        thread::scope(|s| {
-            s.spawn(|_| {
-                block_on(async {
-                    println!("shutting down the http server");
-                    closer.send(())
-                })
-            });
-        })
-        .unwrap();
-        Ok(())
-    }
-}
-
-/// HttpApi capability
-#[derive(Default)]
-pub struct HttpApi {
-    host_state: HttpApiState,
-}
-
-#[derive(Default)]
-pub struct HttpApiState {
-    resource_map: ResourceMap,
-    store: Option<Arc<Mutex<Store<Ctx>>>>,
-    closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
-}
-
-impl HttpApiState {
-    pub fn new(resource_map: ResourceMap) -> Self {
-        Self {
-            resource_map,
-            ..Default::default()
+        *response.status_mut() = StatusCode::from_u16(res.status).unwrap();
+        if let Some(headers) = res.headers {
+            let headers = HeaderMap::from_iter(headers.iter().map(|(key, value)| {
+                (
+                    HeaderName::from_bytes(key.as_bytes()).unwrap(),
+                    HeaderValue::from_str(value).unwrap(),
+                )
+            }));
+            *response.headers_mut() = headers;
         }
+        response
     }
 }
 
-impl_resource!(
-    HttpApi,
-    http_api::HttpApiTables<HttpApi>,
-    HttpApiState,
-    SCHEME_NAME.to_string()
-);
-
-impl HttpApi {
-    pub fn update_store(mut self, store: Arc<Mutex<Store<Ctx>>>) {
-        self.host_state.store = Some(store);
-    }
-
-    pub fn close(&mut self) {
-        if let Some(c) = self.host_state.closer.clone() {
-            // server was started, so send the termination message
-            let _ = c.lock().unwrap().send(());
-        }
-    }
-}
-
-impl http_api::HttpApi for HttpApi {
-    type Router = RouterProxy;
-    type Server = ServerProxy;
-
-    fn router_new(&mut self) -> Result<Self::Router, Error> {
-        Ok(RouterProxy::default())
-    }
-
-    fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, Error> {
-        Ok(RouterProxy::new_with_base(Some(base.to_string())))
-    }
-
-    fn router_get(
-        &mut self,
-        router: &Self::Router,
-        route: &str,
-        handler: &str,
-    ) -> Result<Self::Router, Error> {
-        let mut rclone = router.clone();
-        rclone.get(route.to_string(), handler.to_string())
-    }
-
-    fn server_serve(
-        &mut self,
-        _address: &str,
-        router: &Self::Router,
-    ) -> Result<Self::Server, Error> {
-        let mut builder = Router::builder();
-        for route in router.routes.iter() {
-            match route.method {
-                Methods::GET => builder = builder.get(&route.route, handler),
-            }
-        }
-
-        let built = builder.build().unwrap();
-        let service = RouterService::new(built).unwrap();
-        let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-        let server = Server::bind(&addr).serve(service);
-        let (tx, rx) = unbounded_channel();
-        let graceful = server.with_graceful_shutdown(shutdown_signal(rx));
-        tokio::task::spawn(graceful);
-
-        let arc_tx = Arc::new(Mutex::new(tx));
-        self.host_state.closer = Some(arc_tx.clone());
-
-        Ok(ServerProxy { closer: arc_tx })
-    }
-
-    fn server_stop(&mut self, server: &Self::Server) -> Result<(), Error> {
-        let clone = server.clone();
-        clone.close()
-    }
-}
-
-async fn shutdown_signal(mut rx: UnboundedReceiver<()>) {
-    tokio::select! {
-        _ = tokio::signal::ctrl_c() => {},
-        _ = rx.recv() => {},
-    }
-    println!("shutting down the server")
-}
-
-async fn handler(request: Request<Body>) -> Result<Response<Body>, Infallible> {
-    Ok(Response::new(Body::from(format!(
-        "Hello method: {:?}, uri: {:?}",
-        request.method(),
-        request.uri(),
-    ))))
-}
-
-// routes.get("/foo/:id", "getFoo");
-// fn getFoo(req) -> res {...}
-
-// routes.put("/bar/:id", "putBar");
-// fn putBar(req) -> res {...}
+wit_bindgen_wasmtime::import!("../../wit/http-handler.wit");

@@ -138,7 +138,7 @@ dependencies = [
  "bitflags",
  "bytes",
  "futures-util",
- "http",
+ "http 0.2.8",
  "http-body",
  "hyper",
  "itoa",
@@ -165,7 +165,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures-util",
- "http",
+ "http 0.2.8",
  "http-body",
  "mime",
 ]
@@ -182,7 +182,7 @@ dependencies = [
  "dyn-clone",
  "futures",
  "getrandom",
- "http",
+ "http 0.2.8",
  "log",
  "oauth2",
  "pin-project",
@@ -210,7 +210,7 @@ dependencies = [
  "dyn-clone",
  "futures",
  "getrandom",
- "http",
+ "http 0.2.8",
  "log",
  "oauth2",
  "pin-project",
@@ -234,7 +234,7 @@ dependencies = [
  "bytes",
  "chrono",
  "hmac",
- "http",
+ "http 0.2.8",
  "log",
  "ring",
  "sha2 0.10.2",
@@ -255,7 +255,7 @@ dependencies = [
  "chrono",
  "futures",
  "hmac",
- "http",
+ "http 0.2.8",
  "log",
  "once_cell",
  "serde",
@@ -280,7 +280,7 @@ dependencies = [
  "bytes",
  "chrono",
  "futures",
- "http",
+ "http 0.2.8",
  "log",
  "md5",
  "serde",
@@ -896,7 +896,7 @@ version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fb8664f6ea68aba5503d42dd1be786b0f1bd9b7972e7f40208c83ef74db91bf"
 dependencies = [
- "http",
+ "http 0.2.8",
  "prost",
  "tokio",
  "tokio-stream",
@@ -922,7 +922,7 @@ dependencies = [
  "wasi-common",
  "wasmtime",
  "wasmtime-wasi",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
  "wit-error-rs",
 ]
 
@@ -931,7 +931,7 @@ name = "events-api"
 version = "0.1.0"
 dependencies = [
  "cloudevents-sdk",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
 ]
 
 [[package]]
@@ -1168,7 +1168,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "futures-util",
- "http",
+ "http 0.2.8",
  "indexmap",
  "slab",
  "tokio",
@@ -1237,6 +1237,30 @@ dependencies = [
 
 [[package]]
 name = "http"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "crossbeam-utils",
+ "events-api",
+ "futures",
+ "http-api",
+ "hyper",
+ "routerify",
+ "runtime",
+ "tokio",
+ "tracing",
+ "url",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "http"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75f43d41e26995c17e71ee126451dd3941010b0514a81a9d11f3b341debc2399"
@@ -1250,21 +1274,8 @@ dependencies = [
 name = "http-api"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "crossbeam-channel",
- "crossbeam-utils",
- "events-api",
- "futures",
  "hyper",
- "routerify",
- "runtime",
- "tokio",
- "url",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
  "wit-error-rs",
 ]
 
@@ -1275,7 +1286,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d5f38f16d184e36f2408a55281cd658ecbd3ca05cce6d6510a176eca393e26d1"
 dependencies = [
  "bytes",
- "http",
+ "http 0.2.8",
  "pin-project-lite",
 ]
 
@@ -1298,7 +1309,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
- "wit-bindgen-gen-core",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
  "wit-bindgen-gen-rust-wasm",
  "wit-bindgen-rust",
 ]
@@ -1338,7 +1349,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 0.2.8",
  "http-body",
  "httparse",
  "httpdate",
@@ -1552,7 +1563,7 @@ dependencies = [
  "serde_json",
  "tracing",
  "uuid 1.1.2",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
  "wit-error-rs",
 ]
 
@@ -1627,7 +1638,7 @@ dependencies = [
  "tracing",
  "url",
  "uuid 1.1.2",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
  "wit-error-rs",
 ]
 
@@ -1765,13 +1776,13 @@ dependencies = [
  "crossbeam-channel",
  "events-api",
  "futures",
- "http",
+ "http 0.2.8",
  "runtime",
  "runtime-configs",
  "tracing",
  "url",
  "uuid 1.1.2",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
  "wit-error-rs",
 ]
 
@@ -1909,7 +1920,7 @@ dependencies = [
  "base64 0.13.0",
  "chrono",
  "getrandom",
- "http",
+ "http 0.2.8",
  "rand 0.8.5",
  "reqwest",
  "serde",
@@ -2221,7 +2232,7 @@ dependencies = [
  "runtime-configs",
  "url",
  "uuid 1.1.2",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
  "wit-error-rs",
 ]
 
@@ -2475,7 +2486,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 0.2.8",
  "http-body",
  "hyper",
  "hyper-tls",
@@ -2522,7 +2533,7 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "496c1d3718081c45ba9c31fbfc07417900aa96f4070ff90dc29961836b7a9945"
 dependencies = [
- "http",
+ "http 0.2.8",
  "hyper",
  "lazy_static",
  "percent-encoding",
@@ -2537,12 +2548,13 @@ dependencies = [
  "as-any",
  "crossbeam-channel",
  "events-api",
+ "http-api",
  "tracing",
  "wasi-cap-std-sync",
  "wasi-common",
  "wasmtime",
  "wasmtime-wasi",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
 ]
 
 [[package]]
@@ -2560,7 +2572,7 @@ dependencies = [
  "tempdir",
  "toml",
  "uuid 1.1.2",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
  "wit-error-rs",
 ]
 
@@ -2813,7 +2825,7 @@ dependencies = [
  "env_logger",
  "events",
  "events-api",
- "http-api",
+ "http 0.1.0",
  "kv",
  "lockd",
  "log",
@@ -2826,7 +2838,7 @@ dependencies = [
  "toml",
  "tracing",
  "tracing-subscriber",
- "wit-bindgen-wasmtime",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
 ]
 
 [[package]]
@@ -3136,7 +3148,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 0.2.8",
  "http-body",
  "hyper",
  "hyper-timeout",
@@ -3197,7 +3209,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "http",
+ "http 0.2.8",
  "http-body",
  "http-range-header",
  "pin-project-lite",
@@ -3958,10 +3970,28 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-gen-core"
 version = "0.1.0"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8#8252b0e39c7495f647ec0b0898721a7c641fc6c8"
+dependencies = [
+ "anyhow",
+ "wit-parser 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
+]
+
+[[package]]
+name = "wit-bindgen-gen-core"
+version = "0.1.0"
 source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c#a79a4be33d76ddf62839ba71602c26a96610ef7c"
 dependencies = [
  "anyhow",
- "wit-parser",
+ "wit-parser 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+]
+
+[[package]]
+name = "wit-bindgen-gen-rust"
+version = "0.1.0"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8#8252b0e39c7495f647ec0b0898721a7c641fc6c8"
+dependencies = [
+ "heck 0.3.3",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
 ]
 
 [[package]]
@@ -3970,7 +4000,7 @@ version = "0.1.0"
 source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c#a79a4be33d76ddf62839ba71602c26a96610ef7c"
 dependencies = [
  "heck 0.3.3",
- "wit-bindgen-gen-core",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
 ]
 
 [[package]]
@@ -3979,8 +4009,18 @@ version = "0.1.0"
 source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c#a79a4be33d76ddf62839ba71602c26a96610ef7c"
 dependencies = [
  "heck 0.3.3",
- "wit-bindgen-gen-core",
- "wit-bindgen-gen-rust",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-bindgen-gen-rust 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+]
+
+[[package]]
+name = "wit-bindgen-gen-wasmtime"
+version = "0.1.0"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8#8252b0e39c7495f647ec0b0898721a7c641fc6c8"
+dependencies = [
+ "heck 0.3.3",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
+ "wit-bindgen-gen-rust 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
 ]
 
 [[package]]
@@ -3989,8 +4029,8 @@ version = "0.1.0"
 source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c#a79a4be33d76ddf62839ba71602c26a96610ef7c"
 dependencies = [
  "heck 0.3.3",
- "wit-bindgen-gen-core",
- "wit-bindgen-gen-rust",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-bindgen-gen-rust 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
 ]
 
 [[package]]
@@ -4010,8 +4050,20 @@ source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76dd
 dependencies = [
  "proc-macro2",
  "syn",
- "wit-bindgen-gen-core",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
  "wit-bindgen-gen-rust-wasm",
+]
+
+[[package]]
+name = "wit-bindgen-wasmtime"
+version = "0.1.0"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8#8252b0e39c7495f647ec0b0898721a7c641fc6c8"
+dependencies = [
+ "anyhow",
+ "bitflags",
+ "thiserror",
+ "wasmtime",
+ "wit-bindgen-wasmtime-impl 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
 ]
 
 [[package]]
@@ -4023,7 +4075,18 @@ dependencies = [
  "bitflags",
  "thiserror",
  "wasmtime",
- "wit-bindgen-wasmtime-impl",
+ "wit-bindgen-wasmtime-impl 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+]
+
+[[package]]
+name = "wit-bindgen-wasmtime-impl"
+version = "0.1.0"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8#8252b0e39c7495f647ec0b0898721a7c641fc6c8"
+dependencies = [
+ "proc-macro2",
+ "syn",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
+ "wit-bindgen-gen-wasmtime 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
 ]
 
 [[package]]
@@ -4033,8 +4096,8 @@ source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76dd
 dependencies = [
  "proc-macro2",
  "syn",
- "wit-bindgen-gen-core",
- "wit-bindgen-gen-wasmtime",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-bindgen-gen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
 ]
 
 [[package]]
@@ -4044,6 +4107,18 @@ source = "git+https://github.com/danbugs/wit-error-rs?rev=05362f1a4a3a9dc6a1de39
 dependencies = [
  "quote",
  "syn",
+]
+
+[[package]]
+name = "wit-parser"
+version = "0.1.0"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8#8252b0e39c7495f647ec0b0898721a7c641fc6c8"
+dependencies = [
+ "anyhow",
+ "id-arena",
+ "pulldown-cmark",
+ "unicode-normalization",
+ "unicode-xid",
 ]
 
 [[package]]
