@@ -115,9 +115,10 @@ impl lockd::Lockd for Lockd {
         self_: &Self::Lockd,
         lock_key: PayloadParam<'_>,
     ) -> Result<(), Error> {
-        Ok(match &self_.lockd_implementor {
+        match &self_.lockd_implementor {
             LockdImplementor::Etcd(ei) => ei.unlock(lock_key)?,
-        })
+        };
+        Ok(())
     }
 }
 

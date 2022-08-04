@@ -1,7 +1,8 @@
 use std::{
+    env,
     fs::{self, File},
     io::{Read, Write},
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::{Arc, Mutex},
 };
 
@@ -31,7 +32,7 @@ pub struct FilesystemImplementor {
 impl FilesystemImplementor {
     pub fn new(name: &str) -> Self {
         Self {
-            base: Path::new("/tmp").join(name).to_str().unwrap().to_owned(),
+            base: env::temp_dir().join(name).to_str().unwrap().to_owned(),
             watchers: Vec::new(),
         }
     }

@@ -18,8 +18,10 @@ clean:
 bindings:
 	wit-bindgen c --import ../../wit/kv.wit --out-dir bindings/
 	wit-bindgen c --import ../../wit/mq.wit --out-dir bindings/
+	chmod +x bindings/kv.c bindings/mq.c
 
 build:
-	$(WASI_CC) -I . -I ./bindings -c -o kv.o bindings/kv.c
-	$(WASI_CC) -I . -I ./bindings -c -o mq.o bindings/mq.c
-	$(WASI_CC) -Wall  main.c kv.o mq.o -o $(TARGET) --sysroot $(SYSROOT)
+	sudo $(WASI_CC) -I . -I ./bindings -c -o kv.o bindings/kv.c
+	sudo $(WASI_CC) -I . -I ./bindings -c -o mq.o bindings/mq.c
+	sudo $(WASI_CC) -Wall  main.c kv.o mq.o -o $(TARGET) --sysroot $(SYSROOT)
+# ^^^ note: added sudo to make sure that `clang` sees kv.c, etc as executable files

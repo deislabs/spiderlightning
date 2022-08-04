@@ -75,7 +75,7 @@ impl mq::Mq for Mq {
         let inner = Self::Mq::new(
             &self.host_state.mq_implementor,
             &self.host_state.slight_state,
-            &name,
+            name,
         );
 
         self.host_state
@@ -89,10 +89,11 @@ impl mq::Mq for Mq {
     }
 
     fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
-        Ok(match &self_.mq_implementor {
+        match &self_.mq_implementor {
             MqImplementor::Filesystem(fi) => fi.send(msg)?,
             MqImplementor::AzSbus(ai) => ai.send(msg)?,
-        })
+        };
+        Ok(())
     }
 
     fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
