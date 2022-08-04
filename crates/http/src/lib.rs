@@ -1,28 +1,25 @@
 use std::iter::zip;
+use std::net::SocketAddr;
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
-use std::{convert::Infallible, net::SocketAddr};
 
 use anyhow::Result;
 use crossbeam_utils::thread;
 use futures::executor::block_on;
 pub use http::add_to_linker;
 use http::*;
-use hyper::{Body, Request, Response, Server, StatusCode};
+use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
 use runtime::{
     impl_resource,
     resource::{Ctx, ResourceMap},
 };
-use std::future::Future;
+
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
-use url::Url;
 
-use http_api::{
-    Error as HttpError, HttpHandler, Method, Request as HttpRequest, Response as HttpResponse,
-};
+use http_api::{HttpHandler, Method, Request as HttpRequest};
 use wasmtime::{Instance, Store};
 
 wit_bindgen_wasmtime::export!("../../wit/http.wit");
@@ -82,7 +79,7 @@ pub struct ServerProxy {
 
 impl ServerProxy {
     fn close(self) -> Result<(), Error> {
-        let clone = self.closer.clone();
+        let clone = self.closer;
         let closer = clone.lock().unwrap();
         thread::scope(|s| {
             s.spawn(|_| {
@@ -210,11 +207,11 @@ impl http::Http for Http {
                         let body = None;
 
                         let req = HttpRequest {
-                            method: method,
+                            method,
                             uri: url,
                             headers: &headers,
                             params: &params,
-                            body: body,
+                            body,
                         };
 
                         let mut handler =

@@ -5,7 +5,7 @@ use as_any::Downcast;
 use wit_bindgen_wasmtime::wasmtime::Store;
 
 use events::{Events, EventsState};
-use events_api::event_handler::EventHandler;
+
 use http::{Http, HttpState};
 use kv::{Kv, KvState};
 use lockd::{Lockd, LockdState};
@@ -100,7 +100,7 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
     }
 
     let (_, mut store, instance) = host_builder.build(module)?;
-    let (_, mut store2, instance2) = guest_builder.build(module)?;
+    let (_, store2, instance2) = guest_builder.build(module)?;
 
     // FIXME: store2 is not copyable
 
@@ -129,7 +129,7 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
     if http_enabled {
         shutdown_signal().await;
         let http_api_resource: &mut Http = get_resource(&mut store, "http");
-        let _ = http_api_resource.close();
+        http_api_resource.close();
     }
     Ok(())
 }

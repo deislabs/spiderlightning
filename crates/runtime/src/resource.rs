@@ -8,7 +8,7 @@ use anyhow::Result;
 use as_any::{AsAny, Downcast};
 use crossbeam_channel::Sender;
 use events_api::{Event, EventHandlerData};
-use http_api::{HttpHandlerData};
+use http_api::HttpHandlerData;
 pub use wasmtime::Linker;
 
 /// HostState abstract out generated bindings for the resource,
