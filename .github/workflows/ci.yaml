@@ -39,10 +39,5 @@ jobs:
         run: make build-rust
       - name: "Build C Examples"
         run: make build-c
-      - name: "Run test"
+      - name: "Run Unit Tests"
         run: make test
-      - name: "Run test-integration"
-        env:
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-        run: make test-integration
