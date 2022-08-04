@@ -10,14 +10,14 @@ wit_error_rs::impl_error!(Error);
 
 impl From<&hyper::Method> for Method {
     fn from(method: &hyper::Method) -> Self {
-        match method {
-            &hyper::Method::GET => Method::Get,
-            &hyper::Method::POST => Method::Post,
-            &hyper::Method::PUT => Method::Put,
-            &hyper::Method::DELETE => Method::Delete,
-            &hyper::Method::PATCH => Method::Patch,
-            &hyper::Method::HEAD => Method::Head,
-            &hyper::Method::OPTIONS => Method::Options,
+        match *method {
+            hyper::Method::GET => Method::Get,
+            hyper::Method::POST => Method::Post,
+            hyper::Method::PUT => Method::Put,
+            hyper::Method::DELETE => Method::Delete,
+            hyper::Method::PATCH => Method::Patch,
+            hyper::Method::HEAD => Method::Head,
+            hyper::Method::OPTIONS => Method::Options,
             _ => panic!("unsupported method"),
         }
     }
