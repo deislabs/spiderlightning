@@ -12,7 +12,7 @@ use kv::{Kv, KvState};
 use lockd::{Lockd, LockdState};
 use mq::{Mq, MqState};
 use pubsub_confluent_kafka::PubSubConfluentKafka;
-use runtime::resource::{Ctx, Resource, ResourceMap};
+use runtime::resource::{Ctx, Resource};
 use runtime::{
     resource::{BasicState, StateTable},
     Builder,
@@ -35,10 +35,10 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
 
     let caps = toml.capability.as_ref().unwrap();
     // looking for events capability.
-    let events_enabled = caps.iter().find(|cap| cap.name == "events").is_some();
+    let events_enabled = caps.iter().any(|cap| cap.name == "events");
 
     // looking for http capability.
-    let http_enabled = caps.iter().find(|cap| cap.name == "http").is_some();
+    let http_enabled = caps.iter().any(|cap| cap.name == "http");
 
     if events_enabled {
         log::debug!("Events capability enabled");
@@ -55,7 +55,7 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
     if http_enabled {
         log::debug!("Http capability enabled");
         let guest_builder = build_store_instance(toml, toml_file_path, resource_map.clone())?;
-        let (_, mut store2, instance2) = guest_builder.build(module)?;
+        let (_, store2, instance2) = guest_builder.build(module)?;
         let http_api_resource: &mut Http = get_resource(&mut store, "http");
         http_api_resource.update_state(
             Arc::new(Mutex::new(store2)),
