@@ -1,3 +1,4 @@
+use std::iter::zip;
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
 use std::{convert::Infallible, net::SocketAddr};
@@ -179,16 +180,17 @@ impl http::Http for Http {
     ) -> Result<Self::Server, Error> {
         let store = self.host_state.store.as_mut().unwrap().clone();
         let instance = self.host_state.instance.as_mut().unwrap().clone();
-        let mut builder: RouterBuilder<Body, anyhow::Error> =
+        let mut outer_builder: RouterBuilder<Body, anyhow::Error> =
             Router::builder().data(store).data(instance);
+        let mut built_routes = vec![];
         for route in router.routes.iter() {
-            let store = self.host_state.store.as_ref().unwrap().clone();
+            let mut builder: RouterBuilder<Body, anyhow::Error> = Router::builder();
             match route.method {
                 Methods::GET => {
                     builder = builder.data(route.clone()); // hello, foo
-                    builder = builder.get(&route.route, |request| async move {
+                    builder = builder.get("/", |request| async move {
                         log::debug!("received request: {:?}", request);
-                        let route = request.data::<Route>();
+                        let route = request.data::<Route>().unwrap();
                         let mut store = request
                             .data::<Arc<Mutex<Store<Ctx>>>>()
                             .unwrap()
@@ -225,7 +227,7 @@ impl http::Http for Http {
                         handler.handle_http = instance
                             .get_typed_func::<(i32,i32,i32,i32,i32,i32,i32,i32,i32,i32,), (i32,), _>(
                                 store.deref_mut(),
-                                &func_name_to_abi_name(&String::from_utf8(&route.handler).unwrap()),
+                                &func_name_to_abi_name(&route.handler),
                             )
                             .unwrap();
                         let res = handler.handle_http(store.deref_mut(), req)??;
@@ -234,9 +236,13 @@ impl http::Http for Http {
                     });
                 }
             }
+            built_routes.push(builder.build().unwrap());
         }
 
-        let built = builder.build().unwrap();
+        for (route, built) in zip(router.routes.clone(), built_routes) {
+            outer_builder = outer_builder.scope(&route.route, built);
+        }
+        let built = outer_builder.build().unwrap();
         let service = RouterService::new(built).unwrap();
         let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
         let server = Server::bind(&addr).serve(service);
