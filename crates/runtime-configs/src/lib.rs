@@ -194,3 +194,18 @@ impl ConfigsImplementor {
         }
     }
 }
+
+/// SDK-ish bit
+pub fn get(config_type: &str, key: &str, toml_file_path: &str) -> Result<Vec<u8>> {
+    match config_type.into() {
+        ConfigsImplementor::EnvVars => Ok(EnvVars::get(key)?),
+        ConfigsImplementor::UserSecrets => Ok(UserSecrets::get(key, toml_file_path)?),
+    }
+}
+
+pub fn set(config_type: &str, key: &str, value: &[u8], toml_file_path: &str) -> Result<()> {
+    match config_type.into() {
+        ConfigsImplementor::EnvVars => Ok(EnvVars::set(key, value)?),
+        ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),
+    }
+}
