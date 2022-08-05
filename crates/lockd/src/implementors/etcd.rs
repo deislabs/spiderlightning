@@ -28,7 +28,7 @@ impl std::fmt::Debug for EtcdImplementor {
 impl EtcdImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let endpoint = String::from_utf8(
-            runtime_configs::providers::get(
+            runtime_configs::implementors::get(
                 &slight_state.secret_store,
                 "ETCD_ENDPOINT",
                 &slight_state.config_toml_file_path,

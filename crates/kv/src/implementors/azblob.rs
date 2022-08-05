@@ -23,7 +23,7 @@ pub struct AzBlobImplementor {
 impl AzBlobImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
         let storage_account_name = String::from_utf8(
-            runtime_configs::providers::get(
+            runtime_configs::implementors::get(
                 &slight_state.secret_store,
                 "AZURE_STORAGE_ACCOUNT",
                 &slight_state.config_toml_file_path,
@@ -38,7 +38,7 @@ impl AzBlobImplementor {
         )
         .unwrap();
         let storage_account_key = String::from_utf8(
-            runtime_configs::providers::get(
+            runtime_configs::implementors::get(
                 &slight_state.secret_store,
                 "AZURE_STORAGE_KEY",
                 &slight_state.config_toml_file_path,

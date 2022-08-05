@@ -119,28 +119,28 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
 
     /// Construct a new `PubConfluentKafka`
     fn pub_open(&mut self) -> Result<Self::Pub, Error> {
-        let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
+        let bootstap_servers = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_ENDPOINT",
             &self.host_state.config_toml_file_path,
         )?)?;
-        let security_protocol = String::from_utf8(runtime_configs::providers::get(
+        let security_protocol = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_SECURITY_PROTOCOL",
             &self.host_state.config_toml_file_path,
         )?)?;
-        let sasl_mechanisms = String::from_utf8(runtime_configs::providers::get(
+        let sasl_mechanisms = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_SASL_MECHANISMS",
             &self.host_state.config_toml_file_path,
         )?)?;
-        let sasl_username = String::from_utf8(runtime_configs::providers::get(
+        let sasl_username = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_SASL_USERNAME",
             &self.host_state.config_toml_file_path,
         )?)?;
 
-        let sasl_password = String::from_utf8(runtime_configs::providers::get(
+        let sasl_password = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_SASL_PASSWORD",
             &self.host_state.config_toml_file_path,
@@ -164,33 +164,33 @@ impl pubsub::Pubsub for PubSubConfluentKafka {
     }
 
     fn sub_open(&mut self) -> Result<Self::Sub, Error> {
-        let bootstap_servers = String::from_utf8(runtime_configs::providers::get(
+        let bootstap_servers = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_ENDPOINT",
             &self.host_state.config_toml_file_path,
         )?)?;
-        let security_protocol = String::from_utf8(runtime_configs::providers::get(
+        let security_protocol = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_SECURITY_PROTOCOL",
             &self.host_state.config_toml_file_path,
         )?)?;
-        let sasl_mechanisms = String::from_utf8(runtime_configs::providers::get(
+        let sasl_mechanisms = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_SASL_MECHANISMS",
             &self.host_state.config_toml_file_path,
         )?)?;
-        let sasl_username = String::from_utf8(runtime_configs::providers::get(
+        let sasl_username = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_SASL_USERNAME",
             &self.host_state.config_toml_file_path,
         )?)?;
 
-        let sasl_password = String::from_utf8(runtime_configs::providers::get(
+        let sasl_password = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_SASL_PASSWORD",
             &self.host_state.config_toml_file_path,
         )?)?;
-        let group_id = String::from_utf8(runtime_configs::providers::get(
+        let group_id = String::from_utf8(runtime_configs::implementors::get(
             &self.host_state.secret_store,
             "CK_GROUP_ID",
             &self.host_state.config_toml_file_path,
