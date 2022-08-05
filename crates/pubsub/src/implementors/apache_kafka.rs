@@ -119,7 +119,12 @@ impl PubConfluentApacheKafkaImplementor {
         }
     }
 
-    pub fn send_message_to_topic(&self, msg_key: &[u8], msg_value: &[u8], topic: &str) -> Result<()> {
+    pub fn send_message_to_topic(
+        &self,
+        msg_key: &[u8],
+        msg_value: &[u8],
+        topic: &str,
+    ) -> Result<()> {
         Ok(confluent::send(&self.producer, msg_key, msg_value, topic)
             .with_context(|| "failed to send message to a topic")?)
     }
