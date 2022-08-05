@@ -2,17 +2,15 @@
 use { message, error, payload } from types
 use * from resources
 
-resource pub {
+resource pubsub {
 	// open a pub object
-	static open: function() -> expected<pub, error>
+	static open-pub: function() -> expected<pubsub, error>
 
 	// pub a message
 	send-message-to-topic: function(msg-key: payload, msg-value: payload, topic: string) -> expected<unit, error> 
-}
 
-resource sub {
 	// open a sub object
-	static open: function() -> expected<sub, error>
+	static open-sub: function() -> expected<pubsub, error>
 	
 	// sub to a topic
 	subscribe-to-topic: function(topic: list<string>) -> expected<unit, error>

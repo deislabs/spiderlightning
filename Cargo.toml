@@ -24,7 +24,7 @@ members = [
     "crates/kv",
     "crates/mq",
     "crates/lockd",
-    "crates/pubsub-confluent-kafka",
+    "crates/pubsub",
     "crates/runtime",
     "crates/events/",
     "crates/events-api",

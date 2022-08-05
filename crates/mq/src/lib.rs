@@ -158,7 +158,10 @@ impl MqImplementor {
         match mq_implementor {
             "mq.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
             "mq.azsbus" => Self::AzSbus(AzSbusImplementor::new(slight_state, name)),
-            _ => panic!("failed to match provided mq name to any known host implementations"),
+            p => panic!(
+                "failed to match provided name (i.e., '{}') to any known host implementations",
+                p
+            ),
         }
     }
 }

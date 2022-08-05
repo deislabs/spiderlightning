@@ -2164,7 +2164,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pubsub-confluent-kafka"
+name = "pubsub"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2758,7 +2758,7 @@ dependencies = [
  "lockd",
  "log",
  "mq",
- "pubsub-confluent-kafka",
+ "pubsub",
  "runtime",
  "runtime-configs",
  "spiderlightning",

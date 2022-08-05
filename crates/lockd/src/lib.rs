@@ -174,7 +174,10 @@ impl LockdImplementor {
     fn new(lockd_implementor: &str, slight_state: &BasicState) -> Self {
         match lockd_implementor {
             "lockd.etcd" => Self::Etcd(EtcdImplementor::new(slight_state)),
-            _ => panic!("failed to match provided kv name to any known host implementations"),
+            p => panic!(
+                "failed to match provided name (i.e., '{}') to any known host implementations",
+                p
+            ),
         }
     }
 }
