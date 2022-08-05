@@ -1,3 +1,5 @@
+#![allow(clippy::upper_case_acronyms)]
+
 use std::iter::zip;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::ops::{Deref, DerefMut};
@@ -8,7 +10,6 @@ use crossbeam_utils::thread;
 use futures::executor::block_on;
 pub use http::add_to_linker;
 use http::*;
-use hyper::body::HttpBody;
 use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
@@ -46,14 +47,14 @@ struct Route {
 #[derive(Default, Clone, Debug)]
 pub struct RouterProxy {
     /// The root directory of the filesystem
-    base_uri: String,
+    _base_uri: String,
     routes: Vec<Route>,
 }
 
 impl RouterProxy {
     fn new(uri: &str) -> Self {
         Self {
-            base_uri: uri.to_string(),
+            _base_uri: uri.to_string(),
             ..Default::default()
         }
     }
@@ -110,16 +111,16 @@ impl Http {
 
 #[derive(Default)]
 pub struct HttpState {
-    resource_map: ResourceMap,
+    _resource_map: ResourceMap,
     store: Option<Arc<Mutex<Store<Ctx>>>>,
     instance: Option<Arc<Mutex<Instance>>>,
     closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
 }
 
 impl HttpState {
-    pub fn new(resource_map: ResourceMap) -> Self {
+    pub fn new(_resource_map: ResourceMap) -> Self {
         Self {
-            resource_map,
+            _resource_map,
             ..Default::default()
         }
     }
