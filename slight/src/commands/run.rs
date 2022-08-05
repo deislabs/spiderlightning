@@ -74,12 +74,12 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 host_builder.link_capability::<Configs>(
                     "configs".to_string(),
-                    ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
-                )?;
+                    ConfigsState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), "", toml_file_path)))?;
+                
                 guest_builder.link_capability::<Configs>(
                     "configs".to_string(),
-                    ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
-                )?;
+                    ConfigsState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), "", toml_file_path)))?;
+                
             }
             _ => bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', and 'pubsub.confluent_kafka' schemes"),
         }
