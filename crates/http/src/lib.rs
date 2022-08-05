@@ -1,13 +1,14 @@
 use std::iter::zip;
-use std::net::SocketAddr;
+use std::net::{SocketAddr, ToSocketAddrs};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use crossbeam_utils::thread;
 use futures::executor::block_on;
 pub use http::add_to_linker;
 use http::*;
+use hyper::body::HttpBody;
 use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
@@ -19,7 +20,7 @@ use runtime::{
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
 
-use http_api::{HttpHandler, Method, Request as HttpRequest};
+use http_api::{HttpHandler, Method, OwnedBody, OwnedHeader, Request};
 use wasmtime::{Instance, Store};
 
 wit_bindgen_wasmtime::export!("../../wit/http.wit");
@@ -45,19 +46,15 @@ struct Route {
 #[derive(Default, Clone, Debug)]
 pub struct RouterProxy {
     /// The root directory of the filesystem
-    base_uri: Option<String>,
+    base_uri: String,
     routes: Vec<Route>,
 }
 
 impl RouterProxy {
-    fn new() -> Self {
-        Self::new_with_base(None)
-    }
-
-    fn new_with_base(uri: Option<String>) -> Self {
+    fn new(uri: &str) -> Self {
         Self {
-            base_uri: uri,
-            routes: Vec::new(),
+            base_uri: uri.to_string(),
+            ..Default::default()
         }
     }
 
@@ -157,7 +154,7 @@ impl http::Http for Http {
     }
 
     fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, Error> {
-        Ok(RouterProxy::new_with_base(Some(base.to_string())))
+        Ok(RouterProxy::new(base))
     }
 
     fn router_get(
@@ -172,7 +169,7 @@ impl http::Http for Http {
 
     fn server_serve(
         &mut self,
-        _address: &str,
+        address: &str,
         router: &Self::Router,
     ) -> Result<Self::Server, Error> {
         let store = self.host_state.store.as_mut().unwrap().clone();
@@ -185,52 +182,7 @@ impl http::Http for Http {
             match route.method {
                 Methods::GET => {
                     builder = builder.data(route.clone()); // hello, foo
-                    builder = builder.get("/", |request| async move {
-                        log::debug!("received request: {:?}", request);
-                        let route = request.data::<Route>().unwrap();
-                        let mut store = request
-                            .data::<Arc<Mutex<Store<Ctx>>>>()
-                            .unwrap()
-                            .lock()
-                            .unwrap();
-                        let instance = request
-                            .data::<Arc<Mutex<Instance>>>()
-                            .unwrap()
-                            .lock()
-                            .unwrap();
-
-                        let method = Method::from(request.method());
-                        let url = &request.uri().to_string();
-                        // FIXME: this is a hack to get the headers
-                        let headers = [("Content-Type", "application/json")];
-                        let params = [("name", "joe")];
-                        let body = None;
-
-                        let req = HttpRequest {
-                            method,
-                            uri: url,
-                            headers: &headers,
-                            params: &params,
-                            body,
-                        };
-
-                        let mut handler =
-                            HttpHandler::new(store.deref_mut(), instance.deref(), |ctx| {
-                                &mut ctx.http_state
-                            })
-                            .unwrap();
-
-                        log::debug!("Invoking guest handler {}", &route.handler);
-                        handler.handle_http = instance
-                            .get_typed_func::<(i32,i32,i32,i32,i32,i32,i32,i32,i32,i32,), (i32,), _>(
-                                store.deref_mut(),
-                                &func_name_to_abi_name(&route.handler),
-                            )
-                            .unwrap();
-                        let res = handler.handle_http(store.deref_mut(), req)??;
-                        log::debug!("response: {:?}", res);
-                        Ok(res.into())
-                    });
+                    builder = builder.get("/", handler);
                 }
             }
             built_routes.push(builder.build().unwrap());
@@ -240,8 +192,9 @@ impl http::Http for Http {
             outer_builder = outer_builder.scope(&route.route, built);
         }
         let built = outer_builder.build().unwrap();
+
         let service = RouterService::new(built).unwrap();
-        let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+        let addr = str_to_socket_address(address)?;
         let server = Server::bind(&addr).serve(service);
         let (tx, rx) = unbounded_channel();
         let graceful = server.with_graceful_shutdown(shutdown_signal(rx));
@@ -259,6 +212,66 @@ impl http::Http for Http {
     }
 }
 
+async fn handler(request: hyper::Request<Body>) -> Result<hyper::Response<Body>> {
+    log::debug!("received request: {:?}", &request);
+    let (parts, body) = request.into_parts();
+
+    // Fetch states from the request, including Store, Instance and the route name.
+    let route = parts.data::<Route>().unwrap();
+    let mut store = parts
+        .data::<Arc<Mutex<Store<Ctx>>>>()
+        .unwrap()
+        .lock()
+        .unwrap();
+    let instance = parts
+        .data::<Arc<Mutex<Instance>>>()
+        .unwrap()
+        .lock()
+        .unwrap();
+
+    // Perform conversion from the `hyper::Request` to `handle_http::Request`.
+    let params = parts.params();
+    let params: Vec<(&str, &str)> = params
+        .iter()
+        .map(|(k, v)| (k.as_str(), v.as_str()))
+        .collect();
+    let methods: Method = (&parts.method).into();
+    let headers: OwnedHeader = (&parts.headers).into();
+
+    // FIXME: `OwnedBody::from_body` returns a future here. The reason that `block_on` is used is
+    // because the `store` and `instance` are holding a mutex, which means that the async runtime
+    // cannot switch to another thread.
+    let bytes = block_on(OwnedBody::from_body(body))?.inner();
+    let uri = &(&parts.uri).to_string();
+    let req = Request {
+        method: methods,
+        uri,
+        headers: &headers.inner(),
+        body: Some(&bytes),
+        params: &params,
+    };
+
+    // Construct http handler
+    let mut handler = HttpHandler::new(store.deref_mut(), instance.deref(), |ctx| {
+        &mut ctx.http_state
+    })
+    .unwrap();
+
+    // Perform the http request
+    log::debug!("Invoking guest handler {}", &route.handler,);
+    handler.handle_http = instance
+        .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,), _>(
+            store.deref_mut(),
+            &func_name_to_abi_name(&route.handler),
+        )
+        .unwrap();
+    let res = handler.handle_http(store.deref_mut(), req)??;
+    log::debug!("response: {:?}", res);
+
+    // Perform the conversion from `handle_http::Response` to `hyper::Response`.
+    Ok(res.into())
+}
+
 async fn shutdown_signal(mut rx: UnboundedReceiver<()>) {
     tokio::select! {
         _ = tokio::signal::ctrl_c() => {},
@@ -267,14 +280,44 @@ async fn shutdown_signal(mut rx: UnboundedReceiver<()>) {
     println!("shutting down the server")
 }
 
-// async fn handler(req,) -> res {
-//  // get access to store?
-// }
-// routes.get("/foo/:id", "getFoo");
-// fn getFoo(req) -> res {...}
-
-// routes.put("/bar/:id", "putBar");
-// fn putBar(req) -> res {...}
 fn func_name_to_abi_name(name: &str) -> String {
     name.replace('_', "-")
+}
+
+fn str_to_socket_address(s: &str) -> Result<SocketAddr> {
+    match s.to_socket_addrs().map(|mut iter| iter.next().unwrap()) {
+        Ok(addr) => Ok(addr),
+        Err(e) => bail!("could not parse address: {} due to {}", s, e),
+    }
+}
+
+#[cfg(test)]
+mod unittests {
+    use super::str_to_socket_address;
+    use anyhow::Result;
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+
+    #[test]
+    fn test_str_to_socket_address() -> Result<()> {
+        assert_eq!(
+            str_to_socket_address("0.0.0.0:3000")?,
+            SocketAddr::new([0, 0, 0, 0].into(), 3000)
+        );
+
+        assert_eq!(
+            str_to_socket_address("localhost:8080")?,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
+        );
+
+        assert_eq!(
+            str_to_socket_address("[::1]:8080")?,
+            SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), 8080)
+        );
+
+        assert_eq!(
+            str_to_socket_address("127.0.0.1:55555")?,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 55555)
+        );
+        Ok(())
+    }
 }

@@ -1274,7 +1274,9 @@ dependencies = [
 name = "http-api"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "hyper",
+ "tokio",
  "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
  "wit-error-rs",
 ]
