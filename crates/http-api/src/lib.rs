@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 // guest resource
 use anyhow::{bail, Result};
 pub use http_handler::{Error, HttpHandler, HttpHandlerData, Method, Request, Response};
@@ -21,12 +19,12 @@ impl<'a> OwnedHeader<'a> {
 
 impl<'a> From<&'a hyper::HeaderMap> for OwnedHeader<'a> {
     fn from(headers: &'a hyper::HeaderMap) -> Self {
-        Self {
-            0: headers
+        Self(
+            headers
                 .iter()
                 .map(|(name, value)| (name.as_str(), value.to_str().unwrap()))
                 .collect(),
-        }
+        )
     }
 }
 
@@ -42,9 +40,7 @@ impl OwnedBody {
 
         if response_content_length < MAX_ALLOWED_RESPONSE_SIZE {
             let body_bytes = hyper::body::to_bytes(body).await?;
-            let owned_body = Self {
-                0: body_bytes.to_vec(),
-            };
+            let owned_body = Self(body_bytes.to_vec());
             return Ok(owned_body);
         }
 
@@ -96,7 +92,6 @@ wit_bindgen_wasmtime::import!("../../wit/http-handler.wit");
 
 #[cfg(test)]
 mod unittests {
-    use std::str::Bytes;
 
     use crate::{OwnedBody, OwnedHeader};
 
@@ -118,7 +113,7 @@ mod unittests {
         let bytes: OwnedBody = OwnedBody::from_body(body).await?;
         let params = [];
         let req = Request {
-            method: method,
+            method,
             uri,
             headers: &headers.0,
             params: &params,
