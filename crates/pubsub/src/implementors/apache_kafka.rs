@@ -125,8 +125,8 @@ impl PubConfluentApacheKafkaImplementor {
         msg_value: &[u8],
         topic: &str,
     ) -> Result<()> {
-        Ok(confluent::send(&self.producer, msg_key, msg_value, topic)
-            .with_context(|| "failed to send message to a topic")?)
+        confluent::send(&self.producer, msg_key, msg_value, topic)
+            .with_context(|| "failed to send message to a topic")
     }
 }
 
@@ -261,12 +261,11 @@ impl SubConfluentApacheKafkaImplementor {
     }
 
     pub fn subscribe_to_topic(&self, topic: Vec<&str>) -> Result<()> {
-        Ok(confluent::subscribe(&self.consumer, topic)
-            .with_context(|| "failed to subscribe to topic")?)
+        confluent::subscribe(&self.consumer, topic).with_context(|| "failed to subscribe to topic")
     }
 
     pub fn poll_for_message(&self, timeout_in_secs: u64) -> Result<KafkaMessage> {
-        Ok(confluent::poll(&self.consumer, timeout_in_secs)
-            .with_context(|| "failed to poll for message")?)
+        confluent::poll(&self.consumer, timeout_in_secs)
+            .with_context(|| "failed to poll for message")
     }
 }

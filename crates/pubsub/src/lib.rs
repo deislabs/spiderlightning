@@ -114,12 +114,14 @@ impl pubsub::Pubsub for Pubsub {
         msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        Ok(match &self_.pubsub_implementor {
+        match &self_.pubsub_implementor {
             PubsubImplementor::ConfluentApacheKafka(pi, _) => pi
                 .as_ref()
                 .unwrap()
                 .send_message_to_topic(msg_key, msg_value, topic)?,
-        })
+        };
+
+        Ok(())
     }
 
     fn pubsub_subscribe_to_topic(
@@ -127,11 +129,13 @@ impl pubsub::Pubsub for Pubsub {
         self_: &Self::Pubsub,
         topic: Vec<&str>,
     ) -> Result<(), Error> {
-        Ok(match &self_.pubsub_implementor {
+        match &self_.pubsub_implementor {
             PubsubImplementor::ConfluentApacheKafka(_, si) => {
                 si.as_ref().unwrap().subscribe_to_topic(topic)?
             }
-        })
+        }
+
+        Ok(())
     }
 
     fn pubsub_poll_for_message(

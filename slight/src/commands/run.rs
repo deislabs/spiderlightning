@@ -66,8 +66,8 @@ pub fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result
             },
             _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if let Some(ss) = &toml.secret_store {
-                    host_builder.link_capability::<Pubsub>(resource_type.to_string(), PubsubState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
-                    guest_builder.link_capability::<Pubsub>(resource_type.to_string(), PubsubState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    host_builder.link_capability::<Pubsub>("pubsub".to_string(), PubsubState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                    guest_builder.link_capability::<Pubsub>("pubsub".to_string(), PubsubState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
                 } else {
                     bail!("the pubsub capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CK_SECURITY_PROTOCOL, CK_SASL_MECHANISMS, CK_SASL_USERNAME, CK_SASL_PASSWORD, and CK_GROUP_ID.")
                 }
