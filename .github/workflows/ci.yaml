@@ -39,13 +39,5 @@ jobs:
         run: make build-rust
       - name: "Build C Examples"
         run: make build-c
-      - name: "Run test"
+      - name: "Run Unit Tests"
         run: make test
-      - name: "Run test-integration"
-        env:
-          AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-west-2
-        run: make test-integration
