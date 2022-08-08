@@ -5,13 +5,13 @@ pub mod providers;
 /// identifiable by in a `ResourceMap`.
 const SCHEME_NAME: &str = "lockd";
 
-use std::sync::{Arc, Mutex};
+
 
 use anyhow::Result;
-use crossbeam_channel::Sender;
+
 use uuid::Uuid;
 
-use events_api::Event;
+
 use implementors::etcd::EtcdImplementor;
 use runtime::{impl_resource, resource::BasicState};
 

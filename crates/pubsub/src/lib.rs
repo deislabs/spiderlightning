@@ -5,11 +5,11 @@ pub mod providers;
 /// identifiable by in a `ResourceMap`.
 const SCHEME_NAME: &str = "pubsub";
 
-use std::sync::{Arc, Mutex};
+
 
 use anyhow::Result;
-use crossbeam_channel::Sender;
-use events_api::Event;
+
+
 use implementors::apache_kafka::{
     PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor,
 };
