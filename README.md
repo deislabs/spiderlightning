@@ -53,7 +53,7 @@ Applications targeting Spiderlightning can leverage these interfaces to reduce t
 
 ### What is the difference between SpiderLightning and WebAssembly System Interface (WASI)?
 
-WASI's primary goal is to provide operating system abstractions for Wasm applications running outside of browser environments. SpiderLightning interfaces extend WASI's goal to provide application capabilities, such as state management, event-driven pattern, or distributed locking. In the future, we hope that SpiderLightning interfaces become part of WASI specification. 
+WASI's primary goal is to provide operating system abstractions for Wasm applications running outside of browser environments. SpiderLightning interfaces extend WASI to provide application capabilities, such as state management, event-driven pattern, or distributed locking. In the future, we hope that SpiderLightning's interfaces or interfaces that provide similar capabilities become part of WASI specification.
 
 ### What is the difference between SpiderLightning and Dapr?
 
