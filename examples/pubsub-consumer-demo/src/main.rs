@@ -6,7 +6,7 @@ wit_bindgen_rust::import!("../../wit/pubsub.wit");
 wit_error_rs::impl_error!(pubsub::Error);
 
 fn main() -> Result<()> {
-    let ps = Pubsub::open_sub()?;
+    let ps = Sub::open()?;
     let now = SystemTime::now();
     ps.subscribe_to_topic(&["rust"])?;
     let timeout_as_secs = 30;

@@ -6,13 +6,13 @@ use runtime::resource::{BasicState, Watch};
 
 use crate::providers::confluent::{self, KafkaMessage};
 
-/// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `PubsubImplementor` enum.
+/// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `PubImplementor` enum.
 ///
 /// It provides a property that pertains solely to Confluent's Apache Kafka's implementation
 /// of this capability:
 ///     - `producer`
 ///
-/// As per its' usage in `PubsubImplementor`, it must `derive` `Debug`, and `Clone`.
+/// As per its' usage in `PubImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Clone)]
 pub struct PubConfluentApacheKafkaImplementor {
     producer: Arc<BaseProducer>,
@@ -28,82 +28,8 @@ impl std::fmt::Debug for PubConfluentApacheKafkaImplementor {
 
 impl PubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
-        let bootstap_servers = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_ENDPOINT",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_ENDPOINT' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let security_protocol = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_SECURITY_PROTOCOL",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_SECURITY_PROTOCOL' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let sasl_mechanisms = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_SASL_MECHANISMS",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_SASL_MECHANISMS' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let sasl_username = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_SASL_USERNAME",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_SASL_USERNAME' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-
-        let sasl_password = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_SASL_PASSWORD",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_SASL_PASSWORD' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
+        let (bootstap_servers, security_protocol, sasl_mechanisms, sasl_username, sasl_password) =
+            get_configs(slight_state);
         let producer: BaseProducer = ClientConfig::new()
             .set("bootstrap.servers", bootstap_servers)
             .set("security.protocol", security_protocol)
@@ -130,13 +56,13 @@ impl PubConfluentApacheKafkaImplementor {
     }
 }
 
-/// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `PubsubImplementor` enum.
+/// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `SubImplementor` enum.
 ///
 /// It provides a property that pertains solely to Confluent's Apache Kafka's implementation
 /// of this capability:
 ///     - `consumer`
 ///
-/// As per its' usage in `PubsubImplementor`, it must `derive` `std::fmt::Debug`, and `Clone`.
+/// As per its' usage in `SubImplementor`, it must `derive` `std::fmt::Debug`, and `Clone`.
 #[derive(Clone)]
 pub struct SubConfluentApacheKafkaImplementor {
     consumer: Arc<BaseConsumer>,
@@ -152,82 +78,8 @@ impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
 
 impl SubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
-        let bootstap_servers = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_ENDPOINT",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_ENDPOINT' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let security_protocol = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_SECURITY_PROTOCOL",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_SECURITY_PROTOCOL' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let sasl_mechanisms = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_SASL_MECHANISMS",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_SASL_MECHANISMS' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let sasl_username = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_SASL_USERNAME",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_SASL_USERNAME' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-
-        let sasl_password = String::from_utf8(
-            runtime_configs::providers::get(
-                &slight_state.secret_store,
-                "CK_SASL_PASSWORD",
-                &slight_state.config_toml_file_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_SASL_PASSWORD' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
+        let (bootstap_servers, security_protocol, sasl_mechanisms, sasl_username, sasl_password) =
+            get_configs(slight_state);
         let group_id = String::from_utf8(
             runtime_configs::providers::get(
                 &slight_state.secret_store,
@@ -268,4 +120,91 @@ impl SubConfluentApacheKafkaImplementor {
         confluent::poll(&self.consumer, timeout_in_secs)
             .with_context(|| "failed to poll for message")
     }
+}
+
+fn get_configs(slight_state: &BasicState) -> (String, String, String, String, String) {
+    let bootstap_servers = String::from_utf8(
+        runtime_configs::providers::get(
+            &slight_state.secret_store,
+            "CK_ENDPOINT",
+            &slight_state.config_toml_file_path,
+        )
+        .with_context(|| {
+            format!(
+                "failed to get 'CK_ENDPOINT' secret using secret store type: {}",
+                slight_state.secret_store
+            )
+        })
+        .unwrap(),
+    )
+    .unwrap();
+    let security_protocol = String::from_utf8(
+        runtime_configs::providers::get(
+            &slight_state.secret_store,
+            "CK_SECURITY_PROTOCOL",
+            &slight_state.config_toml_file_path,
+        )
+        .with_context(|| {
+            format!(
+                "failed to get 'CK_SECURITY_PROTOCOL' secret using secret store type: {}",
+                slight_state.secret_store
+            )
+        })
+        .unwrap(),
+    )
+    .unwrap();
+    let sasl_mechanisms = String::from_utf8(
+        runtime_configs::providers::get(
+            &slight_state.secret_store,
+            "CK_SASL_MECHANISMS",
+            &slight_state.config_toml_file_path,
+        )
+        .with_context(|| {
+            format!(
+                "failed to get 'CK_SASL_MECHANISMS' secret using secret store type: {}",
+                slight_state.secret_store
+            )
+        })
+        .unwrap(),
+    )
+    .unwrap();
+    let sasl_username = String::from_utf8(
+        runtime_configs::providers::get(
+            &slight_state.secret_store,
+            "CK_SASL_USERNAME",
+            &slight_state.config_toml_file_path,
+        )
+        .with_context(|| {
+            format!(
+                "failed to get 'CK_SASL_USERNAME' secret using secret store type: {}",
+                slight_state.secret_store
+            )
+        })
+        .unwrap(),
+    )
+    .unwrap();
+
+    let sasl_password = String::from_utf8(
+        runtime_configs::providers::get(
+            &slight_state.secret_store,
+            "CK_SASL_PASSWORD",
+            &slight_state.config_toml_file_path,
+        )
+        .with_context(|| {
+            format!(
+                "failed to get 'CK_SASL_PASSWORD' secret using secret store type: {}",
+                slight_state.secret_store
+            )
+        })
+        .unwrap(),
+    )
+    .unwrap();
+
+    (
+        bootstap_servers,
+        security_protocol,
+        sasl_mechanisms,
+        sasl_username,
+        sasl_password,
+    )
 }

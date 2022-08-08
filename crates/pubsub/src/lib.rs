@@ -67,14 +67,15 @@ impl PubsubState {
 }
 
 impl pubsub::Pubsub for Pubsub {
-    type Pubsub = PubsubInner;
+    type Pub = PubInner;
+    type Sub = SubInner;
 
-    fn pubsub_open_pub(&mut self) -> Result<Self::Pubsub, Error> {
+    fn pub_open(&mut self) -> Result<Self::Pub, Error> {
         // populate our inner pubsub object w/ the state received from `slight`
         // (i.e., what type of pubsub implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Pubsub::new(
-            &format!("{}.pub", &self.host_state.pubsub_implementor), // append ".pub" to indicate that's all we are making
+        let inner = Self::Pub::new(
+            &self.host_state.pubsub_implementor,
             &self.host_state.slight_state,
         );
 
@@ -88,12 +89,12 @@ impl pubsub::Pubsub for Pubsub {
         Ok(inner)
     }
 
-    fn pubsub_open_sub(&mut self) -> Result<Self::Pubsub, Error> {
+    fn sub_open(&mut self) -> Result<Self::Sub, Error> {
         // populate our inner pubsub object w/ the state received from `slight`
         // (i.e., what type of pubsub implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Pubsub::new(
-            &format!("{}.sub", &self.host_state.pubsub_implementor), // append ".sub" to indicate that's all we are making
+        let inner = Self::Sub::new(
+            &self.host_state.pubsub_implementor,
             &self.host_state.slight_state,
         );
 
@@ -107,60 +108,51 @@ impl pubsub::Pubsub for Pubsub {
         Ok(inner)
     }
 
-    fn pubsub_send_message_to_topic(
+    fn pub_send_message_to_topic(
         &mut self,
-        self_: &Self::Pubsub,
+        self_: &Self::Pub,
         msg_key: PayloadParam<'_>,
         msg_value: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        match &self_.pubsub_implementor {
-            PubsubImplementor::ConfluentApacheKafka(pi, _) => pi
-                .as_ref()
-                .unwrap()
-                .send_message_to_topic(msg_key, msg_value, topic)?,
+        match &self_.pub_implementor {
+            PubImplementor::ConfluentApacheKafka(pi) => {
+                pi.send_message_to_topic(msg_key, msg_value, topic)?
+            }
         };
 
         Ok(())
     }
 
-    fn pubsub_subscribe_to_topic(
-        &mut self,
-        self_: &Self::Pubsub,
-        topic: Vec<&str>,
-    ) -> Result<(), Error> {
-        match &self_.pubsub_implementor {
-            PubsubImplementor::ConfluentApacheKafka(_, si) => {
-                si.as_ref().unwrap().subscribe_to_topic(topic)?
-            }
+    fn sub_subscribe_to_topic(&mut self, self_: &Self::Sub, topic: Vec<&str>) -> Result<(), Error> {
+        match &self_.sub_implementor {
+            SubImplementor::ConfluentApacheKafka(si) => si.subscribe_to_topic(topic)?,
         }
 
         Ok(())
     }
 
-    fn pubsub_poll_for_message(
+    fn sub_poll_for_message(
         &mut self,
-        self_: &Self::Pubsub,
+        self_: &Self::Sub,
         timeout_in_secs: u64,
     ) -> Result<Message, Error> {
-        Ok(match &self_.pubsub_implementor {
-            PubsubImplementor::ConfluentApacheKafka(_, si) => si
-                .as_ref()
-                .unwrap()
-                .poll_for_message(timeout_in_secs)
-                .map(|f| pubsub::Message {
-                    key: f.0,
-                    value: f.1,
-                })?,
+        Ok(match &self_.sub_implementor {
+            SubImplementor::ConfluentApacheKafka(si) => {
+                si.poll_for_message(timeout_in_secs)
+                    .map(|f| pubsub::Message {
+                        key: f.0,
+                        value: f.1,
+                    })?
+            }
         })
     }
 }
 
-/// This is the type of the associated type coming from the `lockd::Lockd` trait
-/// implementation.
+/// This is the type of the associated type coming from the `pubsub::Pubsub` trait implementation.
 ///
 /// It holds:
-///     - a `lockd_implementor` (i.e., a variant `LockdImplementor` `enum`), and
+///     - a `pub_implementor` (i.e., a variant `PubImplementor` `enum`), and
 ///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
 ///     resource's instance).
 ///
@@ -169,24 +161,24 @@ impl pubsub::Pubsub for Pubsub {
 ///     - `Clone` because the `ResourceMap` it will be added onto,
 ///     must own its' data.
 ///
-/// It must be public because the implementation of `lockd::Lockd` cannot leak
+/// It must be public because the implementation of `pubsub::Pubsub` cannot leak
 /// a private type.
 #[derive(Debug, Clone)]
-pub struct PubsubInner {
-    pubsub_implementor: PubsubImplementor,
+pub struct PubInner {
+    pub_implementor: PubImplementor,
     resource_descriptor: String,
 }
 
-impl PubsubInner {
-    fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
+impl PubInner {
+    fn new(pub_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
-            pubsub_implementor: PubsubImplementor::new(pubsub_implementor, slight_state),
+            pub_implementor: PubImplementor::new(pub_implementor, slight_state),
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
 }
 
-impl runtime::resource::Watch for PubsubInner {
+impl runtime::resource::Watch for PubInner {
     fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
         todo!(
             "got {} and {:?}, but got nothing to do with it yet",
@@ -196,28 +188,81 @@ impl runtime::resource::Watch for PubsubInner {
     }
 }
 
-/// This defines the available implementor implementations for the `Lockd` interface.
+/// This is the type of the associated type coming from the `pubsub::Pubsub` trait implementation.
 ///
-/// As per its' usage in `LockdInner`, it must `derive` `Debug`, and `Clone`.
+/// It holds:
+///     - a `sub_implementor` (i.e., a variant `SubImplementor` `enum`), and
+///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
+///     resource's instance).
+///
+/// It must `derive`:
+///     - `Debug` due to a constraint on the associated type.
+///     - `Clone` because the `ResourceMap` it will be added onto,
+///     must own its' data.
+///
+/// It must be public because the implementation of `pubsub::Pubsub` cannot leak
+/// a private type.
 #[derive(Debug, Clone)]
-enum PubsubImplementor {
-    ConfluentApacheKafka(
-        Option<PubConfluentApacheKafkaImplementor>,
-        Option<SubConfluentApacheKafkaImplementor>,
-    ),
+pub struct SubInner {
+    sub_implementor: SubImplementor,
+    resource_descriptor: String,
 }
 
-impl PubsubImplementor {
+impl SubInner {
+    fn new(sub_implementor: &str, slight_state: &BasicState) -> Self {
+        Self {
+            sub_implementor: SubImplementor::new(sub_implementor, slight_state),
+            resource_descriptor: Uuid::new_v4().to_string(),
+        }
+    }
+}
+
+impl runtime::resource::Watch for SubInner {
+    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
+        todo!(
+            "got {} and {:?}, but got nothing to do with it yet",
+            key,
+            sender
+        );
+    }
+}
+
+/// This defines the available implementor implementations for the `Pubsub` interface.
+///
+/// As per its' usage in `PubInner`, it must `derive` `Debug`, and `Clone`.
+#[derive(Debug, Clone)]
+enum PubImplementor {
+    ConfluentApacheKafka(PubConfluentApacheKafkaImplementor),
+}
+
+impl PubImplementor {
     fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
         match pubsub_implementor {
-            "pubsub.confluent_apache_kafka.pub" => Self::ConfluentApacheKafka(
-                Some(PubConfluentApacheKafkaImplementor::new(slight_state)),
-                None,
+            "pubsub.confluent_apache_kafka" => {
+                Self::ConfluentApacheKafka(PubConfluentApacheKafkaImplementor::new(slight_state))
+            }
+            p => panic!(
+                "failed to match provided name (i.e., '{}') to any known host implementations",
+                p
             ),
-            "pubsub.confluent_apache_kafka.sub" => Self::ConfluentApacheKafka(
-                None,
-                Some(SubConfluentApacheKafkaImplementor::new(slight_state)),
-            ),
+        }
+    }
+}
+
+/// This defines the available implementor implementations for the `Pubsub` interface.
+///
+/// As per its' usage in `SubInner`, it must `derive` `Debug`, and `Clone`.
+#[derive(Debug, Clone)]
+enum SubImplementor {
+    ConfluentApacheKafka(SubConfluentApacheKafkaImplementor),
+}
+
+impl SubImplementor {
+    fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
+        match pubsub_implementor {
+            "pubsub.confluent_apache_kafka" => {
+                Self::ConfluentApacheKafka(SubConfluentApacheKafkaImplementor::new(slight_state))
+            }
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
