@@ -169,22 +169,14 @@ pub struct PubInner {
     resource_descriptor: String,
 }
 
+impl runtime::resource::Watch for PubInner {}
+
 impl PubInner {
     fn new(pub_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
             pub_implementor: PubImplementor::new(pub_implementor, slight_state),
             resource_descriptor: Uuid::new_v4().to_string(),
         }
-    }
-}
-
-impl runtime::resource::Watch for PubInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!(
-            "got {} and {:?}, but got nothing to do with it yet",
-            key,
-            sender
-        );
     }
 }
 
@@ -208,22 +200,14 @@ pub struct SubInner {
     resource_descriptor: String,
 }
 
+impl runtime::resource::Watch for SubInner {}
+
 impl SubInner {
     fn new(sub_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
             sub_implementor: SubImplementor::new(sub_implementor, slight_state),
             resource_descriptor: Uuid::new_v4().to_string(),
         }
-    }
-}
-
-impl runtime::resource::Watch for SubInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!(
-            "got {} and {:?}, but got nothing to do with it yet",
-            key,
-            sender
-        );
     }
 }
 

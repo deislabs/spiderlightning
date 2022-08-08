@@ -152,15 +152,7 @@ impl LockdInner {
     }
 }
 
-impl runtime::resource::Watch for LockdInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!(
-            "got {} and {:?}, but got nothing to do with it yet",
-            key,
-            sender
-        );
-    }
-}
+impl runtime::resource::Watch for LockdInner {}
 
 /// This defines the available implementor implementations for the `Lockd` interface.
 ///

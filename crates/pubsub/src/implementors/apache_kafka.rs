@@ -18,8 +18,6 @@ pub struct PubConfluentApacheKafkaImplementor {
     producer: Arc<BaseProducer>,
 }
 
-impl Watch for PubConfluentApacheKafkaImplementor {}
-
 impl std::fmt::Debug for PubConfluentApacheKafkaImplementor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PubConfluentApacheKafkaImplementor")
@@ -28,14 +26,13 @@ impl std::fmt::Debug for PubConfluentApacheKafkaImplementor {
 
 impl PubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
-        let (bootstap_servers, security_protocol, sasl_mechanisms, sasl_username, sasl_password) =
-            get_configs(slight_state);
+        let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
         let producer: BaseProducer = ClientConfig::new()
-            .set("bootstrap.servers", bootstap_servers)
-            .set("security.protocol", security_protocol)
-            .set("sasl.mechanisms", sasl_mechanisms)
-            .set("sasl.username", sasl_username)
-            .set("sasl.password", sasl_password)
+            .set("bootstrap.servers", akc.bootstap_servers)
+            .set("security.protocol", akc.security_protocol)
+            .set("sasl.mechanisms", akc.sasl_mechanisms)
+            .set("sasl.username", akc.sasl_username)
+            .set("sasl.password", akc.sasl_password)
             .create()
             .with_context(|| "failed to create producer client")
             .unwrap(); // panic if we fail to create client
@@ -68,8 +65,6 @@ pub struct SubConfluentApacheKafkaImplementor {
     consumer: Arc<BaseConsumer>,
 }
 
-impl Watch for SubConfluentApacheKafkaImplementor {}
-
 impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "SubConfluentApacheKafkaImplementor")
@@ -78,8 +73,7 @@ impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
 
 impl SubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
-        let (bootstap_servers, security_protocol, sasl_mechanisms, sasl_username, sasl_password) =
-            get_configs(slight_state);
+        let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
         let group_id = String::from_utf8(
             runtime_configs::providers::get(
                 &slight_state.secret_store,
@@ -97,11 +91,11 @@ impl SubConfluentApacheKafkaImplementor {
         .unwrap();
 
         let consumer: BaseConsumer = ClientConfig::new()
-            .set("bootstrap.servers", bootstap_servers)
-            .set("security.protocol", security_protocol)
-            .set("sasl.mechanisms", sasl_mechanisms)
-            .set("sasl.username", sasl_username)
-            .set("sasl.password", sasl_password)
+            .set("bootstrap.servers", akc.bootstap_servers)
+            .set("security.protocol", akc.security_protocol)
+            .set("sasl.mechanisms", akc.sasl_mechanisms)
+            .set("sasl.username", akc.sasl_username)
+            .set("sasl.password", akc.sasl_password)
             .set("group.id", group_id)
             .create()
             .with_context(|| "failed to create consumer client")
@@ -122,89 +116,48 @@ impl SubConfluentApacheKafkaImplementor {
     }
 }
 
-fn get_configs(slight_state: &BasicState) -> (String, String, String, String, String) {
-    let bootstap_servers = String::from_utf8(
-        runtime_configs::providers::get(
-            &slight_state.secret_store,
-            "CK_ENDPOINT",
-            &slight_state.config_toml_file_path,
-        )
-        .with_context(|| {
-            format!(
-                "failed to get 'CK_ENDPOINT' secret using secret store type: {}",
-                slight_state.secret_store
-            )
-        })
-        .unwrap(),
-    )
-    .unwrap();
-    let security_protocol = String::from_utf8(
-        runtime_configs::providers::get(
-            &slight_state.secret_store,
-            "CK_SECURITY_PROTOCOL",
-            &slight_state.config_toml_file_path,
-        )
-        .with_context(|| {
-            format!(
-                "failed to get 'CK_SECURITY_PROTOCOL' secret using secret store type: {}",
-                slight_state.secret_store
-            )
-        })
-        .unwrap(),
-    )
-    .unwrap();
-    let sasl_mechanisms = String::from_utf8(
-        runtime_configs::providers::get(
-            &slight_state.secret_store,
-            "CK_SASL_MECHANISMS",
-            &slight_state.config_toml_file_path,
-        )
-        .with_context(|| {
-            format!(
-                "failed to get 'CK_SASL_MECHANISMS' secret using secret store type: {}",
-                slight_state.secret_store
-            )
-        })
-        .unwrap(),
-    )
-    .unwrap();
-    let sasl_username = String::from_utf8(
-        runtime_configs::providers::get(
-            &slight_state.secret_store,
-            "CK_SASL_USERNAME",
-            &slight_state.config_toml_file_path,
-        )
-        .with_context(|| {
-            format!(
-                "failed to get 'CK_SASL_USERNAME' secret using secret store type: {}",
-                slight_state.secret_store
-            )
-        })
-        .unwrap(),
-    )
-    .unwrap();
+/// `ApacheKafkaConfigs` is a convenience structure to avoid the innate
+/// repetitiveness of code that comes w/ getting `runtime_configs`.
+struct ApacheKafkaConfigs {
+    bootstap_servers: String,
+    security_protocol: String,
+    sasl_mechanisms: String,
+    sasl_username: String,
+    sasl_password: String,
+}
 
-    let sasl_password = String::from_utf8(
+fn get_config(config_name: &str, state: &BasicState) -> Result<String> {
+    let config = String::from_utf8(
         runtime_configs::providers::get(
-            &slight_state.secret_store,
-            "CK_SASL_PASSWORD",
-            &slight_state.config_toml_file_path,
+            &state.secret_store,
+            config_name,
+            &state.config_toml_file_path,
         )
         .with_context(|| {
             format!(
-                "failed to get 'CK_SASL_PASSWORD' secret using secret store type: {}",
-                slight_state.secret_store
+                "failed to get '{}' secret using secret store type: {}",
+                config_name, state.secret_store
             )
-        })
-        .unwrap(),
-    )
-    .unwrap();
+        })?,
+    )?;
+    Ok(config)
+}
 
-    (
-        bootstap_servers,
-        security_protocol,
-        sasl_mechanisms,
-        sasl_username,
-        sasl_password,
-    )
+impl ApacheKafkaConfigs {
+    fn from_state(slight_state: &BasicState) -> Result<Self> {
+        let bootstap_servers = get_config("CK_ENDPOINT", slight_state)?;
+        let security_protocol = get_config("CK_SECURITY_PROTOCOL", slight_state)?;
+        let sasl_mechanisms = get_config("CK_SASL_MECHANISMS", slight_state)?;
+        let sasl_username = get_config("CK_SASL_USERNAME", slight_state)?;
+
+        let sasl_password = get_config("CK_SASL_PASSWORD", slight_state)?;
+
+        Ok(Self {
+            bootstap_servers,
+            security_protocol,
+            sasl_mechanisms,
+            sasl_username,
+            sasl_password,
+        })
+    }
 }

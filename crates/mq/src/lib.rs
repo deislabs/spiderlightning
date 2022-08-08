@@ -134,15 +134,7 @@ impl MqInner {
     }
 }
 
-impl runtime::resource::Watch for MqInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!(
-            "got {} and {:?}, but got nothing to do with it yet",
-            key,
-            sender
-        );
-    }
-}
+impl runtime::resource::Watch for MqInner {}
 
 /// This defines the available implementor implementations for the `Mq` interface.
 ///
