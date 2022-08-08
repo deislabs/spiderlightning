@@ -15,7 +15,6 @@ improve:
 
 .PHONY: build
 build:
-	cargo build --release
 	cargo build --release --manifest-path ./slight/Cargo.toml
 
 .PHONY: test
@@ -62,35 +61,50 @@ install-slight:
 ### RUST EXAMPLES
 .PHONY: build-rust
 build-rust:
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/configs-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/watch-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-receiver-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/lockd-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-producer-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-consumer-demo/Cargo.toml
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-demo/Cargo.toml
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/configs-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/watch-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-receiver-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/lockd-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-producer-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-consumer-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-demo/Cargo.toml & \
+	wait; \
+	/bin/sh -c 'echo "DONE"'
 
 .PHONY: run-rust
 run-rust:
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/multi_capability-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvazblob_slightfile.toml' run -m ./target/wasm32-wasi/release/kv-demo.wasm	
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/watch-demo.wasm & 
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./examples/multi_capability-demo/target/wasm32-wasi/release/multi_capability-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvfilesystem_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvazblob_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm	
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./examples/watch-demo/target/wasm32-wasi/release/watch-demo.wasm & 
 	python ./examples/watch-demo/simulate.py
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/usersecrets_slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/envvars_slightfile.toml' run -m ./target/wasm32-wasi/release/configs-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/mqfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqazsbus_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm &
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/mqazsbus_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-receiver-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm &
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/lockd-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-consumer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-consumer-demo.wasm &
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-producer-demo/slightfile.toml' run -m ./target/wasm32-wasi/release/pubsub-producer-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/http-demp/wc.toml' run -m ./target/wasm32-wasi/release/http-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/usersecrets_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/envvars_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./examples/mq-sender-demo/target/wasm32-wasi/release/mq-sender-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/mqfilesystem_slightfile.toml' run -m ./examples/mq-receiver-demo/target/wasm32-wasi/release/mq-receiver-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqazsbus_slightfile.toml' run -m ./examples/mq-sender-demo/target/wasm32-wasi/release/mq-sender-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/mqazsbus_slightfile.toml' run -m ./examples/mq-receiver-demo/target/wasm32-wasi/release/mq-receiver-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./examples/lockd-demo/target/wasm32-wasi/release/lockd-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/lockd-demo/slightfile.toml' run -m ./examples/lockd-demo/target/wasm32-wasi/release/lockd-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-consumer-demo/slightfile.toml' run -m ./examples/pubsub-consumer-demo/target/wasm32-wasi/release/pubsub-consumer-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-producer-demo/slightfile.toml' run -m ./examples/pubsub-producer-demo/target/wasm32-wasi/release/pubsub-producer-demo.wasm
+
+.PHONY: clean-rust
+clean-rust:
+	cargo clean --manifest-path ./examples/configs-demo/Cargo.toml & \
+    cargo clean --manifest-path ./examples/watch-demo/Cargo.toml & \
+    cargo clean --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
+    cargo clean --manifest-path ./examples/kv-demo/Cargo.toml & \
+    cargo clean --manifest-path ./examples/mq-sender-demo/Cargo.toml & \
+    cargo clean --manifest-path ./examples/mq-receiver-demo/Cargo.toml & \
+    cargo clean --manifest-path ./examples/lockd-demo/Cargo.toml & \
+    cargo clean --manifest-path ./examples/pubsub-producer-demo/Cargo.toml & \
+    cargo clean --manifest-path ./examples/pubsub-consumer-demo/Cargo.toml & \
+	wait; \
+	/bin/sh -c 'echo "DONE"'
 
 ### END OF RUST EXAMPLES
 
@@ -103,5 +117,5 @@ build-c:
 
 .PHONY: run-c
 run-c:
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./examples/mq-sender-demo/target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
 ### END OF C EXAMPLES

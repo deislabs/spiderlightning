@@ -551,15 +551,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "configs-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1293,16 +1284,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "http-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "http-handler-macro",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
 name = "http-handler-macro"
 version = "0.1.0"
 dependencies = [
@@ -1570,16 +1551,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kv-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde_json",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1641,15 +1612,6 @@ dependencies = [
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "lockd-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
  "wit-error-rs",
 ]
 
@@ -1785,33 +1747,6 @@ dependencies = [
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "mq-receiver-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "mq-sender-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "multi_capability-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
  "wit-error-rs",
 ]
 
@@ -2235,24 +2170,6 @@ dependencies = [
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "pubsub-consumer-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "pubsub-producer-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
  "wit-error-rs",
 ]
 
@@ -3800,16 +3717,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2d4bc4724b4f02a482c8cab053dac5ef26410f264c06ce914958f9a42813556"
 dependencies = [
  "wast 45.0.0",
-]
-
-[[package]]
-name = "watch-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde_json",
- "wit-bindgen-rust",
- "wit-error-rs",
 ]
 
 [[package]]
