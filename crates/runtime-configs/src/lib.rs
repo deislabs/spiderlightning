@@ -97,14 +97,16 @@ impl configs::Configs for Configs {
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), configs::Error> {
-        Ok(match &self_.configs_implementor {
+        match &self_.configs_implementor {
             ConfigsImplementor::EnvVars => EnvVars::set(key, value)?,
             ConfigsImplementor::UserSecrets => UserSecrets::set(
                 key,
                 value,
                 &self.host_state.slight_state.config_toml_file_path,
             )?,
-        })
+        };
+
+        Ok(())
     }
 }
 
