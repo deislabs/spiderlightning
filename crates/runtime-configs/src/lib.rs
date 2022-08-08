@@ -4,11 +4,7 @@ pub mod implementors;
 /// identifiable by in a `ResourceMap`.
 const SCHEME_NAME: &str = "configs";
 
-use std::sync::{Arc, Mutex};
-
 use anyhow::Result;
-use crossbeam_channel::Sender;
-use events_api::Event;
 use uuid::Uuid;
 
 use implementors::{envvars::EnvVars, usersecrets::UserSecrets};
@@ -67,10 +63,7 @@ impl configs::Configs for Configs {
         // populate our inner configs object w/ the state received from `slight`
         // (i.e., what type of configs implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Configs::new(
-            &self.host_state.configs_implementor,
-            &self.host_state.slight_state,
-        );
+        let inner = Self::Configs::new(&self.host_state.configs_implementor);
 
         self.host_state
             .slight_state
@@ -132,23 +125,15 @@ pub struct ConfigsInner {
 }
 
 impl ConfigsInner {
-    fn new(configs_implementor: &str, slight_state: &BasicState) -> Self {
+    fn new(configs_implementor: &str) -> Self {
         Self {
-            configs_implementor: ConfigsImplementor::new(configs_implementor, slight_state),
+            configs_implementor: configs_implementor.into(),
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
 }
 
-impl runtime::resource::Watch for ConfigsInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!(
-            "got {} and {:?}, but got nothing to do with it yet",
-            key,
-            sender
-        );
-    }
-}
+impl runtime::resource::Watch for ConfigsInner {}
 
 /// This defines the available implementor implementations for the `Configs` interface.
 ///
@@ -181,19 +166,6 @@ impl From<&str> for ConfigsImplementor {
 impl Default for ConfigsImplementor {
     fn default() -> Self {
         ConfigsImplementor::EnvVars
-    }
-}
-
-impl ConfigsImplementor {
-    fn new(configs_implementor: &str, _: &BasicState) -> Self {
-        match configs_implementor {
-            "configs.envvars" => Self::EnvVars,
-            "configs.usersecrets" => Self::UserSecrets,
-            p => panic!(
-                "failed to match provided configs name (i.e., '{}' to any known host implementations",
-                p
-            ),
-        }
     }
 }
 
