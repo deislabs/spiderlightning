@@ -844,15 +844,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "configs-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1838,16 +1829,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kv-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde_json",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1909,15 +1890,6 @@ dependencies = [
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
-name = "lockd-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
  "wit-error-rs",
 ]
 
@@ -2053,33 +2025,6 @@ dependencies = [
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
-name = "mq-receiver-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "mq-sender-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "multi_capability-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
  "wit-error-rs",
 ]
 
@@ -2512,24 +2457,6 @@ dependencies = [
  "url",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
-name = "pubsub-consumer-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
-name = "pubsub-producer-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
  "wit-error-rs",
 ]
 
@@ -4127,16 +4054,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "watch-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde_json",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
-
-[[package]]
 name = "web-sys"
 version = "0.3.59"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4322,16 +4239,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wit-bindgen-gen-rust-wasm"
-version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c#a79a4be33d76ddf62839ba71602c26a96610ef7c"
-dependencies = [
- "heck 0.3.3",
- "wit-bindgen-gen-core",
- "wit-bindgen-gen-rust",
-]
-
-[[package]]
 name = "wit-bindgen-gen-wasmtime"
 version = "0.1.0"
 source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c#a79a4be33d76ddf62839ba71602c26a96610ef7c"
@@ -4339,27 +4246,6 @@ dependencies = [
  "heck 0.3.3",
  "wit-bindgen-gen-core",
  "wit-bindgen-gen-rust",
-]
-
-[[package]]
-name = "wit-bindgen-rust"
-version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c#a79a4be33d76ddf62839ba71602c26a96610ef7c"
-dependencies = [
- "async-trait",
- "bitflags",
- "wit-bindgen-rust-impl",
-]
-
-[[package]]
-name = "wit-bindgen-rust-impl"
-version = "0.1.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c#a79a4be33d76ddf62839ba71602c26a96610ef7c"
-dependencies = [
- "proc-macro2",
- "syn",
- "wit-bindgen-gen-core",
- "wit-bindgen-gen-rust-wasm",
 ]
 
 [[package]]
