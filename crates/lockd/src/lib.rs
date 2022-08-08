@@ -5,12 +5,8 @@ pub mod providers;
 /// identifiable by in a `ResourceMap`.
 const SCHEME_NAME: &str = "lockd";
 
-
-
 use anyhow::Result;
-
 use uuid::Uuid;
-
 
 use implementors::etcd::EtcdImplementor;
 use runtime::{impl_resource, resource::BasicState};

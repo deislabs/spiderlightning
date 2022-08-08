@@ -5,11 +5,7 @@ pub mod providers;
 /// identifiable by in a `ResourceMap`.
 const SCHEME_NAME: &str = "mq";
 
-
-
 use anyhow::Result;
-
-
 
 use implementors::{azsbus::AzSbusImplementor, filesystem::FilesystemImplementor};
 use runtime::{impl_resource, resource::BasicState};

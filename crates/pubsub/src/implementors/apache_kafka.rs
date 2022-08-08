@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::{BasicState};
+use runtime::resource::BasicState;
 
 use crate::providers::confluent::{self, KafkaMessage};
 

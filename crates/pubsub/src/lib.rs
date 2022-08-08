@@ -5,10 +5,7 @@ pub mod providers;
 /// identifiable by in a `ResourceMap`.
 const SCHEME_NAME: &str = "pubsub";
 
-
-
 use anyhow::Result;
-
 
 use implementors::apache_kafka::{
     PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor,
