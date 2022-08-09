@@ -5,13 +5,9 @@ pub mod providers;
 /// identifiable by in a `ResourceMap`.
 const SCHEME_NAME: &str = "lockd";
 
-use std::sync::{Arc, Mutex};
-
 use anyhow::Result;
-use crossbeam_channel::Sender;
 use uuid::Uuid;
 
-use events_api::Event;
 use implementors::etcd::EtcdImplementor;
 use runtime::{impl_resource, resource::BasicState};
 
@@ -152,15 +148,7 @@ impl LockdInner {
     }
 }
 
-impl runtime::resource::Watch for LockdInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!(
-            "got {} and {:?}, but got nothing to do with it yet",
-            key,
-            sender
-        );
-    }
-}
+impl runtime::resource::Watch for LockdInner {}
 
 /// This defines the available implementor implementations for the `Lockd` interface.
 ///
@@ -174,7 +162,10 @@ impl LockdImplementor {
     fn new(lockd_implementor: &str, slight_state: &BasicState) -> Self {
         match lockd_implementor {
             "lockd.etcd" => Self::Etcd(EtcdImplementor::new(slight_state)),
-            _ => panic!("failed to match provided kv name to any known host implementations"),
+            p => panic!(
+                "failed to match provided name (i.e., '{}') to any known host implementations",
+                p
+            ),
         }
     }
 }

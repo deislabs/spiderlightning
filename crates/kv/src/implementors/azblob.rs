@@ -10,9 +10,9 @@ use crate::providers::azure;
 
 /// This is the underlying struct behind the `AzBlob` variant of the `KvImplementor` enum.
 ///
-/// It provides a properties that pertains solely to the azblob implementation
+/// It provides a property that pertains solely to the azblob implementation
 /// of this capability:
-///     - `container_client`, and
+///     - `container_client`
 ///
 /// As per its' usage in `KvImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
