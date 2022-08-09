@@ -75,7 +75,7 @@ impl SubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
         let group_id = String::from_utf8(
-            runtime_configs::providers::get(
+            runtime_configs::get(
                 &slight_state.secret_store,
                 "CK_GROUP_ID",
                 &slight_state.config_toml_file_path,
@@ -128,7 +128,7 @@ struct ApacheKafkaConfigs {
 
 fn get_config(config_name: &str, state: &BasicState) -> Result<String> {
     let config = String::from_utf8(
-        runtime_configs::providers::get(
+        runtime_configs::get(
             &state.secret_store,
             config_name,
             &state.config_toml_file_path,
