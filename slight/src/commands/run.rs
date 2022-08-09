@@ -81,15 +81,23 @@ fn get_resource<'a, T>(store: &'a mut Store<Ctx>, scheme_name: &'a str) -> &'a m
 where
     T: Resource,
 {
+    let err_msg = format!(
+        "internal error: resource_map does not contain key: {}",
+        scheme_name
+    );
+    let err_msg2 = format!(
+        "internal error: resource map contains key {} but can't downcast",
+        scheme_name
+    );
     store
         .data_mut()
         .data
         .get_mut(scheme_name)
-        .expect("internal error: resource_map does not contain key events")
+        .expect(&err_msg)
         .0
         .as_mut()
         .downcast_mut::<T>()
-        .expect("internal error: resource map contains key events but can't downcast")
+        .expect(&err_msg2)
 }
 
 async fn shutdown_signal() {

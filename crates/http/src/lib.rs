@@ -274,7 +274,7 @@ async fn handler(request: hyper::Request<Body>) -> Result<hyper::Response<Body>>
     handler.handle_http = instance
         .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,), _>(
             store.deref_mut(),
-            &func_name_to_abi_name(&route.handler),
+            &route.handler.replace('_', "-"),
         )
         .unwrap();
     let res = handler.handle_http(store.deref_mut(), req)??;
