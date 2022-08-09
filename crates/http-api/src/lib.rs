@@ -1,4 +1,3 @@
-// guest resource
 use anyhow::{bail, Result};
 pub use http_handler::{Error, HttpHandler, HttpHandlerData, Method, Request, Response};
 use hyper::{
@@ -10,6 +9,17 @@ use hyper::{
 wit_bindgen_wasmtime::import!("../../wit/http-handler.wit");
 wit_error_rs::impl_error!(Error);
 
+/// A owned http_handler::HeadersParam
+///
+/// It can be directly transformed from `hyper::HeaderMap`
+/// ```rust
+/// let (parts, _) = request.into_parts();
+/// let header_map: HttpHeader = (&parts.headers).into()
+/// let req = http_handler::Request {
+///     headers: &headers.inner(),
+///     ...
+/// }
+/// ```
 pub struct HttpHeader<'a>(Vec<(&'a str, &'a str)>);
 
 impl<'a> HttpHeader<'a> {
@@ -29,23 +39,34 @@ impl<'a> From<&'a hyper::HeaderMap> for HttpHeader<'a> {
     }
 }
 
+/// A owned http_handler::BodyParam
+///
+/// It can be directly transformed from `hyper::Body`
+/// ```rust
+/// let (parts, body) = request.into_parts();
+/// let bytes = HttpBody::from_body(body).await?.inner();
+/// let req = http_handler::Request {
+///     body: Some(&bytes),
+///     ...
+/// }
+/// ```
 pub struct HttpBody(Vec<u8>);
 
 impl HttpBody {
     pub async fn from_body(body: hyper::Body) -> Result<Self> {
-        const MAX_ALLOWED_RESPONSE_SIZE: u64 = 1024;
-        let response_content_length = match body.size_hint().upper() {
+        const MAX_ALLOWED_SIZE: u64 = u64::MAX;
+        let content_length = match body.size_hint().upper() {
             Some(v) => v,
-            None => MAX_ALLOWED_RESPONSE_SIZE + 1, // Just to protect ourselves from a malicious response
+            None => bail!("HTTP Body too large"),
         };
 
-        if response_content_length < MAX_ALLOWED_RESPONSE_SIZE {
+        if content_length < MAX_ALLOWED_SIZE {
             let body_bytes = hyper::body::to_bytes(body).await?;
             let owned_body = Self(body_bytes.to_vec());
             return Ok(owned_body);
         }
 
-        bail!("Response body too large")
+        bail!("HTTP body too large")
     }
 
     pub fn inner(self) -> Vec<u8> {

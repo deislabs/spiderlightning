@@ -15,10 +15,6 @@ fn capitalize_first_letter(s: &str) -> String {
     }
 }
 
-fn underscore_to_hyphen(s: &str) -> String {
-    s.replace('_', "-")
-}
-
 fn load_fs(root: &Path, name: &str) -> Result<(PathBuf, String)> {
     let wit = root.join(name).with_extension("wit");
     let contents = fs::read_to_string(&wit).unwrap();
@@ -98,7 +94,7 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // transform contents
     let replaced_contents = contents.replace("handle_http", handle_func.as_str());
     let replaced_contents =
-        replaced_contents.replace("handle-http", &underscore_to_hyphen(&handle_func));
+        replaced_contents.replace("handle-http", &handle_func.replace("_", "-"));
     let replaced_contents = replaced_contents.replace(
         format!("super::{}", trait_name).as_str(),
         format!("super::{}::{}", internal_mod, struct_name).as_str(),
