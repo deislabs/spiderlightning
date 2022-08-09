@@ -77,12 +77,11 @@ pub struct ServerProxy {
 
 impl ServerProxy {
     fn close(self) -> Result<(), Error> {
-        let clone = self.closer;
-        let closer = clone.lock().unwrap();
+        let closer = self.closer.lock().unwrap();
         thread::scope(|s| {
             s.spawn(|_| {
                 block_on(async {
-                    println!("shutting down the http server");
+                    log::info!("shutting down the http server");
                     closer.send(())
                 })
             });
@@ -164,6 +163,8 @@ impl http::Http for Http {
         route: &str,
         handler: &str,
     ) -> Result<Self::Router, Error> {
+        // Router is a reference to the router proxy, so we need to clone it to get a
+        // mutable reference to the router.
         let mut rclone = router.clone();
         rclone.get(route.to_string(), handler.to_string())
     }
@@ -173,37 +174,47 @@ impl http::Http for Http {
         address: &str,
         router: &Self::Router,
     ) -> Result<Self::Server, Error> {
+        // Shared states for all routes
         let store = self.host_state.store.as_mut().unwrap().clone();
         let instance = self.host_state.instance.as_mut().unwrap().clone();
+
+        // The outer builder is used to define the route paths, while creating a scope
+        // for the inner builder which passes states to the route handler.
         let mut outer_builder: RouterBuilder<Body, anyhow::Error> =
             Router::builder().data(store).data(instance);
-        let mut built_routes = vec![];
+
+        // There is a one-to-one mapping between the outer router's scope and inner router builder.
+        let mut inner_routes = vec![];
         for route in router.routes.iter() {
-            let mut builder: RouterBuilder<Body, anyhow::Error> = Router::builder();
+            let mut inner_builder: RouterBuilder<Body, anyhow::Error> = Router::builder();
             match route.method {
                 Methods::GET => {
-                    builder = builder.data(route.clone()); // hello, foo
-                    builder = builder.get("/", handler);
+                    // per route state
+                    inner_builder = inner_builder.data(route.clone());
+                    inner_builder = inner_builder.get("/", handler);
                 }
             }
-            built_routes.push(builder.build().unwrap());
+            inner_routes.push(inner_builder.build().unwrap());
         }
 
-        for (route, built) in zip(router.routes.clone(), built_routes) {
+        // Create a scope for each inner route.
+        for (route, built) in zip(router.routes.clone(), inner_routes) {
             outer_builder = outer_builder.scope(&route.route, built);
         }
         let built = outer_builder.build().unwrap();
 
+        // Defines the server
         let service = RouterService::new(built).unwrap();
         let addr = str_to_socket_address(address)?;
         let server = Server::bind(&addr).serve(service);
+        // Create a channel to send the termination message
         let (tx, rx) = unbounded_channel();
         let graceful = server.with_graceful_shutdown(shutdown_signal(rx));
+        // Start the server in a separate thread
         tokio::task::spawn(graceful);
 
         let arc_tx = Arc::new(Mutex::new(tx));
         self.host_state.closer = Some(arc_tx.clone());
-
         Ok(ServerProxy { closer: arc_tx })
     }
 
@@ -278,7 +289,7 @@ async fn shutdown_signal(mut rx: UnboundedReceiver<()>) {
         _ = tokio::signal::ctrl_c() => {},
         _ = rx.recv() => {},
     }
-    println!("shutting down the server")
+    log::info!("shutting down the server")
 }
 
 fn func_name_to_abi_name(name: &str) -> String {
