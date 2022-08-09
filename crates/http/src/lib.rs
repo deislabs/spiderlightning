@@ -21,7 +21,7 @@ use runtime::{
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
 
-use http_api::{HttpHandler, Method, OwnedBody, OwnedHeader, Request};
+use http_api::{HttpBody, HttpHandler, HttpHeader, Method, Request};
 use wasmtime::{Instance, Store};
 
 wit_bindgen_wasmtime::export!("../../wit/http.wit");
@@ -237,12 +237,12 @@ async fn handler(request: hyper::Request<Body>) -> Result<hyper::Response<Body>>
         .map(|(k, v)| (k.as_str(), v.as_str()))
         .collect();
     let methods: Method = (&parts.method).into();
-    let headers: OwnedHeader = (&parts.headers).into();
+    let headers: HttpHeader = (&parts.headers).into();
 
-    // FIXME: `OwnedBody::from_body` returns a future here. The reason that `block_on` is used is
+    // FIXME: `HttpBody::from_body` returns a future here. The reason that `block_on` is used is
     // because the `store` and `instance` are holding a mutex, which means that the async runtime
     // cannot switch to another thread.
-    let bytes = block_on(OwnedBody::from_body(body))?.inner();
+    let bytes = block_on(HttpBody::from_body(body))?.inner();
     let uri = &(&parts.uri).to_string();
     let req = Request {
         method: methods,

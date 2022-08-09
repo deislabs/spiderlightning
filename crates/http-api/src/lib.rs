@@ -2,22 +2,23 @@
 use anyhow::{bail, Result};
 pub use http_handler::{Error, HttpHandler, HttpHandlerData, Method, Request, Response};
 use hyper::{
-    body::HttpBody,
+    body::HttpBody as HyperHttpBody,
     header::{HeaderName, HeaderValue},
     Body, HeaderMap, StatusCode,
 };
 
+wit_bindgen_wasmtime::import!("../../wit/http-handler.wit");
 wit_error_rs::impl_error!(Error);
 
-pub struct OwnedHeader<'a>(Vec<(&'a str, &'a str)>);
+pub struct HttpHeader<'a>(Vec<(&'a str, &'a str)>);
 
-impl<'a> OwnedHeader<'a> {
+impl<'a> HttpHeader<'a> {
     pub fn inner(self) -> Vec<(&'a str, &'a str)> {
         self.0
     }
 }
 
-impl<'a> From<&'a hyper::HeaderMap> for OwnedHeader<'a> {
+impl<'a> From<&'a hyper::HeaderMap> for HttpHeader<'a> {
     fn from(headers: &'a hyper::HeaderMap) -> Self {
         Self(
             headers
@@ -28,9 +29,9 @@ impl<'a> From<&'a hyper::HeaderMap> for OwnedHeader<'a> {
     }
 }
 
-pub struct OwnedBody(Vec<u8>);
+pub struct HttpBody(Vec<u8>);
 
-impl OwnedBody {
+impl HttpBody {
     pub async fn from_body(body: hyper::Body) -> Result<Self> {
         const MAX_ALLOWED_RESPONSE_SIZE: u64 = 1024;
         let response_content_length = match body.size_hint().upper() {
@@ -88,12 +89,10 @@ impl From<Response> for hyper::Response<Body> {
     }
 }
 
-wit_bindgen_wasmtime::import!("../../wit/http-handler.wit");
-
 #[cfg(test)]
 mod unittests {
 
-    use crate::{OwnedBody, OwnedHeader};
+    use crate::{HttpBody, HttpHeader};
 
     use super::{Body, HeaderValue, Method, Request, Response, StatusCode};
     use anyhow::Result;
@@ -107,10 +106,10 @@ mod unittests {
             .body(hyper::Body::from("{\"name\": \"John\"}"))?;
 
         let (parts, body) = req.into_parts();
-        let headers: OwnedHeader = (&parts.headers).into();
+        let headers: HttpHeader = (&parts.headers).into();
         let uri = &(&parts.uri).to_string();
         let method: Method = (&parts.method).into();
-        let bytes: OwnedBody = OwnedBody::from_body(body).await?;
+        let bytes: HttpBody = HttpBody::from_body(body).await?;
         let params = [];
         let req = Request {
             method,

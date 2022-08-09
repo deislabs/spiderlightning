@@ -2,8 +2,10 @@
 name = "http-api"
 version = "0.1.0"
 edition = "2021"
+authors = ["DeisLabs Engineering Team"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+doctest = false
 
 [dependencies]
 wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "8252b0e39c7495f647ec0b0898721a7c641fc6c8" }
