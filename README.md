@@ -45,7 +45,7 @@ $ make run-c # runs our c example
 
 ### What problems does SpiderLightning address?
 
-Spiderlightning is a collection of common application interfaces exposed through WebAssembly intended to make cloud-native application development simpler. These interfaces are available to WebAssembly applications through the `slight` Command Line Interface (CLI) and host runtime that implements these interfaces using a backend of choice. For example, for the "message queue" interface, SpiderLightning may provide backends implemented by Azure Storage Bus, Apache Kafka, and more.
+Spiderlightning is a collection of common application interfaces exposed through WebAssembly intended to make cloud-native application development simpler. These interfaces are available to WebAssembly applications through the `slight` Command Line Interface (CLI) and host runtime that implements these interfaces using a backend of choice. For example, for the "message queue" interface, SpiderLightning may provide backends implemented by Azure Service Bus, Apache Kafka, and more.
 
 Spiderlightning's interfaces offer developers a set of provider-agnostic APIs which enable developers to write portable applications without having to take direct dependencies on vendor specific APIs and SDKs.
 
