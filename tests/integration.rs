@@ -45,6 +45,13 @@ mod integration_tests {
             run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
             Ok(())
         }
+
+        #[test]
+        fn aws_dynamodb_test() -> Result<()> {
+            let file_config = "./tests/kv-test/kvawsdynamodb_slightfile.toml";
+            run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+            Ok(())
+        }
     }
 
     // TODO: We need to mq_test, lockd_test, and pubsub_test modules
