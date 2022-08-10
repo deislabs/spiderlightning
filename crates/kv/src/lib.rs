@@ -113,7 +113,7 @@ impl KvImplementors {
             "kv.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name)),
             "kv.awsdynamodb" => Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name)),
             p => panic!(
-                "failed to match provided kv name (i.e., '{}' to any known host implementations",
+                "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
             ),
         }
