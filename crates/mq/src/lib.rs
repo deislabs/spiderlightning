@@ -5,11 +5,7 @@ pub mod providers;
 /// identifiable by in a `ResourceMap`.
 const SCHEME_NAME: &str = "mq";
 
-use std::sync::{Arc, Mutex};
-
 use anyhow::Result;
-use crossbeam_channel::Sender;
-use events_api::Event;
 
 use implementors::{azsbus::AzSbusImplementor, filesystem::FilesystemImplementor};
 use runtime::{impl_resource, resource::BasicState};
@@ -134,15 +130,7 @@ impl MqInner {
     }
 }
 
-impl runtime::resource::Watch for MqInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!(
-            "got {} and {:?}, but got nothing to do with it yet",
-            key,
-            sender
-        );
-    }
-}
+impl runtime::resource::Watch for MqInner {}
 
 /// This defines the available implementor implementations for the `Mq` interface.
 ///
@@ -158,7 +146,10 @@ impl MqImplementor {
         match mq_implementor {
             "mq.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
             "mq.azsbus" => Self::AzSbus(AzSbusImplementor::new(slight_state, name)),
-            _ => panic!("failed to match provided mq name to any known host implementations"),
+            p => panic!(
+                "failed to match provided name (i.e., '{}') to any known host implementations",
+                p
+            ),
         }
     }
 }

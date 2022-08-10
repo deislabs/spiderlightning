@@ -11,10 +11,9 @@ use http::{Http, HttpState};
 use kv::{Kv, KvState};
 use lockd::{Lockd, LockdState};
 use mq::{Mq, MqState};
-use pubsub_confluent_kafka::PubSubConfluentKafka;
-use runtime::resource::{Ctx, Resource};
+use pubsub::{Pubsub, PubsubState};
 use runtime::{
-    resource::{BasicState, StateTable},
+    resource::{BasicState, Ctx, Resource, StateTable},
     Builder,
 };
 use runtime_configs::{Configs, ConfigsState};
@@ -23,6 +22,7 @@ use spiderlightning::core::slightfile::TomlFile;
 const KV_HOST_IMPLEMENTORS: [&str; 2] = ["kv.filesystem", "kv.azblob"];
 const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
 const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
+const PUBSUB_HOST_IMPLEMENTORS: [&str; 1] = ["pubsub.confluent_apache_kafka"];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 2] = ["configs.usersecrets", "configs.envvars"];
 
 pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
@@ -119,46 +119,81 @@ fn build_store_instance(
             let resource_type: &str = c.name.as_str();
             match resource_type {
                 "events" => {
-                    builder.link_capability::<Events>(resource_type.to_string(), EventsState::new(resource_map.clone()))?;
-                },
+                    builder.link_capability::<Events>(
+                        resource_type.to_string(),
+                        EventsState::new(resource_map.clone()),
+                    )?;
+                }
                 _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if let Some(ss) = &toml.secret_store {
-                        builder.link_capability::<Kv>("kv".to_string(), KvState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                        builder.link_capability::<Kv>(
+                            "kv".to_string(),
+                            KvState::new(
+                                resource_type.to_string(),
+                                BasicState::new(resource_map.clone(), ss, toml_file_path),
+                            ),
+                        )?;
                     } else {
                         bail!("the kv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab, say, the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
                     }
-                },
+                }
                 _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if let Some(ss) = &toml.secret_store {
-                        builder.link_capability::<Mq>("mq".to_string(), MqState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                        builder.link_capability::<Mq>(
+                            "mq".to_string(),
+                            MqState::new(
+                                resource_type.to_string(),
+                                BasicState::new(resource_map.clone(), ss, toml_file_path),
+                            ),
+                        )?;
                     } else {
                         bail!("the mq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
                     }
                 }
                 _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if let Some(ss) = &toml.secret_store {
-                        builder.link_capability::<Lockd>("lockd".to_string(), LockdState::new(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path)))?;
+                        builder.link_capability::<Lockd>(
+                            "lockd".to_string(),
+                            LockdState::new(
+                                resource_type.to_string(),
+                                BasicState::new(resource_map.clone(), ss, toml_file_path),
+                            ),
+                        )?;
                     } else {
                         bail!("the lockd capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the ETCD_ENDPOINT.")
                     }
-                },
-                "pubsub.confluent_kafka" => {
+                }
+                _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if let Some(ss) = &toml.secret_store {
-                        builder.link_capability::<PubSubConfluentKafka>(resource_type.to_string(), BasicState::new(resource_map.clone(), ss, toml_file_path))?;
+                        builder.link_capability::<Pubsub>(
+                            "pubsub".to_string(),
+                            PubsubState::new(
+                                resource_type.to_string(),
+                                BasicState::new(resource_map.clone(), ss, toml_file_path),
+                            ),
+                        )?;
                     } else {
-                        bail!("the pubsub.confluent_kafka capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CK_SECURITY_PROTOCOL, CK_SASL_MECHANISMS, CK_SASL_USERNAME, CK_SASL_PASSWORD, and CK_GROUP_ID.")
+                        bail!("the mq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
                     }
-                },
+                }
                 _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     builder.link_capability::<Configs>(
                         "configs".to_string(),
-                        ConfigsState::new(resource_map.clone(), resource_type, toml_file_path),
+                        ConfigsState::new(
+                            resource_type.to_string(),
+                            BasicState::new(resource_map.clone(), "", toml_file_path),
+                        ),
                     )?;
                 }
                 "http" => {
-                    builder.link_capability::<Http>(resource_type.to_string(), HttpState::new(resource_map.clone()))?;
+                    builder.link_capability::<Http>(
+                        resource_type.to_string(),
+                        HttpState::new(resource_map.clone()),
+                    )?;
                 }
-                _ => bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_kafka', and 'http' schemes"),
+                _ => {
+                    bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
+                }
             }
         }
     } else {

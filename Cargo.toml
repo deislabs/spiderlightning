@@ -27,7 +27,7 @@ members = [
     "crates/http",
     "crates/http-api",
     "crates/http-handler-macro",
-    "crates/pubsub-confluent-kafka",
+    "crates/pubsub",
     "crates/runtime",
     "crates/events",
     "crates/events-api",

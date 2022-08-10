@@ -75,9 +75,8 @@ SpiderLightning applications can provide dynamic configuration manifest to confi
 
 ## Similar Projects
 1. https://github.com/fermyon/wasi-experimental-toolkit
-1. https://github.com/fog/fog
-2. https://github.com/google/go-cloud
-3. https://libcloud.apache.org/
-4. https://wasmcloud.dev/
-
-
+2. https://dapr.io/
+3. https://github.com/mosn/layotto
+4. https://github.com/google/go-cloud
+5. https://libcloud.apache.org/
+6. https://wasmcloud.dev/
