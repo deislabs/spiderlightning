@@ -94,7 +94,7 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // transform contents
     let replaced_contents = contents.replace("handle_http", handle_func.as_str());
     let replaced_contents =
-        replaced_contents.replace("handle-http", &handle_func.replace("_", "-"));
+        replaced_contents.replace("handle-http", &handle_func.replace('_', "-"));
     let replaced_contents = replaced_contents.replace(
         format!("super::{}", trait_name).as_str(),
         format!("super::{}::{}", internal_mod, struct_name).as_str(),
