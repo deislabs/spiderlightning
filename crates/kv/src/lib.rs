@@ -9,8 +9,11 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use crossbeam_channel::Sender;
-use events_api::Event;
-use implementors::{azblob::AzBlobImplementor, filesystem::FilesystemImplementor};
+use implementors::{
+    awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
+    filesystem::FilesystemImplementor,
+};
+use slight_events_api::Event;
 use uuid::Uuid;
 
 use slight_runtime::{impl_resource, resource::BasicState};
