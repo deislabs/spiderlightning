@@ -18,15 +18,6 @@ fn main() -> Result<()> {
 }
 
 #[register_handler]
-fn handle_http(req: Request) -> Result<Response, Error> {
-    Ok(Response {
-        headers: Some(req.headers),
-        body: Some("http".as_bytes().to_vec()),
-        status: 200,
-    })
-}
-
-#[register_handler]
 fn handle_hello(req: Request) -> Result<Response, Error> {
     Ok(Response {
         headers: Some(req.headers),

@@ -292,10 +292,6 @@ async fn shutdown_signal(mut rx: UnboundedReceiver<()>) {
     log::info!("shutting down the server")
 }
 
-fn func_name_to_abi_name(name: &str) -> String {
-    name.replace('_', "-")
-}
-
 fn str_to_socket_address(s: &str) -> Result<SocketAddr> {
     match s.to_socket_addrs().map(|mut iter| iter.next().unwrap()) {
         Ok(addr) => Ok(addr),
