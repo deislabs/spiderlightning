@@ -14,7 +14,7 @@ runtime = { path = "../crates/runtime" }
 kv = { path =  "../crates/kv" }
 mq = { path =  "../crates/mq" }
 lockd = { path = "../crates/lockd" }
-pubsub-confluent-kafka = { path = "../crates/pubsub-confluent-kafka" }
+pubsub = { path = "../crates/pubsub" }
 runtime-configs = { path = "../crates/runtime-configs" }
 events = { path = "../crates/events" }
 events-api = { path = "../crates/events-api" }

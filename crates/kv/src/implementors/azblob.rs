@@ -10,9 +10,9 @@ use crate::providers::azure;
 
 /// This is the underlying struct behind the `AzBlob` variant of the `KvImplementor` enum.
 ///
-/// It provides a properties that pertains solely to the azblob implementation
+/// It provides a property that pertains solely to the azblob implementation
 /// of this capability:
-///     - `container_client`, and
+///     - `container_client`
 ///
 /// As per its' usage in `KvImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
@@ -23,7 +23,7 @@ pub struct AzBlobImplementor {
 impl AzBlobImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
         let storage_account_name = String::from_utf8(
-            runtime_configs::providers::get(
+            runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_STORAGE_ACCOUNT",
                 &slight_state.config_toml_file_path,
@@ -38,7 +38,7 @@ impl AzBlobImplementor {
         )
         .unwrap();
         let storage_account_key = String::from_utf8(
-            runtime_configs::providers::get(
+            runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_STORAGE_KEY",
                 &slight_state.config_toml_file_path,

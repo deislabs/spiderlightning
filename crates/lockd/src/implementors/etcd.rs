@@ -9,9 +9,9 @@ use crate::providers::etcd;
 
 /// This is the underlying struct behind the `Etcd` variant of the `EtcdImplementor` enum.
 ///
-/// It provides a properties that pertains solely to the etcd implementation
+/// It provides a property that pertains solely to the etcd implementation
 /// of this capability:
-///     - `client`, and
+///     - `client`
 ///
 /// As per its' usage in `EtcdImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Clone)]
@@ -28,7 +28,7 @@ impl std::fmt::Debug for EtcdImplementor {
 impl EtcdImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let endpoint = String::from_utf8(
-            runtime_configs::providers::get(
+            runtime_configs::get(
                 &slight_state.secret_store,
                 "ETCD_ENDPOINT",
                 &slight_state.config_toml_file_path,
