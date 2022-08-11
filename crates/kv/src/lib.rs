@@ -9,14 +9,14 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use crossbeam_channel::Sender;
-use events_api::Event;
 use implementors::{
     awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
     filesystem::FilesystemImplementor,
 };
+use slight_events_api::Event;
 use uuid::Uuid;
 
-use runtime::{impl_resource, resource::BasicState};
+use slight_runtime::{impl_resource, resource::BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -87,7 +87,7 @@ impl KvInner {
     }
 }
 
-impl runtime::resource::Watch for KvInner {
+impl slight_runtime::resource::Watch for KvInner {
     fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
         match &mut self.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.watch(key, sender),

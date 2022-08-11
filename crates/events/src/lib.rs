@@ -10,9 +10,9 @@ use crossbeam_utils::thread;
 use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use events_api::{AttributesReader, Event, EventHandler, EventParam};
+use slight_events_api::{AttributesReader, Event, EventHandler, EventParam};
 
-use runtime::{
+use slight_runtime::{
     impl_resource,
     resource::{Ctx, ResourceMap, StateTable},
 };

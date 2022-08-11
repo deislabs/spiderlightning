@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use azure_storage::clients::StorageAccountClient;
 use azure_storage_blobs::prelude::{AsBlobClient, AsContainerClient, ContainerClient};
 use futures::executor::block_on;
-use runtime::resource::BasicState;
+use slight_runtime::resource::BasicState;
 
 use crate::providers::azure;
 
@@ -23,7 +23,7 @@ pub struct AzBlobImplementor {
 impl AzBlobImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
         let storage_account_name = String::from_utf8(
-            runtime_configs::get(
+            slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_STORAGE_ACCOUNT",
                 &slight_state.config_toml_file_path,
@@ -38,7 +38,7 @@ impl AzBlobImplementor {
         )
         .unwrap();
         let storage_account_key = String::from_utf8(
-            runtime_configs::get(
+            slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_STORAGE_KEY",
                 &slight_state.config_toml_file_path,
