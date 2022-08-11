@@ -1,5 +1,5 @@
 [package]
-name = "events-api"
+name = "slight-events-api"
 version = "0.1.0"
 edition = "2021"
 authors = [ "DeisLabs Engineering Team" ]
