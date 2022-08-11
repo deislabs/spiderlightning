@@ -1,16 +1,16 @@
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use events::{Events, EventsState};
-use events_api::event_handler::EventHandler;
-use kv::{Kv, KvState};
-use lockd::{Lockd, LockdState};
-use mq::{Mq, MqState};
-use pubsub::{Pubsub, PubsubState};
-use runtime::{
+use slight_events::{Events, EventsState};
+use slight_events_api::event_handler::EventHandler;
+use slight_kv::{Kv, KvState};
+use slight_lockd::{Lockd, LockdState};
+use slight_mq::{Mq, MqState};
+use slight_pubsub::{Pubsub, PubsubState};
+use slight_runtime::{
     resource::{BasicState, StateTable},
     Builder,
 };
-use runtime_configs::{Configs, ConfigsState};
+use slight_runtime_configs::{Configs, ConfigsState};
 use std::sync::{Arc, Mutex};
 
 use spiderlightning::core::slightfile::TomlFile;

@@ -1,5 +1,5 @@
 [package]
-name = "runtime-configs"
+name = "slight-runtime-configs"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
@@ -11,13 +11,13 @@ doctest = false
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
 anyhow = "1.0"
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
-runtime = { path = "../runtime" }
+slight-runtime = { path = "../runtime" }
 argon2rs = "0.2.5"
 rand = "0.8.5"
 crossbeam-channel = "0.5.5"
 uuid = { version = "1.1.2", features = ["v4"] }
 spiderlightning = { path = "../.." }
-events-api = { path = "../events-api" }
+slight-events-api = { path = "../events-api" }
 toml = "0.5.9"
 short-crypt = "1"
 azure-app-configuration = { git = "https://github.com/danbugs/azure-app-configuration.git", rev = "3c6c0886840847e98e66e9189f540d1db97fe316" }

@@ -9,8 +9,8 @@ use std::{
 use anyhow::{Context, Result};
 use chrono::Utc;
 use crossbeam_channel::Sender;
-use events_api::{Event, EventBuilder, EventBuilderV10};
 use notify::{Event as NotifyEvent, RecommendedWatcher, RecursiveMode, Watcher};
+use slight_events_api::{Event, EventBuilder, EventBuilderV10};
 use uuid::Uuid;
 
 /// This is the underlying struct behind the `Filesystem` variant of the `KvImplementor` enum.
