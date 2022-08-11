@@ -59,9 +59,13 @@ jobs:
       - name: "Install Dependencies on MacOS"
         run: make install-deps-macos
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+        env:
+          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
       - name: "Install Dependencies on Windows"
         run: make install-deps-win
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        env:
+          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
       
       - name: "Install Rust Wasm targets"
         run: |
