@@ -15,7 +15,7 @@ events-api = { path = "../events-api" }
 runtime = { path = "../runtime" }
 runtime-configs = { path = "../runtime-configs" }
 anyhow = "1"
-uuid = "1"
+uuid = { version = "1.1.2", features = ["v4"] }
 crossbeam-channel = "0.5.5"
 tracing = { version = "0.1", features = ["log"] }
 # kv.azblob deps
