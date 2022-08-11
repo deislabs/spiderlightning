@@ -7,7 +7,7 @@ const SCHEME_NAME: &str = "configs";
 use anyhow::Result;
 use uuid::Uuid;
 
-use implementors::{envvars::EnvVars, usersecrets::UserSecrets, azapp::AzApp};
+use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
 use runtime::{impl_resource, resource::BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.

@@ -17,11 +17,9 @@ fn make_client() -> Result<AzureAppConfigClient> {
 impl AzApp {
     pub fn get(key: &str) -> Result<Vec<u8>> {
         let app_config_client = make_client()?;
-        let res: String = block_on(
-            app_config_client.get_key_value(key, SearchLabel::All),
-        )
-        .expect("failed to get key")
-        .value;
+        let res: String = block_on(app_config_client.get_key_value(key, SearchLabel::All))
+            .expect("failed to get key")
+            .value;
 
         Ok(res.as_bytes().to_vec())
     }
