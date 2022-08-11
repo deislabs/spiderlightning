@@ -132,22 +132,6 @@ stages:
           #
           # Build
           #
-          - script: make improve
-            displayName: Run rust-clippy and rustfmt
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-            env:
-              OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
-          
-          - script: make improve
-            displayName: Run rust-clippy and rustfmt
-            condition: and(succeeded(), eq(variables['target_os'], 'linux'))
-          
-          - script: make improve
-            displayName: Run rust-clippy and rustfmt
-            condition: and(succeeded(), eq(variables['target_os'], 'macos'))
-            env:
-              OPENSSL_ROOT_DIR: /usr/local/opt/openssl
-          
           - script: make build
             displayName: Build
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
@@ -172,11 +156,8 @@ stages:
           #   displayName: Build C Examples
           
           #
-          # Running all tests
+          # Running integration tests
           #
-          - script: make test
-            displayName: Run Unit Tests
-          
           - script: make test-integration
             displayName: Run Integration Tests
             env:
