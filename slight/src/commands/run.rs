@@ -1,25 +1,23 @@
 use std::sync::{Arc, Mutex};
 
 use anyhow::{bail, Result};
-use as_any::Downcast;
-use events_api::EventHandler;
-use wit_bindgen_wasmtime::wasmtime::Store;
-
-use events::{Events, EventsState};
-
-use http::{Http, HttpState};
-use kv::{Kv, KvState};
-use lockd::{Lockd, LockdState};
-use mq::{Mq, MqState};
-use pubsub::{Pubsub, PubsubState};
-use runtime::{
+use slight_events::{Events, EventsState};
+use slight_events_api::event_handler::EventHandler;
+use slight_http::{Http, HttpState};
+use slight_kv::{Kv, KvState};
+use slight_lockd::{Lockd, LockdState};
+use slight_mq::{Mq, MqState};
+use slight_pubsub::{Pubsub, PubsubState};
+use slight_runtime::{
     resource::{BasicState, Ctx, Resource, StateTable},
     Builder,
 };
-use runtime_configs::{Configs, ConfigsState};
+use as_any::Downcast;
+use slight_runtime_configs::{Configs, ConfigsState};
 use spiderlightning::core::slightfile::TomlFile;
+use wit_bindgen_wasmtime::wasmtime::Store;
 
-const KV_HOST_IMPLEMENTORS: [&str; 2] = ["kv.filesystem", "kv.azblob"];
+const KV_HOST_IMPLEMENTORS: [&str; 3] = ["kv.filesystem", "kv.azblob", "kv.awsdynamodb"];
 const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
 const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
 const PUBSUB_HOST_IMPLEMENTORS: [&str; 1] = ["pubsub.confluent_apache_kafka"];
@@ -192,7 +190,7 @@ fn build_store_instance(
                     )?;
                 }
                 _ => {
-                    bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
+                    bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
                 }
             }
         }

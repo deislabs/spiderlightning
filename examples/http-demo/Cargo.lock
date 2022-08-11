@@ -45,23 +45,9 @@ name = "http-demo"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "http-handler-macro",
+ "slight-http-handler-macro",
  "wit-bindgen-rust",
  "wit-error-rs",
-]
-
-[[package]]
-name = "http-handler-macro"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytes",
- "proc-macro2",
- "quote",
- "syn",
- "wit-bindgen-gen-core",
- "wit-bindgen-gen-rust-wasm",
- "wit-bindgen-rust",
 ]
 
 [[package]]
@@ -103,6 +89,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbe448f377a7d6961e30f5955f9b8d106c3f5e449d493ee1b125c1d43c2b5179"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "slight-http-handler-macro"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "wit-bindgen-gen-core",
+ "wit-bindgen-gen-rust-wasm",
+ "wit-bindgen-rust",
 ]
 
 [[package]]

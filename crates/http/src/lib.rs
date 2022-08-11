@@ -13,7 +13,7 @@ use http::*;
 use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
-use runtime::{
+use slight_runtime::{
     impl_resource,
     resource::{Ctx, ResourceMap},
 };
@@ -21,7 +21,7 @@ use runtime::{
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
 
-use http_api::{HttpBody, HttpHandler, HttpHeader, Method, Request};
+use slight_http_api::{HttpBody, HttpHandler, HttpHeader, Method, Request};
 use wasmtime::{Instance, Store};
 
 wit_bindgen_wasmtime::export!("../../wit/http.wit");

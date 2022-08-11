@@ -128,6 +128,289 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "aws-config"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11a8c971b0cb0484fc9436a291a44503b95141edc36ce7a6af6b6d7a06a02ab0"
+dependencies = [
+ "aws-http",
+ "aws-sdk-sso",
+ "aws-sdk-sts",
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-http-tower",
+ "aws-smithy-json",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "hex",
+ "http",
+ "hyper",
+ "ring",
+ "tokio",
+ "tower",
+ "tracing",
+ "zeroize",
+]
+
+[[package]]
+name = "aws-endpoint"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4bc956f415dda77215372e5bc751a2463d1f9a1ec34edf3edc6c0ff67e5c8e43"
+dependencies = [
+ "aws-smithy-http",
+ "aws-types",
+ "http",
+ "regex",
+ "tracing",
+]
+
+[[package]]
+name = "aws-http"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a0d98a1d606aa24554e604f220878db4aa3b525b72f88798524497cc3867fc6"
+dependencies = [
+ "aws-smithy-http",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "http",
+ "http-body",
+ "lazy_static",
+ "percent-encoding",
+ "pin-project-lite",
+ "tracing",
+]
+
+[[package]]
+name = "aws-sdk-dynamodb"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c0797758933ee45a1021af0ed0745e05b82a3a57e3dde572eb7b3407b5da50e"
+dependencies = [
+ "aws-endpoint",
+ "aws-http",
+ "aws-sig-auth",
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-http-tower",
+ "aws-smithy-json",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "fastrand",
+ "http",
+ "tokio-stream",
+ "tower",
+]
+
+[[package]]
+name = "aws-sdk-sso"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baa0c66fab12976065403cf4cafacffe76afa91d0da335d195af379d4223d235"
+dependencies = [
+ "aws-endpoint",
+ "aws-http",
+ "aws-sig-auth",
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-http-tower",
+ "aws-smithy-json",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "http",
+ "tokio-stream",
+ "tower",
+]
+
+[[package]]
+name = "aws-sdk-sts"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "048037cdfd7f42fb29b5f969c7f639b4b7eac00e8f911e4eac4f89fb7b3a0500"
+dependencies = [
+ "aws-endpoint",
+ "aws-http",
+ "aws-sig-auth",
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-http-tower",
+ "aws-smithy-query",
+ "aws-smithy-types",
+ "aws-smithy-xml",
+ "aws-types",
+ "bytes",
+ "http",
+ "tower",
+]
+
+[[package]]
+name = "aws-sig-auth"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8386fc0d218dbf2011f65bd8300d21ba98603fd150b962f61239be8b02d1fc6"
+dependencies = [
+ "aws-sigv4",
+ "aws-smithy-http",
+ "aws-types",
+ "http",
+ "tracing",
+]
+
+[[package]]
+name = "aws-sigv4"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd866926c2c4978210bcb01d7d1b431c794f0c23ca9ee1e420204b018836b5fb"
+dependencies = [
+ "aws-smithy-http",
+ "form_urlencoded",
+ "hex",
+ "http",
+ "once_cell",
+ "percent-encoding",
+ "regex",
+ "ring",
+ "time 0.3.11",
+ "tracing",
+]
+
+[[package]]
+name = "aws-smithy-async"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "deb59cfdd21143006c01b9ca4dc4a9190b8c50c2ef831f9eb36f54f69efa42f1"
+dependencies = [
+ "futures-util",
+ "pin-project-lite",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
+name = "aws-smithy-client"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44243329ba8618474c3b7f396de281f175ae172dd515b3d35648671a3cf51871"
+dependencies = [
+ "aws-smithy-async",
+ "aws-smithy-http",
+ "aws-smithy-http-tower",
+ "aws-smithy-types",
+ "bytes",
+ "fastrand",
+ "http",
+ "http-body",
+ "hyper",
+ "hyper-rustls",
+ "lazy_static",
+ "pin-project-lite",
+ "tokio",
+ "tower",
+ "tracing",
+]
+
+[[package]]
+name = "aws-smithy-http"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fba78f69a5bbe7ac1826389304c67b789032d813574e78f9a2d450634277f833"
+dependencies = [
+ "aws-smithy-types",
+ "bytes",
+ "bytes-utils",
+ "futures-core",
+ "http",
+ "http-body",
+ "hyper",
+ "once_cell",
+ "percent-encoding",
+ "pin-project-lite",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "aws-smithy-http-tower"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff8a512d68350561e901626baa08af9491cfbd54596201b84b4da846a59e4da3"
+dependencies = [
+ "aws-smithy-http",
+ "bytes",
+ "http",
+ "http-body",
+ "pin-project-lite",
+ "tower",
+ "tracing",
+]
+
+[[package]]
+name = "aws-smithy-json"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31b7633698853aae80bd8b26866531420138eca91ea4620735d20b0537c93c2e"
+dependencies = [
+ "aws-smithy-types",
+]
+
+[[package]]
+name = "aws-smithy-query"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95a94b5a8cc94a85ccbff89eb7bc80dc135ede02847a73d68c04ac2a3e4cf6b7"
+dependencies = [
+ "aws-smithy-types",
+ "urlencoding",
+]
+
+[[package]]
+name = "aws-smithy-types"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d230d281653de22fb0e9c7c74d18d724a39d7148e2165b1e760060064c4967c0"
+dependencies = [
+ "itoa",
+ "num-integer",
+ "ryu",
+ "time 0.3.11",
+]
+
+[[package]]
+name = "aws-smithy-xml"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4aacaf6c0fa549ebe5d9daa96233b8635965721367ee7c69effc8d8078842df3"
+dependencies = [
+ "xmlparser",
+]
+
+[[package]]
+name = "aws-types"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb54f097516352475a0159c9355f8b4737c54044538a4d9aca4d376ef2361ccc"
+dependencies = [
+ "aws-smithy-async",
+ "aws-smithy-client",
+ "aws-smithy-http",
+ "aws-smithy-types",
+ "http",
+ "rustc_version",
+ "tracing",
+ "zeroize",
+]
+
+[[package]]
 name = "axum"
 version = "0.5.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -138,7 +421,7 @@ dependencies = [
  "bitflags",
  "bytes",
  "futures-util",
- "http 0.2.8",
+ "http",
  "http-body",
  "hyper",
  "itoa",
@@ -165,7 +448,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures-util",
- "http 0.2.8",
+ "http",
  "http-body",
  "mime",
 ]
@@ -182,7 +465,7 @@ dependencies = [
  "dyn-clone",
  "futures",
  "getrandom",
- "http 0.2.8",
+ "http",
  "log",
  "oauth2",
  "pin-project",
@@ -210,7 +493,7 @@ dependencies = [
  "dyn-clone",
  "futures",
  "getrandom",
- "http 0.2.8",
+ "http",
  "log",
  "oauth2",
  "pin-project",
@@ -234,7 +517,7 @@ dependencies = [
  "bytes",
  "chrono",
  "hmac",
- "http 0.2.8",
+ "http",
  "log",
  "ring",
  "sha2 0.10.2",
@@ -255,7 +538,7 @@ dependencies = [
  "chrono",
  "futures",
  "hmac",
- "http 0.2.8",
+ "http",
  "log",
  "once_cell",
  "serde",
@@ -280,7 +563,7 @@ dependencies = [
  "bytes",
  "chrono",
  "futures",
- "http 0.2.8",
+ "http",
  "log",
  "md5",
  "serde",
@@ -389,6 +672,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0b3de4a0c5e67e16066a0715723abd91edc2f9001d09c46e1dca929351e130e"
 
 [[package]]
+name = "bytes-utils"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1934a3ef9cac8efde4966a92781e77713e1ba329f1d42e446c7d7eba340d8ef1"
+dependencies = [
+ "bytes",
+ "either",
+]
+
+[[package]]
 name = "cap-fs-ext"
 version = "0.24.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -479,7 +772,7 @@ dependencies = [
  "num-integer",
  "num-traits",
  "serde",
- "time",
+ "time 0.1.44",
  "winapi",
 ]
 
@@ -753,6 +1046,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ct-logs"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1a816186fa68d9e426e3cb4ae4dff1fcd8e4a2c34b781bf7a822574a0d0aac8"
+dependencies = [
+ "sct",
+]
+
+[[package]]
 name = "debug-helper"
 version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -887,7 +1189,7 @@ version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fb8664f6ea68aba5503d42dd1be786b0f1bd9b7972e7f40208c83ef74db91bf"
 dependencies = [
- "http 0.2.8",
+ "http",
  "prost",
  "tokio",
  "tokio-stream",
@@ -895,34 +1197,6 @@ dependencies = [
  "tonic-build",
  "tower",
  "tower-service",
-]
-
-[[package]]
-name = "events"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "crossbeam-utils",
- "events-api",
- "runtime",
- "tracing",
- "url",
- "uuid 1.1.2",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "events-api"
-version = "0.1.0"
-dependencies = [
- "cloudevents-sdk",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
 ]
 
 [[package]]
@@ -1159,7 +1433,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "futures-util",
- "http 0.2.8",
+ "http",
  "indexmap",
  "slab",
  "tokio",
@@ -1207,6 +1481,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
 name = "hmac"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1228,30 +1508,6 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "crossbeam-utils",
- "events-api",
- "futures",
- "http-api",
- "hyper",
- "routerify",
- "runtime",
- "tokio",
- "tracing",
- "url",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "http"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75f43d41e26995c17e71ee126451dd3941010b0514a81a9d11f3b341debc2399"
@@ -1262,39 +1518,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "http-api"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "hyper",
- "tokio",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
- "wit-error-rs",
-]
-
-[[package]]
 name = "http-body"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d5f38f16d184e36f2408a55281cd658ecbd3ca05cce6d6510a176eca393e26d1"
 dependencies = [
  "bytes",
- "http 0.2.8",
+ "http",
  "pin-project-lite",
-]
-
-[[package]]
-name = "http-handler-macro"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytes",
- "proc-macro2",
- "quote",
- "syn",
- "wit-bindgen-gen-core 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-bindgen-gen-rust-wasm",
- "wit-bindgen-rust",
 ]
 
 [[package]]
@@ -1332,7 +1563,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http 0.2.8",
+ "http",
  "http-body",
  "httparse",
  "httpdate",
@@ -1343,6 +1574,23 @@ dependencies = [
  "tower-service",
  "tracing",
  "want",
+]
+
+[[package]]
+name = "hyper-rustls"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f9f7a97316d44c0af9b0301e65010573a853a9fc97046d7331d7f6bc0fd5a64"
+dependencies = [
+ "ct-logs",
+ "futures-util",
+ "hyper",
+ "log",
+ "rustls",
+ "rustls-native-certs",
+ "tokio",
+ "tokio-rustls",
+ "webpki",
 ]
 
 [[package]]
@@ -1528,29 +1776,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kv"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "azure_core 0.3.0",
- "azure_storage",
- "azure_storage_blobs",
- "bytes",
- "chrono",
- "crossbeam-channel",
- "events-api",
- "futures",
- "notify",
- "runtime",
- "runtime-configs",
- "serde_json",
- "tracing",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1594,25 +1819,6 @@ checksum = "327fa5b6a6940e4699ec49a9beae1ea4845c6bab9314e4f84ac68742139d8c53"
 dependencies = [
  "autocfg",
  "scopeguard",
-]
-
-[[package]]
-name = "lockd"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "etcd-client",
- "events-api",
- "futures",
- "runtime",
- "runtime-configs",
- "tokio",
- "tracing",
- "url",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
 ]
 
 [[package]]
@@ -1730,27 +1936,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7843ec2de400bcbc6a6328c958dc38e5359da6e93e72e37bc5246bf1ae776389"
 
 [[package]]
-name = "mq"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "azure_core 0.2.2",
- "azure_messaging_servicebus",
- "chrono",
- "crossbeam-channel",
- "events-api",
- "futures",
- "http 0.2.8",
- "runtime",
- "runtime-configs",
- "tracing",
- "url",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
-]
-
-[[package]]
 name = "multimap"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1849,6 +2034,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_threads"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2819ce041d2ee131036f4fc9d6ae7ae125a3a40e97ba64d04fe799ad9dabbb44"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "oauth2"
 version = "4.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1857,7 +2051,7 @@ dependencies = [
  "base64 0.13.0",
  "chrono",
  "getrandom",
- "http 0.2.8",
+ "http",
  "rand 0.8.5",
  "reqwest",
  "serde",
@@ -2158,22 +2352,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pubsub"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "events-api",
- "rdkafka",
- "runtime",
- "runtime-configs",
- "url",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
-]
-
-[[package]]
 name = "pulldown-cmark"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2405,7 +2583,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http 0.2.8",
+ "http",
  "http-body",
  "hyper",
  "hyper-tls",
@@ -2452,47 +2630,11 @@ version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "496c1d3718081c45ba9c31fbfc07417900aa96f4070ff90dc29961836b7a9945"
 dependencies = [
- "http 0.2.8",
+ "http",
  "hyper",
  "lazy_static",
  "percent-encoding",
  "regex",
-]
-
-[[package]]
-name = "runtime"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "as-any",
- "crossbeam-channel",
- "events-api",
- "http-api",
- "tracing",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
-]
-
-[[package]]
-name = "runtime-configs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argon2rs",
- "crossbeam-channel",
- "events-api",
- "rand 0.8.5",
- "runtime",
- "short-crypt",
- "spiderlightning",
- "tempdir",
- "toml",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
- "wit-error-rs",
 ]
 
 [[package]]
@@ -2533,6 +2675,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustls"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35edb675feee39aec9c99fa5ff985081995a06d594114ae14cbe797ad7b7a6d7"
+dependencies = [
+ "base64 0.13.0",
+ "log",
+ "ring",
+ "sct",
+ "webpki",
+]
+
+[[package]]
+name = "rustls-native-certs"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a07b7c1885bd8ed3831c289b7870b13ef46fe0e856d288c30d9cc17d75a2092"
+dependencies = [
+ "openssl-probe",
+ "rustls",
+ "schannel",
+ "security-framework",
+]
+
+[[package]]
 name = "ryu"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2568,6 +2735,16 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
+
+[[package]]
+name = "sct"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b362b83898e0e69f38515b82ee15aa80636befe47c3b6d3d89a911e78fc228ce"
+dependencies = [
+ "ring",
+ "untrusted",
+]
 
 [[package]]
 name = "security-framework"
@@ -2742,22 +2919,216 @@ dependencies = [
  "as-any",
  "clap",
  "env_logger",
- "events",
- "events-api",
- "http 0.1.0",
- "kv",
- "lockd",
  "log",
- "mq",
- "pubsub",
- "runtime",
- "runtime-configs",
+ "slight-events",
+ "slight-events-api",
+ "slight-http",
+ "slight-kv",
+ "slight-lockd",
+ "slight-mq",
+ "slight-pubsub",
+ "slight-runtime",
+ "slight-runtime-configs",
  "spiderlightning",
  "tokio",
  "toml",
  "tracing",
  "tracing-subscriber",
  "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+]
+
+[[package]]
+name = "slight-events"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "crossbeam-utils",
+ "slight-events-api",
+ "slight-runtime",
+ "tracing",
+ "url",
+ "uuid 1.1.2",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-events-api"
+version = "0.1.0"
+dependencies = [
+ "cloudevents-sdk",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+]
+
+[[package]]
+name = "slight-http"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "crossbeam-utils",
+ "futures",
+ "hyper",
+ "routerify",
+ "slight-events-api",
+ "slight-http-api",
+ "slight-runtime",
+ "tokio",
+ "tracing",
+ "url",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-http-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hyper",
+ "tokio",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/Mossaka/wit-bindgen?rev=8252b0e39c7495f647ec0b0898721a7c641fc6c8)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-http-handler-macro"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "wit-bindgen-gen-core 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-bindgen-gen-rust-wasm",
+ "wit-bindgen-rust",
+]
+
+[[package]]
+name = "slight-kv"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "azure_core 0.3.0",
+ "azure_storage",
+ "azure_storage_blobs",
+ "bytes",
+ "chrono",
+ "crossbeam-channel",
+ "futures",
+ "notify",
+ "serde_json",
+ "slight-events-api",
+ "slight-runtime",
+ "slight-runtime-configs",
+ "tracing",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-lockd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "etcd-client",
+ "futures",
+ "slight-events-api",
+ "slight-runtime",
+ "slight-runtime-configs",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-mq"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "azure_core 0.2.2",
+ "azure_messaging_servicebus",
+ "chrono",
+ "crossbeam-channel",
+ "futures",
+ "http",
+ "slight-events-api",
+ "slight-runtime",
+ "slight-runtime-configs",
+ "tracing",
+ "url",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-pubsub"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "rdkafka",
+ "slight-events-api",
+ "slight-runtime",
+ "slight-runtime-configs",
+ "url",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-runtime"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "as-any",
+ "crossbeam-channel",
+ "slight-events-api",
+ "slight-http-api",
+ "tracing",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+]
+
+[[package]]
+name = "slight-runtime-configs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2rs",
+ "crossbeam-channel",
+ "rand 0.8.5",
+ "short-crypt",
+ "slight-events-api",
+ "slight-runtime",
+ "spiderlightning",
+ "tempdir",
+ "toml",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime 0.1.0 (git+https://github.com/bytecodealliance/wit-bindgen?rev=a79a4be33d76ddf62839ba71602c26a96610ef7c)",
+ "wit-error-rs",
 ]
 
 [[package]]
@@ -2953,6 +3324,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "time"
+version = "0.3.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72c91f41dcb2f096c05f0873d667dceec1087ce5bcf984ec8ffb19acddbb3217"
+dependencies = [
+ "libc",
+ "num_threads",
+]
+
+[[package]]
 name = "tinyvec"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3020,6 +3401,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tokio-rustls"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc6844de72e57df1980054b38be3a9f4702aba4858be64dd700181a8a6d0e1b6"
+dependencies = [
+ "rustls",
+ "tokio",
+ "webpki",
+]
+
+[[package]]
 name = "tokio-stream"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3067,7 +3459,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http 0.2.8",
+ "http",
  "http-body",
  "hyper",
  "hyper-timeout",
@@ -3128,7 +3520,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "http 0.2.8",
+ "http",
  "http-body",
  "http-range-header",
  "pin-project-lite",
@@ -3300,6 +3692,12 @@ dependencies = [
  "percent-encoding",
  "serde",
 ]
+
+[[package]]
+name = "urlencoding"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68b90931029ab9b034b300b797048cf23723400aa757e8a2bfb9d748102f9821"
 
 [[package]]
 name = "uuid"
@@ -3730,6 +4128,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "webpki"
+version = "0.21.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8e38c0608262c46d4a56202ebabdeb094cef7e560ca7a226c6bf055188aa4ea"
+dependencies = [
+ "ring",
+ "untrusted",
+]
+
+[[package]]
 name = "which"
 version = "4.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4059,6 +4467,18 @@ name = "xml-rs"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2d7d3948613f75c98fd9328cfdcc45acc4d360655289d0a7d4ec931392200a3"
+
+[[package]]
+name = "xmlparser"
+version = "0.13.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "114ba2b24d2167ef6d67d7d04c8cc86522b87f490025f39f0303b7db5bf5e3d8"
+
+[[package]]
+name = "zeroize"
+version = "1.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c394b5bd0c6f669e7275d9c20aa90ae064cb22e75a1cad54e1b34088034b149f"
 
 [[package]]
 name = "zstd"

@@ -1,5 +1,5 @@
 [package]
-name = "http-api"
+name = "slight-http-api"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]

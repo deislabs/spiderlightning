@@ -1,11 +1,10 @@
 [package]
-name = "http-handler-macro"
+name = "slight-http-handler-macro"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
 
 [lib]
-name = "http_handler_macro"
 proc-macro = true
 doctest = false
 

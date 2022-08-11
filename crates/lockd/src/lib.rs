@@ -9,7 +9,7 @@ use anyhow::Result;
 use uuid::Uuid;
 
 use implementors::etcd::EtcdImplementor;
-use runtime::{impl_resource, resource::BasicState};
+use slight_runtime::{impl_resource, resource::BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -148,7 +148,7 @@ impl LockdInner {
     }
 }
 
-impl runtime::resource::Watch for LockdInner {}
+impl slight_runtime::resource::Watch for LockdInner {}
 
 /// This defines the available implementor implementations for the `Lockd` interface.
 ///

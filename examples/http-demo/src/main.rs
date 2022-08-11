@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use http::*;
-use http_handler_macro::register_handler;
+use slight_http_handler_macro::register_handler;
 
 wit_bindgen_rust::import!("../../wit/http.wit");
 

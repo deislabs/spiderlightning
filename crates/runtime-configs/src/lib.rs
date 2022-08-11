@@ -8,7 +8,7 @@ use anyhow::Result;
 use uuid::Uuid;
 
 use implementors::{envvars::EnvVars, usersecrets::UserSecrets};
-use runtime::{impl_resource, resource::BasicState};
+use slight_runtime::{impl_resource, resource::BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -133,7 +133,7 @@ impl ConfigsInner {
     }
 }
 
-impl runtime::resource::Watch for ConfigsInner {}
+impl slight_runtime::resource::Watch for ConfigsInner {}
 
 /// This defines the available implementor implementations for the `Configs` interface.
 ///
