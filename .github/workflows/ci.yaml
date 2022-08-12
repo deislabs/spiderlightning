@@ -41,7 +41,3 @@ jobs:
         run: make build-c
       - name: "Run Unit Tests"
         run: make test
-        env:
-          AZAPPCONFIG_ENDPOINT: ${{ secrets.AZAPPCONFIG_ENDPOINT }}
-          AZAPPCONFIG_KEYID: ${{ secrets.AZAPPCONFIG_KEYID }}
-          AZAPPCONFIG_KEYSECRET: ${{ secrets.AZAPPCONFIG_KEYSECRET }}
