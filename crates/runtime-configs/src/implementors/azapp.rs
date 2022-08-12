@@ -39,17 +39,3 @@ impl AzApp {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod unittests {
-    use anyhow::Result;
-
-    use super::AzApp;
-
-    #[test]
-    fn set_then_get_test() -> Result<()> {
-        AzApp::set("key", "value".as_bytes())?;
-        assert!(AzApp::get("key").is_ok());
-        Ok(())
-    }
-}
