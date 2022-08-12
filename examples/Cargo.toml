@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "./configs-demo",
+    "./kv-demo",
+    "./lockd-demo",
+    "./mq-receiver-demo",
+    "./mq-sender-demo",
+    "./multi_capability-demo/",
+    "./pubsub-consumer-demo/",
+    "./pubsub-producer-demo/",
+    "./watch-demo/",
+]
