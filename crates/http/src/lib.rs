@@ -34,6 +34,9 @@ const SCHEME_NAME: &str = "http";
 enum Methods {
     #[default]
     GET,
+    PUT,
+    POST,
+    DELETE,
 }
 
 #[derive(Clone, Debug)]
@@ -59,9 +62,30 @@ impl RouterProxy {
         }
     }
 
+    /// Adds a new route with `GET` method and the handler's name.
     fn get(&mut self, route: String, handler: String) -> Result<Self, Error> {
+        self.add(route, handler, Methods::GET)
+    }
+
+    /// Adds a new route with `PUT` method and the handler's name.
+    fn put(&mut self, route: String, handler: String) -> Result<Self, Error> {
+        self.add(route, handler, Methods::PUT)
+    }
+
+    /// Adds a new route with `POST` method and the handler's name.
+    fn post(&mut self, route: String, handler: String) -> Result<Self, Error> {
+        self.add(route, handler, Methods::POST)
+    }
+
+    /// Adds a new route with `DELETE` method and the handler's name.
+    fn delete(&mut self, route: String, handler: String) -> Result<Self, Error> {
+        self.add(route, handler, Methods::DELETE)
+    }
+
+    /// Adds a new route with the given method and the handler's name.
+    fn add(&mut self, route: String, handler: String, method: Methods) -> Result<Self, Error> {
         let route = Route {
-            method: Methods::GET,
+            method,
             route,
             handler,
         };
@@ -169,6 +193,42 @@ impl http::Http for Http {
         rclone.get(route.to_string(), handler.to_string())
     }
 
+    fn router_put(
+        &mut self,
+        router: &Self::Router,
+        route: &str,
+        handler: &str,
+    ) -> Result<Self::Router, Error> {
+        // Router is a reference to the router proxy, so we need to clone it to get a
+        // mutable reference to the router.
+        let mut rclone = router.clone();
+        rclone.put(route.to_string(), handler.to_string())
+    }
+
+    fn router_post(
+        &mut self,
+        router: &Self::Router,
+        route: &str,
+        handler: &str,
+    ) -> Result<Self::Router, Error> {
+        // Router is a reference to the router proxy, so we need to clone it to get a
+        // mutable reference to the router.
+        let mut rclone = router.clone();
+        rclone.post(route.to_string(), handler.to_string())
+    }
+
+    fn router_delete(
+        &mut self,
+        router: &Self::Router,
+        route: &str,
+        handler: &str,
+    ) -> Result<Self::Router, Error> {
+        // Router is a reference to the router proxy, so we need to clone it to get a
+        // mutable reference to the router.
+        let mut rclone = router.clone();
+        rclone.delete(route.to_string(), handler.to_string())
+    }
+
     fn server_serve(
         &mut self,
         address: &str,
@@ -192,7 +252,19 @@ impl http::Http for Http {
                     // per route state
                     inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.get("/", handler);
-                }
+                },
+                Methods::PUT => {
+                    inner_builder = inner_builder.data(route.clone());
+                    inner_builder = inner_builder.put("/", handler);
+                },
+                Methods::POST => {
+                    inner_builder = inner_builder.data(route.clone());
+                    inner_builder = inner_builder.post("/", handler);
+                },
+                Methods::DELETE => {
+                    inner_builder = inner_builder.data(route.clone());
+                    inner_builder = inner_builder.delete("/", handler);
+                },
             }
             inner_routes.push(inner_builder.build().unwrap());
         }
@@ -202,6 +274,9 @@ impl http::Http for Http {
             outer_builder = outer_builder.scope(&route.route, built);
         }
         let built = outer_builder.build().unwrap();
+        
+        // Log the routes for debugging purposes.
+        log::debug!("{:#?}", built);
 
         // Defines the server
         let service = RouterService::new(built).unwrap();
@@ -247,7 +322,7 @@ async fn handler(request: hyper::Request<Body>) -> Result<hyper::Response<Body>>
         .iter()
         .map(|(k, v)| (k.as_str(), v.as_str()))
         .collect();
-    let methods: Method = (&parts.method).into();
+    let method: Method = (&parts.method).into();
     let headers: HttpHeader = (&parts.headers).into();
 
     // FIXME: `HttpBody::from_body` returns a future here. The reason that `block_on` is used is
@@ -256,7 +331,7 @@ async fn handler(request: hyper::Request<Body>) -> Result<hyper::Response<Body>>
     let bytes = block_on(HttpBody::from_body(body))?.inner();
     let uri = &(&parts.uri).to_string();
     let req = Request {
-        method: methods,
+        method,
         uri,
         headers: &headers.inner(),
         body: Some(&bytes),
@@ -271,12 +346,15 @@ async fn handler(request: hyper::Request<Body>) -> Result<hyper::Response<Body>>
 
     // Perform the http request
     log::debug!("Invoking guest handler {}", &route.handler,);
-    handler.handle_http = instance
+    let func = instance
         .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,), _>(
             store.deref_mut(),
             &route.handler.replace('_', "-"),
-        )
-        .unwrap();
+        );
+    if func.is_err() {
+        bail!("Failed to find guest function {}", &route.handler);
+    }
+    handler.handle_http = func.unwrap(); // unwrap is safe because we checked above
     let res = handler.handle_http(store.deref_mut(), req)??;
     log::debug!("response: {:?}", res);
 
