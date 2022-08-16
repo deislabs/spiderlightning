@@ -95,13 +95,13 @@ stages:
           - task: Cache@2
             inputs:
               key: '"cargo" | "$(Agent.OS)" | Cargo.lock'
-              path: $(Build.SourcesDirectory)\target
+              path: $(Build.SourcesDirectory)/target
             displayName: cache cargo build
 
           - task: Cache@2
             inputs:
               key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
-              path: $(UserProfile)\.cargo\registry
+              path: $(UserProfile)/.cargo/registry
             displayName: cache cargo registry                            
 
           #
