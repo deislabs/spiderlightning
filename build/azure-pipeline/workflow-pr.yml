@@ -10,10 +10,15 @@ trigger: none
 pr:
   autoCancel: true # Cancel an outdated build when people push new changes to their PR
 
+variables:
+  # for more info, see this: https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
+  RUST_CACHE: $(Build.SourcesDirectory)/rust_cache
+
 stages:
   - stage: Build
     jobs:
       - job: Build
+        timeoutInMinutes: 180
         #
         # Build flavors
         #
@@ -76,6 +81,17 @@ stages:
           clean: all
 
         steps:
+          #
+          # Use Cache
+          #
+          - task: Cache@2
+            inputs:
+              path: $(RUST_CACHE)
+              key: 'Rust | $(Agent.OS) | ./Cargo.toml | ./Cargo.lock | $(Build.SourceVersion)'
+              restoreKeys: |
+                Rust | $(Agent.OS) | ./Cargo.toml | ./Cargo.lock
+                Rust | $(Agent.OS) | ./Cargo.toml
+                Rust | $(Agent.OS)    
           #
           # Force cleanup.
           # Self-hosted agents must be cleaned up, otherwise it might carry the previous result to the latest build.
