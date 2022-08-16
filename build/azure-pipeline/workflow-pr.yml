@@ -90,13 +90,20 @@ stages:
             clean: true
           
           #
-          # Use Cache for .toml and .lock files
+          # Use Cache
           #
           - task: Cache@2
             inputs:
-              path: $(RUSTCACHE_ROOT)
-              key: 'compiled | $(target) | **/Cargo.toml | **/Cargo.lock'
-          
+              key: '"cargo" | "$(Agent.OS)" | Cargo.lock'
+              path: $(Build.SourcesDirectory)\target
+            displayName: cache cargo build
+
+          - task: Cache@2
+            inputs:
+              key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
+              path: $(UserProfile)\.cargo\registry
+            displayName: cache cargo registry                            
+
           #
           # Environment variable updates
           #
