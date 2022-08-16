@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use anyhow::{bail, Result};
+use as_any::Downcast;
 use slight_events::{Events, EventsState};
 use slight_events_api::event_handler::EventHandler;
 use slight_http::{Http, HttpState};
@@ -12,7 +13,6 @@ use slight_runtime::{
     resource::{BasicState, Ctx, Resource, StateTable},
     Builder,
 };
-use as_any::Downcast;
 use slight_runtime_configs::{Configs, ConfigsState};
 use spiderlightning::core::slightfile::TomlFile;
 use wit_bindgen_wasmtime::wasmtime::Store;

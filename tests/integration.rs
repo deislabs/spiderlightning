@@ -24,8 +24,8 @@ pub fn run(executable: &str, args: Vec<&str>) {
     }
 }
 
-#[cfg(test)]
 mod integration_tests {
+    #[cfg(test)]
     mod kv_test {
         use crate::{run, SLIGHT};
         use anyhow::Result;
@@ -54,5 +54,120 @@ mod integration_tests {
         }
     }
 
+    #[cfg(unix)]
+    mod http_tests_unix {
+        use std::future::Future;
+        use std::process::{Child, Command};
+
+        use crate::{run, SLIGHT};
+        use anyhow::Result;
+        use hyper::{body, Body, Method, Request, StatusCode};
+        use signal_child::Signalable;
+        use tokio::runtime::Handle;
+        use tokio::task;
+        use tokio::time::{sleep, Duration};
+        // use futures::future::{FutureExt};
+
+        const HTTP_TEST_MODULE: &str = "./tests/http-test/target/wasm32-wasi/debug/http-test.wasm";
+
+        #[tokio::test]
+        async fn http_test() -> Result<()> {
+            let config = "./tests/http-test/slightfile.toml";
+            let mut child = Command::new(SLIGHT)
+                .args(&["-c", config, "run", "-m", HTTP_TEST_MODULE])
+                .spawn()?;
+            sleep(Duration::from_secs(2)).await;
+
+            let client = hyper::Client::new();
+            // can handle get requests
+            {
+                // curl -X GET http://0.0.0.0:3000/hello
+                let mut res = client.get("http://0.0.0.0:3000/hello".parse()?).await?;
+                assert!(res.status().is_success());
+
+                // curl -X GET http://0.0.0.0:3000/foo
+                let mut res = client.get("http://0.0.0.0:3000/foo".parse()?).await?;
+                assert_ne!(res.status().is_success(), true);
+                assert!(res.status().is_server_error());
+
+                // curl -X GET http://0.0.0.0:3000/should_return_404
+                let mut res = client
+                    .get("http://0.0.0.0:3000/should_return_404".parse()?)
+                    .await?;
+                assert_eq!(StatusCode::NOT_FOUND, res.status());
+            }
+
+            // can handle get params
+            {
+                // curl -X GET http://0.0.0.0:3000/hello/:name
+                let mut res = client.get("http://0.0.0.0:3000/person/x".parse()?).await?;
+                assert!(res.status().is_success());
+                let body = res.into_body();
+                let bytes = body::to_bytes(body).await?;
+                assert_eq!(bytes, "hello: x".to_string());
+
+                let mut res = client
+                    .get("http://0.0.0.0:3000/person/yager".parse()?)
+                    .await?;
+                assert!(res.status().is_success());
+                let body = res.into_body();
+                let bytes = body::to_bytes(body).await?;
+                assert_eq!(bytes, "hello: yager".to_string());
+
+                // FIXME: there is a exiting issue in Routerify https://github.com/routerify/routerify/issues/118 that
+                //       prevents the following test from working.
+
+                // let mut res = client.get("http://0.0.0.0:3000/person/yager".parse()?).await?;
+                // assert!(res.status().is_success());
+                // let body = res.into_body();
+                // let bytes = body::to_bytes(body).await?;
+                // assert_eq!(bytes, "hello: yager".to_string());
+            }
+
+            // can handle put requests
+            {
+                let req = Request::builder()
+                    .method(Method::PUT)
+                    .uri("http://0.0.0.0:3000/bar")
+                    .body(Body::from("Hallo!"))
+                    .expect("request builder");
+
+                // curl -X PUT http://0.0.0.0:3000/bar
+                let mut res = client.request(req).await?;
+                assert!(res.status().is_success());
+            }
+
+            // can handle post requests
+            {
+                let req = Request::builder()
+                    .method(Method::POST)
+                    .uri("http://0.0.0.0:3000/upload")
+                    .body(Body::from("Hallo!"))
+                    .expect("request builder");
+
+                // curl -X POST http://0.0.0.0:3000/upload
+                let mut res = client.request(req).await?;
+                assert!(res.status().is_success());
+            }
+
+            // can handle delete requests
+            {
+                let req = Request::builder()
+                    .method(Method::DELETE)
+                    .uri("http://0.0.0.0:3000/delete-file")
+                    .body(Body::from("Hallo!"))
+                    .expect("request builder");
+
+                // curl -X DELETE http://0.0.0.0:3000/upload
+                let mut res = client.request(req).await?;
+                assert!(res.status().is_success());
+            }
+
+            child.interrupt().expect("Error interrupting child");
+            child.wait().ok();
+
+            Ok(())
+        }
+    }
     // TODO: We need to mq_test, lockd_test, and pubsub_test modules
 }

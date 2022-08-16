@@ -17,6 +17,10 @@ tempdir = "0.3"
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
+tokio = { version = "1.20", features = ["full"] }
+
+[target.'cfg(unix)'.dev-dependencies]
+signal-child = "1.0"
 
 [workspace]
 members = [

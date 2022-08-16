@@ -5,12 +5,15 @@ use std::{
 
 const WIT_DIRECTORY: &str = "wit/*";
 const KV_TEST_PATH: &str = "tests/kv-test";
+const HTTP_TEST_PATH: &str = "tests/http-test";
 
 fn main() {
     println!("cargo:rerun-if-changed={}", WIT_DIRECTORY);
     println!("cargo:rerun-if-changed={}/src/main.rs", KV_TEST_PATH);
+    println!("cargo:rerun-if-changed={}/src/main.rs", HTTP_TEST_PATH);
 
     cargo_wasi_build(KV_TEST_PATH);
+    cargo_wasi_build(HTTP_TEST_PATH);
 }
 
 fn cargo_wasi_build(path: &str) {

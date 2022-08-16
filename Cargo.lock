@@ -2894,6 +2894,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "signal-child"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2a4eed4c5ae38438470ab8e0108bb751012f786f44ff585cfd837c9a5fe426f"
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3177,7 +3183,9 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "short-crypt",
+ "signal-child",
  "tempdir",
+ "tokio",
  "toml",
 ]
 

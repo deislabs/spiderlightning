@@ -246,25 +246,22 @@ impl http::Http for Http {
         // There is a one-to-one mapping between the outer router's scope and inner router builder.
         let mut inner_routes = vec![];
         for route in router.routes.iter() {
+            // per route state
             let mut inner_builder: RouterBuilder<Body, anyhow::Error> = Router::builder();
+            inner_builder = inner_builder.data(route.clone());
             match route.method {
                 Methods::GET => {
-                    // per route state
-                    inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.get("/", handler);
-                },
+                }
                 Methods::PUT => {
-                    inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.put("/", handler);
-                },
+                }
                 Methods::POST => {
-                    inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.post("/", handler);
-                },
+                }
                 Methods::DELETE => {
-                    inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.delete("/", handler);
-                },
+                }
             }
             inner_routes.push(inner_builder.build().unwrap());
         }
@@ -274,7 +271,7 @@ impl http::Http for Http {
             outer_builder = outer_builder.scope(&route.route, built);
         }
         let built = outer_builder.build().unwrap();
-        
+
         // Log the routes for debugging purposes.
         log::debug!("{:#?}", built);
 
