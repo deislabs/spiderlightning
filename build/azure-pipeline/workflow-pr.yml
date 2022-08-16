@@ -12,7 +12,7 @@ pr:
 
 variables:
   # for more info, see this: https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
-  RUST_CACHE: $(Build.SourcesDirectory)/rust_cache
+  RUSTCACHE_ROOT: $(Build.SourcesDirectory)/target
 
 stages:
   - stage: Build
@@ -94,8 +94,8 @@ stages:
           #
           - task: Cache@2
             inputs:
-              path: $(RUST_CACHE)
-              key: 'cargo | "$(rust)" | $(target) | **/Cargo.toml | ./Cargo.lock'
+              path: $(RUSTCACHE_ROOT)
+              key: 'compiled | $(target) | ./Cargo.toml | crates/**/Cargo.toml | slight/Cargo.toml | tests/**/Cargo.toml | ./Cargo.lock'
           
           #
           # Environment variable updates
