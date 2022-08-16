@@ -87,10 +87,10 @@ stages:
           - task: Cache@2
             inputs:
               path: $(RUST_CACHE)
-              key: 'Rust | $(Agent.OS) | Cargo.toml | Cargo.lock | $(Build.SourceVersion)'
+              key: 'Rust | $(Agent.OS) | $(Build.SourcesDirectory)/Cargo.toml | $(Build.SourcesDirectory)/Cargo.lock'
               restoreKeys: |
-                Rust | $(Agent.OS) | Cargo.toml | Cargo.lock
-                Rust | $(Agent.OS) | Cargo.toml
+                Rust | $(Agent.OS) | $(Build.SourcesDirectory)/Cargo.toml | $(Build.SourcesDirectory)/Cargo.lock
+                Rust | $(Agent.OS) | $(Build.SourcesDirectory)/Cargo.toml
                 Rust | $(Agent.OS)    
           #
           # Force cleanup.
