@@ -95,7 +95,7 @@ stages:
           - task: Cache@2
             inputs:
               path: $(RUSTCACHE_ROOT)
-              key: 'compiled | $(target) | ./Cargo.toml | crates/**/Cargo.toml | slight/Cargo.toml | tests/**/Cargo.toml | ./Cargo.lock'
+              key: 'compiled | $(target) | **/Cargo.toml | **/Cargo.lock'
           
           #
           # Environment variable updates
