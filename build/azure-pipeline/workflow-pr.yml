@@ -82,23 +82,20 @@ stages:
 
         steps:
           #
-          # Use Cache
-          #
-          - task: Cache@2
-            inputs:
-              path: $(RUST_CACHE)
-              key: 'Rust | $(Agent.OS) | $(Build.SourcesDirectory)/Cargo.toml | $(Build.SourcesDirectory)/Cargo.lock'
-              restoreKeys: |
-                Rust | $(Agent.OS) | $(Build.SourcesDirectory)/Cargo.toml | $(Build.SourcesDirectory)/Cargo.lock
-                Rust | $(Agent.OS) | $(Build.SourcesDirectory)/Cargo.toml
-                Rust | $(Agent.OS)    
-          #
           # Force cleanup.
           # Self-hosted agents must be cleaned up, otherwise it might carry the previous result to the latest build.
           # https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/pipeline-options-for-git?view=azure-devops&tabs=yaml#clean-the-local-repo-on-the-agent
           #
           - checkout: self
             clean: true
+          
+          #
+          # Use Cache for .toml and .lock files
+          #
+          - task: Cache@2
+            inputs:
+              path: $(RUST_CACHE)
+              key: 'cargo | "$(rust)" | $(target) | **/Cargo.toml | ./Cargo.lock'
           
           #
           # Environment variable updates
