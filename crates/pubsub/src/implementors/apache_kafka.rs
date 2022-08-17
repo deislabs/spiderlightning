@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
-use runtime::resource::BasicState;
+use slight_runtime::resource::BasicState;
 
 use crate::providers::confluent::{self, KafkaMessage};
 
@@ -75,7 +75,7 @@ impl SubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
         let group_id = String::from_utf8(
-            runtime_configs::get(
+            slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "CK_GROUP_ID",
                 &slight_state.config_toml_file_path,
@@ -128,7 +128,7 @@ struct ApacheKafkaConfigs {
 
 fn get_config(config_name: &str, state: &BasicState) -> Result<String> {
     let config = String::from_utf8(
-        runtime_configs::get(
+        slight_runtime_configs::get(
             &state.secret_store,
             config_name,
             &state.config_toml_file_path,

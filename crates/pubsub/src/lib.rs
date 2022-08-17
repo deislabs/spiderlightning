@@ -10,7 +10,7 @@ use anyhow::Result;
 use implementors::apache_kafka::{
     PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor,
 };
-use runtime::{impl_resource, resource::BasicState};
+use slight_runtime::{impl_resource, resource::BasicState};
 use uuid::Uuid;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -166,7 +166,7 @@ pub struct PubInner {
     resource_descriptor: String,
 }
 
-impl runtime::resource::Watch for PubInner {}
+impl slight_runtime::resource::Watch for PubInner {}
 
 impl PubInner {
     fn new(pub_implementor: &str, slight_state: &BasicState) -> Self {
@@ -197,7 +197,7 @@ pub struct SubInner {
     resource_descriptor: String,
 }
 
-impl runtime::resource::Watch for SubInner {}
+impl slight_runtime::resource::Watch for SubInner {}
 
 impl SubInner {
     fn new(sub_implementor: &str, slight_state: &BasicState) -> Self {

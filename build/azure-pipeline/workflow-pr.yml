@@ -10,10 +10,15 @@ trigger: none
 pr:
   autoCancel: true # Cancel an outdated build when people push new changes to their PR
 
+variables:
+  # for more info, see this: https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
+  RUSTCACHE_ROOT: $(Build.SourcesDirectory)/target
+
 stages:
   - stage: Build
     jobs:
       - job: Build
+        timeoutInMinutes: 180
         #
         # Build flavors
         #
@@ -84,6 +89,29 @@ stages:
           - checkout: self
             clean: true
           
+          #
+          # Use Cache
+          #
+          - task: Cache@2
+            inputs:
+              key: '"cargo" | "$(Agent.OS)" | Cargo.lock'
+              path: $(Build.SourcesDirectory)/target
+            displayName: cache cargo build
+
+          - task: Cache@2
+            inputs:
+              key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
+              path: $(UserProfile)/.cargo/registry
+            displayName: cache cargo registry 
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))     
+
+          - task: Cache@2
+            inputs:
+              key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
+              path: $(HOME)/.cargo/registry
+            displayName: cache cargo registry 
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))   
+
           #
           # Environment variable updates
           #
@@ -166,5 +194,8 @@ stages:
               AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
               AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
               AWS_REGION: $(AWS_REGION)
+              AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
+              AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
+              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
               AWS_DEFAULT_REGION: us-west-2
           

@@ -8,7 +8,7 @@ const SCHEME_NAME: &str = "mq";
 use anyhow::Result;
 
 use implementors::{azsbus::AzSbusImplementor, filesystem::FilesystemImplementor};
-use runtime::{impl_resource, resource::BasicState};
+use slight_runtime::{impl_resource, resource::BasicState};
 use uuid::Uuid;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -130,7 +130,7 @@ impl MqInner {
     }
 }
 
-impl runtime::resource::Watch for MqInner {}
+impl slight_runtime::resource::Watch for MqInner {}
 
 /// This defines the available implementor implementations for the `Mq` interface.
 ///
