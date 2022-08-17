@@ -39,7 +39,7 @@ impl<'a> From<&'a hyper::HeaderMap> for HttpHeader<'a> {
     }
 }
 
-/// A owned http_handler::BodyParam
+/// An owned http_handler::BodyParam
 ///
 /// It can be directly transformed from `hyper::Body`
 /// ```rust
