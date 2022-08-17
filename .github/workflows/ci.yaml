@@ -62,6 +62,8 @@ jobs:
           mkdir -p /opt/wasi-sdk
           mv wasi-sdk-15.0/* /opt/wasi-sdk/
           make install-deps-win
+
+          ls /opt/wasi-sdk/bin/
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
         
       
@@ -100,7 +102,9 @@ jobs:
         run: make build-rust
 
       - name: "Build C Examples"
-        run: make build-c
+        run: | 
+          ls /opt/wasi-sdk/bin/
+          make build-c
 
       #
       # Run Unit Tests
