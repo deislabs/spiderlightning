@@ -82,7 +82,7 @@ mod integration_tests {
 
             let client = hyper::Client::new();
 
-            join!(
+            let (res1, res2, res3, res4, res5) = join!(
                 handle_get_request(&client),
                 handle_get_params(&client),
                 handle_put_request(&client),
@@ -92,6 +92,12 @@ mod integration_tests {
 
             child.interrupt().expect("Error interrupting child");
             child.wait().ok();
+
+            assert!(res1.is_ok());
+            assert!(res2.is_ok());
+            assert!(res3.is_ok());
+            assert!(res4.is_ok());
+            assert!(res5.is_ok());
 
             Ok(())
         }
