@@ -48,13 +48,13 @@ struct Route {
 
 /// A Router implementation for the HTTP interface
 #[derive(Default, Clone, Debug)]
-pub struct RouterProxy {
+pub struct RouterInner {
     /// The root directory of the filesystem
     _base_uri: String,
     routes: Vec<Route>,
 }
 
-impl RouterProxy {
+impl RouterInner {
     fn new(uri: &str) -> Self {
         Self {
             _base_uri: uri.to_string(),
@@ -95,11 +95,11 @@ impl RouterProxy {
 }
 
 #[derive(Clone, Debug)]
-pub struct ServerProxy {
+pub struct ServerInner {
     closer: Arc<Mutex<UnboundedSender<()>>>,
 }
 
-impl ServerProxy {
+impl ServerInner {
     fn close(self) -> Result<(), Error> {
         let closer = self.closer.lock().unwrap();
         thread::scope(|s| {
@@ -170,15 +170,15 @@ impl Http {
 }
 
 impl http::Http for Http {
-    type Router = RouterProxy;
-    type Server = ServerProxy;
+    type Router = RouterInner;
+    type Server = ServerInner;
 
     fn router_new(&mut self) -> Result<Self::Router, Error> {
-        Ok(RouterProxy::default())
+        Ok(RouterInner::default())
     }
 
     fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, Error> {
-        Ok(RouterProxy::new(base))
+        Ok(RouterInner::new(base))
     }
 
     fn router_get(
@@ -247,22 +247,19 @@ impl http::Http for Http {
         let mut inner_routes = vec![];
         for route in router.routes.iter() {
             let mut inner_builder: RouterBuilder<Body, anyhow::Error> = Router::builder();
+            // per route state
+            inner_builder = inner_builder.data(route.clone());
             match route.method {
                 Methods::GET => {
-                    // per route state
-                    inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.get("/", handler);
                 }
                 Methods::PUT => {
-                    inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.put("/", handler);
                 }
                 Methods::POST => {
-                    inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.post("/", handler);
                 }
                 Methods::DELETE => {
-                    inner_builder = inner_builder.data(route.clone());
                     inner_builder = inner_builder.delete("/", handler);
                 }
             }
@@ -290,10 +287,12 @@ impl http::Http for Http {
 
         let arc_tx = Arc::new(Mutex::new(tx));
         self.host_state.closer = Some(arc_tx.clone());
-        Ok(ServerProxy { closer: arc_tx })
+        Ok(ServerInner { closer: arc_tx })
     }
 
     fn server_stop(&mut self, server: &Self::Server) -> Result<(), Error> {
+        // clone is needed here because we have a reference to `ServerInner`, 
+        // but we need ownership of `ServerInner` to stop it.
         let clone = server.clone();
         clone.close()
     }
