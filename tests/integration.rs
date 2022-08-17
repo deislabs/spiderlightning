@@ -64,7 +64,10 @@ mod integration_tests {
         use hyper::{body, client::HttpConnector, Body, Client, Method, Request, StatusCode};
         use signal_child::Signalable;
 
-        use tokio::time::{sleep, Duration};
+        use tokio::{
+            join,
+            time::{sleep, Duration},
+        };
         // use futures::future::{FutureExt};
 
         const HTTP_TEST_MODULE: &str = "./tests/http-test/target/wasm32-wasi/debug/http-test.wasm";
@@ -78,20 +81,14 @@ mod integration_tests {
             sleep(Duration::from_secs(2)).await;
 
             let client = hyper::Client::new();
-            // can handle get requests
-            handle_get_request(&client).await?;
 
-            // can handle get params
-            handle_get_params(&client).await?;
-
-            // can handle put requests
-            handle_put_request(&client).await?;
-
-            // can handle post requests
-            handle_post_request(&client).await?;
-
-            // can handle delete requests
-            handle_delete_request(&client).await?;
+            join!(
+                handle_get_request(&client),
+                handle_get_params(&client),
+                handle_put_request(&client),
+                handle_post_request(&client),
+                handle_delete_request(&client),
+            );
 
             child.interrupt().expect("Error interrupting child");
             child.wait().ok();
