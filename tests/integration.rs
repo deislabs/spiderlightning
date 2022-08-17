@@ -56,15 +56,14 @@ mod integration_tests {
 
     #[cfg(unix)]
     mod http_tests_unix {
-        
-        use std::process::{Command};
 
-        use crate::{SLIGHT};
+        use std::process::Command;
+
+        use crate::SLIGHT;
         use anyhow::Result;
-        use hyper::{body, Body, Method, Request, StatusCode};
+        use hyper::{body, client::HttpConnector, Body, Client, Method, Request, StatusCode};
         use signal_child::Signalable;
-        
-        
+
         use tokio::time::{sleep, Duration};
         // use futures::future::{FutureExt};
 
@@ -80,92 +79,106 @@ mod integration_tests {
 
             let client = hyper::Client::new();
             // can handle get requests
-            {
-                // curl -X GET http://0.0.0.0:3000/hello
-                let res = client.get("http://0.0.0.0:3000/hello".parse()?).await?;
-                assert!(res.status().is_success());
-
-                // curl -X GET http://0.0.0.0:3000/foo
-                let res = client.get("http://0.0.0.0:3000/foo".parse()?).await?;
-                assert_ne!(res.status().is_success(), true);
-                assert!(res.status().is_server_error());
-
-                // curl -X GET http://0.0.0.0:3000/should_return_404
-                let res = client
-                    .get("http://0.0.0.0:3000/should_return_404".parse()?)
-                    .await?;
-                assert_eq!(StatusCode::NOT_FOUND, res.status());
-            }
+            handle_get_request(&client).await?;
 
             // can handle get params
-            {
-                // curl -X GET http://0.0.0.0:3000/hello/:name
-                let res = client.get("http://0.0.0.0:3000/person/x".parse()?).await?;
-                assert!(res.status().is_success());
-                let body = res.into_body();
-                let bytes = body::to_bytes(body).await?;
-                assert_eq!(bytes, "hello: x".to_string());
-
-                let res = client
-                    .get("http://0.0.0.0:3000/person/yager".parse()?)
-                    .await?;
-                assert!(res.status().is_success());
-                let body = res.into_body();
-                let bytes = body::to_bytes(body).await?;
-                assert_eq!(bytes, "hello: yager".to_string());
-
-                // FIXME: there is a exiting issue in Routerify https://github.com/routerify/routerify/issues/118 that
-                //       prevents the following test from working.
-
-                // let mut res = client.get("http://0.0.0.0:3000/person/yager".parse()?).await?;
-                // assert!(res.status().is_success());
-                // let body = res.into_body();
-                // let bytes = body::to_bytes(body).await?;
-                // assert_eq!(bytes, "hello: yager".to_string());
-            }
+            handle_get_params(&client).await?;
 
             // can handle put requests
-            {
-                let req = Request::builder()
-                    .method(Method::PUT)
-                    .uri("http://0.0.0.0:3000/bar")
-                    .body(Body::from("Hallo!"))
-                    .expect("request builder");
-
-                // curl -X PUT http://0.0.0.0:3000/bar
-                let res = client.request(req).await?;
-                assert!(res.status().is_success());
-            }
+            handle_put_request(&client).await?;
 
             // can handle post requests
-            {
-                let req = Request::builder()
-                    .method(Method::POST)
-                    .uri("http://0.0.0.0:3000/upload")
-                    .body(Body::from("Hallo!"))
-                    .expect("request builder");
-
-                // curl -X POST http://0.0.0.0:3000/upload
-                let res = client.request(req).await?;
-                assert!(res.status().is_success());
-            }
+            handle_post_request(&client).await?;
 
             // can handle delete requests
-            {
-                let req = Request::builder()
-                    .method(Method::DELETE)
-                    .uri("http://0.0.0.0:3000/delete-file")
-                    .body(Body::from("Hallo!"))
-                    .expect("request builder");
-
-                // curl -X DELETE http://0.0.0.0:3000/upload
-                let res = client.request(req).await?;
-                assert!(res.status().is_success());
-            }
+            handle_delete_request(&client).await?;
 
             child.interrupt().expect("Error interrupting child");
             child.wait().ok();
 
+            Ok(())
+        }
+
+        async fn handle_get_request(client: &Client<HttpConnector>) -> Result<()> {
+            let res = client.get("http://0.0.0.0:3000/hello".parse()?).await?;
+            assert!(res.status().is_success());
+
+            // curl -X GET http://0.0.0.0:3000/foo
+            let res = client.get("http://0.0.0.0:3000/foo".parse()?).await?;
+            assert_ne!(res.status().is_success(), true);
+            assert!(res.status().is_server_error());
+
+            // curl -X GET http://0.0.0.0:3000/should_return_404
+            let res = client
+                .get("http://0.0.0.0:3000/should_return_404".parse()?)
+                .await?;
+            assert_eq!(StatusCode::NOT_FOUND, res.status());
+            Ok(())
+        }
+
+        async fn handle_get_params(client: &Client<HttpConnector>) -> Result<()> {
+            // curl -X GET http://0.0.0.0:3000/hello/:name
+            let res = client.get("http://0.0.0.0:3000/person/x".parse()?).await?;
+            assert!(res.status().is_success());
+            let body = res.into_body();
+            let bytes = body::to_bytes(body).await?;
+            assert_eq!(bytes, "hello: x".to_string());
+
+            let res = client
+                .get("http://0.0.0.0:3000/person/yager".parse()?)
+                .await?;
+            assert!(res.status().is_success());
+            let body = res.into_body();
+            let bytes = body::to_bytes(body).await?;
+            assert_eq!(bytes, "hello: yager".to_string());
+
+            // FIXME: there is a exiting issue in Routerify https://github.com/routerify/routerify/issues/118 that
+            //       prevents the following test from working.
+
+            // let mut res = client.get("http://0.0.0.0:3000/person/yager".parse()?).await?;
+            // assert!(res.status().is_success());
+            // let body = res.into_body();
+            // let bytes = body::to_bytes(body).await?;
+            // assert_eq!(bytes, "hello: yager".to_string());
+            Ok(())
+        }
+
+        async fn handle_put_request(client: &Client<HttpConnector>) -> Result<()> {
+            let req = Request::builder()
+                .method(Method::PUT)
+                .uri("http://0.0.0.0:3000/bar")
+                .body(Body::from("Hallo!"))
+                .expect("request builder");
+
+            // curl -X PUT http://0.0.0.0:3000/bar
+            let res = client.request(req).await?;
+            assert!(res.status().is_success());
+            Ok(())
+        }
+
+        async fn handle_post_request(client: &Client<HttpConnector>) -> Result<()> {
+            let req = Request::builder()
+                .method(Method::POST)
+                .uri("http://0.0.0.0:3000/upload")
+                .body(Body::from("Hallo!"))
+                .expect("request builder");
+
+            // curl -X POST http://0.0.0.0:3000/upload
+            let res = client.request(req).await?;
+            assert!(res.status().is_success());
+            Ok(())
+        }
+
+        async fn handle_delete_request(client: &Client<HttpConnector>) -> Result<()> {
+            let req = Request::builder()
+                .method(Method::DELETE)
+                .uri("http://0.0.0.0:3000/delete-file")
+                .body(Body::from("Hallo!"))
+                .expect("request builder");
+
+            // curl -X DELETE http://0.0.0.0:3000/upload
+            let res = client.request(req).await?;
+            assert!(res.status().is_success());
             Ok(())
         }
     }
