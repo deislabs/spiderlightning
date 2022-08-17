@@ -1200,34 +1200,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "events"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "crossbeam-utils",
- "events-api",
- "runtime",
- "tracing",
- "url",
- "uuid 1.1.2",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
-name = "events-api"
-version = "0.1.0"
-dependencies = [
- "cloudevents-sdk",
- "wit-bindgen-wasmtime",
-]
-
-[[package]]
 name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1804,31 +1776,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kv"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "aws-config",
- "aws-sdk-dynamodb",
- "azure_core 0.3.0",
- "azure_storage",
- "azure_storage_blobs",
- "bytes",
- "chrono",
- "crossbeam-channel",
- "events-api",
- "futures",
- "notify",
- "runtime",
- "runtime-configs",
- "serde_json",
- "tracing",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1872,25 +1819,6 @@ checksum = "327fa5b6a6940e4699ec49a9beae1ea4845c6bab9314e4f84ac68742139d8c53"
 dependencies = [
  "autocfg",
  "scopeguard",
-]
-
-[[package]]
-name = "lockd"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "etcd-client",
- "events-api",
- "futures",
- "runtime",
- "runtime-configs",
- "tokio",
- "tracing",
- "url",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
 ]
 
 [[package]]
@@ -2006,27 +1934,6 @@ name = "more-asserts"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7843ec2de400bcbc6a6328c958dc38e5359da6e93e72e37bc5246bf1ae776389"
-
-[[package]]
-name = "mq"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "azure_core 0.2.2",
- "azure_messaging_servicebus",
- "chrono",
- "crossbeam-channel",
- "events-api",
- "futures",
- "http",
- "runtime",
- "runtime-configs",
- "tracing",
- "url",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
 
 [[package]]
 name = "multimap"
@@ -2445,22 +2352,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pubsub"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "events-api",
- "rdkafka",
- "runtime",
- "runtime-configs",
- "url",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
-]
-
-[[package]]
 name = "pulldown-cmark"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2731,41 +2622,6 @@ dependencies = [
  "untrusted",
  "web-sys",
  "winapi",
-]
-
-[[package]]
-name = "runtime"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "as-any",
- "crossbeam-channel",
- "events-api",
- "tracing",
- "wasi-cap-std-sync",
- "wasi-common",
- "wasmtime",
- "wasmtime-wasi",
- "wit-bindgen-wasmtime",
-]
-
-[[package]]
-name = "runtime-configs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argon2rs",
- "crossbeam-channel",
- "events-api",
- "rand 0.8.5",
- "runtime",
- "short-crypt",
- "spiderlightning",
- "tempdir",
- "toml",
- "uuid 1.1.2",
- "wit-bindgen-wasmtime",
- "wit-error-rs",
 ]
 
 [[package]]
@@ -3050,21 +2906,165 @@ dependencies = [
  "as-any",
  "clap",
  "env_logger",
- "events",
- "events-api",
- "kv",
- "lockd",
  "log",
- "mq",
- "pubsub",
- "runtime",
- "runtime-configs",
+ "slight-events",
+ "slight-events-api",
+ "slight-kv",
+ "slight-lockd",
+ "slight-mq",
+ "slight-pubsub",
+ "slight-runtime",
+ "slight-runtime-configs",
  "spiderlightning",
  "tokio",
  "toml",
  "tracing",
  "tracing-subscriber",
  "wit-bindgen-wasmtime",
+]
+
+[[package]]
+name = "slight-events"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "crossbeam-utils",
+ "slight-events-api",
+ "slight-runtime",
+ "tracing",
+ "url",
+ "uuid 1.1.2",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-events-api"
+version = "0.1.0"
+dependencies = [
+ "cloudevents-sdk",
+ "wit-bindgen-wasmtime",
+]
+
+[[package]]
+name = "slight-kv"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "azure_core 0.3.0",
+ "azure_storage",
+ "azure_storage_blobs",
+ "bytes",
+ "chrono",
+ "crossbeam-channel",
+ "futures",
+ "notify",
+ "serde_json",
+ "slight-events-api",
+ "slight-runtime",
+ "slight-runtime-configs",
+ "tracing",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-lockd"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "etcd-client",
+ "futures",
+ "slight-events-api",
+ "slight-runtime",
+ "slight-runtime-configs",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-mq"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "azure_core 0.2.2",
+ "azure_messaging_servicebus",
+ "chrono",
+ "crossbeam-channel",
+ "futures",
+ "http",
+ "slight-events-api",
+ "slight-runtime",
+ "slight-runtime-configs",
+ "tracing",
+ "url",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-pubsub"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "rdkafka",
+ "slight-events-api",
+ "slight-runtime",
+ "slight-runtime-configs",
+ "url",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-runtime"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "as-any",
+ "crossbeam-channel",
+ "slight-events-api",
+ "tracing",
+ "wasi-cap-std-sync",
+ "wasi-common",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-bindgen-wasmtime",
+]
+
+[[package]]
+name = "slight-runtime-configs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2rs",
+ "crossbeam-channel",
+ "rand 0.8.5",
+ "short-crypt",
+ "slight-events-api",
+ "slight-runtime",
+ "spiderlightning",
+ "tempdir",
+ "toml",
+ "uuid 1.1.2",
+ "wit-bindgen-wasmtime",
+ "wit-error-rs",
 ]
 
 [[package]]

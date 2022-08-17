@@ -7,7 +7,7 @@ pub use crate::RuntimeContext;
 use anyhow::Result;
 use as_any::{AsAny, Downcast};
 use crossbeam_channel::Sender;
-use events_api::{Event, EventHandlerData};
+use slight_events_api::{Event, EventHandlerData};
 pub use wasmtime::Linker;
 
 /// HostState abstract out generated bindings for the resource,
@@ -102,23 +102,25 @@ pub trait ResourceBuilder {
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
     ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
-        impl runtime::resource::Resource for $resource {}
-        impl runtime::resource::ResourceTables<dyn runtime::resource::Resource>
+        impl slight_runtime::resource::Resource for $resource {}
+        impl slight_runtime::resource::ResourceTables<dyn slight_runtime::resource::Resource>
             for $resource_table
         {
         }
 
-        impl runtime::resource::ResourceBuilder for $resource {
+        impl slight_runtime::resource::ResourceBuilder for $resource {
             type State = $state;
             fn add_to_linker(
-                linker: &mut runtime::resource::Linker<runtime::resource::Ctx>,
+                linker: &mut slight_runtime::resource::Linker<slight_runtime::resource::Ctx>,
             ) -> anyhow::Result<()> {
                 crate::add_to_linker(linker, |cx| {
-                    runtime::resource::get_table::<Self, $resource_table>(cx, $scheme_name)
+                    slight_runtime::resource::get_table::<Self, $resource_table>(cx, $scheme_name)
                 })
             }
 
-            fn build_data(state: Self::State) -> anyhow::Result<runtime::resource::HostState> {
+            fn build_data(
+                state: Self::State,
+            ) -> anyhow::Result<slight_runtime::resource::HostState> {
                 /// We prepare a default resource with host-provided state.
                 /// Then the guest will pass other configuration state to the resource.
                 /// This is done in the `<Capability>::open` function.

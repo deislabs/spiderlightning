@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::{Context, Result};
 use etcd_client::Client;
 use futures::executor::block_on;
-use runtime::resource::BasicState;
+use slight_runtime::resource::BasicState;
 
 use crate::providers::etcd;
 
@@ -28,7 +28,7 @@ impl std::fmt::Debug for EtcdImplementor {
 impl EtcdImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let endpoint = String::from_utf8(
-            runtime_configs::get(
+            slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "ETCD_ENDPOINT",
                 &slight_state.config_toml_file_path,

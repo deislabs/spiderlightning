@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::Client;
 use futures::executor::block_on;
-use runtime::resource::BasicState;
+use slight_runtime::resource::BasicState;
 
 use crate::providers::azure;
 
@@ -21,7 +21,7 @@ impl std::fmt::Debug for AzSbusImplementor {
 impl AzSbusImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
         let service_bus_namespace = String::from_utf8(
-            runtime_configs::get(
+            slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_SERVICE_BUS_NAMESPACE",
                 &slight_state.config_toml_file_path,
@@ -36,7 +36,7 @@ impl AzSbusImplementor {
         )
         .unwrap();
         let policy_name = String::from_utf8(
-            runtime_configs::get(
+            slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_POLICY_NAME",
                 &slight_state.config_toml_file_path,
@@ -51,7 +51,7 @@ impl AzSbusImplementor {
         )
         .unwrap();
         let policy_key = String::from_utf8(
-            runtime_configs::get(
+            slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_POLICY_KEY",
                 &slight_state.config_toml_file_path,
