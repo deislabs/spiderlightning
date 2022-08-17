@@ -108,7 +108,7 @@ mod integration_tests {
 
             // curl -X GET http://0.0.0.0:3000/foo
             let res = client.get("http://0.0.0.0:3000/foo".parse()?).await?;
-            assert_ne!(res.status().is_success(), true);
+            assert!(!res.status().is_success());
             assert!(res.status().is_server_error());
 
             // curl -X GET http://0.0.0.0:3000/should_return_404
