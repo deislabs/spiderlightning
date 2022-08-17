@@ -102,7 +102,15 @@ stages:
             inputs:
               key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
               path: $(UserProfile)/.cargo/registry
-            displayName: cache cargo registry                            
+            displayName: cache cargo registry 
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))     
+
+          - task: Cache@2
+            inputs:
+              key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
+              path: $(HOME)/.cargo/registry
+            displayName: cache cargo registry 
+            condition: and(failed(), eq(variables['target_os'], 'windows'))   
 
           #
           # Environment variable updates
