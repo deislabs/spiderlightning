@@ -20,7 +20,7 @@ spiderlightning = { path = "../.." }
 slight-events-api = { path = "../events-api" }
 toml = "0.5.9"
 short-crypt = "1"
-azure-app-configuration = { git = "https://github.com/danbugs/azure-app-configuration.git", rev = "3c6c0886840847e98e66e9189f540d1db97fe316" }
+azure-app-configuration = { git = "https://github.com/danbugs/azure-app-configuration.git", rev = "cc4b555bbf237e528f3b79f596ac3ff057532a0e" }
 futures = "0.3"
 
 [dev-dependencies]
