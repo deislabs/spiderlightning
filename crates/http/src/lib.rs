@@ -291,7 +291,7 @@ impl http::Http for Http {
     }
 
     fn server_stop(&mut self, server: &Self::Server) -> Result<(), Error> {
-        // clone is needed here because we have a reference to `ServerInner`, 
+        // clone is needed here because we have a reference to `ServerInner`,
         // but we need ownership of `ServerInner` to stop it.
         let clone = server.clone();
         clone.close()
