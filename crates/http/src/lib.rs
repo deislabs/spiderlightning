@@ -388,12 +388,15 @@ mod unittests {
             str_to_socket_address("0.0.0.0:3000")?,
             SocketAddr::new([0, 0, 0, 0].into(), 3000)
         );
-        
+
         let address = str_to_socket_address("localhost:8080")?;
         if address.is_ipv4() {
             assert_eq!(address.ip(), IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
         } else {
-            assert_eq!(address.ip(), IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)));
+            assert_eq!(
+                address.ip(),
+                IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1))
+            );
         }
 
         assert_eq!(
