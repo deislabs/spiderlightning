@@ -24,12 +24,11 @@ impl AzApp {
         let mut count = 0;
         while count < MAX_NUM_RETRIES {
             let res = block_on(app_config_client.get_key_value(key, SearchLabel::All));
-            if res.is_err() {
-                count += 1;
-            } else {
-                ret = res.unwrap().value;
-                // ^^^ ok to unwrap becasue we know res is not an err
+            if let Ok(r) = res {
+                ret = r.value;
                 break;
+            } else {
+                count += 1;
             }
         }
 
