@@ -105,6 +105,13 @@ jobs:
         run: | 
           ls /opt/wasi-sdk/bin/
           make build-c
+        if: ${{ fromJSON(matrix.config.os != 'windows-latest') }}
+      
+      - name: "Build C Examples"
+        run: |
+          ls /opt/wasi-sdk/bin/
+          make build-c-win
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
 
       #
       # Run Unit Tests

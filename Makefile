@@ -120,6 +120,13 @@ build-c:
 	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
 	$(MAKE) -C examples/multi_capability-demo-clang/ build
 
+.PHONY: build-c-win
+build-c-win:
+	$(MAKE) -C examples/multi_capability-demo-clang/ clean
+	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
+	$(MAKE) -C examples/multi_capability-demo-clang/ build-win
+
+
 .PHONY: run-c
 run-c:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./examples/mq-sender-demo/target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
