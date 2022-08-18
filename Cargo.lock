@@ -627,7 +627,7 @@ dependencies = [
 [[package]]
 name = "azure-app-configuration"
 version = "0.1.0"
-source = "git+https://github.com/danbugs/azure-app-configuration.git?rev=cc4b555bbf237e528f3b79f596ac3ff057532a0e#cc4b555bbf237e528f3b79f596ac3ff057532a0e"
+source = "git+https://github.com/danbugs/azure-app-configuration.git?rev=f4c871c127fe0b657f6f9a2e2b201d3cbf66cd07#f4c871c127fe0b657f6f9a2e2b201d3cbf66cd07"
 dependencies = [
  "async-std",
  "base64 0.13.0",
@@ -3732,6 +3732,7 @@ dependencies = [
  "spiderlightning",
  "tempdir",
  "toml",
+ "tracing",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime",
  "wit-error-rs",

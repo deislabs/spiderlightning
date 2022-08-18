@@ -27,6 +27,7 @@ impl AzApp {
     pub fn set(key: &str, value: &[u8]) -> Result<()> {
         let app_config_client = make_client()?;
 
+        tracing::debug!("attempting to set key...");
         block_on(app_config_client.set_key(
             key,
             std::str::from_utf8(value)?,
