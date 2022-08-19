@@ -70,6 +70,7 @@ build-rust:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/lockd-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-producer-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/pubsub-consumer-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-demo/Cargo.toml & \
 	wait; \
 	/bin/sh -c 'echo "DONE"'
 
