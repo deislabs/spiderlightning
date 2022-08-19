@@ -21,7 +21,7 @@ const KV_HOST_IMPLEMENTORS: [&str; 3] = ["kv.filesystem", "kv.azblob", "kv.awsdy
 const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
 const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
 const PUBSUB_HOST_IMPLEMENTORS: [&str; 1] = ["pubsub.confluent_apache_kafka"];
-const CONFIGS_HOST_IMPLEMENTORS: [&str; 2] = ["configs.usersecrets", "configs.envvars"];
+const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] = ["configs.usersecrets", "configs.envvars", "configs.azapp"];
 
 pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
     tracing::info!("Starting slight");
