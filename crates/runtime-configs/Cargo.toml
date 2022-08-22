@@ -15,11 +15,14 @@ slight-runtime = { path = "../runtime" }
 argon2rs = "0.2.5"
 rand = "0.8.5"
 crossbeam-channel = "0.5.5"
-uuid = "1"
+uuid = { version = "1.1.2", features = ["v4"] }
 spiderlightning = { path = "../.." }
 slight-events-api = { path = "../events-api" }
 toml = "0.5.9"
 short-crypt = "1"
+azure-app-configuration = { git = "https://github.com/danbugs/azure-app-configuration.git", rev = "e6cc5bdd3d5dedb6fb48f0dcdf0ec674c8033cf6" }
+futures = "0.3"
+tracing = { version = "0.1", features = ["log"] }
 
 [dev-dependencies]
 tempdir = "0.3"
