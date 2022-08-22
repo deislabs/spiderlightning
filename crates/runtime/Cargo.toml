@@ -20,3 +20,13 @@ crossbeam-channel = "0.5.5"
 slight-events-api = { path = "../events-api" }
 slight-http-api = { path = "../http-api/" }
 tracing = { version = "0.1", features = ["log"] }
+slight-common = { path = "../common" }
+dyn-clone = "1"
+
+slight-kv = { path = "../kv" }
+slight-http = { path = "../http" }
+slight-mq = { path = "../mq" }
+slight-lockd = { path = "../lockd" }
+slight-pubsub = { path = "../pubsub" }
+slight-runtime-configs = { path = "../runtime-configs" }
+slight-events = { path = "../events" } 

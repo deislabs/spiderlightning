@@ -1,15 +1,11 @@
 mod implementors;
 pub mod providers;
 
-/// The `SCHEME_NAME` defines the name under which a resource is
-/// identifiable by in a `ResourceMap`.
-const SCHEME_NAME: &str = "lockd";
-
 use anyhow::Result;
 use uuid::Uuid;
 
 use implementors::etcd::EtcdImplementor;
-use slight_runtime::{impl_resource, resource::BasicState};
+use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -31,12 +27,7 @@ pub struct Lockd {
     host_state: LockdState,
 }
 
-impl_resource!(
-    Lockd,
-    lockd::LockdTables<Lockd>,
-    LockdState,
-    SCHEME_NAME.to_string()
-);
+impl_resource!(Lockd, lockd::LockdTables<Lockd>, LockdState);
 
 /// This is the type of the `host_state` property from our `Lockd` structure.
 ///
@@ -47,6 +38,7 @@ impl_resource!(
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `config_toml_file_path`).
+#[derive(Clone, Default)]
 pub struct LockdState {
     lockd_implementor: String,
     slight_state: BasicState,
@@ -148,7 +140,7 @@ impl LockdInner {
     }
 }
 
-impl slight_runtime::resource::Watch for LockdInner {}
+impl slight_events_api::Watch for LockdInner {}
 
 /// This defines the available implementor implementations for the `Lockd` interface.
 ///

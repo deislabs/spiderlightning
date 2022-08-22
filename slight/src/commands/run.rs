@@ -2,16 +2,17 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
+use slight_common::{BasicState, Resource};
 use slight_events::{Events, EventsState};
-use slight_events_api::event_handler::EventHandler;
-use slight_http::{Http, HttpState};
-use slight_kv::{Kv, KvState};
+use slight_events_api::StateTable;
+use slight_http::Http;
+use slight_kv::Kv;
 use slight_lockd::{Lockd, LockdState};
 use slight_mq::{Mq, MqState};
 use slight_pubsub::{Pubsub, PubsubState};
 use slight_runtime::{
-    resource::{BasicState, Ctx, Resource, StateTable},
-    Builder,
+    ctx::{SlightCtxBuilder, State},
+    Builder, Ctx,
 };
 use slight_runtime_configs::{Configs, ConfigsState};
 use spiderlightning::core::slightfile::TomlFile;
@@ -28,8 +29,8 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
 
     let resource_map = Arc::new(Mutex::new(StateTable::default()));
 
-    let host_builder = build_store_instance(toml, toml_file_path, resource_map.clone())?;
-    let (_, mut store, instance) = host_builder.build(module)?;
+    let host_builder = build_store_instance(toml, toml_file_path, resource_map.clone(), module)?;
+    let (mut store, instance) = host_builder.build()?;
 
     let caps = toml.capability.as_ref().unwrap();
     // looking for events capability.
@@ -40,25 +41,19 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
 
     if events_enabled {
         log::debug!("Events capability enabled");
-        let guest_builder = build_store_instance(toml, toml_file_path, resource_map.clone())?;
-        let (_, mut store2, instance2) = guest_builder.build(module)?;
-        let event_handler = EventHandler::new(&mut store2, &instance2, |ctx| &mut ctx.state)?;
-        let event_handler_resource: &mut Events = get_resource(&mut store, "events");
-        event_handler_resource.update_state(
-            Arc::new(Mutex::new(store2)),
-            Arc::new(Mutex::new(event_handler)),
-        )?;
+        let guest_builder =
+            build_store_instance(toml, toml_file_path, resource_map.clone(), module)?;
+        let (_store2, _instance2) = guest_builder.build()?;
+        let event_handler_resource: &mut Events<Builder> = get_resource(&mut store, "events");
+        event_handler_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
 
     if http_enabled {
         log::debug!("Http capability enabled");
-        let guest_builder = build_store_instance(toml, toml_file_path, resource_map.clone())?;
-        let (_, store2, instance2) = guest_builder.build(module)?;
-        let http_api_resource: &mut Http = get_resource(&mut store, "http");
-        http_api_resource.update_state(
-            Arc::new(Mutex::new(store2)),
-            Arc::new(Mutex::new(instance2)),
-        )?;
+        let guest_builder: Builder =
+            build_store_instance(toml, toml_file_path, resource_map.clone(), module)?;
+        let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
+        http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
 
     tracing::info!("Executing {}", module);
@@ -69,7 +64,7 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
     if http_enabled {
         log::info!("waiting for http to finish...");
         shutdown_signal().await;
-        let http_api_resource: &mut Http = get_resource(&mut store, "http");
+        let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
         http_api_resource.close();
     }
     Ok(())
@@ -89,7 +84,8 @@ where
     );
     store
         .data_mut()
-        .data
+        .slight
+        .get_mut()
         .get_mut(scheme_name)
         .expect(&err_msg)
         .0
@@ -109,85 +105,81 @@ fn build_store_instance(
     toml: &TomlFile,
     toml_file_path: &str,
     resource_map: Arc<Mutex<StateTable>>,
+    module: &str,
 ) -> Result<Builder> {
-    let mut builder = Builder::new_default()?;
+    let mut builder = Builder::new_default(module)?;
+    let mut slight_builder = SlightCtxBuilder::default();
     builder.link_wasi()?;
     if toml.specversion.as_ref().unwrap() == "0.1" {
         for c in toml.capability.as_ref().unwrap() {
             let resource_type: &str = c.name.as_str();
             match resource_type {
                 "events" => {
-                    builder.link_capability::<Events>(
-                        resource_type.to_string(),
-                        EventsState::new(resource_map.clone()),
-                    )?;
+                    builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
+                    slight_builder =
+                        slight_builder.add_state(State::Events(EventsState::<Builder>::new(
+                            resource_map.clone(),
+                        )))?;
                 }
                 _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if let Some(ss) = &toml.secret_store {
-                        builder.link_capability::<Kv>(
-                            "kv".to_string(),
-                            KvState::new(
+                        builder.link_capability::<Kv>("kv".to_string())?;
+                        slight_builder =
+                            slight_builder.add_state(State::Kv(slight_kv::KvState::new(
                                 resource_type.to_string(),
                                 BasicState::new(resource_map.clone(), ss, toml_file_path),
-                            ),
-                        )?;
+                            )))?;
                     } else {
                         bail!("the kv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab, say, the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
                     }
                 }
                 _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if let Some(ss) = &toml.secret_store {
-                        builder.link_capability::<Mq>(
-                            "mq".to_string(),
-                            MqState::new(
-                                resource_type.to_string(),
-                                BasicState::new(resource_map.clone(), ss, toml_file_path),
-                            ),
-                        )?;
+                        builder.link_capability::<Mq>("mq".to_string())?;
+                        slight_builder = slight_builder.add_state(State::Mq(MqState::new(
+                            resource_type.to_string(),
+                            BasicState::new(resource_map.clone(), ss, toml_file_path),
+                        )))?;
                     } else {
                         bail!("the mq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
                     }
                 }
                 _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if let Some(ss) = &toml.secret_store {
-                        builder.link_capability::<Lockd>(
-                            "lockd".to_string(),
-                            LockdState::new(
+                        builder.link_capability::<Lockd>("lockd".to_string())?;
+                        slight_builder =
+                            slight_builder.add_state(State::Lockd(LockdState::new(
                                 resource_type.to_string(),
                                 BasicState::new(resource_map.clone(), ss, toml_file_path),
-                            ),
-                        )?;
+                            )))?;
                     } else {
                         bail!("the lockd capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the ETCD_ENDPOINT.")
                     }
                 }
                 _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if let Some(ss) = &toml.secret_store {
-                        builder.link_capability::<Pubsub>(
-                            "pubsub".to_string(),
-                            PubsubState::new(
+                        builder.link_capability::<Pubsub>("pubsub".to_string())?;
+                        slight_builder =
+                            slight_builder.add_state(State::PubSub(PubsubState::new(
                                 resource_type.to_string(),
                                 BasicState::new(resource_map.clone(), ss, toml_file_path),
-                            ),
-                        )?;
+                            )))?;
                     } else {
                         bail!("the mq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
                     }
                 }
                 _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                    builder.link_capability::<Configs>(
-                        "configs".to_string(),
-                        ConfigsState::new(
-                            resource_type.to_string(),
-                            BasicState::new(resource_map.clone(), "", toml_file_path),
-                        ),
-                    )?;
+                    builder.link_capability::<Configs>("configs".to_string())?;
+                    slight_builder = slight_builder.add_state(State::RtCfg(ConfigsState::new(
+                        resource_type.to_string(),
+                        BasicState::new(resource_map.clone(), "", toml_file_path),
+                    )))?;
                 }
                 "http" => {
-                    builder.link_capability::<Http>(
-                        resource_type.to_string(),
-                        HttpState::new(resource_map.clone()),
-                    )?;
+                    builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
+                    slight_builder = slight_builder.add_state(State::Http(
+                        slight_http::HttpState::<Builder>::new(resource_map.clone()),
+                    ))?;
                 }
                 _ => {
                     bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
@@ -197,6 +189,6 @@ fn build_store_instance(
     } else {
         bail!("unsupported toml spec version");
     }
-
+    builder = builder.add_slight_states(slight_builder);
     Ok(builder)
 }

@@ -1,0 +1,19 @@
+[package]
+name = "slight-common"
+version = "0.1.0"
+edition = "2021"
+authors = ["DeisLabs Engineering Team"]
+
+[lib]
+test = false
+doctest = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+slight-events-api = { path = "../events-api" }
+slight-http-api = { path = "../http-api/" }
+as-any = "0.3"
+dyn-clone = "1"
+wasmtime = "0.35"
+anyhow = "1"

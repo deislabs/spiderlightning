@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use azure_storage::clients::StorageAccountClient;
 use azure_storage_blobs::prelude::{AsBlobClient, AsContainerClient, ContainerClient};
 use futures::executor::block_on;
-use slight_runtime::resource::BasicState;
+use slight_common::BasicState;
 
 use crate::providers::azure;
 

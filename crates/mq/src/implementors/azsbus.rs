@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::Client;
 use futures::executor::block_on;
-use slight_runtime::resource::BasicState;
+use slight_common::BasicState;
 
 use crate::providers::azure;
 

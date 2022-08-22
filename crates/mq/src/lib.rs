@@ -1,14 +1,10 @@
 mod implementors;
 pub mod providers;
 
-/// The `SCHEME_NAME` defines the name under which a resource is
-/// identifiable by in a `ResourceMap`.
-const SCHEME_NAME: &str = "mq";
-
 use anyhow::Result;
 
 use implementors::{azsbus::AzSbusImplementor, filesystem::FilesystemImplementor};
-use slight_runtime::{impl_resource, resource::BasicState};
+use slight_common::{impl_resource, BasicState};
 use uuid::Uuid;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -36,7 +32,7 @@ pub struct Mq {
 //
 // The `Resource` and `ResourceTables` traits are empty traits that allow
 // grouping of resources through `dyn Resource`, and `dyn ResourceTables`.
-impl_resource!(Mq, mq::MqTables<Mq>, MqState, SCHEME_NAME.to_string());
+impl_resource!(Mq, mq::MqTables<Mq>, MqState);
 
 /// This is the type of the `host_state` property from our `Mq` structure.
 ///
@@ -47,6 +43,7 @@ impl_resource!(Mq, mq::MqTables<Mq>, MqState, SCHEME_NAME.to_string());
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `config_toml_file_path`).
+#[derive(Clone, Default)]
 pub struct MqState {
     mq_implementor: String,
     slight_state: BasicState,
@@ -130,7 +127,7 @@ impl MqInner {
     }
 }
 
-impl slight_runtime::resource::Watch for MqInner {}
+impl slight_events_api::Watch for MqInner {}
 
 /// This defines the available implementor implementations for the `Mq` interface.
 ///

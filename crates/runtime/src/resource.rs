@@ -1,161 +1,103 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use slight_events::{events::EventsTables, Events};
+use slight_http::{http::HttpTables, Http};
+use slight_kv::{kv::KvTables, Kv};
+use slight_lockd::{lockd::LockdTables, Lockd};
+use slight_mq::{mq::MqTables, Mq};
+use slight_pubsub::{pubsub::PubsubTables, Pubsub};
+use slight_runtime_configs::{configs::ConfigsTables, Configs};
 
 pub use crate::RuntimeContext;
+use crate::{Builder, Ctx};
 use anyhow::Result;
-use as_any::{AsAny, Downcast};
-use crossbeam_channel::Sender;
-use slight_events_api::{Event, EventHandlerData};
+use as_any::Downcast;
+
+use slight_events_api::EventHandlerData;
 use slight_http_api::HttpHandlerData;
 pub use wasmtime::Linker;
 
-/// HostState abstract out generated bindings for the resource,
-/// and the resource table. It is used as a type in the `RuntimeContext`
-/// primarily for linking host defined resources for capabilities.
-pub type HostState = (
-    Box<dyn Resource + Send + Sync>,
-    Option<Box<dyn ResourceTables<dyn Resource> + Send + Sync>>,
-);
-
-/// Watch state is a dynamic type for resources that implement the `watch` function.
-pub type WatchState = Box<dyn Watch + Send + Sync>;
-
-/// A alias to sharable state table
-pub type ResourceMap = Arc<Mutex<StateTable>>;
-
-/// Runtime Context for the wasm module
-pub type Ctx = RuntimeContext<HostState>;
-
 /// Guest data for event handler
 /// TODO (Joe): abstract this to a general guest data
-pub type GuestData = EventHandlerData;
+pub type EventsData = EventHandlerData;
 pub type HttpData = HttpHandlerData;
 
-/// `BasicState` provides an attempt at a "fit-all" for basic scenarios
-/// of a host's state.
-///
-/// It contains:
-///     - a `resource_map`,
-///     - a `secret_store`, and
-///     - the `config_toml_file_path`.
-#[derive(Clone, Default)]
-pub struct BasicState {
-    pub resource_map: ResourceMap,
-    pub secret_store: String,
-    pub config_toml_file_path: String,
-}
-
-impl BasicState {
-    pub fn new(resource_map: ResourceMap, secret_store: &str, config_toml_file_path: &str) -> Self {
-        Self {
-            resource_map,
-            secret_store: secret_store.to_string(),
-            config_toml_file_path: config_toml_file_path.to_string(),
-        }
-    }
-}
-/// A state table that is indexed by each resource unique identifier.
-/// The state table stores each resource inner of type WatchState.
-#[derive(Default)]
-pub struct StateTable(HashMap<String, WatchState>);
-
-impl StateTable {
-    /// A wrapper function for inserting a key, value pair in the map
-    pub fn set(&mut self, key: String, value: WatchState) {
-        self.0.insert(key, value);
-    }
-
-    /// A wrapper function for getting a mutable value from the map
-    pub fn get_mut(&mut self, key: &str) -> Result<&mut WatchState> {
-        let value = self
-            .0
-            .get_mut(key)
-            .ok_or_else(|| anyhow::anyhow!("failed because key '{}' was not found", &key))?;
-        Ok(value)
-    }
-
-    /// A wrapper function for getting a value from the map
-    pub fn get(&mut self, key: &str) -> Result<&WatchState> {
-        let value = self
-            .0
-            .get(key)
-            .ok_or_else(|| anyhow::anyhow!("failed because key '{}' was not found", &key))?;
-        Ok(value)
-    }
-}
-
-/// A trait for wit-bindgen resources
-pub trait Resource: AsAny {}
-
-/// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
-pub trait ResourceTables<T: ?Sized>: AsAny {}
-
-/// A trait for wit-bindgen host resource composed of a resource
-pub trait ResourceBuilder {
-    type State: Sized;
+/// A trait for Linkable resources
+pub trait Linkable {
+    /// Link the resource to the runtime
     fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()>;
-    fn build_data(state: Self::State) -> Result<HostState>;
 }
 
-#[macro_export]
-#[allow(unknown_lints)]
-#[allow(clippy::crate_in_macro_def)]
-macro_rules! impl_resource {
-    ($resource:ident, $resource_table:ty, $state:ident, $scheme_name:expr) => {
-        impl slight_runtime::resource::Resource for $resource {}
-        impl slight_runtime::resource::ResourceTables<dyn slight_runtime::resource::Resource>
-            for $resource_table
-        {
-        }
-
-        impl slight_runtime::resource::ResourceBuilder for $resource {
-            type State = $state;
-            fn add_to_linker(
-                linker: &mut slight_runtime::resource::Linker<slight_runtime::resource::Ctx>,
-            ) -> anyhow::Result<()> {
-                crate::add_to_linker(linker, |cx| {
-                    slight_runtime::resource::get_table::<Self, $resource_table>(cx, $scheme_name)
+macro_rules! impl_linkable {
+    ($resource:ty, $add_to_linker:path, $resource_table:ty, $scheme_name:expr) => {
+        impl Linkable for $resource {
+            fn add_to_linker(linker: &mut Linker<Ctx>) -> Result<()> {
+                $add_to_linker(linker, |ctx| {
+                    get_table::<$resource, $resource_table>(ctx, $scheme_name)
                 })
-            }
-
-            fn build_data(
-                state: Self::State,
-            ) -> anyhow::Result<slight_runtime::resource::HostState> {
-                /// We prepare a default resource with host-provided state.
-                /// Then the guest will pass other configuration state to the resource.
-                /// This is done in the `<Capability>::open` function.
-                let mut resource = Self { host_state: state };
-                Ok((
-                    Box::new(resource),
-                    Some(Box::new(<$resource_table>::default())),
-                ))
+                .unwrap();
+                Ok(())
             }
         }
     };
 }
-pub use impl_resource;
 
-/// A trait for inner representation of the resource
-pub trait Watch {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        todo!(
-            "received {}, and {:#?}, but there's nothing to do with it yet",
-            key,
-            sender
-        );
-    }
-}
+impl_linkable!(
+    Kv,
+    slight_kv::kv::add_to_linker,
+    KvTables<Kv>,
+    "kv".to_string()
+);
+
+impl_linkable!(
+    Http<Builder>,
+    slight_http::http::add_to_linker,
+    HttpTables<Http<Builder>>,
+    "http".to_string()
+);
+
+impl_linkable!(
+    Mq,
+    slight_mq::mq::add_to_linker,
+    MqTables<Mq>,
+    "mq".to_string()
+);
+
+impl_linkable!(
+    Lockd,
+    slight_lockd::lockd::add_to_linker,
+    LockdTables<Lockd>,
+    "lockd".to_string()
+);
+
+impl_linkable!(
+    Configs,
+    slight_runtime_configs::configs::add_to_linker,
+    ConfigsTables<Configs>,
+    "configs".to_string()
+);
+
+impl_linkable!(
+    Pubsub,
+    slight_pubsub::pubsub::add_to_linker,
+    PubsubTables<Pubsub>,
+    "pubsub".to_string()
+);
+
+impl_linkable!(
+    Events<Builder>,
+    slight_events::events::add_to_linker,
+    EventsTables<Events<Builder>>,
+    "events".to_string()
+);
 
 /// Dynamically dispatch to respective host resource
-pub fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)
+fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)
 where
     T: 'static,
     TTable: 'static,
 {
     let data = cx
-        .data
+        .slight
+        .get_mut()
         .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
     (
