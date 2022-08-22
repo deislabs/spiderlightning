@@ -1,0 +1,4 @@
+use { request, response } from http-types
+use { error } from types
+
+handle-http: function(req: request) -> expected<response, error>

@@ -8,6 +8,7 @@ use anyhow::Result;
 use as_any::{AsAny, Downcast};
 use crossbeam_channel::Sender;
 use slight_events_api::{Event, EventHandlerData};
+use slight_http_api::HttpHandlerData;
 pub use wasmtime::Linker;
 
 /// HostState abstract out generated bindings for the resource,
@@ -30,6 +31,7 @@ pub type Ctx = RuntimeContext<HostState>;
 /// Guest data for event handler
 /// TODO (Joe): abstract this to a general guest data
 pub type GuestData = EventHandlerData;
+pub type HttpData = HttpHandlerData;
 
 /// `BasicState` provides an attempt at a "fit-all" for basic scenarios
 /// of a host's state.

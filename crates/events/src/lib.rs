@@ -14,7 +14,7 @@ use slight_events_api::{AttributesReader, Event, EventHandler, EventParam};
 
 use slight_runtime::{
     impl_resource,
-    resource::{Ctx, ResourceMap, StateTable},
+    resource::{Ctx, ResourceMap},
 };
 use uuid::Uuid;
 use wasmtime::Store;
@@ -40,7 +40,7 @@ pub struct EventsState {
 }
 
 impl EventsState {
-    pub fn new(resource_map: Arc<Mutex<StateTable>>) -> Self {
+    pub fn new(resource_map: ResourceMap) -> Self {
         Self {
             resource_map,
             ..Default::default()

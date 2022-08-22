@@ -50,7 +50,7 @@ async fn main() -> Result<()> {
     let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
 
     match &args.command {
-        Commands::Run { module } => handle_run(module, &toml, &toml_file_path),
+        Commands::Run { module } => handle_run(module, &toml, &toml_file_path).await,
         Commands::Secret { key, value } => handle_secret(key, value, &mut toml, &mut toml_file),
     }
 }
