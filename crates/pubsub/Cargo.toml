@@ -9,13 +9,13 @@ test = false
 doctest = false
 
 [dependencies]
-anyhow = "1.0"
+anyhow = "1"
 slight-runtime = { path = "../runtime" }
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
 rdkafka = { version = "0.28", features = ["cmake-build", "ssl"] }
 url = "2.2"
 uuid = "1"
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
-crossbeam-channel = "0.5.5"
+crossbeam-channel = "0.5"
 slight-events-api = { path = "../events-api" }
 slight-runtime-configs = { path = "../runtime-configs" }

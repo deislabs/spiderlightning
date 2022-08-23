@@ -16,7 +16,7 @@ slight-runtime = { path = "../runtime" }
 slight-runtime-configs = { path = "../runtime-configs" }
 anyhow = "1"
 uuid = "1"
-crossbeam-channel = "0.5.5"
+crossbeam-channel = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 url = "2"
 # mq.azsbus deps
