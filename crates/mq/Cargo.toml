@@ -15,7 +15,7 @@ slight-events-api = { path = "../events-api" }
 slight-runtime = { path = "../runtime" }
 slight-runtime-configs = { path = "../runtime-configs" }
 anyhow = "1"
-uuid = "1"
+uuid = { version = "1.1", features = ["v4"] }
 crossbeam-channel = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 url = "2"
