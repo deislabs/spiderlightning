@@ -12,7 +12,7 @@ wasmtime = "0.35"
 wasmtime-wasi = "0.35"
 wasi-common = "0.35"
 wasi-cap-std-sync = "0.35"
-anyhow = "1.0"
+anyhow = "1"
 wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "8252b0e39c7495f647ec0b0898721a7c641fc6c8" }
 slight-runtime = { path = "../runtime" }
 url = "2.2"

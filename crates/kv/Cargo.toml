@@ -15,8 +15,8 @@ slight-events-api = { path = "../events-api" }
 slight-runtime = { path = "../runtime" }
 slight-runtime-configs = { path = "../runtime-configs" }
 anyhow = "1"
-uuid = { version = "1.1.2", features = ["v4"] }
-crossbeam-channel = "0.5.5"
+uuid = { version = "1.1", features = ["v4"] }
+crossbeam-channel = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 # kv.azblob deps
 azure_storage_blobs = "0.4"
@@ -29,5 +29,5 @@ notify = "5.0.0-pre.15"
 chrono = "0.4"
 serde_json = "1"
 # kv.awsdynamodb deps
-aws-config = "0.46.0"
-aws-sdk-dynamodb = "0.16.0"
+aws-config = "0.46"
+aws-sdk-dynamodb = "0.16"
