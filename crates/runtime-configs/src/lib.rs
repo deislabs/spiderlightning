@@ -3,7 +3,7 @@ pub mod implementors;
 use anyhow::Result;
 use uuid::Uuid;
 
-use implementors::{envvars::EnvVars, usersecrets::UserSecrets};
+use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
 use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -68,12 +68,11 @@ impl configs::Configs for Configs {
     }
 
     fn configs_get(&mut self, self_: &Self::Configs, key: &str) -> Result<Vec<u8>, configs::Error> {
-        Ok(match &self_.configs_implementor {
-            ConfigsImplementor::EnvVars => EnvVars::get(key)?,
-            ConfigsImplementor::UserSecrets => {
-                UserSecrets::get(key, &self.host_state.slight_state.config_toml_file_path)?
-            }
-        })
+        Ok(get(
+            &String::from(&self_.configs_implementor),
+            key,
+            &self.host_state.slight_state.config_toml_file_path,
+        )?)
     }
 
     fn configs_set(
@@ -82,14 +81,12 @@ impl configs::Configs for Configs {
         key: &str,
         value: PayloadParam<'_>,
     ) -> Result<(), configs::Error> {
-        match &self_.configs_implementor {
-            ConfigsImplementor::EnvVars => EnvVars::set(key, value)?,
-            ConfigsImplementor::UserSecrets => UserSecrets::set(
-                key,
-                value,
-                &self.host_state.slight_state.config_toml_file_path,
-            )?,
-        };
+        set(
+            &String::from(&self_.configs_implementor),
+            key,
+            value,
+            &self.host_state.slight_state.config_toml_file_path,
+        )?;
 
         Ok(())
     }
@@ -134,13 +131,15 @@ impl slight_events_api::Watch for ConfigsInner {}
 pub enum ConfigsImplementor {
     EnvVars,
     UserSecrets, // user creates configs at compile time that are encrypted and stored in their slightfile
+    AzApp,
 }
 
-impl From<ConfigsImplementor> for String {
-    fn from(from_ct: ConfigsImplementor) -> Self {
-        match from_ct {
+impl From<&ConfigsImplementor> for String {
+    fn from(c: &ConfigsImplementor) -> String {
+        match c {
             ConfigsImplementor::UserSecrets => "configs.usersecrets".to_string(),
             ConfigsImplementor::EnvVars => "configs.envvars".to_string(),
+            ConfigsImplementor::AzApp => "configs.azapp".to_string(),
         }
     }
 }
@@ -150,6 +149,7 @@ impl From<&str> for ConfigsImplementor {
         match from_str {
             "configs.usersecrets" => ConfigsImplementor::UserSecrets,
             "configs.envvars" => ConfigsImplementor::EnvVars,
+            "configs.azapp" => ConfigsImplementor::AzApp,
             _ => panic!("Unknown config type: {}", from_str),
         }
     }
@@ -166,6 +166,7 @@ pub fn get(config_type: &str, key: &str, toml_file_path: &str) -> Result<Vec<u8>
     match config_type.into() {
         ConfigsImplementor::EnvVars => Ok(EnvVars::get(key)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::get(key, toml_file_path)?),
+        ConfigsImplementor::AzApp => Ok(AzApp::get(key)?),
     }
 }
 
@@ -173,5 +174,6 @@ pub fn set(config_type: &str, key: &str, value: &[u8], toml_file_path: &str) -> 
     match config_type.into() {
         ConfigsImplementor::EnvVars => Ok(EnvVars::set(key, value)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),
+        ConfigsImplementor::AzApp => Ok(AzApp::set(key, value)?),
     }
 }

@@ -1,5 +1,5 @@
 specversion = "0.1"
-secret_store = "configs.envvars"
+secret_store = "configs.env"
 
 [[capability]]
 name = "kv.azblob"

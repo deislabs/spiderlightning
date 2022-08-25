@@ -26,7 +26,45 @@ pub fn run(executable: &str, args: Vec<&str>) {
 
 #[cfg(test)]
 mod integration_tests {
-    mod kv_test {
+    mod configs_tests {
+        use crate::{run, SLIGHT};
+        use anyhow::Result;
+
+        const CONFIGS_TEST_MODULE: &str =
+            "./tests/configs-test/target/wasm32-wasi/debug/configs-test.wasm";
+
+        #[test]
+        fn envvars_test() -> Result<()> {
+            let file_config = "./tests/configs-test/azapp_slightfile.toml";
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn usersecrets_test() -> Result<()> {
+            let file_config = "./tests/configs-test/usersecrets_slightfile.toml";
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn azapp_test() -> Result<()> {
+            let file_config = "./tests/configs-test/azapp_slightfile.toml";
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
+            );
+            Ok(())
+        }
+    }
+
+    mod kv_tests {
         use crate::{run, SLIGHT};
         use anyhow::Result;
 
@@ -53,6 +91,4 @@ mod integration_tests {
             Ok(())
         }
     }
-
-    // TODO: We need to mq_test, lockd_test, and pubsub_test modules
 }
