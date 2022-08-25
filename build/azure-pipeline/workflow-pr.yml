@@ -24,24 +24,24 @@ stages:
         #
         strategy:
           matrix:
-            windows-x86:
-              poolName: Azure Pipelines
-              imageName: 'windows-latest'
-              target_os: windows
-              target_arch: x86
-              is_cross_compile: true
-            windows-x64:
-              poolName: Azure Pipelines
-              imageName: 'windows-latest'
-              target_os: windows
-              target_arch: x86_64
-              is_cross_compile: false
-            windows-arm64:
-              poolName: Azure Pipelines
-              imageName: 'windows-latest'
-              target_os: windows
-              target_arch: aarch64
-              is_cross_compile: true
+            # windows-x86:
+            #   poolName: Azure Pipelines
+            #   imageName: 'windows-latest'
+            #   target_os: windows
+            #   target_arch: x86
+            #   is_cross_compile: true
+            # windows-x64:
+            #   poolName: Azure Pipelines
+            #   imageName: 'windows-latest'
+            #   target_os: windows
+            #   target_arch: x86_64
+            #   is_cross_compile: false
+            # windows-arm64:
+            #   poolName: Azure Pipelines
+            #   imageName: 'windows-latest'
+            #   target_os: windows
+            #   target_arch: aarch64
+            #   is_cross_compile: true
             linux-x86:
               poolName: Azure Pipelines
               imageName: 'ubuntu-latest'
@@ -98,19 +98,19 @@ stages:
               path: $(Build.SourcesDirectory)/target
             displayName: cache cargo build
 
-          - task: Cache@2
-            inputs:
-              key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
-              path: $(UserProfile)/.cargo/registry
-            displayName: cache cargo registry 
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))     
+          # - task: Cache@2
+          #   inputs:
+          #     key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
+          #     path: $(UserProfile)/.cargo/registry
+          #   displayName: cache cargo registry 
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))     
 
           - task: Cache@2
             inputs:
               key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
               path: $(HOME)/.cargo/registry
             displayName: cache cargo registry 
-            condition: and(succeeded(), ne(variables['target_os'], 'windows'))   
+            # condition: and(succeeded(), ne(variables['target_os'], 'windows'))   
 
           #
           # Environment variable updates
@@ -129,18 +129,18 @@ stages:
               rustup target add wasm32-unknown-unknown
             displayName: rustup update default toolchain
           
-          - script: choco install make -y
-            displayName: Install make tool on Windows
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          # - script: choco install make -y
+          #   displayName: Install make tool on Windows
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
           #
           # Install build tools
           #
-          - script: make install-deps-win
-            displayName: Install build tools on windows
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-            env:
-              BUILD_ARCH: $(target_arch)
+          # - script: make install-deps-win
+          #   displayName: Install build tools on windows
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          #   env:
+          #     BUILD_ARCH: $(target_arch)
           
           - script: make install-deps
             displayName: Install build tools on linux
@@ -160,27 +160,11 @@ stages:
           #
           # Build
           #
-          - script: make improve
-            displayName: Run rust-clippy and rustfmt
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-            env:
-              OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
-          
-          - script: make improve
-            displayName: Run rust-clippy and rustfmt
-            condition: and(succeeded(), eq(variables['target_os'], 'linux'))
-          
-          - script: make improve
-            displayName: Run rust-clippy and rustfmt
-            condition: and(succeeded(), eq(variables['target_os'], 'macos'))
-            env:
-              OPENSSL_ROOT_DIR: /usr/local/opt/openssl
-          
-          - script: make build
-            displayName: Build
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-            env:
-              OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          # - script: make build
+          #   displayName: Build
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          #   env:
+          #     OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
 
           - script: make build
             displayName: Build
@@ -200,11 +184,8 @@ stages:
           #   displayName: Build C Examples
           
           #
-          # Running all tests
+          # Running integration tests
           #
-          - script: make test
-            displayName: Run Unit Tests
-          
           - script: make test-integration
             displayName: Run Integration Tests
             env:
@@ -213,8 +194,8 @@ stages:
               AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
               AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
               AWS_REGION: $(AWS_REGION)
+              AWS_DEFAULT_REGION: us-west-2
               AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
               AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
               AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
-              AWS_DEFAULT_REGION: us-west-2
           

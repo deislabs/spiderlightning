@@ -24,14 +24,14 @@ SpiderLightning is a set of consistent, modular, and portable interfaces that pr
 | custom pluggable functions | TBD                                                                                                                                       | TBD                                                                                                                                                                                                                  | /           | ❌ TBD           |
 
 ### Capability Principles
-As Spiderlightning is a set of interfaces, it is criticle to have a certain criteria for including the right capabilities. We have selected the above capabilities based on the following criteria:
+As Spiderlightning is a set of interfaces, it is critical to have a certain criteria for including the right capabilities. We have selected the above capabilities based on the following criteria:
 
 TODO
 
 ## WebAssembly Interface Types
 SpiderLightning capability interfaces are written in WIT files. WIT is becoming the next standard for defining Wasm interfaces. WASI, for example, is transitioning to [use](https://github.com/bytecodealliance/wit-bindgen/blob/32e63116d469d8046727fae3c1333a7d35d0c5d3/tests/codegen/wasi-next/wasi_next.wit) this textual format, together with the [Interface Types](https://github.com/WebAssembly/interface-types/blob/main/proposals/interface-types/Explainer.md), and the [Canonical ABI](https://github.com/WebAssembly/interface-types/pull/140). 
 
-Below is an exmaple of a WIT file - defining a message queue capability.
+Below is an example of a WIT file - defining a message queue capability.
 ```fsharp
 // A Message Queue Interface
 use { error, payload } from types

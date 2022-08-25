@@ -18,7 +18,8 @@ slight-pubsub = { path = "../crates/pubsub" }
 slight-runtime-configs = { path = "../crates/runtime-configs" }
 slight-events = { path = "../crates/events" }
 slight-events-api = { path = "../crates/events-api" }
-anyhow = "1.0"
+slight-http = { path = "../crates/http" }
+anyhow = "1"
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
 tokio = { version = "1", features = ["full"] }
@@ -26,5 +27,5 @@ wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen"
 clap = { version = "3", features = ["derive"] }
 toml = "0.5"
 as-any = "0.3"
-tracing-subscriber = { version = "^0.3", features = ["env-filter"] }
-tracing = { version = "^0.1", features = ["log"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing = { version = "0.1", features = ["log"] }

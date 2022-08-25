@@ -145,12 +145,12 @@ fn get_config(config_name: &str, state: &BasicState) -> Result<String> {
 
 impl ApacheKafkaConfigs {
     fn from_state(slight_state: &BasicState) -> Result<Self> {
-        let bootstap_servers = get_config("CK_ENDPOINT", slight_state)?;
-        let security_protocol = get_config("CK_SECURITY_PROTOCOL", slight_state)?;
-        let sasl_mechanisms = get_config("CK_SASL_MECHANISMS", slight_state)?;
-        let sasl_username = get_config("CK_SASL_USERNAME", slight_state)?;
+        let bootstap_servers = get_config("CAK_ENDPOINT", slight_state)?;
+        let security_protocol = get_config("CAK_SECURITY_PROTOCOL", slight_state)?;
+        let sasl_mechanisms = get_config("CAK_SASL_MECHANISMS", slight_state)?;
+        let sasl_username = get_config("CAK_SASL_USERNAME", slight_state)?;
 
-        let sasl_password = get_config("CK_SASL_PASSWORD", slight_state)?;
+        let sasl_password = get_config("CAK_SASL_PASSWORD", slight_state)?;
 
         Ok(Self {
             bootstap_servers,

@@ -2,7 +2,7 @@ pub mod resource;
 use std::collections::HashMap;
 
 use anyhow::Result;
-use resource::{Ctx, GuestData, ResourceBuilder};
+use resource::{Ctx, GuestData, HttpData, ResourceBuilder};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
@@ -14,6 +14,7 @@ pub struct RuntimeContext<Host> {
     pub wasi: Option<WasiCtx>,
     pub data: HashMap<String, Host>,
     pub state: GuestData,
+    pub http_state: HttpData,
 }
 
 /// A wasmtime-based runtime builder.
@@ -35,6 +36,7 @@ impl Builder {
             wasi: Some(wasi),
             data: HashMap::new(),
             state: GuestData::default(),
+            http_state: HttpData::default(),
         };
 
         let store = Store::new(&engine, ctx);
