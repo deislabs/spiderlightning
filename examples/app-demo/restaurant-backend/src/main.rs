@@ -11,7 +11,7 @@ wit_error_rs::impl_error!(mq::Error);
 fn main() -> Result<()> {
     let router = http::Router::new()?;
     let router_with_route = router
-        .post("/make_order", "handle_make_order")?
+        .post("/orders/", "handle_make_order")?
         .get("/get_next_order", "handle_get_next_order")?;
     let _ = http::Server::serve("0.0.0.0:3000", &router_with_route)?;
     Ok(())
