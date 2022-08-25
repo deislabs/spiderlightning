@@ -20,7 +20,7 @@ hyper = { version = "0.14", features = ["full"] }
 tokio = { version = "1.20", features = ["full"] }
 
 [target.'cfg(unix)'.dev-dependencies]
-signal-child = "1.0"
+signal-child = "1"
 
 [workspace]
 members = [
