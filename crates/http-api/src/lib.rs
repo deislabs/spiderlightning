@@ -66,7 +66,11 @@ impl HttpBody {
             return Ok(owned_body);
         }
 
-        bail!("failed due to HTTP body being too large (size: {}, allowed size: {})", content_length, MAX_ALLOWED_SIZE);
+        bail!(
+            "failed due to HTTP body being too large (size: {}, allowed size: {})",
+            content_length,
+            MAX_ALLOWED_SIZE
+        );
     }
 
     pub fn inner(self) -> Vec<u8> {

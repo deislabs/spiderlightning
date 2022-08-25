@@ -7,6 +7,8 @@ use quote::quote;
 use wit_bindgen_gen_core::{wit_parser::Interface, Direction, Files, Generator};
 use wit_bindgen_gen_rust_wasm::RustWasm;
 
+const HTTP_WIT_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../wit/http-handler.wit");
+
 fn capitalize_first_letter(s: &str) -> String {
     let mut c = s.chars();
     match c.next() {
@@ -20,8 +22,6 @@ fn load_fs(root: &Path, name: &str) -> Result<(PathBuf, String)> {
     let contents = fs::read_to_string(&wit).unwrap();
     Ok((wit, contents))
 }
-
-const HTTP_WIT_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../wit/http-handler.wit");
 
 /// Register handler
 ///
