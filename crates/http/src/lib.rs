@@ -48,13 +48,13 @@ struct Route {
 
 /// A Router implementation for the HTTP interface
 #[derive(Default, Clone, Debug)]
-pub struct RouterProxy {
+pub struct RouterInner {
     /// The root directory of the filesystem
     _base_uri: String,
     routes: Vec<Route>,
 }
 
-impl RouterProxy {
+impl RouterInner {
     fn new(uri: &str) -> Self {
         Self {
             _base_uri: uri.to_string(),
@@ -95,11 +95,11 @@ impl RouterProxy {
 }
 
 #[derive(Clone, Debug)]
-pub struct ServerProxy {
+pub struct ServerInner {
     closer: Arc<Mutex<UnboundedSender<()>>>,
 }
 
-impl ServerProxy {
+impl ServerInner {
     fn close(self) -> Result<(), Error> {
         let closer = self.closer.lock().unwrap();
         thread::scope(|s| {
@@ -170,15 +170,15 @@ impl Http {
 }
 
 impl http::Http for Http {
-    type Router = RouterProxy;
-    type Server = ServerProxy;
+    type Router = RouterInner;
+    type Server = ServerInner;
 
     fn router_new(&mut self) -> Result<Self::Router, Error> {
-        Ok(RouterProxy::default())
+        Ok(RouterInner::default())
     }
 
     fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, Error> {
-        Ok(RouterProxy::new(base))
+        Ok(RouterInner::new(base))
     }
 
     fn router_get(
@@ -287,10 +287,12 @@ impl http::Http for Http {
 
         let arc_tx = Arc::new(Mutex::new(tx));
         self.host_state.closer = Some(arc_tx.clone());
-        Ok(ServerProxy { closer: arc_tx })
+        Ok(ServerInner { closer: arc_tx })
     }
 
     fn server_stop(&mut self, server: &Self::Server) -> Result<(), Error> {
+        // clone is needed here because we have a reference to `ServerInner`,
+        // but we need ownership of `ServerInner` to stop it.
         let clone = server.clone();
         clone.close()
     }
@@ -387,10 +389,15 @@ mod unittests {
             SocketAddr::new([0, 0, 0, 0].into(), 3000)
         );
 
-        assert_eq!(
-            str_to_socket_address("localhost:8080")?,
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
-        );
+        let address = str_to_socket_address("localhost:8080")?;
+        if address.is_ipv4() {
+            assert_eq!(address.ip(), IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
+        } else {
+            assert_eq!(
+                address.ip(),
+                IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1))
+            );
+        }
 
         assert_eq!(
             str_to_socket_address("[::1]:8080")?,

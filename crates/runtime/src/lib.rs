@@ -22,7 +22,6 @@ pub struct Builder {
     linker: Linker<Ctx>,
     store: Store<Ctx>,
     engine: Engine,
-    pub config: Option<Vec<(String, String)>>,
 }
 
 impl Builder {
@@ -44,7 +43,6 @@ impl Builder {
             linker,
             store,
             engine,
-            config: None,
         })
     }
 
