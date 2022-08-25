@@ -99,4 +99,32 @@ macro_rules! impl_resource {
             }
         }
     };
+
+    ($resource:ty, $resource_table:ty, $state:ty, $lt:tt) => {
+        impl<$lt> slight_common::Resource for $resource
+        where
+            $lt: slight_common::Buildable + 'static
+        {}
+        impl<$lt> slight_common::ResourceTables<dyn slight_common::Resource> for $resource_table
+        where
+            $lt: slight_common::Buildable + Send + Sync + 'static
+        {}
+        impl<$lt> slight_common::ResourceBuilder for $resource
+        where
+            $lt: slight_common::Buildable + Send + Sync + 'static
+        {
+            type State = $state;
+
+            fn build(state: Self::State) -> anyhow::Result<slight_common::HostState> {
+                /// We prepare a default resource with host-provided state.
+                /// Then the guest will pass other configuration state to the resource.
+                /// This is done in the `<Capability>::open` function.
+                let mut resource = Self { host_state: state };
+                Ok((
+                    Box::new(resource),
+                    Some(Box::new(<$resource_table>::default())),
+                ))
+            }
+        }
+    };
 }

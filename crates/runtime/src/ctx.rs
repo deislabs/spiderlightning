@@ -78,16 +78,8 @@ impl<T: Buildable + Send + Sync + 'static> SlightCtxBuilder<T> {
                         .insert("kv".to_string(), slight_kv::Kv::build(state).unwrap());
                 }
                 State::Http(state) => {
-                    let resource = slight_http::Http::<T>::from_state(state);
-                    ctx.0.insert(
-                        "http".to_string(),
-                        (
-                            Box::new(resource),
-                            Some(Box::new(<slight_http::http::HttpTables<
-                                slight_http::Http<T>,
-                            >>::default())),
-                        ),
-                    );
+                    ctx.0
+                        .insert("http".to_string(), slight_http::Http::build(state).unwrap());
                 }
                 State::Mq(state) => {
                     ctx.0
@@ -112,15 +104,9 @@ impl<T: Buildable + Send + Sync + 'static> SlightCtxBuilder<T> {
                     );
                 }
                 State::Events(state) => {
-                    let resource = slight_events::Events::<T>::from_state(state);
                     ctx.0.insert(
                         "events".to_string(),
-                        (
-                            Box::new(resource),
-                            Some(Box::new(<slight_events::events::EventsTables<
-                                slight_events::Events<T>,
-                            >>::default())),
-                        ),
+                        slight_events::Events::build(state).unwrap(),
                     );
                 }
             };

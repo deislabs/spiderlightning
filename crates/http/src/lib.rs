@@ -14,7 +14,7 @@ use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
 // use slight_runtime::Ctx;
-use slight_common::{Buildable, Builder, Ctx, HostState};
+use slight_common::{impl_resource, Buildable, Builder, Ctx, HostState};
 use slight_events_api::ResourceMap;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
@@ -360,11 +360,7 @@ fn str_to_socket_address(s: &str) -> Result<SocketAddr> {
     }
 }
 
-impl<T: Buildable + 'static> slight_common::Resource for Http<T> {}
-impl<T: Buildable + Send + Sync + 'static>
-    slight_common::ResourceTables<dyn slight_common::Resource> for http::HttpTables<Http<T>>
-{
-}
+impl_resource!(Http<T>, HttpTables<Http<T>>, HttpState<T>, T);
 
 #[cfg(test)]
 mod unittests {

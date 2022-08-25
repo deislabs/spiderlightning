@@ -5,11 +5,12 @@ use std::{
 
 use anyhow::{Context, Result};
 use crossbeam_utils::thread;
+use events::EventsTables;
 
 use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use slight_common::{Buildable, Builder, Ctx};
+use slight_common::{impl_resource, Buildable, Builder, Ctx};
 use slight_events_api::{AttributesReader, Event, EventHandler, EventParam, ResourceMap};
 use uuid::Uuid;
 
@@ -180,8 +181,4 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
     }
 }
 
-impl<T: Buildable + 'static> slight_common::Resource for Events<T> {}
-impl<T: Buildable + Send + Sync + 'static>
-    slight_common::ResourceTables<dyn slight_common::Resource> for events::EventsTables<Events<T>>
-{
-}
+impl_resource!(Events<T>, EventsTables<Events<T>>, EventsState<T>, T);
