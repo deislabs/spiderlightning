@@ -9,7 +9,7 @@ use hyper::{
 wit_bindgen_wasmtime::import!("../../wit/http-handler.wit");
 wit_error_rs::impl_error!(Error);
 
-/// A owned http_handler::HeadersParam
+/// An owned http_handler::HeadersParam
 ///
 /// It can be directly transformed from `hyper::HeaderMap`
 /// ```rust
@@ -39,7 +39,7 @@ impl<'a> From<&'a hyper::HeaderMap> for HttpHeader<'a> {
     }
 }
 
-/// A owned http_handler::BodyParam
+/// An owned http_handler::BodyParam
 ///
 /// It can be directly transformed from `hyper::Body`
 /// ```rust
@@ -57,7 +57,7 @@ impl HttpBody {
         const MAX_ALLOWED_SIZE: u64 = u64::MAX;
         let content_length = match body.size_hint().upper() {
             Some(v) => v,
-            None => bail!("HTTP Body too large"),
+            None => bail!("failed to read HTTP body size"),
         };
 
         if content_length < MAX_ALLOWED_SIZE {
@@ -66,7 +66,7 @@ impl HttpBody {
             return Ok(owned_body);
         }
 
-        bail!("HTTP body too large")
+        bail!("failed due to HTTP body being too large (size: {}, allowed size: {})", content_length, MAX_ALLOWED_SIZE);
     }
 
     pub fn inner(self) -> Vec<u8> {
@@ -84,7 +84,7 @@ impl From<&hyper::Method> for Method {
             hyper::Method::PATCH => Method::Patch,
             hyper::Method::HEAD => Method::Head,
             hyper::Method::OPTIONS => Method::Options,
-            _ => panic!("unsupported method"),
+            _ => panic!("failed due to unsupported method, currently supported methods are: GET, POST, PUT, DELETE, PATCH, HEAD, and OPTIONS"),
         }
     }
 }

@@ -14,4 +14,4 @@ hyper = "0.14.20"
 anyhow = "1"
 
 [dev-dependencies]
-tokio = { version = "1.4.0", features = ["full"] }
+tokio = { version = "1.4", features = ["full"] }

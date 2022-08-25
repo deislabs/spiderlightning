@@ -26,7 +26,7 @@ const HTTP_WIT_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../wit/http
 /// Register handler
 ///
 /// This macro registers guest function so that the host can reference it in its vtable.
-/// It does a few things
+/// It does a few things:
 ///     - parses guest function.
 ///     - takes the path to `http.wit` file and invoke wit-bindgen to create bindings.
 ///     - replaces the handler function in `http.wit` to the referenced function.
