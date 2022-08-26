@@ -17,7 +17,7 @@ wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "
 slight-runtime = { path = "../runtime" }
 url = "2.2"
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
-routerify = "3.0"
+routerify = "3"
 crossbeam-utils = "0.8"
 crossbeam-channel = "0.5"
 slight-events-api = { path = "../events-api" }

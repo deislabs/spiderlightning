@@ -246,8 +246,8 @@ impl http::Http for Http {
         // There is a one-to-one mapping between the outer router's scope and inner router builder.
         let mut inner_routes = vec![];
         for route in router.routes.iter() {
-            let mut inner_builder: RouterBuilder<Body, anyhow::Error> = Router::builder();
             // per route state
+            let mut inner_builder: RouterBuilder<Body, anyhow::Error> = Router::builder();
             inner_builder = inner_builder.data(route.clone());
             match route.method {
                 Methods::GET => {

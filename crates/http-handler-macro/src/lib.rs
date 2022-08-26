@@ -7,6 +7,8 @@ use quote::quote;
 use wit_bindgen_gen_core::{wit_parser::Interface, Direction, Files, Generator};
 use wit_bindgen_gen_rust_wasm::RustWasm;
 
+const HTTP_WIT_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../wit/http-handler.wit");
+
 fn capitalize_first_letter(s: &str) -> String {
     let mut c = s.chars();
     match c.next() {
@@ -21,12 +23,10 @@ fn load_fs(root: &Path, name: &str) -> Result<(PathBuf, String)> {
     Ok((wit, contents))
 }
 
-const HTTP_WIT_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../wit/http-handler.wit");
-
 /// Register handler
 ///
 /// This macro registers guest function so that the host can reference it in its vtable.
-/// It does a few things
+/// It does a few things:
 ///     - parses guest function.
 ///     - takes the path to `http.wit` file and invoke wit-bindgen to create bindings.
 ///     - replaces the handler function in `http.wit` to the referenced function.

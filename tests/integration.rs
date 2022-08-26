@@ -24,8 +24,8 @@ pub fn run(executable: &str, args: Vec<&str>) {
     }
 }
 
-#[cfg(test)]
 mod integration_tests {
+    #[cfg(test)]
     mod configs_tests {
         use crate::{run, SLIGHT};
         use anyhow::Result;
@@ -64,6 +64,7 @@ mod integration_tests {
         }
     }
 
+    #[cfg(test)]
     mod kv_tests {
         use crate::{run, SLIGHT};
         use anyhow::Result;
@@ -91,4 +92,137 @@ mod integration_tests {
             Ok(())
         }
     }
+
+    #[cfg(unix)]
+    mod http_tests_unix {
+
+        use std::process::Command;
+
+        use crate::SLIGHT;
+        use anyhow::Result;
+        use hyper::{body, client::HttpConnector, Body, Client, Method, Request, StatusCode};
+        use signal_child::Signalable;
+
+        use tokio::{
+            join,
+            time::{sleep, Duration},
+        };
+        // use futures::future::{FutureExt};
+
+        const HTTP_TEST_MODULE: &str = "./tests/http-test/target/wasm32-wasi/debug/http-test.wasm";
+
+        #[tokio::test]
+        async fn http_test() -> Result<()> {
+            let config = "./tests/http-test/slightfile.toml";
+            let mut child = Command::new(SLIGHT)
+                .args(&["-c", config, "run", "-m", HTTP_TEST_MODULE])
+                .spawn()?;
+            sleep(Duration::from_secs(2)).await;
+
+            let client = hyper::Client::new();
+
+            let (res1, res2, res3, res4, res5) = join!(
+                handle_get_request(&client),
+                handle_get_params(&client),
+                handle_put_request(&client),
+                handle_post_request(&client),
+                handle_delete_request(&client),
+            );
+
+            child.interrupt().expect("Error interrupting child");
+            child.wait().ok();
+
+            assert!(res1.is_ok());
+            assert!(res2.is_ok());
+            assert!(res3.is_ok());
+            assert!(res4.is_ok());
+            assert!(res5.is_ok());
+
+            Ok(())
+        }
+
+        async fn handle_get_request(client: &Client<HttpConnector>) -> Result<()> {
+            let res = client.get("http://0.0.0.0:3000/hello".parse()?).await?;
+            assert!(res.status().is_success());
+
+            // curl -X GET http://0.0.0.0:3000/foo
+            let res = client.get("http://0.0.0.0:3000/foo".parse()?).await?;
+            assert!(!res.status().is_success());
+            assert!(res.status().is_server_error());
+
+            // curl -X GET http://0.0.0.0:3000/should_return_404
+            let res = client
+                .get("http://0.0.0.0:3000/should_return_404".parse()?)
+                .await?;
+            assert_eq!(StatusCode::NOT_FOUND, res.status());
+            Ok(())
+        }
+
+        async fn handle_get_params(client: &Client<HttpConnector>) -> Result<()> {
+            // curl -X GET http://0.0.0.0:3000/hello/:name
+            let res = client.get("http://0.0.0.0:3000/person/x".parse()?).await?;
+            assert!(res.status().is_success());
+            let body = res.into_body();
+            let bytes = body::to_bytes(body).await?;
+            assert_eq!(bytes, "hello: x".to_string());
+
+            let res = client
+                .get("http://0.0.0.0:3000/person/yager".parse()?)
+                .await?;
+            assert!(res.status().is_success());
+            let body = res.into_body();
+            let bytes = body::to_bytes(body).await?;
+            assert_eq!(bytes, "hello: yager".to_string());
+
+            // FIXME: there is a exiting issue in Routerify https://github.com/routerify/routerify/issues/118 that
+            //       prevents the following test from working.
+
+            // let mut res = client.get("http://0.0.0.0:3000/person/yager".parse()?).await?;
+            // assert!(res.status().is_success());
+            // let body = res.into_body();
+            // let bytes = body::to_bytes(body).await?;
+            // assert_eq!(bytes, "hello: yager".to_string());
+            Ok(())
+        }
+
+        async fn handle_put_request(client: &Client<HttpConnector>) -> Result<()> {
+            let req = Request::builder()
+                .method(Method::PUT)
+                .uri("http://0.0.0.0:3000/bar")
+                .body(Body::from("Hallo!"))
+                .expect("request builder");
+
+            // curl -X PUT http://0.0.0.0:3000/bar
+            let res = client.request(req).await?;
+            assert!(res.status().is_success());
+            Ok(())
+        }
+
+        async fn handle_post_request(client: &Client<HttpConnector>) -> Result<()> {
+            let req = Request::builder()
+                .method(Method::POST)
+                .uri("http://0.0.0.0:3000/upload")
+                .body(Body::from("Hallo!"))
+                .expect("request builder");
+
+            // curl -X POST http://0.0.0.0:3000/upload
+            let res = client.request(req).await?;
+            assert!(res.status().is_success());
+            Ok(())
+        }
+
+        async fn handle_delete_request(client: &Client<HttpConnector>) -> Result<()> {
+            let req = Request::builder()
+                .method(Method::DELETE)
+                .uri("http://0.0.0.0:3000/delete-file")
+                .body(Body::from("Hallo!"))
+                .expect("request builder");
+
+            // curl -X DELETE http://0.0.0.0:3000/upload
+            let res = client.request(req).await?;
+            assert!(res.status().is_success());
+            Ok(())
+        }
+    }
+    // TODO: We need to mq_test, lockd_test, and pubsub_test modules
 }
