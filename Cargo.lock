@@ -672,27 +672,26 @@ dependencies = [
 
 [[package]]
 name = "azure_core"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0e2c7582699a3af9cc8a7bc81259519d8afb8eded1090d4fcd86de3db0eace1"
+checksum = "e6e66a6d993197d1b575cffd08bf725e04bc1414de6586baeb3537925e49b4ff"
 dependencies = [
  "async-trait",
  "base64 0.13.0",
  "bytes 1.2.1",
- "chrono",
  "dyn-clone",
  "futures",
  "getrandom 0.2.7",
- "http",
+ "http-types",
  "log",
- "oauth2",
+ "paste",
  "pin-project",
  "rand 0.8.5",
  "reqwest",
  "rustc_version 0.4.0",
  "serde",
- "serde_derive",
  "serde_json",
+ "time 0.3.13",
  "url",
  "uuid 1.1.2",
 ]
@@ -716,19 +715,17 @@ dependencies = [
 
 [[package]]
 name = "azure_storage"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1a5bc29e999268e618c202f157291930d749f1e4de55e01ecfda3990dd37dc7"
+checksum = "55aa63fb0426c76b9cc909234e94e69764f5e777a62b7ed6411f3cc04aa94a16"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core 0.3.0",
+ "azure_core 0.4.0",
  "base64 0.13.0",
  "bytes 1.2.1",
- "chrono",
  "futures",
  "hmac 0.12.1",
- "http",
  "log",
  "once_cell",
  "serde",
@@ -736,30 +733,30 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "sha2 0.10.2",
+ "time 0.3.13",
  "url",
  "uuid 1.1.2",
 ]
 
 [[package]]
 name = "azure_storage_blobs"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2baa5f9f6c9e4ee9d096d2e21d21c4a5f120e9a0bbcd3ee7c8abb74b008b631"
+checksum = "33f953cedd7c240347ed0f6ed8a0bd7472b32579c38341ab9e117eaa6173e9ba"
 dependencies = [
  "RustyXML",
- "azure_core 0.3.0",
+ "azure_core 0.4.0",
  "azure_storage",
  "base64 0.13.0",
  "bytes 1.2.1",
- "chrono",
  "futures",
- "http",
  "log",
  "md5",
  "serde",
  "serde-xml-rs",
  "serde_derive",
  "serde_json",
+ "time 0.3.13",
  "url",
  "uuid 1.1.2",
 ]
@@ -3689,7 +3686,7 @@ dependencies = [
  "anyhow",
  "aws-config",
  "aws-sdk-dynamodb",
- "azure_core 0.3.0",
+ "azure_core 0.4.0",
  "azure_storage",
  "azure_storage_blobs",
  "bytes 1.2.1",
@@ -4105,7 +4102,7 @@ dependencies = [
  "libc",
  "standback",
  "stdweb",
- "time-macros",
+ "time-macros 0.1.1",
  "version_check",
  "winapi",
 ]
@@ -4116,8 +4113,11 @@ version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db76ff9fa4b1458b3c7f077f3ff9887394058460d21e634355b273aaf11eea45"
 dependencies = [
+ "itoa",
  "libc",
  "num_threads",
+ "serde",
+ "time-macros 0.2.4",
 ]
 
 [[package]]
@@ -4129,6 +4129,12 @@ dependencies = [
  "proc-macro-hack",
  "time-macros-impl",
 ]
+
+[[package]]
+name = "time-macros"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42657b1a6f4d817cda8e7a0ace261fe0cc946cf3a80314390b22cc61ae080792"
 
 [[package]]
 name = "time-macros-impl"
