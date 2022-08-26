@@ -111,7 +111,6 @@ impl ServerInner {
 }
 
 /// Http capability
-// #[derive(Default)]
 pub struct Http<T: Buildable> {
     host_state: HttpState<T>,
 }
