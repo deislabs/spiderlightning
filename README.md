@@ -58,3 +58,12 @@ WASI's primary goal is to provide operating system abstractions for Wasm applica
 ### What is the difference between SpiderLightning and Dapr?
 
 SpiderLightning and Dapr share the same goal of providing capabilities to distributed applications, but each project's approach to achieving this goal is very different. For example, while Dapr runs as a sidecar container and provides an HTTP/gRPC interface for applications, SpiderLightning's chooses not take a dependency on network transport protocols. Instead, `slight` links applications directly to generated WASM bindings, then executes them directly.
+
+### Why the name "SpiderLightning"?
+
+<figure style="float:right;margin:.1em">
+    <img src="docs/images/readme2.jpg" width="320px" />
+    <figcaption>Spider Lightning picture by <a href="https://www.flickr.com/photos/sambarricklow/">Sam Barricklow</a></figcaption>
+</figure>
+
+Spider Lightning is the name of a phenomenon of "long, horizontally travelling flashes often seen on the underside of [..] clouds" (source: [nssl](https://www.nssl.noaa.gov/education/svrwx101/lightning/types/#:~:text=Spider%20lightning%20refers%20to%20long,often%20linked%20to%20%2BCG%20flashes.)), pictured on the right. From that and from the fact we are developing SpiderLightning/`slight` based off of **Web**Assembly's lightning-fast technologies, the name fit.
