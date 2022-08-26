@@ -1,0 +1,29 @@
+{
+	"name": "Codespaces Rust Starter",
+	"extensions": [
+		"matklad.rust-analyzer",
+		"serayuzgur.crates",
+		"vadimcn.vscode-lldb",
+		"ms-vscode.makefile-tools",
+		"ms-vscode.cpptools-extension-pack"
+	],
+	"dockerFile": "Dockerfile",
+	"settings": {
+		"editor.formatOnSave": true,
+		"terminal.integrated.profiles.linux": {
+			"zsh": {
+				"path": "/usr/bin/zsh",
+				"environment": [
+					"RUST_BACKTRACE=1",
+					"RUST_LOG=debug",
+					"RUST_LOG_STYLE=always"
+				]
+			}
+		},
+		"terminal.integrated.defaultProfile.linux": "zsh",
+		"files.exclude": {
+			"**/CONTRIBUTING.md": true,
+			"**/LICENSE": true
+		}
+	}
+}
