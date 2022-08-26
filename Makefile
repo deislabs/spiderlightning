@@ -37,7 +37,13 @@ install-deps:
 	sudo rm -rf wasi-sdk-*
 
 .PHONY: install-deps-macos
-install-deps-macos: install-deps
+install-deps-macos:
+	set -x
+	curl -sS -L -O https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-macos.tar.gz
+	tar xf wasi-sdk-15.0-macos.tar.gz
+	sudo mkdir -p /opt/wasi-sdk
+	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
+	sudo rm -rf wasi-sdk-*
 	chmod +x /opt/wasi-sdk/bin/clang
 	brew install openssl
 
@@ -115,6 +121,13 @@ build-c:
 	$(MAKE) -C examples/multi_capability-demo-clang/ clean
 	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
 	$(MAKE) -C examples/multi_capability-demo-clang/ build
+
+.PHONY: build-c-win
+build-c-win:
+	$(MAKE) -C examples/multi_capability-demo-clang/ clean
+	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
+	$(MAKE) -C examples/multi_capability-demo-clang/ build-win
+
 
 .PHONY: run-c
 run-c:

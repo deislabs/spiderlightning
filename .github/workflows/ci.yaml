@@ -14,30 +14,107 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - os: "ubuntu-latest"
+            extension: ""
+            platformAgnosticChecks: true
+          - os: "macos-latest"
+            extension: ""
+            extraArgs: ""
+          - os: "windows-latest"
+            extension: ".exe"
+            extraArgs: ""
 
     steps:
+      # 
+      # Update build environment
+      #
       - uses: actions/checkout@v2
+      
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
+      
       - uses: Swatinem/rust-cache@v1
-      - name: "Install Dependencies"
+      
+      # 
+      # Install build tools
+      #
+      - name: "Install make tool on Windows"
+        run: choco install make -y
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+      
+      - name: "Install Dependencies on Linux"
         run: make install-deps
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+      - name: "Install Dependencies on MacOS"
+        run: make install-deps-macos
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+      - name: "Install Dependencies on Windows"
+        run: |
+          choco install wget
+          wget -O wasi-sdk-15.0-mingw.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
+          tar -xvzf wasi-sdk-15.0-mingw.tar.gz
+          mkdir -p /opt/wasi-sdk
+          mv wasi-sdk-15.0/* /opt/wasi-sdk/
+          make install-deps-win
+
+          ls /opt/wasi-sdk/bin/
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        
+      
       - name: "Install Rust Wasm targets"
         run: |
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
+
       - name: "Install wit-bindgen-cli"
         run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --rev a79a4be33d76ddf62839ba71602c26a96610ef7c
+      
+      #
+      # Build
+      #
       - name: "Run clippy and fmt"
         run: make improve        
+        if: ${{ matrix.config.platformAgnosticChecks }}
+
       - name: "Build SpiderLightning and Slight"
         run: make build
+        if: ${{ matrix.config.platformAgnosticChecks }}
+
+      - name: "Build SpiderLightning and Slight"
+        run: make build
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+        env:
+          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
+
+      - name: "Build SpiderLightning and Slight"
+        run: make build
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        env:
+          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+
       - name: "Build Rust Examples"
         run: make build-rust
+
       - name: "Build C Examples"
-        run: make build-c
+        run: | 
+          ls /opt/wasi-sdk/bin/
+          make build-c
+        if: ${{ fromJSON(matrix.config.os != 'windows-latest') }}
+      
+      - name: "Build C Examples"
+        run: |
+          ls /opt/wasi-sdk/bin/
+          make build-c-win
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      #
+      # Run Unit Tests
+      #
       - name: "Run Unit Tests"
         run: make test
