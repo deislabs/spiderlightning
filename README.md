@@ -61,9 +61,6 @@ SpiderLightning and Dapr share the same goal of providing capabilities to distri
 
 ### Why the name "SpiderLightning"?
 
-<span style="float:right">
-<img src="docs/images/readme2.jpg" width="320px"/>
-<p style="color:grey">Spider Lightning picture by <a href="https://www.flickr.com/photos/sambarricklow/">Sam Barricklow</a></p>
-</span>
+<img align="right" margin=".1em" src="docs/images/readme2.jpg"/>
 
 Spider Lightning is the name of a phenomenon of "long, horizontally travelling flashes often seen on the underside of [..] clouds" (source: [nssl](https://www.nssl.noaa.gov/education/svrwx101/lightning/types/#:~:text=Spider%20lightning%20refers%20to%20long,often%20linked%20to%20%2BCG%20flashes.)), pictured on the right. From that and from the fact we are developing SpiderLightning/`slight` based off of **Web**Assembly's lightning-fast technologies, the name fit.
