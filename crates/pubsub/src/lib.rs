@@ -1,16 +1,12 @@
 mod implementors;
 pub mod providers;
 
-/// The `SCHEME_NAME` defines the name under which a resource is
-/// identifiable by in a `ResourceMap`.
-const SCHEME_NAME: &str = "pubsub";
-
 use anyhow::Result;
 
 use implementors::apache_kafka::{
     PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor,
 };
-use slight_runtime::{impl_resource, resource::BasicState};
+use slight_common::{impl_resource, BasicState};
 use uuid::Uuid;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -33,12 +29,7 @@ pub struct Pubsub {
     host_state: PubsubState,
 }
 
-impl_resource!(
-    Pubsub,
-    pubsub::PubsubTables<Pubsub>,
-    PubsubState,
-    SCHEME_NAME.to_string()
-);
+impl_resource!(Pubsub, pubsub::PubsubTables<Pubsub>, PubsubState);
 
 /// This is the type of the `host_state` property from our `Pubsub` structure.
 ///
@@ -49,6 +40,7 @@ impl_resource!(
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `config_toml_file_path`).
+#[derive(Clone, Default)]
 pub struct PubsubState {
     pubsub_implementor: String,
     slight_state: BasicState,
@@ -166,7 +158,7 @@ pub struct PubInner {
     resource_descriptor: String,
 }
 
-impl slight_runtime::resource::Watch for PubInner {}
+impl slight_events_api::Watch for PubInner {}
 
 impl PubInner {
     fn new(pub_implementor: &str, slight_state: &BasicState) -> Self {
@@ -197,7 +189,7 @@ pub struct SubInner {
     resource_descriptor: String,
 }
 
-impl slight_runtime::resource::Watch for SubInner {}
+impl slight_events_api::Watch for SubInner {}
 
 impl SubInner {
     fn new(sub_implementor: &str, slight_state: &BasicState) -> Self {

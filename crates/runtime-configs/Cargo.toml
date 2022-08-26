@@ -11,7 +11,7 @@ doctest = false
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
 anyhow = "1"
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
-slight-runtime = { path = "../runtime" }
+slight-common = { path = "../common" }
 argon2rs = "0.2"
 rand = "0.8"
 crossbeam-channel = "0.5"

@@ -1,59 +1,49 @@
 use std::{
-    ops::DerefMut,
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
 use anyhow::{Context, Result};
 use crossbeam_utils::thread;
+use events::EventsTables;
 
 use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use slight_events_api::{AttributesReader, Event, EventHandler, EventParam};
-
-use slight_runtime::{
-    impl_resource,
-    resource::{Ctx, ResourceMap},
-};
+use slight_common::{impl_resource, Buildable, Builder, Ctx};
+use slight_events_api::{AttributesReader, Event, EventHandler, EventParam, ResourceMap};
 use uuid::Uuid;
-use wasmtime::Store;
 
-use crate::events::add_to_linker;
 wit_bindgen_wasmtime::export!("../../wit/events.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
-const SCHEME_NAME: &str = "events";
-
 /// Events capability
 #[derive(Default)]
-pub struct Events {
-    host_state: EventsState,
+pub struct Events<T: Buildable> {
+    host_state: EventsState<T>,
 }
 
-#[derive(Default)]
-pub struct EventsState {
-    resource_map: ResourceMap,
-    event_handler: Option<Arc<Mutex<EventHandler<Ctx>>>>,
-    store: Option<Arc<Mutex<Store<Ctx>>>>,
-}
-
-impl EventsState {
-    pub fn new(resource_map: ResourceMap) -> Self {
-        Self {
-            resource_map,
-            ..Default::default()
-        }
+impl<T: Buildable> Events<T> {
+    pub fn from_state(host_state: EventsState<T>) -> Self {
+        Self { host_state }
     }
 }
 
-impl_resource!(
-    Events,
-    events::EventsTables<Events>,
-    EventsState,
-    SCHEME_NAME.to_string()
-);
+#[derive(Default, Clone)]
+pub struct EventsState<T: Buildable> {
+    resource_map: ResourceMap,
+    builder: Option<Builder<T>>,
+}
+
+impl<T: Buildable> EventsState<T> {
+    pub fn new(resource_map: ResourceMap) -> Self {
+        Self {
+            resource_map,
+            builder: None,
+        }
+    }
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct EventsGuest {
@@ -81,20 +71,15 @@ impl From<GeneratedObservable<'_>> for Observable {
     }
 }
 
-impl Events {
+impl<T: Buildable> Events<T> {
     /// Host will call this function to update store and event_handler
-    pub fn update_state(
-        &mut self,
-        store: Arc<Mutex<Store<Ctx>>>,
-        event_handler: Arc<Mutex<EventHandler<Ctx>>>,
-    ) -> Result<()> {
-        self.host_state.event_handler = Some(event_handler);
-        self.host_state.store = Some(store);
+    pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
+        self.host_state.builder = Some(builder);
         Ok(())
     }
 }
 
-impl events::Events for Events {
+impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
     type Events = EventsGuest;
     fn events_get(&mut self) -> Result<Self::Events, Error> {
         Ok(Default::default())
@@ -128,8 +113,7 @@ impl events::Events for Events {
         thread::scope(|s| -> Result<()> {
             let mut thread_handles = vec![];
             for ob in &self_.observables {
-                let handler = self.host_state.event_handler.as_ref().unwrap().clone();
-                let store = self.host_state.store.as_mut().unwrap().clone();
+                let builder = self.host_state.builder.as_ref().unwrap().clone();
                 let receiver = ob.receiver.clone();
                 let receive_thread = s.spawn(move |_| loop {
                     let recv = receiver
@@ -138,7 +122,10 @@ impl events::Events for Events {
                         .recv_deadline(Instant::now() + Duration::from_secs(duration));
                     match recv {
                         Ok(mut event) => {
-                            let mut store = store.lock().unwrap();
+                            let (mut store, instance) = builder.inner().build();
+                            let handler = EventHandler::new(&mut store, &instance, |ctx| {
+                                ctx.get_events_state_mut()
+                            })?;
                             let spec = event.specversion();
                             let data: Option<String> = event.take_data().2.map(|d| {
                                 d.try_into().unwrap_or_else(|e| {
@@ -161,10 +148,7 @@ impl events::Events for Events {
                                 subject: event.subject(),
                                 time: time.as_deref(),
                             };
-                            let event_res = handler
-                                .lock()
-                                .unwrap()
-                                .handle_event(store.deref_mut(), event_param);
+                            let event_res = handler.handle_event(&mut store, event_param);
                             match event_res {
                                 Ok(_) => (),
                                 Err(e) => {
@@ -196,3 +180,5 @@ impl events::Events for Events {
         Ok(())
     }
 }
+
+impl_resource!(Events<T>, EventsTables<Events<T>>, EventsState<T>, T);

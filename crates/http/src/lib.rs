@@ -2,7 +2,7 @@
 
 use std::iter::zip;
 use std::net::{SocketAddr, ToSocketAddrs};
-use std::ops::{Deref, DerefMut};
+
 use std::sync::{Arc, Mutex};
 
 use anyhow::{bail, Result};
@@ -13,22 +13,17 @@ use http::*;
 use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
-use slight_runtime::{
-    impl_resource,
-    resource::{Ctx, ResourceMap},
-};
-
+// use slight_runtime::Ctx;
+use slight_common::{impl_resource, Buildable, Builder, Ctx, HostState};
+use slight_events_api::ResourceMap;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
 
 use slight_http_api::{HttpBody, HttpHandler, HttpHeader, Method, Request};
-use wasmtime::{Instance, Store};
 
 wit_bindgen_wasmtime::export!("../../wit/http.wit");
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
-
-const SCHEME_NAME: &str = "http";
 
 #[derive(Clone, Debug, Default)]
 enum Methods {
@@ -116,49 +111,20 @@ impl ServerInner {
 }
 
 /// Http capability
-#[derive(Default)]
-pub struct Http {
-    host_state: HttpState,
+pub struct Http<T: Buildable> {
+    host_state: HttpState<T>,
 }
-impl Http {
-    pub fn update_state(
-        &mut self,
-        store: Arc<Mutex<Store<Ctx>>>,
-        instance: Arc<Mutex<Instance>>,
-    ) -> Result<()> {
-        self.host_state.store = Some(store);
-        self.host_state.instance = Some(instance);
+
+impl<T: Buildable> Http<T> {
+    pub fn from_state(host_state: HttpState<T>) -> Self {
+        Self { host_state }
+    }
+}
+
+impl<T: Buildable + Send + Sync + 'static> Http<T> {
+    pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
+        self.host_state.builder = Some(builder);
         Ok(())
-    }
-}
-
-#[derive(Default)]
-pub struct HttpState {
-    _resource_map: ResourceMap,
-    store: Option<Arc<Mutex<Store<Ctx>>>>,
-    instance: Option<Arc<Mutex<Instance>>>,
-    closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
-}
-
-impl HttpState {
-    pub fn new(_resource_map: ResourceMap) -> Self {
-        Self {
-            _resource_map,
-            ..Default::default()
-        }
-    }
-}
-
-impl_resource!(
-    Http,
-    http::HttpTables<Http>,
-    HttpState,
-    SCHEME_NAME.to_string()
-);
-
-impl Http {
-    pub fn update_store(mut self, store: Arc<Mutex<Store<Ctx>>>) {
-        self.host_state.store = Some(store);
     }
 
     pub fn close(&mut self) {
@@ -167,9 +133,34 @@ impl Http {
             let _ = c.lock().unwrap().send(());
         }
     }
+
+    pub fn build_state(state: HttpState<T>) -> HostState {
+        let http = Self { host_state: state };
+        (
+            Box::new(http),
+            Some(Box::new(http::HttpTables::<Http<T>>::default())),
+        )
+    }
 }
 
-impl http::Http for Http {
+#[derive(Clone)]
+pub struct HttpState<T: Buildable> {
+    _resource_map: ResourceMap,
+    builder: Option<Builder<T>>,
+    closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
+}
+
+impl<T: Buildable> HttpState<T> {
+    pub fn new(_resource_map: ResourceMap) -> Self {
+        Self {
+            _resource_map,
+            builder: None,
+            closer: None,
+        }
+    }
+}
+
+impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
     type Router = RouterInner;
     type Server = ServerInner;
 
@@ -235,13 +226,12 @@ impl http::Http for Http {
         router: &Self::Router,
     ) -> Result<Self::Server, Error> {
         // Shared states for all routes
-        let store = self.host_state.store.as_mut().unwrap().clone();
-        let instance = self.host_state.instance.as_mut().unwrap().clone();
+        let instance_builder = self.host_state.builder.as_ref().unwrap().clone();
 
         // The outer builder is used to define the route paths, while creating a scope
         // for the inner builder which passes states to the route handler.
         let mut outer_builder: RouterBuilder<Body, anyhow::Error> =
-            Router::builder().data(store).data(instance);
+            Router::builder().data(instance_builder);
 
         // There is a one-to-one mapping between the outer router's scope and inner router builder.
         let mut inner_routes = vec![];
@@ -251,16 +241,16 @@ impl http::Http for Http {
             inner_builder = inner_builder.data(route.clone());
             match route.method {
                 Methods::GET => {
-                    inner_builder = inner_builder.get("/", handler);
+                    inner_builder = inner_builder.get("/", handler::<T>);
                 }
                 Methods::PUT => {
-                    inner_builder = inner_builder.put("/", handler);
+                    inner_builder = inner_builder.put("/", handler::<T>);
                 }
                 Methods::POST => {
-                    inner_builder = inner_builder.post("/", handler);
+                    inner_builder = inner_builder.post("/", handler::<T>);
                 }
                 Methods::DELETE => {
-                    inner_builder = inner_builder.delete("/", handler);
+                    inner_builder = inner_builder.delete("/", handler::<T>);
                 }
             }
             inner_routes.push(inner_builder.build().unwrap());
@@ -298,22 +288,17 @@ impl http::Http for Http {
     }
 }
 
-async fn handler(request: hyper::Request<Body>) -> Result<hyper::Response<Body>> {
+async fn handler<T: Buildable + Send + Sync + 'static>(
+    request: hyper::Request<Body>,
+) -> Result<hyper::Response<Body>> {
     log::debug!("received request: {:?}", &request);
     let (parts, body) = request.into_parts();
 
-    // Fetch states from the request, including Store, Instance and the route name.
+    // Fetch states from the request, including the route name and builder.
     let route = parts.data::<Route>().unwrap();
-    let mut store = parts
-        .data::<Arc<Mutex<Store<Ctx>>>>()
-        .unwrap()
-        .lock()
-        .unwrap();
-    let instance = parts
-        .data::<Arc<Mutex<Instance>>>()
-        .unwrap()
-        .lock()
-        .unwrap();
+
+    let instance_builder = parts.data::<Builder<T>>().unwrap();
+    let (mut store, instance) = instance_builder.inner().build();
 
     // Perform conversion from the `hyper::Request` to `handle_http::Request`.
     let params = parts.params();
@@ -338,23 +323,21 @@ async fn handler(request: hyper::Request<Body>) -> Result<hyper::Response<Body>>
     };
 
     // Construct http handler
-    let mut handler = HttpHandler::new(store.deref_mut(), instance.deref(), |ctx| {
-        &mut ctx.http_state
-    })
-    .unwrap();
+    let mut handler =
+        HttpHandler::new(&mut store, &instance, |ctx| ctx.get_http_state_mut()).unwrap();
 
     // Perform the http request
     log::debug!("Invoking guest handler {}", &route.handler,);
     let func = instance
         .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,), _>(
-            store.deref_mut(),
+            &mut store,
             &route.handler.replace('_', "-"),
         );
     if func.is_err() {
         bail!("Failed to find guest function {}", &route.handler);
     }
     handler.handle_http = func.unwrap(); // unwrap is safe because we checked above
-    let res = handler.handle_http(store.deref_mut(), req)??;
+    let res = handler.handle_http(&mut store, req)??;
     log::debug!("response: {:?}", res);
 
     // Perform the conversion from `handle_http::Response` to `hyper::Response`.
@@ -375,6 +358,8 @@ fn str_to_socket_address(s: &str) -> Result<SocketAddr> {
         Err(e) => bail!("could not parse address: {} due to {}", s, e),
     }
 }
+
+impl_resource!(Http<T>, HttpTables<Http<T>>, HttpState<T>, T);
 
 #[cfg(test)]
 mod unittests {

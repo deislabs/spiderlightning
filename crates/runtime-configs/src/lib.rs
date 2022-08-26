@@ -1,14 +1,10 @@
 pub mod implementors;
 
-/// The `SCHEME_NAME` defines the name under which a resource is
-/// identifiable by in a `ResourceMap`.
-const SCHEME_NAME: &str = "configs";
-
 use anyhow::Result;
 use uuid::Uuid;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
-use slight_runtime::{impl_resource, resource::BasicState};
+use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -26,12 +22,7 @@ pub struct Configs {
     host_state: ConfigsState,
 }
 
-impl_resource!(
-    Configs,
-    configs::ConfigsTables<Configs>,
-    ConfigsState,
-    SCHEME_NAME.to_string()
-);
+impl_resource!(Configs, configs::ConfigsTables<Configs>, ConfigsState);
 
 /// This is the type of the `host_state` property from our `Configs` structure.
 ///
@@ -42,6 +33,7 @@ impl_resource!(
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `config_toml_file_path`).
+#[derive(Clone, Default)]
 pub struct ConfigsState {
     pub configs_implementor: String,
     pub slight_state: BasicState,
@@ -130,7 +122,7 @@ impl ConfigsInner {
     }
 }
 
-impl slight_runtime::resource::Watch for ConfigsInner {}
+impl slight_events_api::Watch for ConfigsInner {}
 
 /// This defines the available implementor implementations for the `Configs` interface.
 ///

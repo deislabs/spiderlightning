@@ -36,4 +36,5 @@ members = [
     "crates/events",
     "crates/events-api",
     "crates/runtime-configs",
+    "crates/common",
 ]
