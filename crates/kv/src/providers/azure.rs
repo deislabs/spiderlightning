@@ -1,6 +1,5 @@
 use anyhow::Result;
 use azure_storage_blobs::prelude::{BlobClient, DeleteSnapshotsMethod};
-use bytes::Bytes;
 use futures::stream::StreamExt;
 
 /// Get the value given a `blob_client`

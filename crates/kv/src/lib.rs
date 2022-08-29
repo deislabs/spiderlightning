@@ -99,6 +99,7 @@ impl slight_runtime::resource::Watch for KvInner {
 /// This defines the available implementor implementations for the `Kv` interface.
 ///
 /// As per its' usage in `KvInner`, it must `derive` `Debug`, and `Clone`.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 enum KvImplementors {
     Filesystem(FilesystemImplementor),

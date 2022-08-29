@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
 use anyhow::{Context, Result};
 use azure_storage::clients::StorageClient;
-use azure_storage_blobs::prelude::{AsBlobServiceClient, AsContainerClient, ContainerClient};
+use azure_storage_blobs::prelude::{AsContainerClient, ContainerClient};
 use futures::executor::block_on;
 use slight_runtime::resource::BasicState;
 
