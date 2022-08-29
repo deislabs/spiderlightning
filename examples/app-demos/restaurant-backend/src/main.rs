@@ -12,7 +12,7 @@ fn main() -> Result<()> {
     let router = http::Router::new()?;
     let router_with_route = router
         .post("/orders/", "handle_make_order")?
-        .get("/orders/next", "handle_get_next_order")?;
+        .get("/orders/next/", "handle_get_next_order")?;
     let _ = http::Server::serve("0.0.0.0:3000", &router_with_route)?;
     Ok(())
 }

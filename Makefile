@@ -122,12 +122,12 @@ run-c:
 ### END OF C EXAMPLES
 
 ### APP DEMO
-.PHONY: build-server
-build-server:
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/app-demo/restaurant-backend/Cargo.toml
+.PHONY: build-app-demos
+build-app-demos:
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/app-demos/restaurant-backend/Cargo.toml
 
-.PHONY: run-server
-run-server:
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c ./examples/app-demo/restaurant-backend/slightfile.toml run -m ./examples/app-demo/restaurant-backend/target/wasm32-wasi/release/restaurant-backend.wasm
+.PHONY: run-restaurant-backend
+run-restaurant-backend:
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c ./examples/app-demos/restaurant-backend/slightfile.toml run -m ./examples/app-demos/restaurant-backend/target/wasm32-wasi/release/restaurant-backend.wasm
 	
 ### END OF APP DEMO
