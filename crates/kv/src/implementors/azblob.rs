@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
 use anyhow::{Context, Result};
-use azure_storage::clients::StorageAccountClient;
-use azure_storage_blobs::prelude::{AsBlobClient, AsContainerClient, ContainerClient};
+use azure_storage::clients::StorageClient;
+use azure_storage_blobs::prelude::{AsContainerClient, ContainerClient};
 use futures::executor::block_on;
 use slight_common::BasicState;
 
@@ -17,7 +15,7 @@ use crate::providers::azure;
 /// As per its' usage in `KvImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
 pub struct AzBlobImplementor {
-    container_client: Option<Arc<ContainerClient>>,
+    container_client: ContainerClient,
 }
 
 impl AzBlobImplementor {
@@ -53,30 +51,21 @@ impl AzBlobImplementor {
         )
         .unwrap();
 
-        let http_client = azure_core::new_http_client();
-        let container_client = Some(
-            StorageAccountClient::new_access_key(
-                http_client.clone(),
-                storage_account_name,
-                storage_account_key,
-            )
-            .as_container_client(name),
-        );
+        let container_client =
+            StorageClient::new_access_key(storage_account_name, storage_account_key)
+                .container_client(name);
         Self { container_client }
     }
 
     pub fn get(&self, key: &str) -> Result<Vec<u8>> {
-        let inner = self.container_client.as_ref().unwrap();
-        let blob_client = inner.as_blob_client(key);
+        let blob_client = self.container_client.blob_client(key);
         let res = block_on(azure::get(blob_client))
             .with_context(|| format!("failed to get value for key {}", key))?;
         Ok(res)
     }
 
     pub fn set(&self, key: &str, value: &[u8]) -> Result<()> {
-        let inner = self.container_client.as_ref().unwrap();
-
-        let blob_client = inner.as_blob_client(key);
+        let blob_client = self.container_client.blob_client(key);
         let value = Vec::from(value);
         block_on(azure::set(blob_client, value))
             .with_context(|| format!("failed to set value for key '{}'", key))?;
@@ -84,8 +73,7 @@ impl AzBlobImplementor {
     }
 
     pub fn delete(&self, key: &str) -> Result<()> {
-        let inner = &self.container_client.as_ref().unwrap();
-        let blob_client = inner.as_blob_client(key);
+        let blob_client = self.container_client.blob_client(key);
         block_on(azure::delete(blob_client)).with_context(|| "failed to delete key's value")?;
         Ok(())
     }

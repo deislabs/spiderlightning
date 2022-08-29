@@ -1,35 +1,40 @@
 use anyhow::Result;
-use azure_storage_blobs::prelude::BlobClient;
-use bytes::Bytes;
-use std::sync::Arc;
+use azure_storage_blobs::prelude::{BlobClient, DeleteSnapshotsMethod};
+use futures::stream::StreamExt;
 
 /// Get the value given a `blob_client`
-pub async fn get(blob_client: Arc<BlobClient>) -> Result<Vec<u8>> {
-    let res = blob_client
-        .get()
-        .execute()
-        .await
-        .map_err(|e| anyhow::anyhow!("{:?}", e))?;
-    Ok(Bytes::from(res.data.to_vec()).to_vec())
+pub async fn get(blob_client: BlobClient) -> Result<Vec<u8>> {
+    let mut stream = blob_client.get().chunk_size(128u64).into_stream();
+    let mut result = vec![];
+    // The stream is composed of individual calls to the get blob endpoint
+    while let Some(value) = stream.next().await {
+        let mut body = value?.data;
+        // For each response, we stream the body instead of collecting it all into one large allocation.
+        while let Some(value) = body.next().await {
+            let value = value?;
+            println!("received {:?} bytes", value.len());
+            result.extend(&value);
+        }
+    }
+    Ok(result)
 }
 
 /// Set the value given a `blob_client` and `value`
-pub async fn set(blob_client: Arc<BlobClient>, value: Vec<u8>) -> Result<()> {
+pub async fn set(blob_client: BlobClient, value: Vec<u8>) -> Result<()> {
     blob_client
         .put_block_blob(value)
         .content_type("text/plain")
-        .execute()
-        .await
-        .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+        .into_future()
+        .await?;
     Ok(())
 }
 
 /// Delete the `value` given a `blob_client`
-pub async fn delete(blob_client: Arc<BlobClient>) -> Result<()> {
+pub async fn delete(blob_client: BlobClient) -> Result<()> {
     blob_client
         .delete()
-        .execute()
-        .await
-        .map_err(|e| anyhow::anyhow!("{:?}", e))?;
+        .delete_snapshots_method(DeleteSnapshotsMethod::Include)
+        .into_future()
+        .await?;
     Ok(())
 }

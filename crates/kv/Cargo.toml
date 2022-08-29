@@ -19,9 +19,9 @@ uuid = { version = "1.1", features = ["v4"] }
 crossbeam-channel = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 # kv.azblob deps
-azure_storage_blobs = "0.4"
-azure_storage = "0.4"
-azure_core = "0.3"
+azure_storage_blobs = "0.5"
+azure_storage = "0.5"
+azure_core = "0.4"
 bytes = "1"
 futures = "0.3"
 # kv.filesystem deps

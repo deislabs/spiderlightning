@@ -44,12 +44,6 @@ fn main() -> Result<()> {
     let value = kv3.get("");
     assert!(value.is_err());
 
-    // test get_kv() with empty name
-    //
-    // FIXME: not sure if this should be an error or success.
-    let kv4 = Kv::open("random4")?;
-    let _ret = kv4.delete("key");
-
     println!("finished running kv-test");
     Ok(())
 }
