@@ -133,3 +133,14 @@ build-c-win:
 run-c:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./examples/mq-sender-demo/target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
 ### END OF C EXAMPLES
+
+### APP DEMO
+.PHONY: build-app-demos
+build-app-demos:
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/app-demos/restaurant-backend/Cargo.toml
+
+.PHONY: run-restaurant-backend
+run-restaurant-backend:
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c ./examples/app-demos/restaurant-backend/slightfile.toml run -m ./examples/app-demos/restaurant-backend/target/wasm32-wasi/release/restaurant-backend.wasm
+	
+### END OF APP DEMO
