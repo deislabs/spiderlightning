@@ -24,7 +24,7 @@ impl AzBlobImplementor {
             slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_STORAGE_ACCOUNT",
-                &slight_state.config_toml_file_path,
+                &slight_state.slightfile_path,
             )
             .with_context(|| {
                 format!(
@@ -39,7 +39,7 @@ impl AzBlobImplementor {
             slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_STORAGE_KEY",
-                &slight_state.config_toml_file_path,
+                &slight_state.slightfile_path,
             )
             .with_context(|| {
                 format!(
