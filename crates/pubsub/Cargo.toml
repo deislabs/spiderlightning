@@ -16,7 +16,11 @@ slight-common = { path = "../common" }
 slight-events-api = { path = "../events-api" }
 slight-runtime-configs = { path = "../runtime-configs" }
 uuid = { version = "1.1", features = ["v4"] }
+tracing = { version = "0.1", features = ["log"] }
 crossbeam-channel = "0.5"
 url = "2"
 # pubsub.confluent_apache_kafka deps
 rdkafka = { version = "0.28", features = ["cmake-build", "ssl"] }
+# pubsub.mosquitto
+mosquitto-client = { git = "https://github.com/jsloth/mosquitto-client", rev = "7913a98bfe6d35aaec9b541e7be4b817c42d91e0"}
+names = { version = "0.14.0", default-features = false }
