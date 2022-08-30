@@ -166,7 +166,7 @@ fn build_store_instance(
                                 BasicState::new(resource_map.clone(), ss, toml_file_path),
                             )))?;
                     } else {
-                        bail!("the pubsub capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
+                        bail!("the pubsub capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CAK_SECURITY_PROTOCOL, CAK_SASL_MECHANISMS, CAK_SASL_USERNAME, CAK_SASL_PASSWORD, and CAK_GROUP_ID from.")
                     }
                 }
                 _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {

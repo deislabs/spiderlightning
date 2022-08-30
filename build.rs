@@ -13,6 +13,10 @@ fn main() {
     println!("cargo:rerun-if-changed={}/src/main.rs", KV_TEST_PATH);
     println!("cargo:rerun-if-changed={}/src/main.rs", HTTP_TEST_PATH);
     println!("cargo:rerun-if-changed={}/src/main.rs", CONFIGS_TEST_PATH);
+    if cfg!(windows) {
+        println!("cargo:rustc-link-search=native=C:/Program Files/mosquitto/devel");
+        println!("cargo:rustc-link-lib=static=mosquitto");
+    }
 
     cargo_wasi_build(KV_TEST_PATH);
     cargo_wasi_build(HTTP_TEST_PATH);

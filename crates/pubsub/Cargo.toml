@@ -22,5 +22,10 @@ url = "2"
 # pubsub.confluent_apache_kafka deps
 rdkafka = { version = "0.28", features = ["cmake-build", "ssl"] }
 # pubsub.mosquitto
-mosquitto-client = { git = "https://github.com/jsloth/mosquitto-client", rev = "7913a98bfe6d35aaec9b541e7be4b817c42d91e0"}
 names = { version = "0.14.0", default-features = false }
+
+[target.'cfg(unix)'.dependencies]
+mosquitto-client-wrapper = "0.3"
+
+[target.'cfg(windows)'.dependencies]
+mosquitto-client = { git = "https://github.com/jsloth/mosquitto-client", rev = "7913a98bfe6d35aaec9b541e7be4b817c42d91e0"}

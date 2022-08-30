@@ -1,7 +1,10 @@
 use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
+#[cfg(target_os = "windows")]
 use mosquitto_client::Mosquitto;
+#[cfg(not(target_os = "windows"))]
+use mosquitto_client_wrapper::Mosquitto;
 use names::{Generator, Name};
 use slight_common::BasicState;
 
@@ -22,12 +25,12 @@ impl std::fmt::Debug for MosquittoImplementor {
 // Pub+Sub
 impl MosquittoImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
-        let mqtt = Mosquitto::new(&Generator::with_naming(Name::Numbered).next().unwrap());
+        let mqtt = make_mosquitto_client();
         let host = String::from_utf8(
             slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "MOSQUITTO_HOST",
-                &slight_state.config_toml_file_path,
+                &slight_state.slightfile_path,
             )
             .with_context(|| {
                 format!(
@@ -43,7 +46,7 @@ impl MosquittoImplementor {
             slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "MOSQUITTO_PORT",
-                &slight_state.config_toml_file_path,
+                &slight_state.slightfile_path,
             )
             .with_context(|| {
                 format!(
@@ -118,4 +121,15 @@ impl MosquittoImplementor {
 
         Ok(format!("{:?}", all_msgs))
     }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn make_mosquitto_client() -> Mosquitto {
+    Mosquitto::new(&Generator::with_naming(Name::Numbered).next().unwrap())
+        .expect("failed to initiate client")
+}
+
+#[cfg(target_os = "windows")]
+fn make_mosquitto_client() -> Mosquitto {
+    Mosquitto::new(&Generator::with_naming(Name::Numbered).next().unwrap())
 }
