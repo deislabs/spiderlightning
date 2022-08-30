@@ -35,6 +35,8 @@ install-deps:
 	sudo mkdir -p /opt/wasi-sdk
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
+	sudo apt install libmosquitto1
+	sudo ln -s `ldconfig -p | grep mosquitto | awk '{ print substr($$4, 1, length($$4)-2) }'` `ldconfig -p | grep mosquitto | awk '{ print substr($$4, 1, length($$4)-2) }'`
 
 .PHONY: install-deps-macos
 install-deps-macos:
@@ -46,6 +48,7 @@ install-deps-macos:
 	sudo rm -rf wasi-sdk-*
 	chmod +x /opt/wasi-sdk/bin/clang
 	brew install openssl
+	brew install mosquitto
 
 .PHONY: install-deps-win
 install-deps-win:
@@ -58,6 +61,8 @@ install-deps-win:
 	# mv wasi-sdk-15.0/* /opt/wasi-sdk/
 
 	choco install openssl
+
+	# TODO: install libmosquitto
 
 .PHONY: install-slight
 install-slight:
