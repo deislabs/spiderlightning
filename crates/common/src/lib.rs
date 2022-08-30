@@ -12,20 +12,20 @@ use slight_http_api::HttpHandlerData;
 /// It contains:
 ///     - a `resource_map`,
 ///     - a `secret_store`, and
-///     - the `config_toml_file_path`.
+///     - the `slightfile_path`.
 #[derive(Clone, Default)]
 pub struct BasicState {
     pub resource_map: ResourceMap,
     pub secret_store: String,
-    pub config_toml_file_path: String,
+    pub slightfile_path: String,
 }
 
 impl BasicState {
-    pub fn new(resource_map: ResourceMap, secret_store: &str, config_toml_file_path: &str) -> Self {
+    pub fn new(resource_map: ResourceMap, secret_store: &str, slightfile_path: &str) -> Self {
         Self {
             resource_map,
             secret_store: secret_store.to_string(),
-            config_toml_file_path: config_toml_file_path.to_string(),
+            slightfile_path: slightfile_path.to_string(),
         }
     }
 }

@@ -78,7 +78,7 @@ impl SubConfluentApacheKafkaImplementor {
             slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "CK_GROUP_ID",
-                &slight_state.config_toml_file_path,
+                &slight_state.slightfile_path,
             )
             .with_context(|| {
                 format!(
@@ -128,17 +128,13 @@ struct ApacheKafkaConfigs {
 
 fn get_config(config_name: &str, state: &BasicState) -> Result<String> {
     let config = String::from_utf8(
-        slight_runtime_configs::get(
-            &state.secret_store,
-            config_name,
-            &state.config_toml_file_path,
-        )
-        .with_context(|| {
-            format!(
-                "failed to get '{}' secret using secret store type: {}",
-                config_name, state.secret_store
-            )
-        })?,
+        slight_runtime_configs::get(&state.secret_store, config_name, &state.slightfile_path)
+            .with_context(|| {
+                format!(
+                    "failed to get '{}' secret using secret store type: {}",
+                    config_name, state.secret_store
+                )
+            })?,
     )?;
     Ok(config)
 }

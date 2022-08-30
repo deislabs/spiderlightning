@@ -32,7 +32,7 @@ impl_resource!(Configs, configs::ConfigsTables<Configs>, ConfigsState);
 ///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
-///     the `config_type`, and the `config_toml_file_path`).
+///     the `config_type`, and the `slightfile_path`).
 #[derive(Clone, Default)]
 pub struct ConfigsState {
     pub configs_implementor: String,
@@ -71,7 +71,7 @@ impl configs::Configs for Configs {
         Ok(get(
             &String::from(&self_.configs_implementor),
             key,
-            &self.host_state.slight_state.config_toml_file_path,
+            &self.host_state.slight_state.slightfile_path,
         )?)
     }
 
@@ -85,7 +85,7 @@ impl configs::Configs for Configs {
             &String::from(&self_.configs_implementor),
             key,
             value,
-            &self.host_state.slight_state.config_toml_file_path,
+            &self.host_state.slight_state.slightfile_path,
         )?;
 
         Ok(())

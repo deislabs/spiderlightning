@@ -24,7 +24,7 @@ impl AzSbusImplementor {
             slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_SERVICE_BUS_NAMESPACE",
-                &slight_state.config_toml_file_path,
+                &slight_state.slightfile_path,
             )
             .with_context(|| {
                 format!(
@@ -39,7 +39,7 @@ impl AzSbusImplementor {
             slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_POLICY_NAME",
-                &slight_state.config_toml_file_path,
+                &slight_state.slightfile_path,
             )
             .with_context(|| {
                 format!(
@@ -54,7 +54,7 @@ impl AzSbusImplementor {
             slight_runtime_configs::get(
                 &slight_state.secret_store,
                 "AZURE_POLICY_KEY",
-                &slight_state.config_toml_file_path,
+                &slight_state.slightfile_path,
             )
             .with_context(|| {
                 format!(
