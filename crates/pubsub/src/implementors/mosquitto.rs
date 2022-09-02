@@ -1,19 +1,18 @@
 use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
-#[cfg(target_os = "windows")]
-use mosquitto_client::Mosquitto;
-#[cfg(not(target_os = "windows"))]
-use mosquitto_client_wrapper::Mosquitto;
-use names::{Generator, Name};
+use async_channel::Receiver;
+use futures::executor::block_on;
+use mosquitto_rs::{Client, Message, QoS};
 use slight_common::BasicState;
 
 #[derive(Clone)]
 pub struct MosquittoImplementor {
-    mqtt: Mosquitto,
+    mqtt: Arc<Mutex<Client>>,
     host: String,
-    port: u32,
+    port: i32,
     subscriptions: Arc<Mutex<Vec<String>>>,
+    subscriber: Arc<Mutex<Option<Receiver<Message>>>>,
 }
 
 impl std::fmt::Debug for MosquittoImplementor {
@@ -25,7 +24,7 @@ impl std::fmt::Debug for MosquittoImplementor {
 // Pub+Sub
 impl MosquittoImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
-        let mqtt = make_mosquitto_client();
+        let mqtt = Client::with_auto_id().unwrap();
         let host = String::from_utf8(
             slight_runtime_configs::get(
                 &slight_state.secret_store,
@@ -57,14 +56,15 @@ impl MosquittoImplementor {
             .unwrap(),
         )
         .unwrap()
-        .parse::<u32>()
+        .parse::<i32>()
         .unwrap();
 
         Self {
-            mqtt,
+            mqtt: Arc::new(Mutex::new(mqtt)),
             host,
             port,
             subscriptions: Arc::new(Mutex::new(Vec::new())),
+            subscriber: Arc::new(Mutex::new(None)),
         }
         // ^^^ arbitrarily chosing to create with 5 threads
         // (threads run notification functions)
@@ -88,9 +88,19 @@ impl MosquittoImplementor {
         // (as we have more implementors for pubsub, we should consider if we even
         // want a key in the pubsub implementation)
 
-        self.mqtt.connect(&self.host, self.port, 5)?;
-        self.mqtt
-            .publish(topic, formatted_message_with_key.as_bytes(), 1, false)?;
+        block_on(self.mqtt.lock().as_mut().unwrap().connect(
+            &self.host,
+            self.port,
+            std::time::Duration::from_secs(5),
+            None,
+        ))?;
+
+        block_on(self.mqtt.lock().as_mut().unwrap().publish(
+            topic,
+            formatted_message_with_key.as_bytes(),
+            QoS::AtMostOnce,
+            false,
+        ))?;
         Ok(())
     }
 }
@@ -101,35 +111,47 @@ impl MosquittoImplementor {
         for t in topic {
             self.subscriptions.lock().unwrap().push(t);
         }
+
+        *self.subscriber.lock().unwrap() = self.mqtt.lock().as_mut().unwrap().subscriber();
         Ok(())
     }
 
-    pub fn poll_for_message(&self, timeout_in_secs: u64) -> Result<String> {
-        let timeout_in_millis: i32 = (timeout_in_secs * 100).try_into().unwrap();
-
-        self.mqtt.connect(&self.host, self.port, 5)?;
-
-        let mut all_msgs: Vec<String> = Vec::new();
+    pub fn poll_for_message(&self, _: u64) -> Result<String> {
+        // ^^^ timeout unused here, this probably hints it's not something we want in the
+        // overall interface
+        block_on(self.mqtt.lock().as_mut().unwrap().connect(
+            &self.host,
+            self.port,
+            std::time::Duration::from_secs(5),
+            None,
+        ))?;
 
         for t in self.subscriptions.lock().unwrap().iter() {
-            let topic = self.mqtt.subscribe(t, 1)?;
-            let mosq_msg = topic.receive_one(timeout_in_millis);
-            if let Ok(m) = mosq_msg {
-                all_msgs.push(format!("{}-{}", m.topic(), m.text()));
-            }
+            block_on(
+                self.mqtt
+                    .lock()
+                    .as_mut()
+                    .unwrap()
+                    .subscribe(t, QoS::AtMostOnce),
+            )?;
         }
 
-        Ok(format!("{:?}", all_msgs))
+        let msg = format!(
+            "{:?}",
+            String::from_utf8(
+                block_on(
+                    self.subscriber
+                        .lock()
+                        .as_mut()
+                        .unwrap()
+                        .as_mut()
+                        .unwrap()
+                        .recv()
+                )?
+                .payload
+            )
+        );
+
+        Ok(msg)
     }
-}
-
-#[cfg(not(target_os = "windows"))]
-fn make_mosquitto_client() -> Mosquitto {
-    Mosquitto::new(&Generator::with_naming(Name::Numbered).next().unwrap())
-        .expect("failed to initiate client")
-}
-
-#[cfg(target_os = "windows")]
-fn make_mosquitto_client() -> Mosquitto {
-    Mosquitto::new(&Generator::with_naming(Name::Numbered).next().unwrap())
 }
