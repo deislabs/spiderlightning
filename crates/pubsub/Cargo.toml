@@ -22,6 +22,6 @@ url = "2"
 # pubsub.confluent_apache_kafka deps
 rdkafka = { version = "0.28", features = ["cmake-build", "ssl"] }
 # pubsub.mosquitto
-mosquitto-rs = { version = "0.4.0", features = ["default", "vendored-openssl"]}
+mosquitto-rs = { version = "0.4.0", features = ["default"]}
 futures = "0.3"
 async-channel = "1.5"
