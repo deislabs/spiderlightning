@@ -5,7 +5,7 @@ Are you hoping to learn how to implement a new service for our existing capabili
 
 > Note: If you would like to develop a new capability outside of our provided interfaces, you will first have to create its' WIT. Please, create an issue to start a design discussion, and make a PR with the `.wit` file itself prior to its' `slight` implementation.
 
-The DeisLabs Engineering Team has designed each of its' main capabilities to be easily extensible, and some macros to take care of boiler-plate code for you. In this tutorial, we will implement a new `pubsub` implementation — a local one with Mosquitto!
+The DeisLabs Engineering Team has designed each of its' capabilities to be easily extensible, and some macros to take care of boilerplate code for you. In this tutorial, we will implement a new `pubsub` implementation — a local one with Mosquitto!
 
 ## Getting Started
 
