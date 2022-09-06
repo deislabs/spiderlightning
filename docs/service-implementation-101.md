@@ -48,7 +48,7 @@ enum SubImplementor {
 
 > Note: Our `Local` variants for both `enum`s hold a struct called `MosquittoImplementor` but we haven't implemented that yet.
 
-With that done, we now have to take care of the `new` function for both `PubImplementor`, and `SubImplementor`. Considering that the `new` function is what is responsible for mapping a string from a user's slightfile to a specific implementor, this is the time where we decide what string should refer to our local implementation — let's say `pubsub.mosquitto`. Now, we can go ahead and change the `new` functions, like so:
+With that done, we now have to take care of the `new` function for both `PubImplementor`, and `SubImplementor`. Considering that the `new` function is what is responsible for mapping a string from a user's slightfile to a specific implementor, this is the time where we decide what string should refer to our local implementation — let's say `pubsub.mosquitto`. Now, we can change the `new` functions, like so:
 
 ```rs
 impl PubImplementor {
