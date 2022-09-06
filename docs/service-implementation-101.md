@@ -3,13 +3,13 @@
 
 Are you hoping to learn how to implement a new service for our existing capabilities (i.e., kv, lockd, mq, or pubsub)? You have come to the right place!
 
-> Note: If you would like to develop a new capability outside of our provided interfaces, you will first have to create its' WIT. Please, create an issue to start a design discussion, and make a PR with the `.wit` file itself prior to its' `slight` implementation.
+> Note: If you would like to develop a new capability outside of our provided interfaces, you will first have to create its WIT (WebAssembly Interface Types) file. Please, create an issue to start a design discussion, and make a PR with the `.wit` file itself prior to its' `slight` implementation.
 
-The DeisLabs Engineering Team has designed each of its' main capabilities to be easily extensible, and some macros to take care of boiler-plate code for you. In this tutorial, we will implement a new `pubsub` implementation — a local one with Mosquitto!
+The DeisLabs Engineering Team has designed each of its' capabilities to be easily extensible, and some macros to take care of boilerplate code for you. In this tutorial, we will implement a new `pubsub` implementation — a local one with Mosquitto!
 
 ## Getting Started
 
-Assuming that you are on the root of the SpiderLightning repository that you locally cloned, to get started, do:
+Assuming that you are on the root of the SpiderLightning repository that you locally cloned, to get started, create a new branch:
 
 ```sh
 git branch my_local_pubsub_implementation c73826a1d522bc3e1d2f0387481880edecd3e3d3
@@ -48,7 +48,7 @@ enum SubImplementor {
 
 > Note: Our `Local` variants for both `enum`s hold a struct called `MosquittoImplementor` but we haven't implemented that yet.
 
-With that done, we now have to take care of the `new` function for both `PubImplementor`, and `SubImplementor`. Considering that the `new` function is what is responsible for mapping a string from a user's slightfile to a specific implementor, this is the time where we decide what string should refer to our local implementation — let's say `pubsub.mosquitto`. Now, we can go ahead and change the `new` functions, like so:
+With that done, we now have to take care of the `new` function for both `PubImplementor`, and `SubImplementor`. Considering that the `new` function is what is responsible for mapping a string from a user's slightfile to a specific implementor, this is the time where we decide what string should refer to our local implementation — let's say `pubsub.mosquitto`. Now, we can change the `new` functions, like so:
 
 ```rs
 impl PubImplementor {
@@ -360,7 +360,7 @@ We have mentioned dynamic dispatching — Let's do that now (in lib.rs`):
     }
 ```
 
-In here, all we are doing is adding calls to the functions implemented by the `MosquittoImplementor` under the `Local` variant of the `Pub/SubImplementor` enums, so that we are handling the case where a user provides a `toml` with `pubsub.mosquitto` and makes use of its' functionality.
+In here, all we are doing is adding calls to the functions implemented by the `MosquittoImplementor` under the `Local` variant of the `Pub/SubImplementor` enums, so that we are handling the case where a user provides a `toml` with `pubsub.mosquitto` and makes use of its functionality.
 
 Next up, you'll have to make a change to the slight runner itself at: `slight/src/commands/run.rs`. That is, instead of:
 ```rs
@@ -386,4 +386,4 @@ To finish off, make sure to add your example in the list of example runs under t
 RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-consumer-demo/mosquitto_slightfile.toml' run -m ./examples/pubsub-consumer-demo/target/wasm32-wasi/release/pubsub-consumer-demo.wasm & RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-producer-demo/mosquitto_slightfile.toml' run -m ./examples/pubsub-producer-demo/target/wasm32-wasi/release/pubsub-producer-demo.wasm
 ```
 
-With this, you should have the basic understanding on how to get started developing capabilities for Slight — Now, all you are missing is just the implementation of the service itself! We are looking forward to your contributions 🚀
+With this, you should have the basic understanding on how to get started developing capabilities for Slight. Now, all you are missing is just the implementation of the service itself! We are looking forward to your contributions 🚀
