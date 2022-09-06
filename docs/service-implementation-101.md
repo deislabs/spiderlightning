@@ -360,7 +360,7 @@ We have mentioned dynamic dispatching — Let's do that now (in lib.rs`):
     }
 ```
 
-In here, all we are doing is adding calls to the functions implemented by the `MosquittoImplementor` under the `Local` variant of the `Pub/SubImplementor` enums, so that we are handling the case where a user provides a `toml` with `pubsub.mosquitto` and makes use of its' functionality.
+In here, all we are doing is adding calls to the functions implemented by the `MosquittoImplementor` under the `Local` variant of the `Pub/SubImplementor` enums, so that we are handling the case where a user provides a `toml` with `pubsub.mosquitto` and makes use of its functionality.
 
 Next up, you'll have to make a change to the slight runner itself at: `slight/src/commands/run.rs`. That is, instead of:
 ```rs
