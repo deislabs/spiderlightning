@@ -387,4 +387,4 @@ To finish off, make sure to add your example in the list of example runs under t
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/pubsub-producer-demo/mosquitto_slightfile.toml' run -m ./examples/pubsub-producer-demo/target/wasm32-wasi/release/pubsub-producer-demo.wasm
 ```
 
-With this, you should have the basic understanding on how to get started developing capabilities for Slight — Now, all you are missing is just the implementation of the service itself! We are looking forward to your contributions 🚀
+With this, you should have the basic understanding on how to get started developing capabilities for Slight. Now, all you are missing is just the implementation of the service itself! We are looking forward to your contributions 🚀
