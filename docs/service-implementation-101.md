@@ -9,7 +9,7 @@ The DeisLabs Engineering Team has designed each of its' capabilities to be easil
 
 ## Getting Started
 
-Assuming that you are on the root of the SpiderLightning repository that you locally cloned, to get started, do:
+Assuming that you are on the root of the SpiderLightning repository that you locally cloned, to get started, create a new branch:
 
 ```sh
 git branch my_local_pubsub_implementation c73826a1d522bc3e1d2f0387481880edecd3e3d3
