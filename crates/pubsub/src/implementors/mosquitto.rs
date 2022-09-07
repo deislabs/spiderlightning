@@ -15,6 +15,7 @@ pub struct MosquittoImplementor {
     subscriber: Arc<Mutex<Option<Receiver<Message>>>>,
 }
 
+// TODO: We need to improve these Debug implementations
 impl std::fmt::Debug for MosquittoImplementor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "MosquittoImplementor")
@@ -66,8 +67,6 @@ impl MosquittoImplementor {
             subscriptions: Arc::new(Mutex::new(Vec::new())),
             subscriber: Arc::new(Mutex::new(None)),
         }
-        // ^^^ arbitrarily chosing to create with 5 threads
-        // (threads run notification functions)
     }
 }
 
