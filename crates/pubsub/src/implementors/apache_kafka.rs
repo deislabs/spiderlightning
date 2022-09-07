@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::{SystemTime, UNIX_EPOCH}};
 
 use anyhow::{Context, Result};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
@@ -44,12 +44,19 @@ impl PubConfluentApacheKafkaImplementor {
 
     pub fn send_message_to_topic(
         &self,
-        msg_key: &[u8],
         msg_value: &[u8],
         topic: &str,
     ) -> Result<()> {
-        confluent::send(&self.producer, msg_key, msg_value, topic)
-            .with_context(|| "failed to send message to a topic")
+        confluent::send(
+            &self.producer,
+            format!(
+                "{:?}",
+                SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+            ).as_bytes(), // rand key
+            msg_value,
+            topic,
+        )
+        .with_context(|| "failed to send message to a topic")
     }
 }
 
@@ -74,21 +81,7 @@ impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
 impl SubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
-        let group_id = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "CK_GROUP_ID",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_GROUP_ID' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
+        let group_id = get_config("CAK_GROUP_ID", slight_state).unwrap();
 
         let consumer: BaseConsumer = ClientConfig::new()
             .set("bootstrap.servers", akc.bootstap_servers)
@@ -106,13 +99,13 @@ impl SubConfluentApacheKafkaImplementor {
         }
     }
 
-    pub fn subscribe_to_topic(&self, topic: Vec<&str>) -> Result<()> {
-        confluent::subscribe(&self.consumer, topic).with_context(|| "failed to subscribe to topic")
+    pub fn subscribe_to_topic(&self, topic: &str) -> Result<()> {
+        confluent::subscribe(&self.consumer, vec![topic])
+            .with_context(|| "failed to subscribe to topic")
     }
 
-    pub fn poll_for_message(&self, timeout_in_secs: u64) -> Result<KafkaMessage> {
-        confluent::poll(&self.consumer, timeout_in_secs)
-            .with_context(|| "failed to poll for message")
+    pub fn poll_for_message(&self, _topic: &str) -> Result<KafkaMessage> {
+        confluent::poll(&self.consumer, 30).with_context(|| "failed to poll for message")
     }
 }
 

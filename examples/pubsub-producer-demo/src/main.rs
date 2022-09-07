@@ -9,11 +9,7 @@ fn main() -> Result<()> {
     let ps = Pub::open()?;
     for i in 0..3 {
         println!("sending message");
-        ps.send_message_to_topic(
-            format!("key-{}", i).as_bytes(),
-            format!("value-{}", i).as_bytes(),
-            "rust",
-        )?;
+        ps.publish(format!("value-{}", i).as_bytes(), "rust")?;
         thread::sleep(Duration::from_secs(3));
     }
     Ok(())

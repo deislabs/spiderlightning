@@ -7,7 +7,7 @@ resource pub {
 	static open: function() -> expected<pub, error>
 
 	// pub a message
-	send-message-to-topic: function(msg-key: payload, msg-value: payload, topic: string) -> expected<unit, error> 
+	publish: function(message: payload, topic: string) -> expected<unit, error> 
 }
 
 resource sub {
@@ -15,8 +15,8 @@ resource sub {
 	static open: function() -> expected<sub, error>
 	
 	// sub to a topic
-	subscribe-to-topic: function(topic: list<string>) -> expected<unit, error>
+	subscribe: function(topic: string) -> expected<unit, error>
 
 	// read messages under subbed topic
-	poll-for-message: function(timeout-in-secs: u64) -> expected<message, error>
+	receive: function(topic: string) -> expected<message, error>
 }
