@@ -3,8 +3,9 @@ pub mod providers;
 
 use anyhow::Result;
 
-use implementors::apache_kafka::{
-    PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor,
+use implementors::{
+    apache_kafka::{PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor},
+    mosquitto::MosquittoImplementor,
 };
 use slight_common::{impl_resource, BasicState};
 use uuid::Uuid;
@@ -108,6 +109,7 @@ impl pubsub::Pubsub for Pubsub {
             PubImplementor::ConfluentApacheKafka(pi) => {
                 pi.send_message_to_topic(msg_key, msg_value, topic)?
             }
+            PubImplementor::Mosquitto(pi) => pi.send_message_to_topic(msg_key, msg_value, topic)?,
         };
 
         Ok(())
@@ -116,6 +118,9 @@ impl pubsub::Pubsub for Pubsub {
     fn sub_subscribe_to_topic(&mut self, self_: &Self::Sub, topic: Vec<&str>) -> Result<(), Error> {
         match &self_.sub_implementor {
             SubImplementor::ConfluentApacheKafka(si) => si.subscribe_to_topic(topic)?,
+            SubImplementor::Mosquitto(si) => {
+                si.subscribe_to_topic(topic.iter().map(|s| s.to_string()).collect::<Vec<String>>())?
+            }
         }
 
         Ok(())
@@ -132,6 +137,13 @@ impl pubsub::Pubsub for Pubsub {
                     .map(|f| pubsub::Message {
                         key: f.0,
                         value: f.1,
+                    })?
+            }
+            SubImplementor::Mosquitto(si) => {
+                si.poll_for_message(timeout_in_secs)
+                    .map(|f| pubsub::Message {
+                        key: Some("batch".as_bytes().to_vec()),
+                        value: Some(f.as_bytes().to_vec()),
                     })?
             }
         })
@@ -206,6 +218,7 @@ impl SubInner {
 #[derive(Debug, Clone)]
 enum PubImplementor {
     ConfluentApacheKafka(PubConfluentApacheKafkaImplementor),
+    Mosquitto(MosquittoImplementor),
 }
 
 impl PubImplementor {
@@ -214,6 +227,7 @@ impl PubImplementor {
             "pubsub.confluent_apache_kafka" => {
                 Self::ConfluentApacheKafka(PubConfluentApacheKafkaImplementor::new(slight_state))
             }
+            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state)),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
@@ -228,6 +242,7 @@ impl PubImplementor {
 #[derive(Debug, Clone)]
 enum SubImplementor {
     ConfluentApacheKafka(SubConfluentApacheKafkaImplementor),
+    Mosquitto(MosquittoImplementor),
 }
 
 impl SubImplementor {
@@ -236,6 +251,7 @@ impl SubImplementor {
             "pubsub.confluent_apache_kafka" => {
                 Self::ConfluentApacheKafka(SubConfluentApacheKafkaImplementor::new(slight_state))
             }
+            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state)),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
