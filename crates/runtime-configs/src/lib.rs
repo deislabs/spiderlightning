@@ -1,6 +1,6 @@
 pub mod implementors;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use uuid::Uuid;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
@@ -176,4 +176,16 @@ pub fn set(config_type: &str, key: &str, value: &[u8], toml_file_path: &str) -> 
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),
         ConfigsImplementor::AzApp => Ok(AzApp::set(key, value)?),
     }
+}
+
+pub fn get_from_state(config_name: &str, state: &BasicState) -> Result<String> {
+    let config = String::from_utf8(
+        get(&state.secret_store, config_name, &state.slightfile_path).with_context(|| {
+            format!(
+                "failed to get '{}' secret using secret store type: {}",
+                config_name, state.secret_store
+            )
+        })?,
+    )?;
+    Ok(config)
 }
