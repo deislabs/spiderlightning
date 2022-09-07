@@ -13,7 +13,6 @@ use http::*;
 use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
-// use slight_runtime::Ctx;
 use slight_common::{impl_resource, Buildable, Builder, Ctx, HostState};
 use slight_events_api::ResourceMap;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
