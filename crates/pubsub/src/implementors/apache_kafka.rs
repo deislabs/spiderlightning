@@ -3,6 +3,7 @@ use std::sync::Arc;
 use anyhow::{Context, Result};
 use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use slight_common::BasicState;
+use slight_runtime_configs::get_from_state;
 
 use crate::providers::confluent::{self, KafkaMessage};
 
@@ -74,21 +75,7 @@ impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
 impl SubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
-        let group_id = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "CK_GROUP_ID",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'CK_GROUP_ID' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
+        let group_id = get_from_state("CAK_GROUP_ID", slight_state).unwrap();
 
         let consumer: BaseConsumer = ClientConfig::new()
             .set("bootstrap.servers", akc.bootstap_servers)
@@ -126,27 +113,13 @@ struct ApacheKafkaConfigs {
     sasl_password: String,
 }
 
-fn get_config(config_name: &str, state: &BasicState) -> Result<String> {
-    let config = String::from_utf8(
-        slight_runtime_configs::get(&state.secret_store, config_name, &state.slightfile_path)
-            .with_context(|| {
-                format!(
-                    "failed to get '{}' secret using secret store type: {}",
-                    config_name, state.secret_store
-                )
-            })?,
-    )?;
-    Ok(config)
-}
-
 impl ApacheKafkaConfigs {
     fn from_state(slight_state: &BasicState) -> Result<Self> {
-        let bootstap_servers = get_config("CAK_ENDPOINT", slight_state)?;
-        let security_protocol = get_config("CAK_SECURITY_PROTOCOL", slight_state)?;
-        let sasl_mechanisms = get_config("CAK_SASL_MECHANISMS", slight_state)?;
-        let sasl_username = get_config("CAK_SASL_USERNAME", slight_state)?;
-
-        let sasl_password = get_config("CAK_SASL_PASSWORD", slight_state)?;
+        let bootstap_servers = get_from_state("CAK_ENDPOINT", slight_state)?;
+        let security_protocol = get_from_state("CAK_SECURITY_PROTOCOL", slight_state)?;
+        let sasl_mechanisms = get_from_state("CAK_SASL_MECHANISMS", slight_state)?;
+        let sasl_username = get_from_state("CAK_SASL_USERNAME", slight_state)?;
+        let sasl_password = get_from_state("CAK_SASL_PASSWORD", slight_state)?;
 
         Ok(Self {
             bootstap_servers,
