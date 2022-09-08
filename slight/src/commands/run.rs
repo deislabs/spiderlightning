@@ -44,7 +44,6 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
         log::debug!("Events capability enabled");
         let guest_builder =
             build_store_instance(toml, toml_file_path, resource_map.clone(), module)?;
-        let (_store2, _instance2) = guest_builder.build()?;
         let event_handler_resource: &mut Events<Builder> = get_resource(&mut store, "events");
         event_handler_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
