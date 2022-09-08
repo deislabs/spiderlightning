@@ -7,7 +7,7 @@ use anyhow::Result;
 use crossbeam_channel::Sender;
 use implementors::{
     awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
-    filesystem::FilesystemImplementor,
+    filesystem::FilesystemImplementor, redis::RedisImplementor,
 };
 use slight_events_api::Event;
 use uuid::Uuid;
@@ -108,6 +108,7 @@ enum KvImplementors {
     Filesystem(FilesystemImplementor),
     AzBlob(AzBlobImplementor),
     AwsDynamoDb(AwsDynamoDbImplementor),
+    Redis(RedisImplementor),
 }
 
 impl KvImplementors {
@@ -116,6 +117,7 @@ impl KvImplementors {
             "kv.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
             "kv.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name)),
             "kv.awsdynamodb" => Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name)),
+            "kv.redis" => Self::Redis(RedisImplementor::new(slight_state, name)),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
@@ -164,6 +166,7 @@ impl kv::Kv for Kv {
             KvImplementors::Filesystem(fi) => fi.get(key)?,
             KvImplementors::AzBlob(ai) => ai.get(key)?,
             KvImplementors::AwsDynamoDb(adp) => adp.get(key)?,
+            KvImplementors::Redis(ri) => ri.get(key)?,
         })
     }
 
@@ -177,6 +180,7 @@ impl kv::Kv for Kv {
             KvImplementors::Filesystem(fi) => fi.set(key, value)?,
             KvImplementors::AzBlob(ai) => ai.set(key, value)?,
             KvImplementors::AwsDynamoDb(adp) => adp.set(key, value)?,
+            KvImplementors::Redis(ri) => ri.set(key, value)?,
         };
         Ok(())
     }
@@ -186,6 +190,7 @@ impl kv::Kv for Kv {
             KvImplementors::Filesystem(fi) => fi.delete(key)?,
             KvImplementors::AzBlob(ai) => ai.delete(key)?,
             KvImplementors::AwsDynamoDb(adp) => adp.delete(key)?,
+            KvImplementors::Redis(ri) => ri.delete(key)?,
         };
         Ok(())
     }
