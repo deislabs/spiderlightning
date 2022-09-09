@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::Client;
 use futures::executor::block_on;
 use slight_common::BasicState;
+use slight_runtime_configs::get_from_state;
 
 use crate::providers::azure;
 
@@ -20,51 +21,10 @@ impl std::fmt::Debug for AzSbusImplementor {
 
 impl AzSbusImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
-        let service_bus_namespace = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "AZURE_SERVICE_BUS_NAMESPACE",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'AZURE_SERVICE_BUS_NAMESPACE' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let policy_name = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "AZURE_POLICY_NAME",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'AZURE_POLICY_NAME' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let policy_key = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "AZURE_POLICY_KEY",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'AZURE_POLICY_KEY' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
+        let service_bus_namespace =
+            get_from_state("AZURE_SERVICE_BUS_NAMESPACE", slight_state).unwrap();
+        let policy_name = get_from_state("AZURE_POLICY_NAME", slight_state).unwrap();
+        let policy_key = get_from_state("AZURE_POLICY_KEY", slight_state).unwrap();
 
         let http_client = azure_core::new_http_client();
 
