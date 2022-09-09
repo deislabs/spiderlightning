@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 use etcd_client::Client;
 use futures::executor::block_on;
 use slight_common::BasicState;
+use slight_runtime_configs::get_from_state;
 
 use crate::providers::etcd;
 
@@ -27,21 +28,7 @@ impl std::fmt::Debug for EtcdImplementor {
 
 impl EtcdImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
-        let endpoint = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "ETCD_ENDPOINT",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'ETCD_ENDPOINT' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
+        let endpoint = get_from_state("ETCD_ENDPOINT", slight_state).unwrap();
 
         let client = block_on(Client::connect([endpoint], None))
             .with_context(|| "failed to connect to etcd server")

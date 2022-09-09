@@ -1,44 +1,32 @@
-use std::time::Duration;
-
-use anyhow::Result;
+use anyhow::{bail, Result};
+use futures::executor::block_on;
 use rdkafka::{
-    consumer::{BaseConsumer, Consumer},
+    consumer::{Consumer, StreamConsumer},
     producer::{BaseProducer, BaseRecord},
     Message,
 };
 
-/// A wrapper type around a pair of vector of u8s
-pub struct KafkaMessage(pub Option<Vec<u8>>, pub Option<Vec<u8>>);
-
-/// Send a message
-pub fn send(producer: &BaseProducer, msg_key: &[u8], msg_value: &[u8], topic: &str) -> Result<()> {
+pub fn publish(
+    producer: &BaseProducer,
+    msg_key: &[u8],
+    msg_value: &[u8],
+    topic: &str,
+) -> Result<()> {
     producer
         .send(BaseRecord::to(topic).key(msg_key).payload(msg_value))
         .map_err(|e| anyhow::anyhow!("{:?}", e))?;
     Ok(())
 }
 
-/// Subscribe to topic
-pub fn subscribe(consumer: &BaseConsumer, topic: Vec<&str>) -> Result<()> {
+pub fn subscribe(consumer: &StreamConsumer, topic: Vec<&str>) -> Result<()> {
     consumer.subscribe(&topic)?;
 
     Ok(())
 }
 
-/// Receive/poll for messages
-pub fn poll(consumer: &BaseConsumer, timeout_in_secs: u64) -> Result<KafkaMessage> {
-    let message = consumer
-        .poll(Duration::from_secs(timeout_in_secs))
-        .transpose()?;
-
-    match message {
-        Some(m) => Ok(KafkaMessage(
-            m.key_view::<[u8]>()
-                .transpose()
-                .expect("failed to get message key view")
-                .map(Vec::from),
-            m.payload().map(Vec::from),
-        )),
-        None => Ok(KafkaMessage(None, None)),
+pub fn receive(consumer: &StreamConsumer) -> Result<Vec<u8>> {
+    match block_on(consumer.recv()) {
+        Err(e) => bail!(e),
+        Ok(m) => Ok(m.payload().unwrap().to_vec()),
     }
 }

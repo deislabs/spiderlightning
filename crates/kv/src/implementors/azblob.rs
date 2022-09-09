@@ -3,6 +3,7 @@ use azure_storage::clients::StorageClient;
 use azure_storage_blobs::prelude::{AsContainerClient, ContainerClient};
 use futures::executor::block_on;
 use slight_common::BasicState;
+use slight_runtime_configs::get_from_state;
 
 use crate::providers::azure;
 
@@ -20,36 +21,8 @@ pub struct AzBlobImplementor {
 
 impl AzBlobImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
-        let storage_account_name = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "AZURE_STORAGE_ACCOUNT",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'AZURE_STORAGE_ACCOUNT' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-        let storage_account_key = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "AZURE_STORAGE_KEY",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'AZURE_STORAGE_KEY' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
+        let storage_account_name = get_from_state("AZURE_STORAGE_ACCOUNT", slight_state).unwrap();
+        let storage_account_key = get_from_state("AZURE_STORAGE_KEY", slight_state).unwrap();
 
         let container_client =
             StorageClient::new_access_key(storage_account_name, storage_account_key)
