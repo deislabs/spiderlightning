@@ -98,54 +98,33 @@ impl pubsub::Pubsub for Pubsub {
         Ok(inner)
     }
 
-    fn pub_send_message_to_topic(
+    fn pub_publish(
         &mut self,
         self_: &Self::Pub,
-        msg_key: PayloadParam<'_>,
-        msg_value: PayloadParam<'_>,
+        message: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
         match &self_.pub_implementor {
-            PubImplementor::ConfluentApacheKafka(pi) => {
-                pi.send_message_to_topic(msg_key, msg_value, topic)?
-            }
-            PubImplementor::Mosquitto(pi) => pi.send_message_to_topic(msg_key, msg_value, topic)?,
+            PubImplementor::ConfluentApacheKafka(pi) => pi.publish(message, topic)?,
+            PubImplementor::Mosquitto(pi) => pi.publish(message, topic)?,
         };
 
         Ok(())
     }
 
-    fn sub_subscribe_to_topic(&mut self, self_: &Self::Sub, topic: Vec<&str>) -> Result<(), Error> {
+    fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<(), Error> {
         match &self_.sub_implementor {
-            SubImplementor::ConfluentApacheKafka(si) => si.subscribe_to_topic(topic)?,
-            SubImplementor::Mosquitto(si) => {
-                si.subscribe_to_topic(topic.iter().map(|s| s.to_string()).collect::<Vec<String>>())?
-            }
+            SubImplementor::ConfluentApacheKafka(si) => si.subscribe(topic)?,
+            SubImplementor::Mosquitto(si) => si.subscribe(topic)?,
         }
 
         Ok(())
     }
 
-    fn sub_poll_for_message(
-        &mut self,
-        self_: &Self::Sub,
-        timeout_in_secs: u64,
-    ) -> Result<Message, Error> {
+    fn sub_receive(&mut self, self_: &Self::Sub) -> Result<Vec<u8>, Error> {
         Ok(match &self_.sub_implementor {
-            SubImplementor::ConfluentApacheKafka(si) => {
-                si.poll_for_message(timeout_in_secs)
-                    .map(|f| pubsub::Message {
-                        key: f.0,
-                        value: f.1,
-                    })?
-            }
-            SubImplementor::Mosquitto(si) => {
-                si.poll_for_message(timeout_in_secs)
-                    .map(|f| pubsub::Message {
-                        key: Some("batch".as_bytes().to_vec()),
-                        value: Some(f.as_bytes().to_vec()),
-                    })?
-            }
+            SubImplementor::ConfluentApacheKafka(si) => si.receive()?,
+            SubImplementor::Mosquitto(si) => si.receive()?,
         })
     }
 }

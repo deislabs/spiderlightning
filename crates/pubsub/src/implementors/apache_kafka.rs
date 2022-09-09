@@ -1,11 +1,14 @@
-use std::sync::Arc;
+use std::{
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use anyhow::{Context, Result};
-use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
+use rdkafka::{consumer::StreamConsumer, producer::BaseProducer, ClientConfig};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 
-use crate::providers::confluent::{self, KafkaMessage};
+use crate::providers::confluent;
 
 /// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `PubImplementor` enum.
 ///
@@ -43,14 +46,18 @@ impl PubConfluentApacheKafkaImplementor {
         }
     }
 
-    pub fn send_message_to_topic(
-        &self,
-        msg_key: &[u8],
-        msg_value: &[u8],
-        topic: &str,
-    ) -> Result<()> {
-        confluent::send(&self.producer, msg_key, msg_value, topic)
-            .with_context(|| "failed to send message to a topic")
+    pub fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
+        confluent::publish(
+            &self.producer,
+            format!(
+                "{:?}",
+                SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+            )
+            .as_bytes(), // rand key
+            msg_value,
+            topic,
+        )
+        .with_context(|| "failed to send message to a topic")
     }
 }
 
@@ -63,7 +70,7 @@ impl PubConfluentApacheKafkaImplementor {
 /// As per its' usage in `SubImplementor`, it must `derive` `std::fmt::Debug`, and `Clone`.
 #[derive(Clone)]
 pub struct SubConfluentApacheKafkaImplementor {
-    consumer: Arc<BaseConsumer>,
+    consumer: Arc<StreamConsumer>,
 }
 
 impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
@@ -77,7 +84,7 @@ impl SubConfluentApacheKafkaImplementor {
         let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
         let group_id = get_from_state("CAK_GROUP_ID", slight_state).unwrap();
 
-        let consumer: BaseConsumer = ClientConfig::new()
+        let consumer: StreamConsumer = ClientConfig::new()
             .set("bootstrap.servers", akc.bootstap_servers)
             .set("security.protocol", akc.security_protocol)
             .set("sasl.mechanisms", akc.sasl_mechanisms)
@@ -93,13 +100,13 @@ impl SubConfluentApacheKafkaImplementor {
         }
     }
 
-    pub fn subscribe_to_topic(&self, topic: Vec<&str>) -> Result<()> {
-        confluent::subscribe(&self.consumer, topic).with_context(|| "failed to subscribe to topic")
+    pub fn subscribe(&self, topic: &str) -> Result<()> {
+        confluent::subscribe(&self.consumer, vec![topic])
+            .with_context(|| "failed to subscribe to topic")
     }
 
-    pub fn poll_for_message(&self, timeout_in_secs: u64) -> Result<KafkaMessage> {
-        confluent::poll(&self.consumer, timeout_in_secs)
-            .with_context(|| "failed to poll for message")
+    pub fn receive(&self) -> Result<Vec<u8>> {
+        confluent::receive(&self.consumer).with_context(|| "failed to poll for message")
     }
 }
 

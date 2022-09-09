@@ -1,10 +1,11 @@
 use std::sync::{Arc, Mutex};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use async_channel::Receiver;
 use futures::executor::block_on;
 use mosquitto_rs::{Client, Message, QoS};
 use slight_common::BasicState;
+use slight_runtime_configs::get_from_state;
 
 #[derive(Clone)]
 pub struct MosquittoImplementor {
@@ -26,39 +27,11 @@ impl std::fmt::Debug for MosquittoImplementor {
 impl MosquittoImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let mqtt = Client::with_auto_id().unwrap();
-        let host = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "MOSQUITTO_HOST",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'MOSQUITTO_HOST' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-
-        let port = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "MOSQUITTO_PORT",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'MOSQUITTO_PORT' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap()
-        .parse::<i32>()
-        .unwrap();
+        let host = get_from_state("MOSQUITTO_HOST", slight_state).unwrap();
+        let port = get_from_state("MOSQUITTO_PORT", slight_state)
+            .unwrap()
+            .parse::<i32>()
+            .unwrap();
 
         Self {
             mqtt: Arc::new(Mutex::new(mqtt)),
@@ -72,21 +45,7 @@ impl MosquittoImplementor {
 
 // Pub
 impl MosquittoImplementor {
-    pub fn send_message_to_topic(
-        &self,
-        msg_key: &[u8],
-        msg_value: &[u8],
-        topic: &str,
-    ) -> Result<()> {
-        let formatted_message_with_key = &format!(
-            "{}-{}",
-            std::str::from_utf8(msg_key)?,
-            std::str::from_utf8(msg_value)?
-        );
-        // ^^^ arbitrarily formatting msg key and value like
-        // (as we have more implementors for pubsub, we should consider if we even
-        // want a key in the pubsub implementation)
-
+    pub fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
         block_on(self.mqtt.lock().as_mut().unwrap().connect(
             &self.host,
             self.port,
@@ -96,7 +55,7 @@ impl MosquittoImplementor {
 
         block_on(self.mqtt.lock().as_mut().unwrap().publish(
             topic,
-            formatted_message_with_key.as_bytes(),
+            msg_value,
             QoS::AtMostOnce,
             false,
         ))?;
@@ -106,18 +65,13 @@ impl MosquittoImplementor {
 
 // Sub
 impl MosquittoImplementor {
-    pub fn subscribe_to_topic(&self, topic: Vec<String>) -> Result<()> {
-        for t in topic {
-            self.subscriptions.lock().unwrap().push(t);
-        }
-
+    pub fn subscribe(&self, topic: &str) -> Result<()> {
+        self.subscriptions.lock().unwrap().push(topic.to_string());
         *self.subscriber.lock().unwrap() = self.mqtt.lock().as_mut().unwrap().subscriber();
         Ok(())
     }
 
-    pub fn poll_for_message(&self, _: u64) -> Result<String> {
-        // ^^^ timeout unused here, this probably hints it's not something we want in the
-        // overall interface
+    pub fn receive(&self) -> Result<Vec<u8>> {
         block_on(self.mqtt.lock().as_mut().unwrap().connect(
             &self.host,
             self.port,
@@ -135,22 +89,15 @@ impl MosquittoImplementor {
             )?;
         }
 
-        let msg = format!(
-            "{:?}",
-            String::from_utf8(
-                block_on(
-                    self.subscriber
-                        .lock()
-                        .as_mut()
-                        .unwrap()
-                        .as_mut()
-                        .unwrap()
-                        .recv()
-                )?
-                .payload
-            )
-        );
-
-        Ok(msg)
+        Ok(block_on(
+            self.subscriber
+                .lock()
+                .as_mut()
+                .unwrap()
+                .as_mut()
+                .unwrap()
+                .recv(),
+        )?
+        .payload)
     }
 }
