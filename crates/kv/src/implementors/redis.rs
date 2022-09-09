@@ -15,7 +15,7 @@ pub struct RedisImplementor {
 }
 
 impl RedisImplementor {
-    pub fn new(slight_state: &BasicState, name: &str) -> Self {
+    pub fn new(slight_state: &BasicState, _name: &str) -> Self {
         let connection_string = String::from_utf8(
             slight_runtime_configs::get(
                 &slight_state.secret_store,
