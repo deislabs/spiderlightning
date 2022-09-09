@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use redis::{Client, Commands};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
