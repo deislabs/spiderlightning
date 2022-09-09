@@ -1,10 +1,14 @@
-use std::{sync::Arc, time::{SystemTime, UNIX_EPOCH}};
+use std::{
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use anyhow::{Context, Result};
-use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
+use rdkafka::{consumer::StreamConsumer, producer::BaseProducer, ClientConfig};
 use slight_common::BasicState;
+use slight_runtime_configs::get_from_state;
 
-use crate::providers::confluent::{self, KafkaMessage};
+use crate::providers::confluent;
 
 /// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `PubImplementor` enum.
 ///
@@ -42,17 +46,14 @@ impl PubConfluentApacheKafkaImplementor {
         }
     }
 
-    pub fn send_message_to_topic(
-        &self,
-        msg_value: &[u8],
-        topic: &str,
-    ) -> Result<()> {
-        confluent::send(
+    pub fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
+        confluent::publish(
             &self.producer,
             format!(
                 "{:?}",
                 SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
-            ).as_bytes(), // rand key
+            )
+            .as_bytes(), // rand key
             msg_value,
             topic,
         )
@@ -69,7 +70,7 @@ impl PubConfluentApacheKafkaImplementor {
 /// As per its' usage in `SubImplementor`, it must `derive` `std::fmt::Debug`, and `Clone`.
 #[derive(Clone)]
 pub struct SubConfluentApacheKafkaImplementor {
-    consumer: Arc<BaseConsumer>,
+    consumer: Arc<StreamConsumer>,
 }
 
 impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
@@ -81,9 +82,9 @@ impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
 impl SubConfluentApacheKafkaImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
-        let group_id = get_config("CAK_GROUP_ID", slight_state).unwrap();
+        let group_id = get_from_state("CAK_GROUP_ID", slight_state).unwrap();
 
-        let consumer: BaseConsumer = ClientConfig::new()
+        let consumer: StreamConsumer = ClientConfig::new()
             .set("bootstrap.servers", akc.bootstap_servers)
             .set("security.protocol", akc.security_protocol)
             .set("sasl.mechanisms", akc.sasl_mechanisms)
@@ -99,13 +100,13 @@ impl SubConfluentApacheKafkaImplementor {
         }
     }
 
-    pub fn subscribe_to_topic(&self, topic: &str) -> Result<()> {
+    pub fn subscribe(&self, topic: &str) -> Result<()> {
         confluent::subscribe(&self.consumer, vec![topic])
             .with_context(|| "failed to subscribe to topic")
     }
 
-    pub fn poll_for_message(&self, _topic: &str) -> Result<KafkaMessage> {
-        confluent::poll(&self.consumer, 30).with_context(|| "failed to poll for message")
+    pub fn receive(&self) -> Result<Vec<u8>> {
+        confluent::receive(&self.consumer).with_context(|| "failed to poll for message")
     }
 }
 
@@ -119,27 +120,13 @@ struct ApacheKafkaConfigs {
     sasl_password: String,
 }
 
-fn get_config(config_name: &str, state: &BasicState) -> Result<String> {
-    let config = String::from_utf8(
-        slight_runtime_configs::get(&state.secret_store, config_name, &state.slightfile_path)
-            .with_context(|| {
-                format!(
-                    "failed to get '{}' secret using secret store type: {}",
-                    config_name, state.secret_store
-                )
-            })?,
-    )?;
-    Ok(config)
-}
-
 impl ApacheKafkaConfigs {
     fn from_state(slight_state: &BasicState) -> Result<Self> {
-        let bootstap_servers = get_config("CAK_ENDPOINT", slight_state)?;
-        let security_protocol = get_config("CAK_SECURITY_PROTOCOL", slight_state)?;
-        let sasl_mechanisms = get_config("CAK_SASL_MECHANISMS", slight_state)?;
-        let sasl_username = get_config("CAK_SASL_USERNAME", slight_state)?;
-
-        let sasl_password = get_config("CAK_SASL_PASSWORD", slight_state)?;
+        let bootstap_servers = get_from_state("CAK_ENDPOINT", slight_state)?;
+        let security_protocol = get_from_state("CAK_SECURITY_PROTOCOL", slight_state)?;
+        let sasl_mechanisms = get_from_state("CAK_SASL_MECHANISMS", slight_state)?;
+        let sasl_username = get_from_state("CAK_SASL_USERNAME", slight_state)?;
+        let sasl_password = get_from_state("CAK_SASL_PASSWORD", slight_state)?;
 
         Ok(Self {
             bootstap_servers,

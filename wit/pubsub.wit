@@ -1,5 +1,5 @@
 // A Pub/Sub Interface
-use { message, error, payload } from types
+use { error, payload } from types
 use * from resources
 
 resource pub {
@@ -18,5 +18,5 @@ resource sub {
 	subscribe: function(topic: string) -> expected<unit, error>
 
 	// read messages under subbed topic
-	receive: function(topic: string) -> expected<message, error>
+	receive: function() -> expected<payload, error>
 }

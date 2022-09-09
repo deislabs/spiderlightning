@@ -1,0 +1,6 @@
+specversion = "0.1"
+secret_store = "configs.azapp"
+
+[[capability]]
+name = "pubsub.mosquitto"
+

@@ -26,12 +26,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
-name = "bytes"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec8a7b6a70fde80372154c65702f00a0f56f3e1c36abbc6c440484be248856db"
-
-[[package]]
 name = "heck"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -96,13 +90,11 @@ name = "slight-http-handler-macro"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bytes",
  "proc-macro2",
  "quote",
  "syn",
  "wit-bindgen-gen-core",
  "wit-bindgen-gen-rust-wasm",
- "wit-bindgen-rust",
 ]
 
 [[package]]
