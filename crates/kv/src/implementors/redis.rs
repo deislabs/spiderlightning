@@ -1,6 +1,7 @@
-use anyhow::{Context, Result};
+use anyhow::{Result, bail};
 use redis::{Client, Commands};
 use slight_common::BasicState;
+use slight_runtime_configs::get_from_state;
 
 /// This is the underlying struct behind the `AzBlob` variant of the `KvImplementor` enum.
 ///
@@ -16,22 +17,7 @@ pub struct RedisImplementor {
 
 impl RedisImplementor {
     pub fn new(slight_state: &BasicState, _name: &str) -> Self {
-        let connection_string = String::from_utf8(
-            slight_runtime_configs::get(
-                &slight_state.secret_store,
-                "REDIS_ADDRESS",
-                &slight_state.slightfile_path,
-            )
-            .with_context(|| {
-                format!(
-                    "failed to get 'REDIS_ADDRESS' secret using secret store type: {}",
-                    slight_state.secret_store
-                )
-            })
-            .unwrap(),
-        )
-        .unwrap();
-
+        let connection_string = get_from_state("REDIS_ADDRESS", slight_state).unwrap();
         let client = redis::Client::open(connection_string).unwrap();
         Self { client }
     }
@@ -41,7 +27,7 @@ impl RedisImplementor {
         let val: Vec<u8> = con.get(key)?;
         // Redis GET returns [:ok; nil] for non-existent keys
         if val.is_empty() {
-            return Err(anyhow::anyhow!("key not found"));
+            bail!("key not found");
         }
         Ok(val)
     }
