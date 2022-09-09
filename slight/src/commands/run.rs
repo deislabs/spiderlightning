@@ -18,7 +18,8 @@ use slight_runtime_configs::{Configs, ConfigsState};
 use spiderlightning::core::slightfile::TomlFile;
 use wit_bindgen_wasmtime::wasmtime::Store;
 
-const KV_HOST_IMPLEMENTORS: [&str; 4] = ["kv.filesystem", "kv.azblob", "kv.awsdynamodb", "kv.redis"];
+const KV_HOST_IMPLEMENTORS: [&str; 4] =
+    ["kv.filesystem", "kv.azblob", "kv.awsdynamodb", "kv.redis"];
 const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
 const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
 const PUBSUB_HOST_IMPLEMENTORS: [&str; 1] = ["pubsub.confluent_apache_kafka"];

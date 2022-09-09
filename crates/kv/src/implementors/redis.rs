@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use slight_common::BasicState;
 use redis::{Client, Commands};
+use slight_common::BasicState;
 
 /// This is the underlying struct behind the `AzBlob` variant of the `KvImplementor` enum.
 ///
