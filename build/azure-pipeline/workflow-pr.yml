@@ -154,7 +154,7 @@ stages:
             env:
               BUILD_ARCH: $(target_arch)
           
-          - script: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --rev cb871cfa1ee460b51eb1d144b175b9aab9c50aba
+          - script: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0                         
             displayName: Install wit-bindgen-cli
           
           #
