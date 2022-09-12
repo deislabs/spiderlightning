@@ -19,9 +19,8 @@ SpiderLightning is a set of consistent, modular, and portable interfaces that pr
 | pub/sub | [Confluent Kafka](https://kafka.apache.org/) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ✅ `pubsub.wit` |
 | blob store | / | [Amazon S3](https://aws.amazon.com/s3/), [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs)| / | ❌ TBD |
 | runtime config | Environment variables, [User secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows) | [Azure App Configuration](https://docs.microsoft.com/en-us/azure/azure-app-configuration/), [AWS Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) | / | ✅ `configs.wit` |
-| HTTP Server | TBD | TBD | / | ❌ TBD |
+| HTTP Server | TBD | TBD | / | `http.wit` and `http-handler.wit` |
 | gRPC Server | TBD | TBD | / | ❌ TBD |
-| custom pluggable functions | TBD | TBD| / | ❌ TBD |
 
 ### Capability Principles
 As Spiderlightning is a set of interfaces, it is critical to have a certain criteria for including the right capabilities. We have selected the above capabilities based on the following criteria:
