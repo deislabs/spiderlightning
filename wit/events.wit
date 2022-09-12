@@ -3,7 +3,7 @@ use { error } from types
 
 
 resource events {
-	static get: function() -> expected<events, error>
-	listen: function(ob: observable) -> expected<events, error>
-	exec: function(duration: u64) -> expected<unit, error>
+	static get: func() -> expected<events, error>
+	listen: func(ob: observable) -> expected<events, error>
+	exec: func(duration: u64) -> expected<unit, error>
 }
