@@ -99,6 +99,7 @@ mod integration_tests {
         }
 
         #[test]
+        #[cfg(unix)] // Redis is not available on Windows: https://redis.io/docs/getting-started/installation/install-redis-on-windows/
         fn redis_test() -> Result<()> {
             // make sure redis server is running
             let port = get_random_port();
