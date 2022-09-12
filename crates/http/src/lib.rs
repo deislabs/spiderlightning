@@ -322,24 +322,15 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     };
 
     // Construct http handler
-    let mut handler =
-        HttpHandler::new(&mut store, &instance, |ctx| ctx.get_http_state_mut()).unwrap();
+    let handler = HttpHandler::new(&mut store, &instance, &route.handler, |ctx| {
+        ctx.get_http_state_mut()
+    })?;
 
-    // Perform the http request
-    log::debug!("Invoking guest handler {}", &route.handler,);
-    let func = instance
-        .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,), _>(
-            &mut store,
-            &route.handler.replace('_', "-"),
-        );
-    if func.is_err() {
-        bail!("Failed to find guest function {}", &route.handler);
-    }
-    handler.handle_http = func.unwrap(); // unwrap is safe because we checked above
+    // Invoke the handler with http request
     let res = handler.handle_http(&mut store, req)??;
-    log::debug!("response: {:?}", res);
 
     // Perform the conversion from `handle_http::Response` to `hyper::Response`.
+    log::debug!("response: {:?}", res);
     Ok(res.into())
 }
 
