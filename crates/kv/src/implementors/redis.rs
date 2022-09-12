@@ -21,7 +21,10 @@ impl RedisImplementor {
         let connection_string = get_from_state("REDIS_ADDRESS", slight_state).unwrap();
         let client = redis::Client::open(connection_string).unwrap();
         let container_name = name.to_string();
-        Self { client, container_name }
+        Self {
+            client,
+            container_name,
+        }
     }
 
     pub fn get(&self, key: &str) -> Result<Vec<u8>> {

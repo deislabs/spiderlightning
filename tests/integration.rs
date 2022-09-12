@@ -66,7 +66,11 @@ mod integration_tests {
 
     #[cfg(test)]
     mod kv_tests {
-        use std::{process::Command, net::{TcpListener, SocketAddrV4, Ipv4Addr}, env};
+        use std::{
+            env,
+            net::{Ipv4Addr, SocketAddrV4, TcpListener},
+            process::Command,
+        };
 
         use crate::{run, SLIGHT};
         use anyhow::Result;
@@ -101,7 +105,7 @@ mod integration_tests {
             let mut cmd = Command::new("redis-server")
                 .args(&["--port", port.to_string().as_str()])
                 .spawn()?;
-            
+
             // sleep 5 seconds waiting for redis server to start
             std::thread::sleep(std::time::Duration::from_secs(5));
 
