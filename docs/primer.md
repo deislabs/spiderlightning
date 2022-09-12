@@ -39,13 +39,13 @@ use * from resources
 
 resource mq {
     // open message queue
-    static open: function() -> expected<mq, error>
+    static open: func() -> expected<mq, error>
 
     // send a message to the queue
-    send: function(msg: payload) -> expected<unit, error> 
+    send: func(msg: payload) -> expected<unit, error> 
 
     // receive a message from the queue
-    receive: function() -> expected<payload, error>
+    receive: func() -> expected<payload, error>
 }
 ```
 
