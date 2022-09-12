@@ -322,7 +322,8 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     };
 
     // Construct http handler
-    let handler = HttpHandler::new(&mut store, &instance, &route.handler, |ctx| {
+    let handler_name = &route.handler.replace('_', "-");
+    let handler = HttpHandler::new(&mut store, &instance, handler_name, |ctx| {
         ctx.get_http_state_mut()
     })?;
 
