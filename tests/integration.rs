@@ -66,6 +66,8 @@ mod integration_tests {
 
     #[cfg(test)]
     mod kv_tests {
+        use std::{process::Command, net::{TcpListener, SocketAddrV4, Ipv4Addr}, env};
+
         use crate::{run, SLIGHT};
         use anyhow::Result;
 
@@ -90,6 +92,34 @@ mod integration_tests {
             let file_config = "./tests/kv-test/kvawsdynamodb_slightfile.toml";
             run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
             Ok(())
+        }
+
+        #[test]
+        fn redis_test() -> Result<()> {
+            // make sure redis server is running
+            let port = get_random_port();
+            let mut cmd = Command::new("redis-server")
+                .args(&["--port", port.to_string().as_str()])
+                .spawn()?;
+            
+            // sleep 5 seconds waiting for redis server to start
+            std::thread::sleep(std::time::Duration::from_secs(5));
+
+            let file_config = "./tests/kv-test/kvredis_slightfile.toml";
+            env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{}", port));
+            run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+
+            // kill the server
+            cmd.kill()?;
+            Ok(())
+        }
+
+        fn get_random_port() -> u16 {
+            TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
+                .expect("Unable to bind to check for port")
+                .local_addr()
+                .unwrap()
+                .port()
         }
     }
 

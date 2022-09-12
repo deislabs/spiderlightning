@@ -13,18 +13,20 @@ use slight_runtime_configs::get_from_state;
 #[derive(Debug, Clone)]
 pub struct RedisImplementor {
     client: Client,
+    container_name: String,
 }
 
 impl RedisImplementor {
-    pub fn new(slight_state: &BasicState, _name: &str) -> Self {
+    pub fn new(slight_state: &BasicState, name: &str) -> Self {
         let connection_string = get_from_state("REDIS_ADDRESS", slight_state).unwrap();
         let client = redis::Client::open(connection_string).unwrap();
-        Self { client }
+        let container_name = name.to_string();
+        Self { client, container_name }
     }
 
     pub fn get(&self, key: &str) -> Result<Vec<u8>> {
         let mut con = self.client.get_connection()?;
-        let val: Vec<u8> = con.get(key)?;
+        let val: Vec<u8> = con.get(format!("{}:{}", self.container_name, key))?;
         // Redis GET returns [:ok; nil] for non-existent keys
         if val.is_empty() {
             bail!("key not found");
@@ -34,14 +36,14 @@ impl RedisImplementor {
 
     pub fn set(&self, key: &str, value: &[u8]) -> Result<()> {
         let mut con = self.client.get_connection()?;
-        con.set(key, value)?;
+        con.set(format!("{}:{}", self.container_name, key), value)?;
 
         Ok(())
     }
 
     pub fn delete(&self, key: &str) -> Result<()> {
         let mut con = self.client.get_connection()?;
-        con.del(key)?;
+        con.del(format!("{}:{}", self.container_name, key))?;
 
         Ok(())
     }
