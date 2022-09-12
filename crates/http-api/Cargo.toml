@@ -8,7 +8,7 @@ authors = ["DeisLabs Engineering Team"]
 doctest = false
 
 [dependencies]
-wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "8252b0e39c7495f647ec0b0898721a7c641fc6c8" }
+wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "f7734c4c5c306bd8f0c047bb4eba782c5cdbc416"}
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
 hyper = "0.14"
 anyhow = "1"

@@ -73,7 +73,7 @@ jobs:
           rustup target add wasm32-unknown-unknown
 
       - name: "Install wit-bindgen-cli"
-        run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --rev a79a4be33d76ddf62839ba71602c26a96610ef7c
+        run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --rev cb871cfa1ee460b51eb1d144b175b9aab9c50aba
       
       #
       # Build
