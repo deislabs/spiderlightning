@@ -26,12 +26,15 @@ const PUBSUB_HOST_IMPLEMENTORS: [&str; 2] = ["pubsub.confluent_apache_kafka", "p
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
     ["configs.usersecrets", "configs.envvars", "configs.azapp"];
 
-pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> Result<()> {
+pub async fn handle_run(module: &str, toml_file_path: &str) -> Result<()> {
+    let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
+    let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+
     tracing::info!("Starting slight");
 
     let resource_map = Arc::new(Mutex::new(StateTable::default()));
 
-    let host_builder = build_store_instance(toml, toml_file_path, resource_map.clone(), module)?;
+    let host_builder = build_store_instance(&toml, toml_file_path, resource_map.clone(), module)?;
     let (mut store, instance) = host_builder.build()?;
 
     let caps = toml.capability.as_ref().unwrap();
@@ -44,7 +47,7 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
     if events_enabled {
         log::debug!("Events capability enabled");
         let guest_builder =
-            build_store_instance(toml, toml_file_path, resource_map.clone(), module)?;
+            build_store_instance(&toml, toml_file_path, resource_map.clone(), module)?;
         let event_handler_resource: &mut Events<Builder> = get_resource(&mut store, "events");
         event_handler_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
@@ -52,7 +55,7 @@ pub async fn handle_run(module: &str, toml: &TomlFile, toml_file_path: &str) -> 
     if http_enabled {
         log::debug!("Http capability enabled");
         let guest_builder: Builder =
-            build_store_instance(toml, toml_file_path, resource_map.clone(), module)?;
+            build_store_instance(&toml, toml_file_path, resource_map.clone(), module)?;
         let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
         http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
