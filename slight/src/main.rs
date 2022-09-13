@@ -1,6 +1,6 @@
-use slight_lib::commands::{run::handle_run, secret::handle_secret};
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use slight_lib::commands::{run::handle_run, secret::handle_secret};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
