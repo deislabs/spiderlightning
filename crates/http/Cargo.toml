@@ -8,7 +8,7 @@ authors = ["DeisLabs Engineering Team"]
 doctest = false
 
 [dependencies]
-wasmtime = "0.39.1"
+wasmtime = "0.39"
 anyhow = "1"
 wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "f7734c4c5c306bd8f0c047bb4eba782c5cdbc416" }
 url = "2.2"
