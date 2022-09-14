@@ -19,7 +19,7 @@ build:
 
 .PHONY: test
 test:
-	RUST_LOG=$(LOG_LEVEL) cargo test --all --no-fail-fast -- --skip integration_tests --nocapture --include-ignored
+	RUST_LOG=$(LOG_LEVEL) cargo test --release --all --no-fail-fast -- --skip integration_tests --nocapture --include-ignored
 
 .PHONY: test-integration
 test-integration:

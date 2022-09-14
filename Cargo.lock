@@ -3649,6 +3649,7 @@ dependencies = [
  "slight-runtime",
  "slight-runtime-configs",
  "spiderlightning",
+ "tempdir",
  "tokio",
  "toml",
  "tracing",
