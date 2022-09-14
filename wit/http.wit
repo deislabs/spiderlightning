@@ -3,29 +3,29 @@ use { error } from types
 
 resource router {
 	// create a new HTTP router
-	static new: function() -> expected<router, error>
+	static new: func() -> expected<router, error>
 
     // create a new HTTP router
-	static new-with-base: function(base: uri) -> expected<router, error>
+	static new-with-base: func(base: uri) -> expected<router, error>
 
 	// register a HTTP GET route
-	get: function(route: string, handler: string) -> expected<router, error>
+	get: func(route: string, handler: string) -> expected<router, error>
 
 	// register a HTTP PUT route
-	put: function(route: string, handler: string) -> expected<router, error>
+	put: func(route: string, handler: string) -> expected<router, error>
 
 	// register a HTTP POST route
-	post: function(route: string, handler: string) -> expected<router, error>
+	post: func(route: string, handler: string) -> expected<router, error>
 
 	// register a HTTP DELETE route
-	delete: function(route: string, handler: string) -> expected<router, error>
+	delete: func(route: string, handler: string) -> expected<router, error>
 }
 
 resource server {
 
 	// create a new HTTP server and serve the given router
-    static serve: function(address: string, router: router) -> expected<server, error> // non-blocking
+    static serve: func(address: string, router: router) -> expected<server, error> // non-blocking
 
 	// stop	the server
-    stop: function() -> expected<unit, error>
+    stop: func() -> expected<unit, error>
 }

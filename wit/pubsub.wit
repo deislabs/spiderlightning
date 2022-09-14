@@ -4,19 +4,19 @@ use * from resources
 
 resource pub {
 	// open a pub object
-	static open: function() -> expected<pub, error>
+	static open: func() -> expected<pub, error>
 
 	// pub a message
-	publish: function(message: payload, topic: string) -> expected<unit, error> 
+	publish: func(message: payload, topic: string) -> expected<unit, error> 
 }
 
 resource sub {
 	// open a sub object
-	static open: function() -> expected<sub, error>
+	static open: func() -> expected<sub, error>
 	
 	// sub to a topic
-	subscribe: function(topic: string) -> expected<unit, error>
+	subscribe: func(topic: string) -> expected<unit, error>
 
 	// read messages under subbed topic
-	receive: function() -> expected<payload, error>
+	receive: func() -> expected<payload, error>
 }
