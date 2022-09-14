@@ -3710,8 +3710,7 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
- "wasmtime",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
  "wit-error-rs",
 ]
 
@@ -3722,7 +3721,8 @@ dependencies = [
  "anyhow",
  "hyper",
  "tokio",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
+ "wasmtime",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
  "wit-error-rs",
 ]
 
@@ -5231,10 +5231,10 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-gen-core"
 version = "0.2.0"
-source = "git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416#f7734c4c5c306bd8f0c047bb4eba782c5cdbc416"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146#6f80d65a483fe929a79e2661825d99842227b146"
 dependencies = [
  "anyhow",
- "wit-parser 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
+ "wit-parser 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
 ]
 
 [[package]]
@@ -5249,10 +5249,10 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-gen-rust"
 version = "0.2.0"
-source = "git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416#f7734c4c5c306bd8f0c047bb4eba782c5cdbc416"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146#6f80d65a483fe929a79e2661825d99842227b146"
 dependencies = [
  "heck 0.3.3",
- "wit-bindgen-gen-core 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
+ "wit-bindgen-gen-core 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
 ]
 
 [[package]]
@@ -5278,11 +5278,11 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-gen-wasmtime"
 version = "0.2.0"
-source = "git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416#f7734c4c5c306bd8f0c047bb4eba782c5cdbc416"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146#6f80d65a483fe929a79e2661825d99842227b146"
 dependencies = [
  "heck 0.3.3",
- "wit-bindgen-gen-core 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
- "wit-bindgen-gen-rust 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
+ "wit-bindgen-gen-core 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
+ "wit-bindgen-gen-rust 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
 ]
 
 [[package]]
@@ -5300,13 +5300,13 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-wasmtime"
 version = "0.2.0"
-source = "git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416#f7734c4c5c306bd8f0c047bb4eba782c5cdbc416"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146#6f80d65a483fe929a79e2661825d99842227b146"
 dependencies = [
  "anyhow",
  "bitflags",
  "thiserror",
  "wasmtime",
- "wit-bindgen-wasmtime-impl 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
+ "wit-bindgen-wasmtime-impl 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
 ]
 
 [[package]]
@@ -5323,12 +5323,12 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-wasmtime-impl"
 version = "0.2.0"
-source = "git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416#f7734c4c5c306bd8f0c047bb4eba782c5cdbc416"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146#6f80d65a483fe929a79e2661825d99842227b146"
 dependencies = [
  "proc-macro2",
  "syn",
- "wit-bindgen-gen-core 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
- "wit-bindgen-gen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416)",
+ "wit-bindgen-gen-core 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
+ "wit-bindgen-gen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
 ]
 
 [[package]]
@@ -5355,7 +5355,7 @@ dependencies = [
 [[package]]
 name = "wit-parser"
 version = "0.2.0"
-source = "git+https://github.com/Mossaka/wit-bindgen?rev=f7734c4c5c306bd8f0c047bb4eba782c5cdbc416#f7734c4c5c306bd8f0c047bb4eba782c5cdbc416"
+source = "git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146#6f80d65a483fe929a79e2661825d99842227b146"
 dependencies = [
  "anyhow",
  "id-arena",
