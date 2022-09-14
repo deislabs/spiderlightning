@@ -8,9 +8,8 @@ authors = ["DeisLabs Engineering Team"]
 doctest = false
 
 [dependencies]
-wasmtime = "0.35"
 anyhow = "1"
-wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "8252b0e39c7495f647ec0b0898721a7c641fc6c8" }
+wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "6f80d65a483fe929a79e2661825d99842227b146" }
 url = "2.2"
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
 routerify = "3"

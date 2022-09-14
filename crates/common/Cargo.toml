@@ -14,5 +14,5 @@ doctest = false
 slight-events-api = { path = "../events-api" }
 slight-http-api = { path = "../http-api/" }
 as-any = "0.3"
-wasmtime = "0.35"
+wasmtime = "0.39"
 anyhow = "1"

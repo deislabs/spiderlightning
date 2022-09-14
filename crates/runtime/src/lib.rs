@@ -126,7 +126,6 @@ pub fn default_config() -> Result<Config> {
     let mut config = Config::new();
     config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
     config.wasm_multi_memory(true);
-    config.wasm_module_linking(true);
     Ok(config)
 }
 
