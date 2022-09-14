@@ -118,3 +118,16 @@ jobs:
       #
       - name: "Run Unit Tests"
         run: make test
+        if: ${{ matrix.config.platformAgnosticChecks }}
+
+      - name: "Run Unit Tests"
+        run: make test
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+        env:
+          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
+
+      - name: "Run Unit Tests"
+        run: make test
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        env:
+          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
