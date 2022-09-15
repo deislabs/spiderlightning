@@ -172,7 +172,12 @@ pub fn get(config_type: &str, key: &str, toml_file_path: impl AsRef<Path>) -> Re
     }
 }
 
-pub fn set(config_type: &str, key: &str, value: &[u8], toml_file_path: impl AsRef<Path>) -> Result<()> {
+pub fn set(
+    config_type: &str,
+    key: &str,
+    value: &[u8],
+    toml_file_path: impl AsRef<Path>,
+) -> Result<()> {
     match config_type.into() {
         ConfigsImplementor::EnvVars => Ok(EnvVars::set(key, value)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),

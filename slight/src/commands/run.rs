@@ -1,4 +1,7 @@
-use std::{sync::{Arc, Mutex}, path::Path};
+use std::{
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
