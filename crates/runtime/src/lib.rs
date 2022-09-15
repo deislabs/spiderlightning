@@ -8,7 +8,6 @@ use slight_common::Buildable;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
-use wasmtime_wasi::*;
 
 /// Runtime Context for the wasm module
 pub type Ctx = RuntimeContext;
@@ -131,11 +130,6 @@ pub fn default_config() -> Result<Config> {
 
 // TODO (Joe): expose the wasmtime wasi context as a capability?
 pub fn default_wasi() -> Result<WasiCtx> {
-    let mut ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
-    ctx = ctx.preopened_dir(
-        Dir::open_ambient_dir("./target", ambient_authority())?,
-        "cache",
-    )?;
-
+    let ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
     Ok(ctx.build())
 }
