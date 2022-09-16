@@ -5,14 +5,15 @@ Are you hoping to learn how to implement a new service for our existing capabili
 
 > Note: If you would like to develop a new capability outside of our provided interfaces, you will first have to create its WIT (WebAssembly Interface Types) file. Please, create an issue to start a design discussion, and make a PR with the `.wit` file itself prior to its' `slight` implementation.
 
-The DeisLabs Engineering Team has designed each of its capabilities to be easily extensible, and some macros to take care of boilerplate code for you. In this tutorial, we will implement a new `pubsub` implementation — a local one with Mosquitto!
+The DeisLabs Engineering Team has designed each of its capabilities to be easily extensible, and some macros to take care of boilerplate code for you. In this tutorial, we will implement a new `pubsub` implementation — a mqtt one with Mosquitto!
 
 ## Getting Started
 
 Assuming that you are on the root of the SpiderLightning repository that you locally cloned, to get started, create a new branch:
 
 ```sh
-git branch my_local_pubsub_implementation c73826a1d522bc3e1d2f0387481880edecd3e3d3
+git branch my_mqtt_pubsub_impl c73826a1d522bc3e1d2f0387481880edecd3e3d3
+git checkout my_mqtt_pubsub_impl
 ```
 
 ## Adding a New Dependency
@@ -34,7 +35,7 @@ Next up, inside `lib.rs` in the `crates/pubsub/src` directory, we'll have to cre
 #[derive(Debug, Clone)]
 enum PubImplementor {
     ConfluentApacheKafka(PubConfluentApacheKafkaImplementor),
-    Local(MosquittoImplementor)
+    Mosquitto(MosquittoImplementor)
 };
 
 // [..]
@@ -42,13 +43,13 @@ enum PubImplementor {
 #[derive(Debug, Clone)]
 enum SubImplementor {
     ConfluentApacheKafka(SubConfluentApacheKafkaImplementor),
-    Local(MosquittoImplementor)
+    Mosquitto(MosquittoImplementor)
 }
 ```
 
-> Note: Our `Local` variants for both `enum`s hold a struct called `MosquittoImplementor` but we haven't implemented that yet.
+> Note: Our `Mosquitto` variants for both `enum`s hold a struct called `MosquittoImplementor` but we haven't implemented that yet.
 
-With that done, we now have to take care of the `new` function for both `PubImplementor`, and `SubImplementor`. Considering that the `new` function is what is responsible for mapping a string from a user's slightfile to a specific implementor, this is the time where we decide what string should refer to our local implementation — let's say `pubsub.mosquitto`. Now, we can change the `new` functions, like so:
+With that done, we now have to take care of the `new` function for both `PubImplementor`, and `SubImplementor`. Considering that the `new` function is what is responsible for mapping a string from a user's slightfile to a specific implementor, this is the time where we decide what string should refer to our mqtt implementation — let's say `pubsub.mosquitto`. Now, we can change the `new` functions, like so:
 
 ```rs
 impl PubImplementor {
@@ -58,7 +59,7 @@ impl PubImplementor {
                 Self::ConfluentApacheKafka(PubConfluentApacheKafkaImplementor::new(slight_state))
             },
             "pubsub.mosquitto" => {
-                Self::Local(MosquittoImplementor::new(slight_state))
+                Self::Mosquitto(MosquittoImplementor::new(slight_state))
             },
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
@@ -76,8 +77,8 @@ impl SubImplementor {
             "pubsub.confluent_apache_kafka" => {
                 Self::ConfluentApacheKafka(SubConfluentApacheKafkaImplementor::new(slight_state))
             },
-            "pubsub.local" => {
-                Self::Local(MosquittoImplementor::new(slight_state))
+            "pubsub.mosquitto" => {
+                Self::Mosquitto(MosquittoImplementor::new(slight_state))
             },
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
@@ -90,7 +91,7 @@ impl SubImplementor {
 
 > Note: a couple of `use` statements were ommited.
 
-Once the we get a `&str` match for `pubsub.mosquitto`, the `new` function returns the `Local` variant of the `enum` having it populated with a new instance of the `MosquittoImplementor` — let's work on making these missing types now.
+Once the we get a `&str` match for `pubsub.mosquitto`, the `new` function returns the `Mosquitto` variant of the `enum` having it populated with a new instance of the `MosquittoImplementor` — let's work on making these missing types now.
 
 Inside of the `implementors/` folder, let's create a new file called `mosquitto.rs` — this is the file that will contain our `MosquittoImplementor`. After that, inside `implementors/mod.rs`, let's add:
 ```rs
@@ -322,7 +323,7 @@ We have mentioned dynamic dispatching — Let's do that now (in lib.rs`):
             PubImplementor::ConfluentApacheKafka(pi) => {
                 pi.send_message_to_topic(msg_key, msg_value, topic)?
             }
-            PubImplementor::Local(pi) => pi.send_message_to_topic(msg_key, msg_value, topic)?,
+            PubImplementor::Mosquitto(pi) => pi.send_message_to_topic(msg_key, msg_value, topic)?,
         };
 
 // -snip-
@@ -330,7 +331,7 @@ We have mentioned dynamic dispatching — Let's do that now (in lib.rs`):
     fn sub_subscribe_to_topic(&mut self, self_: &Self::Sub, topic: Vec<&str>) -> Result<(), Error> {
         match &self_.sub_implementor {
             SubImplementor::ConfluentApacheKafka(si) => si.subscribe_to_topic(topic)?,
-            SubImplementor::Local(si) => {
+            SubImplementor::Mosquitto(si) => {
                 si.subscribe_to_topic(topic.iter().map(|s| s.to_string()).collect::<Vec<String>>())?
             }
         }
@@ -349,7 +350,7 @@ We have mentioned dynamic dispatching — Let's do that now (in lib.rs`):
                         value: f.1,
                     })?
             }
-            SubImplementor::Local(si) => {
+            SubImplementor::Mosquitto(si) => {
                 si.poll_for_message(timeout_in_secs)
                     .map(|f| pubsub::Message {
                         key: Some("batch".as_bytes().to_vec()),
@@ -360,7 +361,7 @@ We have mentioned dynamic dispatching — Let's do that now (in lib.rs`):
     }
 ```
 
-In here, all we are doing is adding calls to the functions implemented by the `MosquittoImplementor` under the `Local` variant of the `Pub/SubImplementor` enums, so that we are handling the case where a user provides a `toml` with `pubsub.mosquitto` and makes use of its functionality.
+In here, all we are doing is adding calls to the functions implemented by the `MosquittoImplementor` under the `Mosquitto` variant of the `Pub/SubImplementor` enums, so that we are handling the case where a user provides a `toml` with `pubsub.mosquitto` and makes use of its functionality.
 
 Next up, you'll have to make a change to the slight runner itself at: `slight/src/commands/run.rs`. That is, instead of:
 ```rs
