@@ -57,7 +57,7 @@ pub trait Ctx {
 
 /// A trait for builder
 pub trait Buildable: Clone {
-    type Ctx: Ctx;
+    type Ctx: Ctx + Send + Sync;
 
     fn build(&self) -> (Store<Self::Ctx>, Instance);
 }

@@ -308,10 +308,7 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     let method: Method = (&parts.method).into();
     let headers: HttpHeader = (&parts.headers).into();
 
-    // FIXME: `HttpBody::from_body` returns a future here. The reason that `block_on` is used is
-    // because the `store` and `instance` are holding a mutex, which means that the async runtime
-    // cannot switch to another thread.
-    let bytes = block_on(HttpBody::from_body(body))?.inner();
+    let bytes = HttpBody::from_body(body).await?.inner();
     let uri = &(&parts.uri).to_string();
     let req = Request {
         method,
