@@ -2,7 +2,7 @@ mod implementors;
 pub mod providers;
 
 use anyhow::Result;
-
+use async_trait::async_trait;
 use implementors::{azsbus::AzSbusImplementor, filesystem::FilesystemImplementor};
 use slight_common::{impl_resource, BasicState};
 use uuid::Uuid;
@@ -11,7 +11,7 @@ use uuid::Uuid;
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use mq::*;
-wit_bindgen_wasmtime::export!("../../wit/mq.wit");
+wit_bindgen_wasmtime::export!({paths: ["../../wit/mq.wit"], async: *});
 wit_error_rs::impl_error!(mq::Error);
 wit_error_rs::impl_from!(anyhow::Error, mq::Error::ErrorWithDescription);
 
@@ -58,10 +58,11 @@ impl MqState {
     }
 }
 
+#[async_trait]
 impl mq::Mq for Mq {
     type Mq = MqInner;
 
-    fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
+    async fn mq_open(&mut self, name: &str) -> Result<Self::Mq, Error> {
         // populate our inner mq object w/ the state received from `slight`
         // (i.e., what type of mq implementor we are using), and the assigned
         // name of the object.
@@ -69,7 +70,7 @@ impl mq::Mq for Mq {
             &self.host_state.mq_implementor,
             &self.host_state.slight_state,
             name,
-        );
+        ).await;
 
         self.host_state
             .slight_state
@@ -81,18 +82,18 @@ impl mq::Mq for Mq {
         Ok(inner)
     }
 
-    fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
+    async fn mq_send(&mut self, self_: &Self::Mq, msg: PayloadParam<'_>) -> Result<(), Error> {
         match &self_.mq_implementor {
             MqImplementor::Filesystem(fi) => fi.send(msg)?,
-            MqImplementor::AzSbus(ai) => ai.send(msg)?,
+            MqImplementor::AzSbus(ai) => ai.send(msg).await?,
         };
         Ok(())
     }
 
-    fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
+    async fn mq_receive(&mut self, self_: &Self::Mq) -> Result<PayloadResult, Error> {
         Ok(match &self_.mq_implementor {
             MqImplementor::Filesystem(fi) => fi.receive()?,
-            MqImplementor::AzSbus(ai) => ai.receive()?,
+            MqImplementor::AzSbus(ai) => ai.receive().await?,
         })
     }
 }
@@ -119,9 +120,9 @@ pub struct MqInner {
 }
 
 impl MqInner {
-    fn new(mq_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
+    async fn new(mq_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         Self {
-            mq_implementor: MqImplementor::new(mq_implementor, slight_state, name),
+            mq_implementor: MqImplementor::new(mq_implementor, slight_state, name).await,
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
@@ -139,10 +140,10 @@ enum MqImplementor {
 }
 
 impl MqImplementor {
-    fn new(mq_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
+    async fn new(mq_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         match mq_implementor {
             "mq.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
-            "mq.azsbus" => Self::AzSbus(AzSbusImplementor::new(slight_state, name)),
+            "mq.azsbus" => Self::AzSbus(AzSbusImplementor::new(slight_state, name).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
