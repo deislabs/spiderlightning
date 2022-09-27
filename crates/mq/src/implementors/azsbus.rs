@@ -1,5 +1,5 @@
-use std::sync::{Arc};
 use std::borrow::BorrowMut;
+use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use anyhow::{Context, Result};
@@ -22,9 +22,15 @@ impl std::fmt::Debug for AzSbusImplementor {
 
 impl AzSbusImplementor {
     pub async fn new(slight_state: &BasicState, name: &str) -> Self {
-        let service_bus_namespace = get_from_state("AZURE_SERVICE_BUS_NAMESPACE", slight_state).await.unwrap();
-        let policy_name = get_from_state("AZURE_POLICY_NAME", slight_state).await.unwrap();
-        let policy_key = get_from_state("AZURE_POLICY_KEY", slight_state).await.unwrap();
+        let service_bus_namespace = get_from_state("AZURE_SERVICE_BUS_NAMESPACE", slight_state)
+            .await
+            .unwrap();
+        let policy_name = get_from_state("AZURE_POLICY_NAME", slight_state)
+            .await
+            .unwrap();
+        let policy_key = get_from_state("AZURE_POLICY_KEY", slight_state)
+            .await
+            .unwrap();
 
         let http_client = azure_core::new_http_client();
 
@@ -49,14 +55,16 @@ impl AzSbusImplementor {
             std::str::from_utf8(msg)
                 .with_context(|| "failed to parse message as UTF-8")?
                 .to_string(),
-        ).await
+        )
+        .await
         .with_context(|| "failed to send message to Azure Service Bus")?;
         Ok(())
     }
 
     pub async fn receive(&self) -> Result<Vec<u8>> {
         let inner = &self.client.as_ref().unwrap();
-        let result = azure::receive(inner.lock().await.borrow_mut()).await
+        let result = azure::receive(inner.lock().await.borrow_mut())
+            .await
             .with_context(|| "failed to receive message from Azure Service Bus")?;
         Ok(result)
     }

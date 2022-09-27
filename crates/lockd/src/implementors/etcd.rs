@@ -1,10 +1,10 @@
-use std::sync::{Arc};
-use std::borrow::BorrowMut;
-use tokio::sync::Mutex;
 use anyhow::{Context, Result};
 use etcd_client::Client;
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
+use std::borrow::BorrowMut;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crate::providers::etcd;
 
@@ -30,7 +30,8 @@ impl EtcdImplementor {
     pub async fn new(slight_state: &BasicState) -> Self {
         let endpoint = get_from_state("ETCD_ENDPOINT", slight_state).await.unwrap();
 
-        let client = Client::connect([endpoint], None).await
+        let client = Client::connect([endpoint], None)
+            .await
             .with_context(|| "failed to connect to etcd server")
             .unwrap();
         // ^^^ from my tests with localhost client, this never fails
@@ -41,7 +42,8 @@ impl EtcdImplementor {
 
     pub async fn lock(&self, lock_name: &[u8]) -> Result<Vec<u8>> {
         let mut inner = self.client.lock().await;
-        let pr = etcd::lock(inner.borrow_mut(), lock_name).await
+        let pr = etcd::lock(inner.borrow_mut(), lock_name)
+            .await
             .with_context(|| "failed to acquire lock")?;
         Ok(pr)
     }
@@ -55,13 +57,15 @@ impl EtcdImplementor {
             self.client.lock().await.borrow_mut(),
             lock_name,
             time_to_live_in_secs,
-        ).await
+        )
+        .await
         .with_context(|| "failed to acquire lock with time to live")?;
         Ok(pr)
     }
 
     pub async fn unlock(&self, lock_key: &[u8]) -> Result<()> {
-        etcd::unlock(self.client.lock().await.borrow_mut(), lock_key).await
+        etcd::unlock(self.client.lock().await.borrow_mut(), lock_key)
+            .await
             .with_context(|| "failed to unlock")?;
         Ok(())
     }

@@ -128,7 +128,7 @@ impl pubsub::Pubsub for Pubsub {
         Ok(match &self_.sub_implementor {
             SubImplementor::ConfluentApacheKafka(si) => si.receive().await?,
             SubImplementor::Mosquitto(si) => si.receive()?,
-        }) 
+        })
     }
 }
 

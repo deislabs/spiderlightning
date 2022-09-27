@@ -70,7 +70,8 @@ impl mq::Mq for Mq {
             &self.host_state.mq_implementor,
             &self.host_state.slight_state,
             name,
-        ).await;
+        )
+        .await;
 
         self.host_state
             .slight_state

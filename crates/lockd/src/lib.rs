@@ -65,7 +65,8 @@ impl lockd::Lockd for Lockd {
         let inner = Self::Lockd::new(
             &self.host_state.lockd_implementor,
             &self.host_state.slight_state,
-        ).await;
+        )
+        .await;
 
         self.host_state
             .slight_state
@@ -95,7 +96,8 @@ impl lockd::Lockd for Lockd {
     ) -> Result<PayloadResult, Error> {
         Ok(match &self_.lockd_implementor {
             LockdImplementor::Etcd(ei) => {
-                ei.lock_with_time_to_live(lock_name, time_to_live_in_secs).await?
+                ei.lock_with_time_to_live(lock_name, time_to_live_in_secs)
+                    .await?
             }
         })
     }

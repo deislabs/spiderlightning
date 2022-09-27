@@ -106,7 +106,9 @@ impl SubConfluentApacheKafkaImplementor {
     }
 
     pub async fn receive(&self) -> Result<Vec<u8>> {
-        confluent::receive(&self.consumer).await.with_context(|| "failed to poll for message")
+        confluent::receive(&self.consumer)
+            .await
+            .with_context(|| "failed to poll for message")
     }
 }
 
