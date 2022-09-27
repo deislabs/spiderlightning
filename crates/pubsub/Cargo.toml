@@ -21,6 +21,7 @@ crossbeam-channel = "0.5"
 url = "2"
 futures = "0.3"
 async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
 # pubsub.confluent_apache_kafka deps
 rdkafka = { version = "0.28", features = ["cmake-build", "ssl"] }
 # pubsub.mosquitto

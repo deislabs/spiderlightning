@@ -126,9 +126,9 @@ impl pubsub::Pubsub for Pubsub {
 
     async fn sub_receive(&mut self, self_: &Self::Sub) -> Result<Vec<u8>, Error> {
         Ok(match &self_.sub_implementor {
-            SubImplementor::ConfluentApacheKafka(si) => si.receive()?,
+            SubImplementor::ConfluentApacheKafka(si) => si.receive().await?,
             SubImplementor::Mosquitto(si) => si.receive()?,
-        })
+        }) 
     }
 }
 
@@ -209,7 +209,7 @@ impl PubImplementor {
             "pubsub.confluent_apache_kafka" => Self::ConfluentApacheKafka(
                 PubConfluentApacheKafkaImplementor::new(slight_state).await,
             ),
-            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state)),
+            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
@@ -233,7 +233,7 @@ impl SubImplementor {
             "pubsub.confluent_apache_kafka" => Self::ConfluentApacheKafka(
                 SubConfluentApacheKafkaImplementor::new(slight_state).await,
             ),
-            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state)),
+            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p

@@ -105,8 +105,8 @@ impl SubConfluentApacheKafkaImplementor {
             .with_context(|| "failed to subscribe to topic")
     }
 
-    pub fn receive(&self) -> Result<Vec<u8>> {
-        confluent::receive(&self.consumer).with_context(|| "failed to poll for message")
+    pub async fn receive(&self) -> Result<Vec<u8>> {
+        confluent::receive(&self.consumer).await.with_context(|| "failed to poll for message")
     }
 }
 
