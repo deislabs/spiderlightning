@@ -1,7 +1,7 @@
 mod implementors;
 pub mod providers;
-use async_trait::async_trait;
 use anyhow::Result;
+use async_trait::async_trait;
 
 use implementors::{
     apache_kafka::{PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor},
@@ -68,7 +68,8 @@ impl pubsub::Pubsub for Pubsub {
         let inner = Self::Pub::new(
             &self.host_state.pubsub_implementor,
             &self.host_state.slight_state,
-        ).await;
+        )
+        .await;
 
         self.host_state
             .slight_state
@@ -87,7 +88,8 @@ impl pubsub::Pubsub for Pubsub {
         let inner = Self::Sub::new(
             &self.host_state.pubsub_implementor,
             &self.host_state.slight_state,
-        ).await;
+        )
+        .await;
 
         self.host_state
             .slight_state
@@ -204,9 +206,9 @@ enum PubImplementor {
 impl PubImplementor {
     async fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
         match pubsub_implementor {
-            "pubsub.confluent_apache_kafka" => {
-                Self::ConfluentApacheKafka(PubConfluentApacheKafkaImplementor::new(slight_state).await)
-            }
+            "pubsub.confluent_apache_kafka" => Self::ConfluentApacheKafka(
+                PubConfluentApacheKafkaImplementor::new(slight_state).await,
+            ),
             "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state)),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
@@ -228,9 +230,9 @@ enum SubImplementor {
 impl SubImplementor {
     async fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
         match pubsub_implementor {
-            "pubsub.confluent_apache_kafka" => {
-                Self::ConfluentApacheKafka(SubConfluentApacheKafkaImplementor::new(slight_state).await)
-            }
+            "pubsub.confluent_apache_kafka" => Self::ConfluentApacheKafka(
+                SubConfluentApacheKafkaImplementor::new(slight_state).await,
+            ),
             "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state)),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",

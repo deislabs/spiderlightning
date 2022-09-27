@@ -45,13 +45,15 @@ impl AzApp {
 
         let mut count = 0;
         while count < MAX_NUM_RETRIES {
-            let res = app_config_client.set_key(
-                key,
-                std::str::from_utf8(value)?,
-                SearchLabel::For(""),
-                None,
-                None,
-            ).await;
+            let res = app_config_client
+                .set_key(
+                    key,
+                    std::str::from_utf8(value)?,
+                    SearchLabel::For(""),
+                    None,
+                    None,
+                )
+                .await;
 
             if res.is_err() {
                 count += 1;

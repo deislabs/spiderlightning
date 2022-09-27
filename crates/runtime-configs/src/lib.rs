@@ -1,8 +1,8 @@
 pub mod implementors;
 
 use anyhow::{Context, Result};
-use uuid::Uuid;
 use async_trait::async_trait;
+use uuid::Uuid;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
 use slight_common::{impl_resource, BasicState};
@@ -69,12 +69,17 @@ impl configs::Configs for Configs {
         Ok(inner)
     }
 
-    async fn configs_get(&mut self, self_: &Self::Configs, key: &str) -> Result<Vec<u8>, configs::Error> {
+    async fn configs_get(
+        &mut self,
+        self_: &Self::Configs,
+        key: &str,
+    ) -> Result<Vec<u8>, configs::Error> {
         Ok(get(
             &String::from(&self_.configs_implementor),
             key,
             &self.host_state.slight_state.slightfile_path,
-        ).await?)
+        )
+        .await?)
     }
 
     async fn configs_set(
@@ -88,7 +93,8 @@ impl configs::Configs for Configs {
             key,
             value,
             &self.host_state.slight_state.slightfile_path,
-        ).await?;
+        )
+        .await?;
 
         Ok(())
     }
@@ -182,12 +188,14 @@ pub async fn set(config_type: &str, key: &str, value: &[u8], toml_file_path: &st
 
 pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<String> {
     let config = String::from_utf8(
-        get(&state.secret_store, config_name, &state.slightfile_path).await.with_context(|| {
-            format!(
-                "failed to get '{}' secret using secret store type: {}",
-                config_name, state.secret_store
-            )
-        })?,
+        get(&state.secret_store, config_name, &state.slightfile_path)
+            .await
+            .with_context(|| {
+                format!(
+                    "failed to get '{}' secret using secret store type: {}",
+                    config_name, state.secret_store
+                )
+            })?,
     )?;
     Ok(config)
 }

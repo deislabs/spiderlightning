@@ -20,8 +20,12 @@ pub struct AzBlobImplementor {
 
 impl AzBlobImplementor {
     pub async fn new(slight_state: &BasicState, name: &str) -> Self {
-        let storage_account_name = get_from_state("AZURE_STORAGE_ACCOUNT", slight_state).await.unwrap();
-        let storage_account_key = get_from_state("AZURE_STORAGE_KEY", slight_state).await.unwrap();
+        let storage_account_name = get_from_state("AZURE_STORAGE_ACCOUNT", slight_state)
+            .await
+            .unwrap();
+        let storage_account_key = get_from_state("AZURE_STORAGE_KEY", slight_state)
+            .await
+            .unwrap();
 
         let container_client =
             StorageClient::new_access_key(storage_account_name, storage_account_key)
