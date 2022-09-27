@@ -204,7 +204,7 @@ mod unittests {
 
         let (parts, body) = req.into_parts();
         let headers: HttpHeader = (&parts.headers).into();
-        let uri = &(&parts.uri).to_string();
+        let uri = parts.uri.to_string();
         let method: Method = (&parts.method).into();
         let bytes: HttpBody = HttpBody::from_body(body).await?;
         let params = [];
