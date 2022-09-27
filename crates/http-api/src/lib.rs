@@ -210,7 +210,7 @@ mod unittests {
         let params = [];
         let req = Request {
             method,
-            uri,
+            uri: &uri,
             headers: &headers.0,
             params: &params,
             body: Some(&bytes.0),
