@@ -27,7 +27,7 @@ const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
     ["configs.usersecrets", "configs.envvars", "configs.azapp"];
 
 pub async fn handle_run(module: &str, toml_file_path: &str) -> Result<()> {
-    let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
+    let toml_file_contents = std::fs::read_to_string(toml_file_path)?;
     let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
 
     tracing::info!("Starting slight");

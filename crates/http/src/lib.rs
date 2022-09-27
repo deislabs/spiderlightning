@@ -309,7 +309,7 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     let headers: HttpHeader = (&parts.headers).into();
 
     let bytes = HttpBody::from_body(body).await?.inner();
-    let uri = &(&parts.uri).to_string();
+    let uri = &parts.uri.to_string();
     let req = Request {
         method,
         uri,

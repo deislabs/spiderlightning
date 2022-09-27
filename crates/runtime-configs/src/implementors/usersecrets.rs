@@ -44,7 +44,7 @@ impl UserSecrets {
 
         // decrypt key and return value
         let sc = ShortCrypt::new(encryption_key);
-        sc.decrypt_url_component(&value)
+        sc.decrypt_url_component(value)
             .map_err(|err| anyhow::anyhow!(err))
     }
 
@@ -55,8 +55,8 @@ impl UserSecrets {
             .read(true)
             .write(true)
             .create(true)
-            .open(&toml_file_path)?;
-        let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
+            .open(toml_file_path)?;
+        let toml_file_contents = std::fs::read_to_string(toml_file_path)?;
         let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
         create_secret(key, std::str::from_utf8(value)?, &mut toml, &mut toml_file)
     }
