@@ -3775,9 +3775,9 @@ name = "slight-lockd"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "crossbeam-channel",
  "etcd-client",
- "futures",
  "slight-common",
  "slight-events-api",
  "slight-runtime-configs",
