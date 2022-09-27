@@ -1,5 +1,6 @@
 use anyhow::Result;
 use as_any::AsAny;
+use async_trait::async_trait;
 
 use wasmtime::{Instance, Store};
 
@@ -56,10 +57,11 @@ pub trait Ctx {
 }
 
 /// A trait for builder
+#[async_trait]
 pub trait Buildable: Clone {
-    type Ctx: Ctx;
+    type Ctx: Ctx + Send;
 
-    fn build(&self) -> (Store<Self::Ctx>, Instance);
+    async fn build(&self) -> (Store<Self::Ctx>, Instance);
 }
 
 #[derive(Clone)]

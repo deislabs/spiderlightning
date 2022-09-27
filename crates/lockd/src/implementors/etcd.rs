@@ -28,7 +28,7 @@ impl std::fmt::Debug for EtcdImplementor {
 
 impl EtcdImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
-        let endpoint = get_from_state("ETCD_ENDPOINT", slight_state).unwrap();
+        let endpoint = block_on(get_from_state("ETCD_ENDPOINT", slight_state)).unwrap();
 
         let client = block_on(Client::connect([endpoint], None))
             .with_context(|| "failed to connect to etcd server")

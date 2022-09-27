@@ -27,8 +27,8 @@ impl std::fmt::Debug for MosquittoImplementor {
 impl MosquittoImplementor {
     pub fn new(slight_state: &BasicState) -> Self {
         let mqtt = Client::with_auto_id().unwrap();
-        let host = get_from_state("MOSQUITTO_HOST", slight_state).unwrap();
-        let port = get_from_state("MOSQUITTO_PORT", slight_state)
+        let host = block_on(get_from_state("MOSQUITTO_HOST", slight_state)).unwrap();
+        let port = block_on(get_from_state("MOSQUITTO_PORT", slight_state))
             .unwrap()
             .parse::<i32>()
             .unwrap();

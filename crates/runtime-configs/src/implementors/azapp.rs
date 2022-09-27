@@ -1,6 +1,5 @@
 use anyhow::Result;
 use azure_app_configuration::{client::AzureAppConfigClient, search_label::SearchLabel};
-use futures::executor::block_on;
 
 use super::envvars::EnvVars;
 
@@ -18,12 +17,12 @@ fn make_client() -> Result<AzureAppConfigClient> {
 }
 
 impl AzApp {
-    pub fn get(key: &str) -> Result<Vec<u8>> {
+    pub async fn get(key: &str) -> Result<Vec<u8>> {
         let app_config_client = make_client()?;
         let mut ret = String::new();
         let mut count = 0;
         while count < MAX_NUM_RETRIES {
-            let res = block_on(app_config_client.get_key_value(key, SearchLabel::All));
+            let res = app_config_client.get_key_value(key, SearchLabel::All).await;
             if let Ok(r) = res {
                 ret = r.value;
                 break;
@@ -39,20 +38,20 @@ impl AzApp {
         Ok(ret.as_bytes().to_vec())
     }
 
-    pub fn set(key: &str, value: &[u8]) -> Result<()> {
+    pub async fn set(key: &str, value: &[u8]) -> Result<()> {
         let app_config_client = make_client()?;
 
         tracing::debug!("attempting to set key...");
 
         let mut count = 0;
         while count < MAX_NUM_RETRIES {
-            let res = block_on(app_config_client.set_key(
+            let res = app_config_client.set_key(
                 key,
                 std::str::from_utf8(value)?,
                 SearchLabel::For(""),
                 None,
                 None,
-            ));
+            ).await;
 
             if res.is_err() {
                 count += 1;

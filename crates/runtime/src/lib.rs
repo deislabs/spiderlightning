@@ -2,6 +2,7 @@ pub mod ctx;
 pub mod resource;
 
 use anyhow::Result;
+use async_trait::async_trait;
 use ctx::{SlightCtx, SlightCtxBuilder};
 use resource::{EventsData, HttpData, Linkable};
 use slight_common::Buildable;
@@ -94,7 +95,7 @@ impl Builder {
     }
 
     /// Instantiate the guest module.
-    pub fn build(&self) -> Result<(Store<Ctx>, Instance)> {
+    pub async fn build(&self) -> Result<(Store<Ctx>, Instance)> {
         let wasi = default_wasi()?;
 
         let mut ctx = RuntimeContext {
@@ -107,16 +108,20 @@ impl Builder {
         ctx.slight = self.states_builder.clone().build();
 
         let mut store = Store::new(&self.engine, ctx);
-        let instance = self.linker.instantiate(&mut store, &self.module)?;
+        let instance = self
+            .linker
+            .instantiate_async(&mut store, &self.module)
+            .await?;
         Ok((store, instance))
     }
 }
 
+#[async_trait]
 impl Buildable for Builder {
     type Ctx = Ctx;
 
-    fn build(&self) -> (Store<Self::Ctx>, Instance) {
-        self.build().unwrap()
+    async fn build(&self) -> (Store<Self::Ctx>, Instance) {
+        self.build().await.unwrap()
     }
 }
 
@@ -125,6 +130,7 @@ pub fn default_config() -> Result<Config> {
     let mut config = Config::new();
     config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
     config.wasm_multi_memory(true);
+    config.async_support(true);
     Ok(config)
 }
 

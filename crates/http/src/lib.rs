@@ -297,7 +297,7 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     let route = parts.data::<Route>().unwrap();
 
     let instance_builder = parts.data::<Builder<T>>().unwrap();
-    let (mut store, instance) = instance_builder.inner().build();
+    let (mut store, instance) = instance_builder.inner().build().await;
 
     // Perform conversion from the `hyper::Request` to `handle_http::Request`.
     let params = parts.params();
@@ -328,7 +328,16 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     })?;
 
     // Invoke the handler with http request
-    let res = handler.handle_http(&mut store, req)??;
+    log::debug!("invoking handler: {}", handler_name);
+
+    // let res = tokio::task::spawn_blocking(|| {
+    //     handler.handle_http(&mut store, req)
+    // }).await???;
+    // let rt = tokio::runtime::Handle::current();
+    let res = handler.handle_http(&mut store, req).await??;
+    // let res = rt.block_on(async {
+    //     handler.handle_http(&mut store, req)
+    // })??;
 
     // Perform the conversion from `handle_http::Response` to `hyper::Response`.
     log::debug!("response: {:?}", res);

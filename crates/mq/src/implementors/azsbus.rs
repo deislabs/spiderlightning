@@ -22,9 +22,9 @@ impl std::fmt::Debug for AzSbusImplementor {
 impl AzSbusImplementor {
     pub fn new(slight_state: &BasicState, name: &str) -> Self {
         let service_bus_namespace =
-            get_from_state("AZURE_SERVICE_BUS_NAMESPACE", slight_state).unwrap();
-        let policy_name = get_from_state("AZURE_POLICY_NAME", slight_state).unwrap();
-        let policy_key = get_from_state("AZURE_POLICY_KEY", slight_state).unwrap();
+            block_on(get_from_state("AZURE_SERVICE_BUS_NAMESPACE", slight_state)).unwrap();
+        let policy_name = block_on(get_from_state("AZURE_POLICY_NAME", slight_state)).unwrap();
+        let policy_key = block_on(get_from_state("AZURE_POLICY_KEY", slight_state)).unwrap();
 
         let http_client = azure_core::new_http_client();
 

@@ -16,3 +16,4 @@ slight-http-api = { path = "../http-api/" }
 as-any = "0.3"
 wasmtime = "0.39"
 anyhow = "1"
+async-trait = "0.1"

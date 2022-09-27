@@ -35,7 +35,7 @@ pub async fn handle_run(module: &str, toml_file_path: &str) -> Result<()> {
     let resource_map = Arc::new(Mutex::new(StateTable::default()));
 
     let host_builder = build_store_instance(&toml, toml_file_path, resource_map.clone(), module)?;
-    let (mut store, instance) = host_builder.build()?;
+    let (mut store, instance) = host_builder.build().await?;
 
     let caps = toml.capability.as_ref().unwrap();
     // looking for events capability.
@@ -63,7 +63,8 @@ pub async fn handle_run(module: &str, toml_file_path: &str) -> Result<()> {
     tracing::info!("Executing {}", module);
     instance
         .get_typed_func::<(), _, _>(&mut store, "_start")?
-        .call(&mut store, ())?;
+        .call_async(&mut store, ())
+        .await?;
 
     if http_enabled {
         log::info!("waiting for http to finish...");

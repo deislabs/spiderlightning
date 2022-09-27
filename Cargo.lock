@@ -3663,6 +3663,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "as-any",
+ "async-trait",
  "slight-events-api",
  "slight-http-api",
  "wasmtime",
@@ -3675,6 +3676,7 @@ dependencies = [
  "anyhow",
  "crossbeam-channel",
  "crossbeam-utils",
+ "futures",
  "slight-common",
  "slight-events-api",
  "tracing",
@@ -3720,6 +3722,7 @@ name = "slight-http-api"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "hyper",
  "tokio",
  "wasmtime",
@@ -3744,6 +3747,7 @@ name = "slight-kv"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "aws-config",
  "aws-sdk-dynamodb",
  "azure_core 0.4.0",
@@ -3759,6 +3763,7 @@ dependencies = [
  "slight-common",
  "slight-events-api",
  "slight-runtime-configs",
+ "tokio",
  "tracing",
  "uuid 1.1.2",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
@@ -3811,6 +3816,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-channel",
+ "async-trait",
  "crossbeam-channel",
  "futures",
  "mosquitto-rs",
@@ -3831,6 +3837,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "as-any",
+ "async-trait",
  "crossbeam-channel",
  "dyn-clone",
  "slight-common",
@@ -3856,9 +3863,9 @@ name = "slight-runtime-configs"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "azure-app-configuration",
  "crossbeam-channel",
- "futures",
  "rand 0.8.5",
  "short-crypt",
  "slight-common",
@@ -5292,6 +5299,7 @@ version = "0.2.0"
 source = "git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0#cb871cfa1ee460b51eb1d144b175b9aab9c50aba"
 dependencies = [
  "anyhow",
+ "async-trait",
  "bitflags",
  "thiserror",
  "wasmtime",
@@ -5304,6 +5312,7 @@ version = "0.2.0"
 source = "git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146#6f80d65a483fe929a79e2661825d99842227b146"
 dependencies = [
  "anyhow",
+ "async-trait",
  "bitflags",
  "thiserror",
  "wasmtime",
