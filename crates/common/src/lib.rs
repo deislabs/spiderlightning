@@ -59,7 +59,7 @@ pub trait Ctx {
 /// A trait for builder
 #[async_trait]
 pub trait Buildable: Clone {
-    type Ctx: Ctx + Send;
+    type Ctx: Ctx + Send + Sync;
 
     async fn build(&self) -> (Store<Self::Ctx>, Instance);
 }
