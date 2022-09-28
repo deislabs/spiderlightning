@@ -114,7 +114,7 @@ mod unittests {
             .read(true)
             .write(true)
             .create(true)
-            .open(&toml_file_pathstr)?;
+            .open(toml_file_pathstr)?;
 
         assert!(create_secret("key", "value", &mut tmp_toml, &mut toml_file).is_ok());
 
@@ -143,7 +143,7 @@ mod unittests {
             .read(true)
             .write(true)
             .create(true)
-            .open(&toml_file_pathstr)?;
+            .open(toml_file_pathstr)?;
 
         toml_file.write_all(toml::to_string(&tmp_toml)?.as_bytes())?;
         create_secret("baz", "baz_val_encrypted", &mut tmp_toml, &mut toml_file)?;
@@ -196,7 +196,7 @@ mod unittests {
             .read(true)
             .write(true)
             .create(true)
-            .open(&toml_file_pathstr)?;
+            .open(toml_file_pathstr)?;
 
         toml_file.write_all(toml::to_string(&tmp_toml)?.as_bytes())?;
         create_secret("foo", "foo_val_encrypted", &mut tmp_toml, &mut toml_file)?;
@@ -242,7 +242,7 @@ mod unittests {
             .read(true)
             .write(true)
             .create(true)
-            .open(&toml_file_pathstr)?;
+            .open(toml_file_pathstr)?;
 
         toml_file.write_all(toml::to_string(&tmp_toml)?.as_bytes())?;
         create_secret("foo", "foo_val_encrypted", &mut tmp_toml, &mut toml_file)?;

@@ -44,7 +44,7 @@ impl UserSecrets {
 
         // decrypt key and return value
         let sc = ShortCrypt::new(encryption_key);
-        sc.decrypt_url_component(&value)
+        sc.decrypt_url_component(value)
             .map_err(|err| anyhow::anyhow!(err))
     }
 
