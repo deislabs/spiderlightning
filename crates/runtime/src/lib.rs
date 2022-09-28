@@ -1,6 +1,8 @@
 pub mod ctx;
 pub mod resource;
 
+use std::path::Path;
+
 use anyhow::Result;
 use ctx::{SlightCtx, SlightCtxBuilder};
 use resource::{EventsData, HttpData, Linkable};
@@ -54,7 +56,7 @@ pub struct Builder {
 
 impl Builder {
     /// Create a new runtime builder.
-    pub fn new_default(module: &str) -> Result<Self> {
+    pub fn new_default(module: impl AsRef<Path>) -> Result<Self> {
         let engine = Engine::new(&default_config()?)?;
         let mut linker = Linker::new(&engine);
         linker.allow_shadowing(true);

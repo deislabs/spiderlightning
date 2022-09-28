@@ -115,7 +115,7 @@ mod integration_tests {
         async fn http_test() -> Result<()> {
             let config = "./tests/http-test/slightfile.toml";
             let mut child = Command::new(SLIGHT)
-                .args(&["-c", config, "run", "-m", HTTP_TEST_MODULE])
+                .args(["-c", config, "run", "-m", HTTP_TEST_MODULE])
                 .spawn()?;
             sleep(Duration::from_secs(2)).await;
 

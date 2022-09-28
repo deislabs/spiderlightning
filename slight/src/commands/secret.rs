@@ -1,8 +1,8 @@
 use anyhow::Result;
 use spiderlightning::core::{secret::create_secret, slightfile::TomlFile};
-use std::fs::OpenOptions;
+use std::{fs::OpenOptions, path::Path};
 
-pub fn handle_secret(key: &str, value: &str, toml_file_path: &str) -> Result<()> {
+pub fn handle_secret(key: &str, value: &str, toml_file_path: impl AsRef<Path>) -> Result<()> {
     let mut toml_file = OpenOptions::new()
         .read(true)
         .write(true)

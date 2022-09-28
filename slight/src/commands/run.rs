@@ -1,4 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
@@ -26,7 +29,7 @@ const PUBSUB_HOST_IMPLEMENTORS: [&str; 2] = ["pubsub.confluent_apache_kafka", "p
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
     ["configs.usersecrets", "configs.envvars", "configs.azapp"];
 
-pub async fn handle_run(module: &str, toml_file_path: &str) -> Result<()> {
+pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Path>) -> Result<()> {
     let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
     let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
 
@@ -34,7 +37,7 @@ pub async fn handle_run(module: &str, toml_file_path: &str) -> Result<()> {
 
     let resource_map = Arc::new(Mutex::new(StateTable::default()));
 
-    let host_builder = build_store_instance(&toml, toml_file_path, resource_map.clone(), module)?;
+    let host_builder = build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
     let (mut store, instance) = host_builder.build()?;
 
     let caps = toml.capability.as_ref().unwrap();
@@ -47,7 +50,7 @@ pub async fn handle_run(module: &str, toml_file_path: &str) -> Result<()> {
     if events_enabled {
         log::debug!("Events capability enabled");
         let guest_builder =
-            build_store_instance(&toml, toml_file_path, resource_map.clone(), module)?;
+            build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
         let event_handler_resource: &mut Events<Builder> = get_resource(&mut store, "events");
         event_handler_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
@@ -55,12 +58,11 @@ pub async fn handle_run(module: &str, toml_file_path: &str) -> Result<()> {
     if http_enabled {
         log::debug!("Http capability enabled");
         let guest_builder: Builder =
-            build_store_instance(&toml, toml_file_path, resource_map.clone(), module)?;
+            build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
         let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
         http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
 
-    tracing::info!("Executing {}", module);
     instance
         .get_typed_func::<(), _, _>(&mut store, "_start")?
         .call(&mut store, ())?;
@@ -107,9 +109,9 @@ async fn shutdown_signal() {
 
 fn build_store_instance(
     toml: &TomlFile,
-    toml_file_path: &str,
+    toml_file_path: impl AsRef<Path>,
     resource_map: Arc<Mutex<StateTable>>,
-    module: &str,
+    module: impl AsRef<Path>,
 ) -> Result<Builder> {
     let mut builder = Builder::new_default(module)?;
     let mut slight_builder = SlightCtxBuilder::default();
@@ -131,7 +133,7 @@ fn build_store_instance(
                         slight_builder =
                             slight_builder.add_state(State::Kv(slight_kv::KvState::new(
                                 resource_type.to_string(),
-                                BasicState::new(resource_map.clone(), ss, toml_file_path),
+                                BasicState::new(resource_map.clone(), ss, &toml_file_path),
                             )))?;
                     } else {
                         bail!("the kv capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab, say, the AZURE_STORAGE_ACCOUNT, and AZURE_STORAGE_KEY from.")
@@ -142,7 +144,7 @@ fn build_store_instance(
                         builder.link_capability::<Mq>("mq".to_string())?;
                         slight_builder = slight_builder.add_state(State::Mq(MqState::new(
                             resource_type.to_string(),
-                            BasicState::new(resource_map.clone(), ss, toml_file_path),
+                            BasicState::new(resource_map.clone(), ss, &toml_file_path),
                         )))?;
                     } else {
                         bail!("the mq capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the AZURE_SERVICE_BUS_NAMESPACE, AZURE_POLICY_NAME, and AZURE_POLICY_KEY from.")
@@ -154,7 +156,7 @@ fn build_store_instance(
                         slight_builder =
                             slight_builder.add_state(State::Lockd(LockdState::new(
                                 resource_type.to_string(),
-                                BasicState::new(resource_map.clone(), ss, toml_file_path),
+                                BasicState::new(resource_map.clone(), ss, &toml_file_path),
                             )))?;
                     } else {
                         bail!("the lockd capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the ETCD_ENDPOINT.")
@@ -166,7 +168,7 @@ fn build_store_instance(
                         slight_builder =
                             slight_builder.add_state(State::PubSub(PubsubState::new(
                                 resource_type.to_string(),
-                                BasicState::new(resource_map.clone(), ss, toml_file_path),
+                                BasicState::new(resource_map.clone(), ss, &toml_file_path),
                             )))?;
                     } else {
                         bail!("the pubsub capability requires a secret store of some type (i.e., envvars, or usersecrets) specified in your config file so it knows where to grab the CAK_SECURITY_PROTOCOL, CAK_SASL_MECHANISMS, CAK_SASL_USERNAME, CAK_SASL_PASSWORD, and CAK_GROUP_ID from.")
@@ -176,7 +178,7 @@ fn build_store_instance(
                     builder.link_capability::<Configs>("configs".to_string())?;
                     slight_builder = slight_builder.add_state(State::RtCfg(ConfigsState::new(
                         resource_type.to_string(),
-                        BasicState::new(resource_map.clone(), "", toml_file_path),
+                        BasicState::new(resource_map.clone(), "", &toml_file_path),
                     )))?;
                 }
                 "http" => {
