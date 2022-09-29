@@ -1,4 +1,4 @@
-use std::fs::OpenOptions;
+use std::{fs::OpenOptions, path::Path};
 
 use anyhow::{bail, Result};
 use short_crypt::ShortCrypt;
@@ -10,7 +10,7 @@ use spiderlightning::core::{
 pub struct UserSecrets;
 
 impl UserSecrets {
-    pub fn get(key: &str, toml_file_path: &str) -> Result<Vec<u8>> {
+    pub fn get(key: &str, toml_file_path: impl AsRef<Path>) -> Result<Vec<u8>> {
         // check if encryption key env var is present
         let encryption_key = if let Ok(s) = get_key() {
             s
@@ -48,15 +48,14 @@ impl UserSecrets {
             .map_err(|err| anyhow::anyhow!(err))
     }
 
-    pub fn set(key: &str, value: &[u8], toml_file_path: &str) -> Result<()> {
+    pub fn set(key: &str, value: &[u8], toml_file_path: impl AsRef<Path>) -> Result<()> {
         // call in to slight to handle config creation
-        let toml_file_path = toml_file_path;
         let mut toml_file = OpenOptions::new()
             .read(true)
             .write(true)
             .create(true)
-            .open(toml_file_path)?;
-        let toml_file_contents = std::fs::read_to_string(toml_file_path)?;
+            .open(&toml_file_path)?;
+        let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
         let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
         create_secret(key, std::str::from_utf8(value)?, &mut toml, &mut toml_file)
     }

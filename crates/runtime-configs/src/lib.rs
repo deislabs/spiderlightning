@@ -1,5 +1,7 @@
 pub mod implementors;
 
+use std::path::Path;
+
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use uuid::Uuid;
@@ -170,7 +172,7 @@ impl Default for ConfigsImplementor {
 }
 
 /// SDK-ish bit
-pub async fn get(config_type: &str, key: &str, toml_file_path: &str) -> Result<Vec<u8>> {
+pub async fn get(config_type: &str, key: &str, toml_file_path: impl AsRef<Path>) -> Result<Vec<u8>> {
     match config_type.into() {
         ConfigsImplementor::EnvVars => Ok(EnvVars::get(key)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::get(key, toml_file_path)?),
@@ -178,7 +180,12 @@ pub async fn get(config_type: &str, key: &str, toml_file_path: &str) -> Result<V
     }
 }
 
-pub async fn set(config_type: &str, key: &str, value: &[u8], toml_file_path: &str) -> Result<()> {
+pub async fn set(
+    config_type: &str,
+    key: &str,
+    value: &[u8],
+    toml_file_path: impl AsRef<Path>,
+) -> Result<()> {
     match config_type.into() {
         ConfigsImplementor::EnvVars => Ok(EnvVars::set(key, value)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),
