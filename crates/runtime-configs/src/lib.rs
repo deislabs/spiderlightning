@@ -172,7 +172,11 @@ impl Default for ConfigsImplementor {
 }
 
 /// SDK-ish bit
-pub async fn get(config_type: &str, key: &str, toml_file_path: impl AsRef<Path>) -> Result<Vec<u8>> {
+pub async fn get(
+    config_type: &str,
+    key: &str,
+    toml_file_path: impl AsRef<Path>,
+) -> Result<Vec<u8>> {
     match config_type.into() {
         ConfigsImplementor::EnvVars => Ok(EnvVars::get(key)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::get(key, toml_file_path)?),
