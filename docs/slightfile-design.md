@@ -1,6 +1,6 @@
 # `slightfile` Re-Design
 
-`slightfile` is the adopted name for a configuration for file for `slight` application. Currently, its design imposes some limitations on applications that a user can develop. The purpose of this document is to highlight these limitations and propose a solution. 
+`slightfile` is the adopted name for a configuration file for `slight` application. Currently, its design imposes some limitations on applications that a user can develop. The purpose of this document is to highlight these limitations and propose a solution. 
 
 ## <a name='TableofContents'></a>Table of Contents
 
