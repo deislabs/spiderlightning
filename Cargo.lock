@@ -3638,6 +3638,7 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "reqwest",
  "slight-common",
  "slight-events",
  "slight-events-api",
