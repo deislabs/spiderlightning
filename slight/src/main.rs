@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use slight_lib::commands::{run::handle_run, secret::handle_secret};
+use slight_lib::commands::{add::handle_add, run::handle_run, secret::handle_secret};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -8,7 +8,7 @@ struct Args {
     #[clap(subcommand)]
     command: Commands,
     #[clap(short, long, value_parser)]
-    config: String,
+    config: Option<String>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -25,6 +25,11 @@ enum Commands {
         #[clap(short, long, value_parser)]
         value: String,
     },
+    /// Download a SpiderLightning interface
+    Add {
+        #[clap(short, long, value_parser)]
+        interface_at_release: String,
+    },
 }
 
 /// The entry point for slight CLI
@@ -37,7 +42,10 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     match &args.command {
-        Commands::Run { module } => handle_run(module, &args.config).await,
-        Commands::Secret { key, value } => handle_secret(key, value, &args.config),
+        Commands::Run { module } => handle_run(module, &args.config.unwrap()).await,
+        Commands::Secret { key, value } => handle_secret(key, value, &args.config.unwrap()),
+        Commands::Add {
+            interface_at_release,
+        } => handle_add(interface_at_release).await,
     }
 }
