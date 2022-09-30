@@ -10,6 +10,7 @@ use events::EventsTables;
 use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
+use futures::executor::block_on;
 use slight_common::{impl_resource, Buildable, Builder, Ctx};
 use slight_events_api::{AttributesReader, Event, EventHandler, EventParam, ResourceMap};
 use uuid::Uuid;
@@ -122,7 +123,7 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
                         .recv_deadline(Instant::now() + Duration::from_secs(duration));
                     match recv {
                         Ok(mut event) => {
-                            let (mut store, instance) = builder.inner().build();
+                            let (mut store, instance) = block_on(builder.inner().build());
                             let handler = EventHandler::new(&mut store, &instance, |ctx| {
                                 ctx.get_events_state_mut()
                             })?;

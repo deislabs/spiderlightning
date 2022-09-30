@@ -6,7 +6,7 @@ use hyper::{
     Body, HeaderMap, StatusCode,
 };
 
-wit_bindgen_wasmtime::import!("../../wit/http-handler.wit");
+wit_bindgen_wasmtime::import!({paths: ["../../wit/http-handler.wit"], async: *});
 wit_error_rs::impl_error!(Error);
 
 /// A HTTP Handler that finds the handler function from the wasm module
@@ -39,7 +39,7 @@ impl<T> AsMut<http_handler::HttpHandler<T>> for HttpHandler<T> {
     }
 }
 
-impl<T> HttpHandler<T> {
+impl<T: Send> HttpHandler<T> {
     /// Create a new HTTP Handler.
     pub fn new(
         mut store: impl wasmtime::AsContextMut<Data = T>,
@@ -72,12 +72,12 @@ impl<T> HttpHandler<T> {
         })
     }
 
-    pub fn handle_http(
+    pub async fn handle_http(
         &self,
         caller: impl wasmtime::AsContextMut<Data = T>,
         req: Request<'_>,
     ) -> Result<Result<Response, Error>, wasmtime::Trap> {
-        self.inner.handle_http(caller, req)
+        self.inner.handle_http(caller, req).await
     }
 }
 

@@ -3,6 +3,7 @@ pub mod implementors;
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use async_trait::async_trait;
 use uuid::Uuid;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
@@ -12,7 +13,7 @@ use slight_common::{impl_resource, BasicState};
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use configs::*;
-wit_bindgen_wasmtime::export!("../../wit/configs.wit");
+wit_bindgen_wasmtime::export!({paths: ["../../wit/configs.wit"], async: *});
 wit_error_rs::impl_error!(configs::Error);
 wit_error_rs::impl_from!(anyhow::Error, configs::Error::ErrorWithDescription);
 
@@ -50,10 +51,11 @@ impl ConfigsState {
     }
 }
 
+#[async_trait]
 impl configs::Configs for Configs {
     type Configs = ConfigsInner;
 
-    fn configs_open(&mut self) -> Result<Self::Configs, configs::Error> {
+    async fn configs_open(&mut self) -> Result<Self::Configs, configs::Error> {
         // populate our inner configs object w/ the state received from `slight`
         // (i.e., what type of configs implementor we are using), and the assigned
         // name of the object.
@@ -69,15 +71,20 @@ impl configs::Configs for Configs {
         Ok(inner)
     }
 
-    fn configs_get(&mut self, self_: &Self::Configs, key: &str) -> Result<Vec<u8>, configs::Error> {
+    async fn configs_get(
+        &mut self,
+        self_: &Self::Configs,
+        key: &str,
+    ) -> Result<Vec<u8>, configs::Error> {
         Ok(get(
             &String::from(&self_.configs_implementor),
             key,
             &self.host_state.slight_state.slightfile_path,
-        )?)
+        )
+        .await?)
     }
 
-    fn configs_set(
+    async fn configs_set(
         &mut self,
         self_: &Self::Configs,
         key: &str,
@@ -88,7 +95,8 @@ impl configs::Configs for Configs {
             key,
             value,
             &self.host_state.slight_state.slightfile_path,
-        )?;
+        )
+        .await?;
 
         Ok(())
     }
@@ -164,15 +172,19 @@ impl Default for ConfigsImplementor {
 }
 
 /// SDK-ish bit
-pub fn get(config_type: &str, key: &str, toml_file_path: impl AsRef<Path>) -> Result<Vec<u8>> {
+pub async fn get(
+    config_type: &str,
+    key: &str,
+    toml_file_path: impl AsRef<Path>,
+) -> Result<Vec<u8>> {
     match config_type.into() {
         ConfigsImplementor::EnvVars => Ok(EnvVars::get(key)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::get(key, toml_file_path)?),
-        ConfigsImplementor::AzApp => Ok(AzApp::get(key)?),
+        ConfigsImplementor::AzApp => Ok(AzApp::get(key).await?),
     }
 }
 
-pub fn set(
+pub async fn set(
     config_type: &str,
     key: &str,
     value: &[u8],
@@ -181,18 +193,20 @@ pub fn set(
     match config_type.into() {
         ConfigsImplementor::EnvVars => Ok(EnvVars::set(key, value)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),
-        ConfigsImplementor::AzApp => Ok(AzApp::set(key, value)?),
+        ConfigsImplementor::AzApp => Ok(AzApp::set(key, value).await?),
     }
 }
 
-pub fn get_from_state(config_name: &str, state: &BasicState) -> Result<String> {
+pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<String> {
     let config = String::from_utf8(
-        get(&state.secret_store, config_name, &state.slightfile_path).with_context(|| {
-            format!(
-                "failed to get '{}' secret using secret store type: {}",
-                config_name, state.secret_store
-            )
-        })?,
+        get(&state.secret_store, config_name, &state.slightfile_path)
+            .await
+            .with_context(|| {
+                format!(
+                    "failed to get '{}' secret using secret store type: {}",
+                    config_name, state.secret_store
+                )
+            })?,
     )?;
     Ok(config)
 }

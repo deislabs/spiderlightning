@@ -50,7 +50,6 @@ impl UserSecrets {
 
     pub fn set(key: &str, value: &[u8], toml_file_path: impl AsRef<Path>) -> Result<()> {
         // call in to slight to handle config creation
-        let toml_file_path = toml_file_path;
         let mut toml_file = OpenOptions::new()
             .read(true)
             .write(true)

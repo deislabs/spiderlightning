@@ -22,6 +22,7 @@ slight-http-api = { path = "../http-api/" }
 tracing = { version = "0.1", features = ["log"] }
 slight-common = { path = "../common" }
 dyn-clone = "1"
+async-trait = "0.1"
 
 slight-kv = { path = "../kv" }
 slight-http = { path = "../http" }

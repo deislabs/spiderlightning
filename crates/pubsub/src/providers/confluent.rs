@@ -1,5 +1,4 @@
 use anyhow::{bail, Result};
-use futures::executor::block_on;
 use rdkafka::{
     consumer::{Consumer, StreamConsumer},
     producer::{BaseProducer, BaseRecord},
@@ -24,8 +23,8 @@ pub fn subscribe(consumer: &StreamConsumer, topic: Vec<&str>) -> Result<()> {
     Ok(())
 }
 
-pub fn receive(consumer: &StreamConsumer) -> Result<Vec<u8>> {
-    match block_on(consumer.recv()) {
+pub async fn receive(consumer: &StreamConsumer) -> Result<Vec<u8>> {
+    match consumer.recv().await {
         Err(e) => bail!(e),
         Ok(m) => Ok(m.payload().unwrap().to_vec()),
     }

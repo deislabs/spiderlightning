@@ -1,10 +1,10 @@
-use std::sync::{Arc, Mutex};
-
 use anyhow::{Context, Result};
 use etcd_client::Client;
-use futures::executor::block_on;
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
+use std::borrow::BorrowMut;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use crate::providers::etcd;
 
@@ -17,7 +17,7 @@ use crate::providers::etcd;
 /// As per its' usage in `EtcdImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Clone)]
 pub struct EtcdImplementor {
-    client: Option<Arc<Mutex<Client>>>,
+    client: Arc<Mutex<Client>>,
 }
 
 impl std::fmt::Debug for EtcdImplementor {
@@ -27,43 +27,45 @@ impl std::fmt::Debug for EtcdImplementor {
 }
 
 impl EtcdImplementor {
-    pub fn new(slight_state: &BasicState) -> Self {
-        let endpoint = get_from_state("ETCD_ENDPOINT", slight_state).unwrap();
+    pub async fn new(slight_state: &BasicState) -> Self {
+        let endpoint = get_from_state("ETCD_ENDPOINT", slight_state).await.unwrap();
 
-        let client = block_on(Client::connect([endpoint], None))
+        let client = Client::connect([endpoint], None)
+            .await
             .with_context(|| "failed to connect to etcd server")
             .unwrap();
         // ^^^ from my tests with localhost client, this never fails
         Self {
-            client: Some(Arc::new(Mutex::new(client))),
+            client: Arc::new(Mutex::new(client)),
         }
     }
 
-    pub fn lock(&self, lock_name: &[u8]) -> Result<Vec<u8>> {
-        let inner = self.client.as_ref().unwrap();
-        let pr = block_on(etcd::lock(&mut inner.lock().unwrap(), lock_name))
+    pub async fn lock(&self, lock_name: &[u8]) -> Result<Vec<u8>> {
+        let mut inner = self.client.lock().await;
+        let pr = etcd::lock(inner.borrow_mut(), lock_name)
+            .await
             .with_context(|| "failed to acquire lock")?;
         Ok(pr)
     }
 
-    pub fn lock_with_time_to_live(
+    pub async fn lock_with_time_to_live(
         &self,
         lock_name: &[u8],
         time_to_live_in_secs: i64,
     ) -> Result<Vec<u8>> {
-        let inner = self.client.as_ref().unwrap();
-        let pr = block_on(etcd::lock_with_lease(
-            &mut inner.lock().unwrap(),
+        let pr = etcd::lock_with_lease(
+            self.client.lock().await.borrow_mut(),
             lock_name,
             time_to_live_in_secs,
-        ))
+        )
+        .await
         .with_context(|| "failed to acquire lock with time to live")?;
         Ok(pr)
     }
 
-    pub fn unlock(&self, lock_key: &[u8]) -> Result<()> {
-        let inner = self.client.as_ref().unwrap();
-        block_on(etcd::unlock(&mut inner.lock().unwrap(), lock_key))
+    pub async fn unlock(&self, lock_key: &[u8]) -> Result<()> {
+        etcd::unlock(self.client.lock().await.borrow_mut(), lock_key)
+            .await
             .with_context(|| "failed to unlock")?;
         Ok(())
     }

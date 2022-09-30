@@ -16,8 +16,8 @@ pub struct RedisImplementor {
 }
 
 impl RedisImplementor {
-    pub fn new(slight_state: &BasicState, _name: &str) -> Self {
-        let connection_string = get_from_state("REDIS_ADDRESS", slight_state).unwrap();
+    pub async fn new(slight_state: &BasicState, _name: &str) -> Self {
+        let connection_string = get_from_state("REDIS_ADDRESS", slight_state).await.unwrap();
         let client = redis::Client::open(connection_string).unwrap();
         Self { client }
     }
