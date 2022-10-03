@@ -1,8 +1,9 @@
 use anyhow::Result;
 use clap::Parser;
-use slight_lib::{commands::{
-    add::handle_add, new::handle_new, run::handle_run, secret::handle_secret,
-}, cli::{Args, Commands}};
+use slight_lib::{
+    cli::{Args, Commands},
+    commands::{add::handle_add, new::handle_new, run::handle_run, secret::handle_secret},
+};
 
 /// The entry point for slight CLI
 #[tokio::main]

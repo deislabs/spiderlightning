@@ -44,7 +44,12 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
                     .await?
                     .text()
                     .await?;
-                let mut out = File::create(format!("{}{}/{}.wit", folder_prefix.unwrap_or("./"), folder_name, i))?;
+                let mut out = File::create(format!(
+                    "{}{}/{}.wit",
+                    folder_prefix.unwrap_or("./"),
+                    folder_name,
+                    i
+                ))?;
                 io::copy(&mut resp.as_bytes(), &mut out)?;
             }
         }
