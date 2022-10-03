@@ -10,7 +10,7 @@ SYSROOT = $(WASI_SDK)/share/wasi-sysroot/
 TARGET ?= {{project-name}}.wasm
 SRC_DIR ?= ./src
 
-# install clang from the wasi-sdk used for unix build (windows is manual for now)
+# install wasi-sdk used for the unix build
 .PHONY: install-deps
 install-deps:
 	set -x
@@ -21,17 +21,30 @@ install-deps:
 	sudo mv wasi-sdk-$(WASI_VERSION_FULL)/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 
-# clean up bindings dir
+# install wasi-sdk used for the windows build
+.PHONY: install-deps-win
+install-deps-win:
+	wget -O wasi-sdk-15.0-mingw.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
+	tar -xvzf wasi-sdk-15.0-mingw.tar.gz
+	mkdir -p /opt/wasi-sdk
+	mv wasi-sdk-15.0/* /opt/wasi-sdk/
+
+# clean up bindings dir for unix
 .PHONY: clean
 clean:
 	rm -rf $(SRC_DIR)/bindings/
 	mkdir $(SRC_DIR)/bindings/
 
+# clean up bindings dir for windows
+.PHONY: clean-win
+clean-win:
+	rm -r -Forced $(SRC_DIR)/bindings/
+	mkdir $(SRC_DIR)/bindings/	
+
 # generate new bindings
 .PHONY: bindings
 bindings:
 	wit-bindgen c --import wit/kv_{{release}}/kv.wit --out-dir $(SRC_DIR)/bindings/
-	chmod +x $(SRC_DIR)/bindings/kv.c
 
 # build the project on unix
 .PHONY: build
