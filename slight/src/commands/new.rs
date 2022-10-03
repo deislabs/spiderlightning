@@ -53,6 +53,7 @@ fn setup_c_template(project_name: &str, release: &str) -> Result<()> {
 
     let mut makefile_f = File::create("./c/Makefile")?;
     write!(makefile_f, "{}", makefile_s)?;
+    drop(makefile_f);
 
     std::fs::rename("c", project_name)?;
 
@@ -69,6 +70,8 @@ fn setup_rust_template(project_name: &str, release: &str) -> Result<()> {
     main_s = main_s.replace("{{release}}", release);
     let mut main_f = File::create("./rust/src/main.rs")?;
     write!(main_f, "{}", main_s)?;
+    drop(cargo_f);
+    drop(main_f);
 
     std::fs::rename("rust", project_name)?;
 
