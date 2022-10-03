@@ -1,36 +1,8 @@
 use anyhow::Result;
-use clap::{Parser, Subcommand};
-use slight_lib::commands::{add::handle_add, run::handle_run, secret::handle_secret};
-
-#[derive(Parser, Debug)]
-#[clap(author, version, about)]
-struct Args {
-    #[clap(subcommand)]
-    command: Commands,
-    #[clap(short, long, value_parser)]
-    config: Option<String>,
-}
-
-#[derive(Debug, Subcommand)]
-enum Commands {
-    /// Run slight providing a config and a module
-    Run {
-        #[clap(short, long, value_parser)]
-        module: String,
-    },
-    /// Add a secret to the application
-    Secret {
-        #[clap(short, long, value_parser)]
-        key: String,
-        #[clap(short, long, value_parser)]
-        value: String,
-    },
-    /// Download a SpiderLightning interface
-    Add {
-        #[clap(short, long, value_parser)]
-        interface_at_release: String,
-    },
-}
+use clap::Parser;
+use slight_lib::{commands::{
+    add::handle_add, new::handle_new, run::handle_run, secret::handle_secret,
+}, cli::{Args, Commands}};
 
 /// The entry point for slight CLI
 #[tokio::main]
@@ -46,6 +18,10 @@ async fn main() -> Result<()> {
         Commands::Secret { key, value } => handle_secret(key, value, &args.config.unwrap()),
         Commands::Add {
             interface_at_release,
-        } => handle_add(interface_at_release).await,
+        } => handle_add(interface_at_release, None).await,
+        Commands::New {
+            command,
+            name_at_release,
+        } => handle_new(name_at_release, command).await,
     }
 }

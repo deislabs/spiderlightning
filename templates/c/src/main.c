@@ -25,9 +25,10 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
     kv_expected_unit_error_t set_result;
     kv_string_t key;
     kv_string_set(&key, "hello-spiderlightning");
+    const char * payload_ptr = "Hello, SpiderLightning!";
     kv_payload_t payload = {
-        .ptr = "Hello, SpiderLightning!",
-        .len = strlen("Hello, SpiderLightning!")
+        .ptr = (uint8_t *) payload_ptr,
+        .len = strlen(payload_ptr)
     };
     kv_kv_set(kv, &key, &payload, &set_result);
     if (set_result.is_err)
@@ -50,6 +51,6 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
       exit(1);
     }
     get_value = get_result.val.ok;
-    printf("value from host is: %.*s\n", (int)get_value.len, get_value.ptr);
+    printf("%.*s\n", (int)get_value.len, get_value.ptr);
     
 }

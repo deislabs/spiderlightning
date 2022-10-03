@@ -10,6 +10,7 @@ SYSROOT = $(WASI_SDK)/share/wasi-sysroot/
 TARGET ?= {{project-name}}.wasm
 SRC_DIR ?= ./src
 
+# install clang from the wasi-sdk used for unix build (windows is manual for now)
 .PHONY: install-deps
 install-deps:
 	set -x
@@ -20,26 +21,26 @@ install-deps:
 	sudo mv wasi-sdk-$(WASI_VERSION_FULL)/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 
+# clean up bindings dir
 .PHONY: clean
 clean:
-	rm -rf bindings/
-	mkdir bindings/
+	rm -rf $(SRC_DIR)/bindings/
+	mkdir $(SRC_DIR)/bindings/
 
+# generate new bindings
 .PHONY: bindings
 bindings:
-	wit-bindgen c --import ../../wit/kv.wit --out-dir bindings/
-	wit-bindgen c --import ../../wit/mq.wit --out-dir bindings/
-	chmod +x bindings/kv.c bindings/mq.c
+	wit-bindgen c --import wit/kv_{{release}}/kv.wit --out-dir $(SRC_DIR)/bindings/
+	chmod +x $(SRC_DIR)/bindings/kv.c
 
+# build the project on unix
 .PHONY: build
 build:
-	sudo $(WASI_CC) -I . -I ./bindings -c -o kv.o bindings/kv.c
-	sudo $(WASI_CC) -I . -I ./bindings -c -o mq.o bindings/mq.c
-	sudo $(WASI_CC) -Wall $(SRC_DIR)/main.c kv.o mq.o -o $(TARGET) --sysroot $(SYSROOT)
-# ^^^ note: added sudo to make sure that `clang` sees kv.c, etc as executable files
+	sudo $(WASI_CC) -I . -I $(SRC_DIR)/bindings -c -o kv.o $(SRC_DIR)/bindings/kv.c
+	sudo $(WASI_CC) -Wall $(SRC_DIR)/main.c kv.o -o $(TARGET) --sysroot $(SYSROOT)
 
+# build the project on windows
 .PHONY: build-win
 build-win:
-	$(WASI_SDK)/bin/clang.exe -I . -I ./bindings -c -o kv.o bindings/kv.c
-	$(WASI_SDK)/bin/clang.exe -I . -I ./bindings -c -o mq.o bindings/mq.c
-	$(WASI_SDK)/bin/clang.exe -Wall $(SRC_DIR)/main.c kv.o mq.o -o $(TARGET) --sysroot $(SYSROOT)
+	$(WASI_SDK)/bin/clang.exe -I . -I $(SRC_DIR)/bindings -c -o kv.o $(SRC_DIR)/bindings/kv.c
+	$(WASI_SDK)/bin/clang.exe -Wall $(SRC_DIR)/main.c kv.o -o $(TARGET) --sysroot $(SYSROOT)
