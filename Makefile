@@ -146,3 +146,13 @@ run-restaurant-backend:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c ./examples/app-demos/restaurant-backend/slightfile.toml run -m ./examples/app-demos/restaurant-backend/target/wasm32-wasi/release/restaurant-backend.wasm
 	
 ### END OF APP DEMO
+
+### GITHUB RELEASES
+.PHONY: release
+release:
+	tar -czvf slight.tar.gz target/release/slight
+	tar -C templates/ -czvf rust-template.tar.gz rust
+	tar -C templates/ -czvf c-template.tar.gz c
+	gh release create $(TAG) --generate-notes -p slight.tar.gz wit/configs.wit wit/event-handler.wit wit/events.wit wit/http-handler.wit wit/http-types.wit wit/http.wit wit/kv.wit wit/mq.wit wit/pubsub.wit wit/resources.wit wit/types.wit rust-template.tar.gz c-template.tar.gz
+
+### END OF GITHUB RELEASES
