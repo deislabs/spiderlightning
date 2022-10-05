@@ -148,11 +148,14 @@ run-restaurant-backend:
 ### END OF APP DEMO
 
 ### GITHUB RELEASES
-.PHONY: release
-release:
-	tar -czvf slight.tar.gz target/release/slight
+.PHONY: prepare-release
+prepare-release:
+	tar -C target/ -czvf slight-unix.tar.gz release/slight
 	tar -C templates/ -czvf rust-template.tar.gz rust
 	tar -C templates/ -czvf c-template.tar.gz c
-	gh release create $(TAG) --generate-notes -p slight.tar.gz wit/configs.wit wit/event-handler.wit wit/events.wit wit/http-handler.wit wit/http-types.wit wit/http.wit wit/kv.wit wit/mq.wit wit/pubsub.wit wit/resources.wit wit/types.wit rust-template.tar.gz c-template.tar.gz
+
+.PHONY: prepare-release-win
+prepare-release-win:
+	tar -C target/ -czvf slight-win.tar.gz release/slight.exe
 
 ### END OF GITHUB RELEASES
