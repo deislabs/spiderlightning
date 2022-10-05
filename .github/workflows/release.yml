@@ -1,12 +1,18 @@
+name: release
+
 on:
   push:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   create_release:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - id: create_release
         uses: softprops/action-gh-release@v1
         with:
@@ -24,6 +30,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+      - uses: Swatinem/rust-cache@v1
 
       - name: "add rustup wasm targets"
         run: |
@@ -49,18 +56,13 @@ jobs:
       - run: make prepare-release-win
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
 
-      - name: "add wit files to release"
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            wit/*.wit
-
-      - name: "add slight-unix and templates tars to release"
+      - name: "add wits, and slight-unix and templates tars to release"
         uses: softprops/action-gh-release@v1
         with:
           files: |
             slight-unix.tar.gz
             *-template.tar.gz
+            wit/*.wit
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
 
       - name: "add slight-win tar to release"
