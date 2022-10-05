@@ -32,6 +32,17 @@ Aside from the `CONTRIBUTING.md` doc, here are a few other good starting points 
 - the [`service-implementation-101.md` doc](https://github.com/deislabs/spiderlightning/blob/main/docs/service-implementation-101.md): a step-by-step guide to develop your first service implementor, and
 - the [SpiderLightning YouTube Playlist](https://www.youtube.com/playlist?list=PLL6BzOBDywQcXy3otj_Y-20SCSOv-MxT3): a collection of informative and tutorial videos on SpiderLightning/`slight`.
 
+## How to install on MacOS and Linux?
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.sh)"
+```
+
+## How to install on Windows?
+
+```
+iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.ps1'))
+
 ## Getting Started
 
 ```sh
