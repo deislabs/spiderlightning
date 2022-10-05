@@ -9,8 +9,12 @@
 * [Background](#Background)
 * [Problem Statement](#ProblemStatement)
 * [Proposal](#Proposal)
-	* [Option 1](#Option1)
-	* [Option 2](#Option2)
+* [Alternatives](#Alternatives)
+	* [Alternative 1](#Alternative1)
+	* [Alternative 2](#Alternative2)
+	* [Alternative 3](#Alternative3)
+	* [Alternative 4](#Alternative4)
+	* [Alternative 5](#Alternative5)
 * [Additional Details](#AdditionalDetails)
 	* [Edge Cases](#EdgeCases)
 		* [Duplicate Name](#DuplicateName)
@@ -63,14 +67,14 @@ The current design has two main restrictions:
 
 ## <a name='Proposal'></a>Proposal
 
-There are a couple options to solve the highlited problem.
-
-### <a name='Option1'></a>Option 1
+The changes involve:
+- re-naming the `name` field to `resource`,
+- re-utilization of the `name` field to create a named resource,
+- eliminating the global `secret_store` in favour of being more declarative with configuration variables, and
+- creating a map field (i.e., `configs`) for a dynamic number of configs.
 
 ```toml
 specversion = "0.1"
-secret_store = "configs.envvars"
-
 
 [[capability]]
 resource = "kv.filesystem"
@@ -79,13 +83,10 @@ name = "orders"
 [[capability]]
 resource = "kv.azblob"
 name = "customers"
-configs = "configs.azapp"
+    [capability.configs]
+    AZURE_STORAGE_ACCOUNT = "{envvars.AZURE_STORAGE_ACCOUNT}"
+    AZURE_STORAGE_KEY = "{envvars.AZURE_STORAGE_KEY}"
 ```
-
-The changes are:
-- there is no longer the need to use a globally defined `secret_store` — now, one has the option to individually attach to each capability their own independent config referred to by name, and, if none is provided, `slight` can just fallback to the globally defined one,
-- renaming of the previously called `name` field to `resource`, and
-- we now have a new `name` field, which is the name a capability can be referred to in code.
 
 The example `slightfile` above can be used in code, like so:
 ```rs
@@ -105,13 +106,13 @@ It is important to note that there will be a new field added onto every `open` f
 
 ```toml
 specversion = "0.1"
-secret_store = "configs.envvars"
-
 
 [[capability]]
 resource = "pubsub.mosquitto"
 name = "customer_requests"
-configs = "configs.azapp"
+    [capability.configs]
+    MOSQUITTO_HOST = "{envvars.MOSQUITTO_HOST}"
+    MOSQUITTO_PORT = "{envvars.MOSQUITTO_PORT}"
 ```
 
 In code, this will look like:
@@ -131,21 +132,35 @@ fn main() -> Result<()> {
 }
 ```
 
-**Pros:**
-- easy to implement.
-**Cons:**
-- does not improve the fact configurations are not declarative. That is, currently, as a user, it is hard to figure out what kind of configurations a service requires without looking at the source code or through trial and error (i.e., via error messsages).
+## <a name='Alternatives'></a>Alternatives
 
-### <a name='Option2'></a>Option 2
+This section contains all alternatives to the proposal that were explored in the re-design. 
+
+### <a name='Alternative1'></a>Alternative 1
 
 ```toml
 specversion = "0.1"
-secret_store = "configs.envvars"
-
 
 [[capability]]
 resource = "kv.filesystem"
 name = "orders"
+configs = "configs.envvars"
+
+[[capability]]
+resource = "kv.azblob"
+name = "customers"
+configs = "configs.azapp"
+```
+
+### <a name='Alternative2'></a>Alternative 2
+
+```toml
+specversion = "0.1"
+
+[[capability]]
+resource = "kv.filesystem"
+name = "orders"
+configs = "my-configs"
 
 [[capability]]
 resource = "kv.azblob"
@@ -163,19 +178,72 @@ storage_account = "{envvars.AZURE_STORAGE_ACCOUNT}"
 storage_key = "{azapp.AZURE_STORAGE_KEY}"
 ```
 
-The changes are:
-- there is no longer the need to use a globally defined `secret_store` — now, one has the option to individually attach to each capability their own independent config referred to by name, and, if none is provided, `slight` can just fallback to the globally defined one,
-- rename of the previously called `name` field to `resource`,
-- we now have a new `name` field, which is the name a capability can be referred to in code, and
-- a new `[[config]]` section that defines the name it can be referred to by capabilities and some configuration key-value pairs namespaced by config type (i.e., `envvars`, or `azapp`).
+### <a name='Alternative3'></a>Alternative 3
 
-**Pros:**
-- configurations can be explicitly shared by multiple capabilities.
-- configurations become more declarative.
+```toml
+specversion = "0.1"
 
-**Cons:**
-- adding implementors that require new configurations will require modifying the `slightfile` spec (e.g., say we add a new sql implementor that requires a ` connection_string` key-value config, to be able to still serialize the `slightfile` with this new field, wewill have to modify the `slightfile` `struct` to contain an `Option<String>` for `connection_string`).
+# CAPABILITIES
+[[capability]]
+resource = "kv.azblob"
+name = "customers"
+configs = ["AZURE_STORAGE_ACCOUNT", "AZURE_STORAGE_KEY"]
 
+[[capability]]
+resource = "configs.azapp"
+name = "azure-config-store"
+configs = ["AZAPPCONFIG_ENDPOINT", "AZAPPCONFIG_KEYID", "AZAPPCONFIG_KEYSECRET"]
+
+[[capability]]
+resource = "configs.envvars"
+name = "local-config-store"
+configs = []
+
+# CONFIGS
+[[config]]
+name = "AZURE_STORAGE_ACCOUNT"
+value = "my-account"
+
+[[config]]
+name = "AZURE_STORAGE_KEY"
+value = "{configs.azapp.storage_key}"
+
+[[config]]
+name = "AZAPPCONFIG_ENDPOINT"
+value = "some-endpoint"
+
+[[config]]
+name = "AZAPPCONFIG_KEYID"
+value = "{configs.envvars.aac_keyid}"
+
+[[config]]
+name = "AZAPPCONFIG_KEYSECRET"
+value = "{configs.envvars.aac_keysecret}"
+```
+
+### <a name='Alternative4'></a>Alternative 4
+
+```toml
+specversion = "0.1"
+secret_store = "configs.envvars"
+
+[[capability]]
+resource = "kv.azblob"
+name = "customers"
+configs = [{ name = "storage_account", value = "{envvars.AZURE_STORAGE_ACCOUNT}" }, { name = "storage_key", value = "{configs.azapp.storage_pwd}" }]
+```
+
+### <a name='Alternative5'></a>Alternative 5
+
+```toml
+specversion = "0.1"
+secret_store = "configs.envvars"
+
+[[capability]]
+resource = "kv.azblob"
+name = "customers"
+configs = ["envvars.AZURE_STORAGE_ACCOUNT", "azapp.AZURE_STORAGE_ACCOUNT"]
+```
 
 ## <a name='AdditionalDetails'></a>Additional Details
 
