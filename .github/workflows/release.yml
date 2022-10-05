@@ -1,0 +1,54 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    steps:
+      - id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          prerelease: true
+
+  release_assets:
+    needs: create_release
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-latest
+          - os: windows-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - run: make build
+
+      - run: make prepare-release
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - run: make prepare-release-win
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            wit/*.wit
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            slight-win.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+      
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            slight-unix.tar.gz
+            rust-template.tar.gz
+            c-template.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+            
