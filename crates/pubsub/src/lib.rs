@@ -109,7 +109,7 @@ impl pubsub::Pubsub for Pubsub {
     ) -> Result<(), Error> {
         match &self_.pub_implementor {
             PubImplementor::ConfluentApacheKafka(pi) => pi.publish(message, topic)?,
-            PubImplementor::Mosquitto(pi) => pi.publish(message, topic)?,
+            PubImplementor::Mosquitto(pi) => pi.publish(message, topic).await?,
         };
 
         Ok(())
@@ -127,7 +127,7 @@ impl pubsub::Pubsub for Pubsub {
     async fn sub_receive(&mut self, self_: &Self::Sub) -> Result<Vec<u8>, Error> {
         Ok(match &self_.sub_implementor {
             SubImplementor::ConfluentApacheKafka(si) => si.receive().await?,
-            SubImplementor::Mosquitto(si) => si.receive()?,
+            SubImplementor::Mosquitto(si) => si.receive().await?,
         })
     }
 }

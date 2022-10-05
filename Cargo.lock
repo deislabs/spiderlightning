@@ -3832,7 +3832,6 @@ dependencies = [
  "async-channel",
  "async-trait",
  "crossbeam-channel",
- "futures",
  "mosquitto-rs",
  "rdkafka",
  "slight-common",
