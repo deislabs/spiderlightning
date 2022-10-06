@@ -97,8 +97,8 @@ wit_bindgen_rust::import!("../../wit/kv.wit");
 wit_error_rs::impl_error!(kv::Error);
 
 fn main() -> Result<()> {
-    let orders = Kv::open("orders", "orders-folder")?; 
-    let customers = Kv::open("customers", "customers-container")?;
+    let orders = Kv::open("orders"?; 
+    let customers = Kv::open("customers")?;
 }
 ```
 
