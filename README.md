@@ -35,13 +35,13 @@ Aside from the `CONTRIBUTING.md` doc, here are a few other good starting points 
 
 ## How to install on MacOS and Linux?
 
-```
+```sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.sh)"
 ```
 
 ## How to install on Windows?
 
-```
+```sh
 iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.ps1'))
 ```
 
@@ -74,16 +74,16 @@ slight -c slightfile.toml run -m target/wasm32-wasi/debug/spidey.wasm
 ## Building C Examples
 
 ```sh
-$ git clone https://github.com/deislabs/spiderlightning.git && cd spiderlightning/ # clone our repo locally and go into it
-$ make install-deps # installs the WASI-SDK
-$ make build # builds SpiderLightning/Slight
-$ make build-c # builds our c example
-$ make run-c # runs our c example
+git clone https://github.com/deislabs/spiderlightning.git && cd spiderlightning/ # clone our repo locally and go into it
+make install-deps # installs the WASI-SDK
+make build # builds SpiderLightning/Slight
+make build-c # builds our c example
+make run-c # runs our c example
 ```
 
 # Building Rust Examples
 
-There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, some of these examples have some dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.
+There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, we do not recommend running them because some of these examples have dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.
 
 ## FAQ
 
