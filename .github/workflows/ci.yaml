@@ -44,6 +44,13 @@ jobs:
       # 
       # Install build tools
       #
+
+      # https://github.com/actions/runner-images/issues/6283
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
       - name: "Install make tool on Windows"
         run: choco install make -y
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
