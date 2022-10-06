@@ -297,7 +297,7 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     let route = parts.data::<Route>().unwrap();
 
     let instance_builder = parts.data::<Builder<T>>().unwrap();
-    let (mut store, instance) = instance_builder.inner().build();
+    let (mut store, instance) = instance_builder.inner().build().await;
 
     // Perform conversion from the `hyper::Request` to `handle_http::Request`.
     let params = parts.params();
@@ -308,11 +308,8 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     let method: Method = (&parts.method).into();
     let headers: HttpHeader = (&parts.headers).into();
 
-    // FIXME: `HttpBody::from_body` returns a future here. The reason that `block_on` is used is
-    // because the `store` and `instance` are holding a mutex, which means that the async runtime
-    // cannot switch to another thread.
-    let bytes = block_on(HttpBody::from_body(body))?.inner();
-    let uri = &(&parts.uri).to_string();
+    let bytes = HttpBody::from_body(body).await?.inner();
+    let uri = &parts.uri.to_string();
     let req = Request {
         method,
         uri,
@@ -322,24 +319,25 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     };
 
     // Construct http handler
-    let mut handler =
-        HttpHandler::new(&mut store, &instance, |ctx| ctx.get_http_state_mut()).unwrap();
+    let handler_name = &route.handler.replace('_', "-");
+    let handler = HttpHandler::new(&mut store, &instance, handler_name, |ctx| {
+        ctx.get_http_state_mut()
+    })?;
 
-    // Perform the http request
-    log::debug!("Invoking guest handler {}", &route.handler,);
-    let func = instance
-        .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,), _>(
-            &mut store,
-            &route.handler.replace('_', "-"),
-        );
-    if func.is_err() {
-        bail!("Failed to find guest function {}", &route.handler);
-    }
-    handler.handle_http = func.unwrap(); // unwrap is safe because we checked above
-    let res = handler.handle_http(&mut store, req)??;
-    log::debug!("response: {:?}", res);
+    // Invoke the handler with http request
+    log::debug!("invoking handler: {}", handler_name);
+
+    // let res = tokio::task::spawn_blocking(|| {
+    //     handler.handle_http(&mut store, req)
+    // }).await???;
+    // let rt = tokio::runtime::Handle::current();
+    let res = handler.handle_http(&mut store, req).await??;
+    // let res = rt.block_on(async {
+    //     handler.handle_http(&mut store, req)
+    // })??;
 
     // Perform the conversion from `handle_http::Response` to `hyper::Response`.
+    log::debug!("response: {:?}", res);
     Ok(res.into())
 }
 

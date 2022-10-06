@@ -29,8 +29,8 @@ impl std::fmt::Debug for PubConfluentApacheKafkaImplementor {
 }
 
 impl PubConfluentApacheKafkaImplementor {
-    pub fn new(slight_state: &BasicState) -> Self {
-        let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
+    pub async fn new(slight_state: &BasicState) -> Self {
+        let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
         let producer: BaseProducer = ClientConfig::new()
             .set("bootstrap.servers", akc.bootstap_servers)
             .set("security.protocol", akc.security_protocol)
@@ -80,9 +80,9 @@ impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
 }
 
 impl SubConfluentApacheKafkaImplementor {
-    pub fn new(slight_state: &BasicState) -> Self {
-        let akc = ApacheKafkaConfigs::from_state(slight_state).unwrap();
-        let group_id = get_from_state("CAK_GROUP_ID", slight_state).unwrap();
+    pub async fn new(slight_state: &BasicState) -> Self {
+        let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
+        let group_id = get_from_state("CAK_GROUP_ID", slight_state).await.unwrap();
 
         let consumer: StreamConsumer = ClientConfig::new()
             .set("bootstrap.servers", akc.bootstap_servers)
@@ -105,8 +105,10 @@ impl SubConfluentApacheKafkaImplementor {
             .with_context(|| "failed to subscribe to topic")
     }
 
-    pub fn receive(&self) -> Result<Vec<u8>> {
-        confluent::receive(&self.consumer).with_context(|| "failed to poll for message")
+    pub async fn receive(&self) -> Result<Vec<u8>> {
+        confluent::receive(&self.consumer)
+            .await
+            .with_context(|| "failed to poll for message")
     }
 }
 
@@ -121,12 +123,12 @@ struct ApacheKafkaConfigs {
 }
 
 impl ApacheKafkaConfigs {
-    fn from_state(slight_state: &BasicState) -> Result<Self> {
-        let bootstap_servers = get_from_state("CAK_ENDPOINT", slight_state)?;
-        let security_protocol = get_from_state("CAK_SECURITY_PROTOCOL", slight_state)?;
-        let sasl_mechanisms = get_from_state("CAK_SASL_MECHANISMS", slight_state)?;
-        let sasl_username = get_from_state("CAK_SASL_USERNAME", slight_state)?;
-        let sasl_password = get_from_state("CAK_SASL_PASSWORD", slight_state)?;
+    async fn from_state(slight_state: &BasicState) -> Result<Self> {
+        let bootstap_servers = get_from_state("CAK_ENDPOINT", slight_state).await?;
+        let security_protocol = get_from_state("CAK_SECURITY_PROTOCOL", slight_state).await?;
+        let sasl_mechanisms = get_from_state("CAK_SASL_MECHANISMS", slight_state).await?;
+        let sasl_username = get_from_state("CAK_SASL_USERNAME", slight_state).await?;
+        let sasl_password = get_from_state("CAK_SASL_PASSWORD", slight_state).await?;
 
         Ok(Self {
             bootstap_servers,

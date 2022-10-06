@@ -9,7 +9,7 @@ test = false
 doctest = false
 
 [dependencies]
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0", features = ["async"]}
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
 slight-events-api = { path = "../events-api" }
 slight-common ={ path = "../common" }
@@ -18,6 +18,8 @@ anyhow = "1"
 uuid = { version = "1.1", features = ["v4"] }
 crossbeam-channel = "0.5"
 tracing = { version = "0.1", features = ["log"] }
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
 # kv.azblob deps
 azure_storage_blobs = "0.5"
 azure_storage = "0.5"

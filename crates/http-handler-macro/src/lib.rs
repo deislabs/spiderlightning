@@ -82,7 +82,7 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // invoke wit-bindgen parsing
     let path: &Path = HTTP_WIT_PATH.as_ref();
     let parent = path.parent().unwrap();
-    let contents = std::fs::read_to_string(&path).unwrap();
+    let contents = std::fs::read_to_string(path).unwrap();
     let iface = Interface::parse_with(mod_name.clone(), &contents, |path| load_fs(parent, path))
         .expect("parse error");
     let mut files = Files::default();

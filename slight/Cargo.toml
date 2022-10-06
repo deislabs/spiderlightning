@@ -8,6 +8,10 @@ authors = ["DeisLabs Engineering Team"]
 name = "slight"
 test = false
 
+[lib]
+name = "slight_lib"
+path = "src/lib.rs"
+
 [dependencies]
 spiderlightning = { path = "../" }
 slight-runtime = { path = "../crates/runtime" }
@@ -24,9 +28,13 @@ anyhow = "1"
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
 tokio = { version = "1", features = ["full"] }
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0"}
 clap = { version = "3", features = ["derive"] }
 toml = "0.5"
 as-any = "0.3"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing = { version = "0.1", features = ["log"] }
+reqwest = "0.11"
+
+[dev-dependencies]
+tempdir = "0.3"

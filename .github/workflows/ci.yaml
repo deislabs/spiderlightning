@@ -73,7 +73,7 @@ jobs:
           rustup target add wasm32-unknown-unknown
 
       - name: "Install wit-bindgen-cli"
-        run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --rev a79a4be33d76ddf62839ba71602c26a96610ef7c
+        run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0                         
       
       #
       # Build
@@ -118,3 +118,16 @@ jobs:
       #
       - name: "Run Unit Tests"
         run: make test
+        if: ${{ matrix.config.platformAgnosticChecks }}
+
+      - name: "Run Unit Tests"
+        run: make test
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+        env:
+          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
+
+      - name: "Run Unit Tests"
+        run: make test
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        env:
+          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\

@@ -1,7 +1,7 @@
 mod implementors;
 pub mod providers;
-
 use anyhow::Result;
+use async_trait::async_trait;
 
 use implementors::{
     apache_kafka::{PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor},
@@ -14,7 +14,7 @@ use uuid::Uuid;
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use pubsub::*;
-wit_bindgen_wasmtime::export!("../../wit/pubsub.wit");
+wit_bindgen_wasmtime::export!({paths: ["../../wit/pubsub.wit"], async: *});
 wit_error_rs::impl_error!(pubsub::Error);
 wit_error_rs::impl_from!(anyhow::Error, pubsub::Error::ErrorWithDescription);
 wit_error_rs::impl_from!(
@@ -56,18 +56,20 @@ impl PubsubState {
     }
 }
 
+#[async_trait]
 impl pubsub::Pubsub for Pubsub {
     type Pub = PubInner;
     type Sub = SubInner;
 
-    fn pub_open(&mut self) -> Result<Self::Pub, Error> {
+    async fn pub_open(&mut self) -> Result<Self::Pub, Error> {
         // populate our inner pubsub object w/ the state received from `slight`
         // (i.e., what type of pubsub implementor we are using), and the assigned
         // name of the object.
         let inner = Self::Pub::new(
             &self.host_state.pubsub_implementor,
             &self.host_state.slight_state,
-        );
+        )
+        .await;
 
         self.host_state
             .slight_state
@@ -79,14 +81,15 @@ impl pubsub::Pubsub for Pubsub {
         Ok(inner)
     }
 
-    fn sub_open(&mut self) -> Result<Self::Sub, Error> {
+    async fn sub_open(&mut self) -> Result<Self::Sub, Error> {
         // populate our inner pubsub object w/ the state received from `slight`
         // (i.e., what type of pubsub implementor we are using), and the assigned
         // name of the object.
         let inner = Self::Sub::new(
             &self.host_state.pubsub_implementor,
             &self.host_state.slight_state,
-        );
+        )
+        .await;
 
         self.host_state
             .slight_state
@@ -98,7 +101,7 @@ impl pubsub::Pubsub for Pubsub {
         Ok(inner)
     }
 
-    fn pub_publish(
+    async fn pub_publish(
         &mut self,
         self_: &Self::Pub,
         message: PayloadParam<'_>,
@@ -112,7 +115,7 @@ impl pubsub::Pubsub for Pubsub {
         Ok(())
     }
 
-    fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<(), Error> {
+    async fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<(), Error> {
         match &self_.sub_implementor {
             SubImplementor::ConfluentApacheKafka(si) => si.subscribe(topic)?,
             SubImplementor::Mosquitto(si) => si.subscribe(topic)?,
@@ -121,9 +124,9 @@ impl pubsub::Pubsub for Pubsub {
         Ok(())
     }
 
-    fn sub_receive(&mut self, self_: &Self::Sub) -> Result<Vec<u8>, Error> {
+    async fn sub_receive(&mut self, self_: &Self::Sub) -> Result<Vec<u8>, Error> {
         Ok(match &self_.sub_implementor {
-            SubImplementor::ConfluentApacheKafka(si) => si.receive()?,
+            SubImplementor::ConfluentApacheKafka(si) => si.receive().await?,
             SubImplementor::Mosquitto(si) => si.receive()?,
         })
     }
@@ -152,9 +155,9 @@ pub struct PubInner {
 impl slight_events_api::Watch for PubInner {}
 
 impl PubInner {
-    fn new(pub_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(pub_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
-            pub_implementor: PubImplementor::new(pub_implementor, slight_state),
+            pub_implementor: PubImplementor::new(pub_implementor, slight_state).await,
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
@@ -183,9 +186,9 @@ pub struct SubInner {
 impl slight_events_api::Watch for SubInner {}
 
 impl SubInner {
-    fn new(sub_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(sub_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
-            sub_implementor: SubImplementor::new(sub_implementor, slight_state),
+            sub_implementor: SubImplementor::new(sub_implementor, slight_state).await,
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
@@ -201,12 +204,12 @@ enum PubImplementor {
 }
 
 impl PubImplementor {
-    fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
         match pubsub_implementor {
-            "pubsub.confluent_apache_kafka" => {
-                Self::ConfluentApacheKafka(PubConfluentApacheKafkaImplementor::new(slight_state))
-            }
-            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state)),
+            "pubsub.confluent_apache_kafka" => Self::ConfluentApacheKafka(
+                PubConfluentApacheKafkaImplementor::new(slight_state).await,
+            ),
+            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
@@ -225,12 +228,12 @@ enum SubImplementor {
 }
 
 impl SubImplementor {
-    fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
         match pubsub_implementor {
-            "pubsub.confluent_apache_kafka" => {
-                Self::ConfluentApacheKafka(SubConfluentApacheKafkaImplementor::new(slight_state))
-            }
-            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state)),
+            "pubsub.confluent_apache_kafka" => Self::ConfluentApacheKafka(
+                SubConfluentApacheKafkaImplementor::new(slight_state).await,
+            ),
+            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p

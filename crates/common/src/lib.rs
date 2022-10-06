@@ -1,5 +1,8 @@
+use std::path::{Path, PathBuf};
+
 use anyhow::Result;
 use as_any::AsAny;
+use async_trait::async_trait;
 
 use wasmtime::{Instance, Store};
 
@@ -17,15 +20,19 @@ use slight_http_api::HttpHandlerData;
 pub struct BasicState {
     pub resource_map: ResourceMap,
     pub secret_store: String,
-    pub slightfile_path: String,
+    pub slightfile_path: PathBuf,
 }
 
 impl BasicState {
-    pub fn new(resource_map: ResourceMap, secret_store: &str, slightfile_path: &str) -> Self {
+    pub fn new(
+        resource_map: ResourceMap,
+        secret_store: &str,
+        slightfile_path: impl AsRef<Path>,
+    ) -> Self {
         Self {
             resource_map,
             secret_store: secret_store.to_string(),
-            slightfile_path: slightfile_path.to_string(),
+            slightfile_path: slightfile_path.as_ref().to_owned(),
         }
     }
 }
@@ -56,10 +63,11 @@ pub trait Ctx {
 }
 
 /// A trait for builder
+#[async_trait]
 pub trait Buildable: Clone {
-    type Ctx: Ctx;
+    type Ctx: Ctx + Send + Sync;
 
-    fn build(&self) -> (Store<Self::Ctx>, Instance);
+    async fn build(&self) -> (Store<Self::Ctx>, Instance);
 }
 
 #[derive(Clone)]

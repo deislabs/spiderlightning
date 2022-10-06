@@ -2,6 +2,7 @@ mod implementors;
 pub mod providers;
 
 use anyhow::Result;
+use async_trait::async_trait;
 use uuid::Uuid;
 
 use implementors::etcd::EtcdImplementor;
@@ -11,7 +12,7 @@ use slight_common::{impl_resource, BasicState};
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use lockd::*;
-wit_bindgen_wasmtime::export!("../../wit/lockd.wit");
+wit_bindgen_wasmtime::export!({paths: ["../../wit/lockd.wit"], async: *});
 wit_error_rs::impl_error!(lockd::Error);
 wit_error_rs::impl_from!(anyhow::Error, lockd::Error::ErrorWithDescription);
 wit_error_rs::impl_from!(
@@ -53,17 +54,19 @@ impl LockdState {
     }
 }
 
+#[async_trait]
 impl lockd::Lockd for Lockd {
     type Lockd = LockdInner;
 
-    fn lockd_open(&mut self) -> Result<Self::Lockd, Error> {
+    async fn lockd_open(&mut self) -> Result<Self::Lockd, Error> {
         // populate our inner lockd object w/ the state received from `slight`
         // (i.e., what type of lockd implementor we are using), and the assigned
         // name of the object.
         let inner = Self::Lockd::new(
             &self.host_state.lockd_implementor,
             &self.host_state.slight_state,
-        );
+        )
+        .await;
 
         self.host_state
             .slight_state
@@ -75,17 +78,17 @@ impl lockd::Lockd for Lockd {
         Ok(inner)
     }
 
-    fn lockd_lock(
+    async fn lockd_lock(
         &mut self,
         self_: &Self::Lockd,
         lock_name: PayloadParam<'_>,
     ) -> Result<PayloadResult, Error> {
         Ok(match &self_.lockd_implementor {
-            LockdImplementor::Etcd(ei) => ei.lock(lock_name)?,
+            LockdImplementor::Etcd(ei) => ei.lock(lock_name).await?,
         })
     }
 
-    fn lockd_lock_with_time_to_live(
+    async fn lockd_lock_with_time_to_live(
         &mut self,
         self_: &Self::Lockd,
         lock_name: PayloadParam<'_>,
@@ -93,18 +96,19 @@ impl lockd::Lockd for Lockd {
     ) -> Result<PayloadResult, Error> {
         Ok(match &self_.lockd_implementor {
             LockdImplementor::Etcd(ei) => {
-                ei.lock_with_time_to_live(lock_name, time_to_live_in_secs)?
+                ei.lock_with_time_to_live(lock_name, time_to_live_in_secs)
+                    .await?
             }
         })
     }
 
-    fn lockd_unlock(
+    async fn lockd_unlock(
         &mut self,
         self_: &Self::Lockd,
         lock_key: PayloadParam<'_>,
     ) -> Result<(), Error> {
         match &self_.lockd_implementor {
-            LockdImplementor::Etcd(ei) => ei.unlock(lock_key)?,
+            LockdImplementor::Etcd(ei) => ei.unlock(lock_key).await?,
         };
         Ok(())
     }
@@ -132,9 +136,9 @@ pub struct LockdInner {
 }
 
 impl LockdInner {
-    fn new(lockd_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(lockd_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
-            lockd_implementor: LockdImplementor::new(lockd_implementor, slight_state),
+            lockd_implementor: LockdImplementor::new(lockd_implementor, slight_state).await,
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
@@ -151,9 +155,9 @@ enum LockdImplementor {
 }
 
 impl LockdImplementor {
-    fn new(lockd_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(lockd_implementor: &str, slight_state: &BasicState) -> Self {
         match lockd_implementor {
-            "lockd.etcd" => Self::Etcd(EtcdImplementor::new(slight_state)),
+            "lockd.etcd" => Self::Etcd(EtcdImplementor::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p

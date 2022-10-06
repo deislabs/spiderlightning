@@ -9,7 +9,7 @@ test = false
 doctest = false
 
 [dependencies]
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "a79a4be33d76ddf62839ba71602c26a96610ef7c" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0", features = ["async"]}
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
 slight-events-api = { path = "../events-api" }
 slight-common = { path = "../common" }
@@ -19,10 +19,11 @@ uuid = { version = "1.1", features = ["v4"] }
 crossbeam-channel = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 url = "2"
+async-trait = "0.1"
+tokio = { version = "1", features = ["full"] }
 # mq.azsbus deps
 azure_core = { version = "0.2", git = "https://github.com/danbugs/azure-sdk-for-rust", rev = "40deff431c8a87ba60d93c59ea35fd11c4f9caad" }
 azure_messaging_servicebus = { version = "0.2", git = "https://github.com/danbugs/azure-sdk-for-rust", rev = "40deff431c8a87ba60d93c59ea35fd11c4f9caad" }
 chrono = "0.4"
-futures = "0.3"
 http = "0.2"
 # mq.filesystem has no specific deps

@@ -1,14 +1,16 @@
 pub mod ctx;
 pub mod resource;
 
+use std::path::Path;
+
 use anyhow::Result;
+use async_trait::async_trait;
 use ctx::{SlightCtx, SlightCtxBuilder};
 use resource::{EventsData, HttpData, Linkable};
 use slight_common::Buildable;
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
-use wasmtime_wasi::*;
 
 /// Runtime Context for the wasm module
 pub type Ctx = RuntimeContext;
@@ -55,7 +57,7 @@ pub struct Builder {
 
 impl Builder {
     /// Create a new runtime builder.
-    pub fn new_default(module: &str) -> Result<Self> {
+    pub fn new_default(module: impl AsRef<Path>) -> Result<Self> {
         let engine = Engine::new(&default_config()?)?;
         let mut linker = Linker::new(&engine);
         linker.allow_shadowing(true);
@@ -95,7 +97,7 @@ impl Builder {
     }
 
     /// Instantiate the guest module.
-    pub fn build(&self) -> Result<(Store<Ctx>, Instance)> {
+    pub async fn build(&self) -> Result<(Store<Ctx>, Instance)> {
         let wasi = default_wasi()?;
 
         let mut ctx = RuntimeContext {
@@ -108,16 +110,20 @@ impl Builder {
         ctx.slight = self.states_builder.clone().build();
 
         let mut store = Store::new(&self.engine, ctx);
-        let instance = self.linker.instantiate(&mut store, &self.module)?;
+        let instance = self
+            .linker
+            .instantiate_async(&mut store, &self.module)
+            .await?;
         Ok((store, instance))
     }
 }
 
+#[async_trait]
 impl Buildable for Builder {
     type Ctx = Ctx;
 
-    fn build(&self) -> (Store<Self::Ctx>, Instance) {
-        self.build().unwrap()
+    async fn build(&self) -> (Store<Self::Ctx>, Instance) {
+        self.build().await.unwrap()
     }
 }
 
@@ -126,17 +132,12 @@ pub fn default_config() -> Result<Config> {
     let mut config = Config::new();
     config.wasm_backtrace_details(wasmtime::WasmBacktraceDetails::Enable);
     config.wasm_multi_memory(true);
-    config.wasm_module_linking(true);
+    config.async_support(true);
     Ok(config)
 }
 
 // TODO (Joe): expose the wasmtime wasi context as a capability?
 pub fn default_wasi() -> Result<WasiCtx> {
-    let mut ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
-    ctx = ctx.preopened_dir(
-        Dir::open_ambient_dir("./target", ambient_authority())?,
-        "cache",
-    )?;
-
+    let ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
     Ok(ctx.build())
 }

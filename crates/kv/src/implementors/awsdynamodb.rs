@@ -1,7 +1,6 @@
 use anyhow::{bail, Result};
 use aws_sdk_dynamodb::model::{AttributeValue, Select};
 use aws_sdk_dynamodb::Client;
-use futures::executor::block_on;
 
 use tracing::log;
 
@@ -40,8 +39,8 @@ impl AwsDynamoDbImplementor {
     ///   }
     /// }
     /// ```
-    pub fn new(name: &str) -> Self {
-        let shared_config = block_on(aws_config::load_from_env());
+    pub async fn new(name: &str) -> Self {
+        let shared_config = aws_config::load_from_env().await;
         let client = Client::new(&shared_config);
         let table_name = name.into();
         log::info!(
@@ -51,19 +50,19 @@ impl AwsDynamoDbImplementor {
         Self { client, table_name }
     }
 
-    pub fn get(&self, key: &str) -> Result<Vec<u8>> {
+    pub async fn get(&self, key: &str) -> Result<Vec<u8>> {
         let key_attribute = AttributeValue::S(key.into());
         log::info!("Getting value from key: {}", key);
-        let res = block_on(
-            self.client
-                .query()
-                .table_name(&self.table_name)
-                .key_condition_expression("#key = :value".to_string())
-                .expression_attribute_names("#key".to_string(), "key".to_string())
-                .expression_attribute_values(":value".to_string(), key_attribute)
-                .select(Select::AllAttributes)
-                .send(),
-        )?;
+        let res = self
+            .client
+            .query()
+            .table_name(&self.table_name)
+            .key_condition_expression("#key = :value".to_string())
+            .expression_attribute_names("#key".to_string(), "key".to_string())
+            .expression_attribute_values(":value".to_string(), key_attribute)
+            .select(Select::AllAttributes)
+            .send()
+            .await?;
         match res.items.unwrap_or_default().pop() {
             Some(item) => {
                 let value = item.get("value").unwrap();
@@ -74,35 +73,34 @@ impl AwsDynamoDbImplementor {
         }
     }
 
-    pub fn set(&self, key: &str, value: &[u8]) -> Result<()> {
+    pub async fn set(&self, key: &str, value: &[u8]) -> Result<()> {
         let key_attribute = AttributeValue::S(key.into());
         let value = AttributeValue::S(
             String::from_utf8(value.to_vec()).expect("failed to convert value to String"),
         );
         log::info!("Setting key value pair: ({}, {:#?})", key, value);
-        block_on(
-            self.client
-                .put_item()
-                .table_name(&self.table_name)
-                .item("key", key_attribute)
-                .item("value", value)
-                .send(),
-        )?;
+
+        self.client
+            .put_item()
+            .table_name(&self.table_name)
+            .item("key", key_attribute)
+            .item("value", value)
+            .send()
+            .await?;
         Ok(())
     }
 
     /// FIXME: should delete return a success if it is a noop
     /// or should it return an error if the key is not found?
-    pub fn delete(&self, key: &str) -> Result<()> {
+    pub async fn delete(&self, key: &str) -> Result<()> {
         let key_attribute = AttributeValue::S(key.into());
         log::info!("Deleting key: {}", key);
-        block_on(
-            self.client
-                .delete_item()
-                .table_name(&self.table_name)
-                .key("key", key_attribute)
-                .send(),
-        )?;
+        self.client
+            .delete_item()
+            .table_name(&self.table_name)
+            .key("key", key_attribute)
+            .send()
+            .await?;
         Ok(())
     }
 }

@@ -28,7 +28,9 @@ Do you want to contribute to SpiderLightning's growth?
 
 <p align="center">Start with our <a href="https://github.com/deislabs/spiderlightning/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a></p>
 
-> Note: Aside from the `CONTRIBUTING.md` doc, a good starting point to contributing is to follow the [`service-implementation-101.md`](https://github.com/deislabs/spiderlightning/blob/main/docs/service-implementation-101.md) step-by-step guide to develop your first service implementor!
+Aside from the `CONTRIBUTING.md` doc, here are a few other good starting points to contributing:
+- the [`service-implementation-101.md` doc](https://github.com/deislabs/spiderlightning/blob/main/docs/service-implementation-101.md): a step-by-step guide to develop your first service implementor, and
+- the [SpiderLightning YouTube Playlist](https://www.youtube.com/playlist?list=PLL6BzOBDywQcXy3otj_Y-20SCSOv-MxT3): a collection of informative and tutorial videos on SpiderLightning/`slight`.
 
 ## Getting Started
 

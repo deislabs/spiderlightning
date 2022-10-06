@@ -4,6 +4,7 @@ pub mod providers;
 use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
+use async_trait::async_trait;
 use crossbeam_channel::Sender;
 use implementors::{
     awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
@@ -18,7 +19,7 @@ use slight_common::{impl_resource, BasicState};
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use kv::*;
-wit_bindgen_wasmtime::export!("../../wit/kv.wit");
+wit_bindgen_wasmtime::export!({paths: ["../../wit/kv.wit"], async: *});
 wit_error_rs::impl_error!(kv::Error);
 wit_error_rs::impl_from!(anyhow::Error, kv::Error::ErrorWithDescription);
 
@@ -82,9 +83,9 @@ pub struct KvInner {
 }
 
 impl KvInner {
-    fn new(kv_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
+    async fn new(kv_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         Self {
-            kv_implementor: KvImplementors::new(kv_implementor, slight_state, name),
+            kv_implementor: KvImplementors::new(kv_implementor, slight_state, name).await,
             resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
@@ -112,12 +113,12 @@ enum KvImplementors {
 }
 
 impl KvImplementors {
-    fn new(kv_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
+    async fn new(kv_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         match kv_implementor {
             "kv.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
-            "kv.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name)),
-            "kv.awsdynamodb" => Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name)),
-            "kv.redis" => Self::Redis(RedisImplementor::new(slight_state, name)),
+            "kv.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name).await),
+            "kv.awsdynamodb" => Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name).await),
+            "kv.redis" => Self::Redis(RedisImplementor::new(slight_state, name).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
@@ -138,10 +139,11 @@ impl KvImplementors {
 impl_resource!(Kv, kv::KvTables<Kv>, KvState);
 
 /// This is the implementation for the generated `kv::Kv` trait from the `kv.wit` file.
+#[async_trait]
 impl kv::Kv for Kv {
     type Kv = KvInner;
 
-    fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
+    async fn kv_open(&mut self, name: &str) -> Result<Self::Kv, Error> {
         // populate our inner kv object w/ the state received from `slight`
         // (i.e., what type of kv implementor we are using), and the assigned
         // name of the object.
@@ -149,7 +151,8 @@ impl kv::Kv for Kv {
             &self.host_state.kv_implementor,
             &self.host_state.slight_state,
             name,
-        );
+        )
+        .await;
 
         self.host_state
             .slight_state
@@ -161,16 +164,16 @@ impl kv::Kv for Kv {
         Ok(inner)
     }
 
-    fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
+    async fn kv_get(&mut self, self_: &Self::Kv, key: &str) -> Result<PayloadResult, Error> {
         Ok(match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.get(key)?,
-            KvImplementors::AzBlob(ai) => ai.get(key)?,
-            KvImplementors::AwsDynamoDb(adp) => adp.get(key)?,
+            KvImplementors::AzBlob(ai) => ai.get(key).await?,
+            KvImplementors::AwsDynamoDb(adp) => adp.get(key).await?,
             KvImplementors::Redis(ri) => ri.get(key)?,
         })
     }
 
-    fn kv_set(
+    async fn kv_set(
         &mut self,
         self_: &Self::Kv,
         key: &str,
@@ -178,24 +181,24 @@ impl kv::Kv for Kv {
     ) -> Result<(), Error> {
         match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.set(key, value)?,
-            KvImplementors::AzBlob(ai) => ai.set(key, value)?,
-            KvImplementors::AwsDynamoDb(adp) => adp.set(key, value)?,
+            KvImplementors::AzBlob(ai) => ai.set(key, value).await?,
+            KvImplementors::AwsDynamoDb(adp) => adp.set(key, value).await?,
             KvImplementors::Redis(ri) => ri.set(key, value)?,
         };
         Ok(())
     }
 
-    fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
+    async fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
         match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.delete(key)?,
-            KvImplementors::AzBlob(ai) => ai.delete(key)?,
-            KvImplementors::AwsDynamoDb(adp) => adp.delete(key)?,
+            KvImplementors::AzBlob(ai) => ai.delete(key).await?,
+            KvImplementors::AwsDynamoDb(adp) => adp.delete(key).await?,
             KvImplementors::Redis(ri) => ri.delete(key)?,
         };
         Ok(())
     }
 
-    fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
+    async fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
         Ok(Observable {
             rd: self_.resource_descriptor.clone(),
             key: key.to_string(),
