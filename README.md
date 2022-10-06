@@ -17,6 +17,7 @@ In simple terms, SpiderLightning allows you to go:
 
 
 ## Repository Structure
+
 - `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
 - `/src`: the SpiderLightning host cli (i.e., Slight)
 - `/crates`: service implementations
@@ -42,8 +43,35 @@ Aside from the `CONTRIBUTING.md` doc, here are a few other good starting points 
 
 ```
 iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.ps1'))
+```
 
 ## Getting Started
+
+```sh
+slight new -n spidey@v0.1 rust && cd spidey
+# ^^^ starts a new rust project under SpiderLightning's v0.1 spec
+# use: `slight new -n spidey@v0.1 c` to start a new c project
+
+cargo build --target wasm32-wasi
+# ^^^ for c...
+# you might want to install wasi-sdk dependencies...
+# on unix, run: 
+# make install-deps
+# on windows, run:
+# make install-deps-win
+# on unix, run:
+# make bindings && make build
+# on windows, run:
+# make bindings && make build-win
+
+slight -c slightfile.toml run -m target/wasm32-wasi/debug/spidey.wasm
+# ^^^ for c, run:
+# slight -c slightfile.toml run -m spidey.wasm
+
+# At this point, you should see: "Hello, SpiderLightning!"
+```
+
+## Building C Examples
 
 ```sh
 $ git clone https://github.com/deislabs/spiderlightning.git && cd spiderlightning/ # clone our repo locally and go into it
@@ -53,8 +81,9 @@ $ make build-c # builds our c example
 $ make run-c # runs our c example
 ```
 
-> Note: There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, some of these examples have some dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.
+# Building Rust Examples
 
+There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, some of these examples have some dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.
 
 ## FAQ
 
