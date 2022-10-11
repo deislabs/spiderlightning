@@ -4,6 +4,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use async_trait::async_trait;
+use regex::Regex;
 use uuid::Uuid;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
@@ -139,6 +140,7 @@ impl slight_events_api::Watch for ConfigsInner {}
 /// As per its' usage in `ConfigsInner`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
 pub enum ConfigsImplementor {
+    Local,
     EnvVars,
     UserSecrets, // user creates configs at compile time that are encrypted and stored in their slightfile
     AzApp,
@@ -150,6 +152,7 @@ impl From<&ConfigsImplementor> for String {
             ConfigsImplementor::UserSecrets => "configs.usersecrets".to_string(),
             ConfigsImplementor::EnvVars => "configs.envvars".to_string(),
             ConfigsImplementor::AzApp => "configs.azapp".to_string(),
+            _ => panic!("unknown configuration type"),
         }
     }
 }
@@ -160,7 +163,8 @@ impl From<&str> for ConfigsImplementor {
             "configs.usersecrets" => ConfigsImplementor::UserSecrets,
             "configs.envvars" => ConfigsImplementor::EnvVars,
             "configs.azapp" => ConfigsImplementor::AzApp,
-            _ => panic!("Unknown config type: {}", from_str),
+            "configs.local" => ConfigsImplementor::Local,
+            _ => panic!("unknown configuration type '{}'", from_str),
         }
     }
 }
@@ -181,6 +185,7 @@ pub async fn get(
         ConfigsImplementor::EnvVars => Ok(EnvVars::get(key)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::get(key, toml_file_path)?),
         ConfigsImplementor::AzApp => Ok(AzApp::get(key).await?),
+        ConfigsImplementor::Local => Ok(key.as_bytes().to_vec()),
     }
 }
 
@@ -194,19 +199,45 @@ pub async fn set(
         ConfigsImplementor::EnvVars => Ok(EnvVars::set(key, value)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),
         ConfigsImplementor::AzApp => Ok(AzApp::set(key, value).await?),
+        _ => panic!("unknown configuration type"),
     }
 }
 
 pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<String> {
+    let c = state
+        .configs_map
+        .as_ref()
+        .expect(&format!(
+            "this capability needs a [capability.configs] section..."
+        ))
+        .get(config_name)
+        .expect(&format!("failed to get config '{}'", config_name));
+
+    let (store, name) = maybe_get_config_store_and_value(c)?;
+
     let config = String::from_utf8(
-        get(&state.secret_store, config_name, &state.slightfile_path)
+        get(&store, &name, &state.slightfile_path)
             .await
             .with_context(|| {
                 format!(
-                    "failed to get '{}' secret using secret store type: {}",
-                    config_name, state.secret_store
+                    "failed to get '{}' secret using secret store type: '{}'",
+                    config_name, store
                 )
             })?,
     )?;
     Ok(config)
+}
+
+fn maybe_get_config_store_and_value(c: &str) -> Result<(String, String)> {
+    let mut regex_match = Regex::new(r"^\$\{(.+)\}$")?;
+    if let Some(prelim_cap) = regex_match.captures(c) {
+        regex_match = Regex::new(r"(.+)\.(.+)")?;
+        if let Some(cap) = regex_match.captures(&prelim_cap[1]) {
+            return Ok((format!("configs.{}", &cap[1]), cap[2].to_string()));
+        } else {
+            panic!("failed to get value for config '{}'", c);
+        }
+    } else {
+        return Ok(("configs.local".to_string(), c.to_string()));
+    }
 }

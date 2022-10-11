@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::{path::{Path, PathBuf}, collections::HashMap};
 
 use anyhow::Result;
 use as_any::AsAny;
@@ -14,24 +14,24 @@ use slight_http_api::HttpHandlerData;
 ///
 /// It contains:
 ///     - a `resource_map`,
-///     - a `secret_store`, and
+///     - a `configs_map`, and
 ///     - the `slightfile_path`.
 #[derive(Clone, Default)]
 pub struct BasicState {
     pub resource_map: ResourceMap,
-    pub secret_store: String,
+    pub configs_map: Option<HashMap<String, String>>,
     pub slightfile_path: PathBuf,
 }
 
 impl BasicState {
     pub fn new(
         resource_map: ResourceMap,
-        secret_store: &str,
+        configs_map: Option<HashMap<String, String>>,
         slightfile_path: impl AsRef<Path>,
     ) -> Self {
         Self {
             resource_map,
-            secret_store: secret_store.to_string(),
+            configs_map,
             slightfile_path: slightfile_path.as_ref().to_owned(),
         }
     }
