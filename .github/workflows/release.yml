@@ -27,6 +27,7 @@ jobs:
         config:
           - os: ubuntu-latest
           - os: windows-latest
+          - os: macos-latest
 
     steps:
       - uses: actions/checkout@v1
@@ -40,6 +41,9 @@ jobs:
       - run : choco install openssl
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
 
+      - run : brew install openssl
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+
       - name: "build for unix"
         run: make build
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
@@ -50,11 +54,20 @@ jobs:
         env:
           OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
 
+      - name: "build for macos"
+        run: make build
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+        env:
+          OPENSSL_ROOT_DIR: /usr/local/opt/openssl          
+
       - run: make prepare-release
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
 
       - run: make prepare-release-win
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      - run: make prepare-release-mac
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}        
 
       - name: "add wits, and slight-unix and templates tars to release"
         uses: softprops/action-gh-release@v1
@@ -70,5 +83,12 @@ jobs:
         with:
           files: |
             slight-win.tar.gz
-        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}    
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      - name: "add slight-mac tar to release"
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            slight-mac.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}            
             

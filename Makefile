@@ -158,4 +158,8 @@ prepare-release:
 prepare-release-win:
 	tar -C target/ -czvf slight-win.tar.gz release/slight.exe
 
+.PHONY: prepare-release-mac
+prepare-release-mac:
+	tar -C target/ -czvf slight-mac.tar.gz release/slight	
+
 ### END OF GITHUB RELEASES
