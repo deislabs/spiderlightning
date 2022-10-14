@@ -11,6 +11,8 @@ apt-get install -y \
     zsh \
     build-essential \
     cmake \
+    libssl-dev \
+    openssl \    
     unzip
 
 ## update and install 2nd level of packages
