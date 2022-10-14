@@ -75,6 +75,7 @@ jobs:
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
           fromJSON(matrix.config.arch == 'aarch64') }}
         env:
+          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
           OPENSSL_DIR: /usr/local/opt/openssl            
 
       - run: make prepare-release
