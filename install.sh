@@ -1,19 +1,25 @@
 #!/bin/bash
 
 INSTALL_DIR="/usr/local"
-OWNER_AND_REPO="deislabs/spiderlightning"
+OWNER_AND_REPO="${OWNER_AND_REPO:-deislabs/spiderlightning}"
 BINARY_NAME="slight"
 
 LATEST_RELEASE="$(curl -s https://api.github.com/repos/$OWNER_AND_REPO/releases | grep tag_name | awk 'NR == 1' | cut -d : -f 2 | cut -d \" -f 2)"
 echo ">>> LATEST RELEASE: $LATEST_RELEASE..."
 
 OS="$(uname)"
+ARCH="$(uname -m)"
 if [[ "${OS}" == "Linux" ]]
 then
-    TAR="slight-unix.tar.gz"
+    TAR="slight-ubuntu.tar.gz"
 elif [[ "${OS}" == "Darwin" ]]
 then
-    TAR="slight-mac.tar.gz"
+  if [[ "${ARCH}" == "arm64" ]]
+  then
+    TAR="slight-macos-aarch64.tar.gz"
+  else
+    TAR="slight-macos-amd64.tar.gz"
+  fi
 else
   echo ">>> THIS INSTALLATION METHOD ONLY WORKS FOR MACOS AND LINUX."
   exit 1
