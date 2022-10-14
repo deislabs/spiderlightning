@@ -45,7 +45,10 @@ jobs:
         run: |
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
-          rustup target add aarch64-apple-darwin  
+          rustup target add aarch64-apple-darwin 
+
+      - run : choco install openssl
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}           
 
       - name: "build for unix"
         run: make build
@@ -54,6 +57,9 @@ jobs:
       - name: "build for windows"
         run: make build
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        env:
+          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          OPENSSL_NO_VENDOR: true
 
       - name: "build for macos amd64"
         run: make build

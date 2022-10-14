@@ -55,6 +55,7 @@ install-deps-win:
 	# tar -xvzf wasi-sdk-15.0-mingw.tar.gz
 	# mkdir -p /opt/wasi-sdk
 	# mv wasi-sdk-15.0/* /opt/wasi-sdk/
+	choco install openssl
 
 .PHONY: install-slight
 install-slight:

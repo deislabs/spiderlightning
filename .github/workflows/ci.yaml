@@ -66,6 +66,7 @@ jobs:
           tar -xvzf wasi-sdk-15.0-mingw.tar.gz
           mkdir -p /opt/wasi-sdk
           mv wasi-sdk-15.0/* /opt/wasi-sdk/
+          make install-deps-win
           ls /opt/wasi-sdk/bin/
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
         
@@ -103,7 +104,10 @@ jobs:
       - name: "Build SpiderLightning and Slight"
         run: make build
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
-
+        env:
+          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          OPENSSL_NO_VENDOR: true
+          
       - name: "Build Rust Examples"
         run: make build-rust
 
@@ -133,3 +137,6 @@ jobs:
       - name: "Run Unit Tests"
         run: make test
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        env:
+          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          OPENSSL_NO_VENDOR: true
