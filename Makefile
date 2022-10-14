@@ -45,7 +45,6 @@ install-deps-macos:
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 	chmod +x /opt/wasi-sdk/bin/clang
-	brew install openssl
 
 .PHONY: install-deps-win
 install-deps-win:
@@ -56,8 +55,6 @@ install-deps-win:
 	# tar -xvzf wasi-sdk-15.0-mingw.tar.gz
 	# mkdir -p /opt/wasi-sdk
 	# mv wasi-sdk-15.0/* /opt/wasi-sdk/
-
-	choco install openssl
 
 .PHONY: install-slight
 install-slight:

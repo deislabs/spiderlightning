@@ -46,12 +46,6 @@ jobs:
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
           rustup target add aarch64-apple-darwin  
-      
-      - run : choco install openssl
-        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
-
-      - run : brew install openssl
-        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
 
       - name: "build for unix"
         run: make build
@@ -60,23 +54,16 @@ jobs:
       - name: "build for windows"
         run: make build
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
-        env:
-          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
 
       - name: "build for macos amd64"
         run: make build
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
           fromJSON(matrix.config.arch == 'amd64') }}
-        env:
-          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
       
       - name: "build for macos aarch64"
         run: cargo build --manifest-path ./slight/Cargo.toml --release ${{ matrix.config.extraArgs }}
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
-          fromJSON(matrix.config.arch == 'aarch64') }}
-        env:
-          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
-          OPENSSL_DIR: /usr/local/opt/openssl            
+          fromJSON(matrix.config.arch == 'aarch64') }}         
 
       - run: make prepare-release
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
