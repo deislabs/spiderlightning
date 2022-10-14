@@ -86,11 +86,11 @@ jobs:
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
           fromJSON(matrix.config.arch == 'aarch64') }}
 
-      - name: "add wits, and slight-ubuntu and templates tars to release"
+      - name: "add wits, and slight-linux-x86_64 and templates tars to release"
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            slight-ubuntu.tar.gz
+            slight-linux-x86_64.tar.gz
             *-template.tar.gz
             wit/*.wit
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
@@ -99,7 +99,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            slight-windows.tar.gz
+            slight-windows-x86_64.tar.gz
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
 
       - name: "add slight-macos-amd64 tar to release"

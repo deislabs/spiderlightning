@@ -148,13 +148,13 @@ run-restaurant-backend:
 ### GITHUB RELEASES
 .PHONY: prepare-release
 prepare-release:
-	tar -C target/ -czvf slight-ubuntu.tar.gz release/slight
+	tar -C target/ -czvf slight-linux-x86_64.tar.gz release/slight
 	tar -C templates/ -czvf rust-template.tar.gz rust
 	tar -C templates/ -czvf c-template.tar.gz c
 
 .PHONY: prepare-release-win
 prepare-release-win:
-	tar -C target/ -czvf slight-windows.tar.gz release/slight.exe
+	tar -C target/ -czvf slight-windows-x86_64.tar.gz release/slight.exe
 
 .PHONY: prepare-release-mac
 prepare-release-mac:

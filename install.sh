@@ -11,7 +11,7 @@ OS="$(uname)"
 ARCH="$(uname -m)"
 if [[ "${OS}" == "Linux" ]]
 then
-    TAR="slight-ubuntu.tar.gz"
+    TAR="slight-linux-x86_64.tar.gz"
 elif [[ "${OS}" == "Darwin" ]]
 then
   if [[ "${ARCH}" == "arm64" ]]
