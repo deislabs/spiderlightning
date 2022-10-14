@@ -82,7 +82,7 @@ jobs:
           fromJSON(matrix.config.arch == 'amd64') }}
 
       - name: "tar release for macos-aarch64"
-        run: tar -C target/ -czvf slight-macos-aarch64.tar.gz release/slight
+        run: tar -C target/ -czvf slight-macos-aarch64.tar.gz aarch64-apple-darwin/release/slight
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
           fromJSON(matrix.config.arch == 'aarch64') }}
 
