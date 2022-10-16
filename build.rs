@@ -14,7 +14,7 @@ fn main() {
     println!("cargo:rerun-if-changed={}/src/main.rs", KV_TEST_PATH);
     println!("cargo:rerun-if-changed={}/src/main.rs", HTTP_TEST_PATH);
     println!("cargo:rerun-if-changed={}/src/main.rs", CONFIGS_TEST_PATH);
-    
+
     // Check if wasm32-wasi target is installed
     let target = "wasm32-wasi";
     let output = Command::new("rustup")
@@ -26,12 +26,13 @@ fn main() {
         writeln!(
             stderr(),
             "Error: {} target is not installed. Run `rustup target add {}`",
-            target, target
+            target,
+            target
         )
         .unwrap();
         std::process::exit(1);
     }
-    
+
     // Build test wasm modules
     cargo_wasi_build(KV_TEST_PATH);
     cargo_wasi_build(HTTP_TEST_PATH);
