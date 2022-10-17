@@ -1,6 +1,6 @@
 $INSTALL_DIR="C:\slight"
 $OWNER_AND_REPO="deislabds/spiderlightning"
-$TAR="slight-win.tar.gz"
+$TAR="slight-windows-x86_64.tar.gz"
 $BINARY_NAME="slight.exe"
 
 $LATEST_RELEASE="$(((Invoke-WebRequest "https://api.github.com/repos/$OWNER_AND_REPO/releases").Content | ConvertFrom-Json).tag_name | Select-Object -first 1)"

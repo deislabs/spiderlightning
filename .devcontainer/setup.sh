@@ -12,7 +12,7 @@ apt-get install -y \
     build-essential \
     cmake \
     libssl-dev \
-    openssl \
+    openssl \    
     unzip
 
 ## update and install 2nd level of packages

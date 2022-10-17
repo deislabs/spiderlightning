@@ -27,6 +27,15 @@ jobs:
         config:
           - os: ubuntu-latest
           - os: windows-latest
+          - {
+            os: macos-latest,
+            arch: amd64
+          }
+          - {
+            os: macos-latest,
+            arch: aarch64,
+            extraArgs: "--target aarch64-apple-darwin"
+          }
 
     steps:
       - uses: actions/checkout@v1
@@ -35,10 +44,11 @@ jobs:
       - name: "add rustup wasm targets"
         run: |
           rustup target add wasm32-wasi
-          rustup target add wasm32-unknown-unknown    
-      
+          rustup target add wasm32-unknown-unknown
+          rustup target add aarch64-apple-darwin 
+
       - run : choco install openssl
-        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}           
 
       - name: "build for unix"
         run: make build
@@ -49,6 +59,17 @@ jobs:
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
         env:
           OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          OPENSSL_NO_VENDOR: true
+
+      - name: "build for macos amd64"
+        run: make build
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'amd64') }}
+      
+      - name: "build for macos aarch64"
+        run: cargo build --manifest-path ./slight/Cargo.toml --release ${{ matrix.config.extraArgs }}
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'aarch64') }}         
 
       - run: make prepare-release
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
@@ -56,19 +77,43 @@ jobs:
       - run: make prepare-release-win
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
 
-      - name: "add wits, and slight-unix and templates tars to release"
+      - run: make prepare-release-mac
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'amd64') }}
+
+      - name: "tar release for macos-aarch64"
+        run: tar -C target/ -czvf slight-macos-aarch64.tar.gz aarch64-apple-darwin/release/slight
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'aarch64') }}
+
+      - name: "add wits, and slight-linux-x86_64 and templates tars to release"
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            slight-unix.tar.gz
+            slight-linux-x86_64.tar.gz
             *-template.tar.gz
             wit/*.wit
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
 
-      - name: "add slight-win tar to release"
+      - name: "add slight-windows tar to release"
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            slight-win.tar.gz
-        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}    
-            
+            slight-windows-x86_64.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      - name: "add slight-macos-amd64 tar to release"
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            slight-macos-amd64.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'amd64') }}
+
+      - name: "add slight-macos-aarch64 tar to release"
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            slight-macos-aarch64.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'aarch64') }}            
