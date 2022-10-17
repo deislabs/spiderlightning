@@ -207,11 +207,9 @@ pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<Str
     let c = state
         .configs_map
         .as_ref()
-        .expect(&format!(
-            "this capability needs a [capability.configs] section..."
-        ))
+        .expect("this capability needs a [capability.configs] section...")
         .get(config_name)
-        .expect(&format!("failed to get config '{}'", config_name));
+        .unwrap_or_else(|| panic!("failed to get config '{}'", config_name));
 
     let (store, name) = maybe_get_config_store_and_value(c)?;
 
@@ -233,11 +231,11 @@ fn maybe_get_config_store_and_value(c: &str) -> Result<(String, String)> {
     if let Some(prelim_cap) = regex_match.captures(c) {
         regex_match = Regex::new(r"(.+)\.(.+)")?;
         if let Some(cap) = regex_match.captures(&prelim_cap[1]) {
-            return Ok((format!("configs.{}", &cap[1]), cap[2].to_string()));
+            Ok((format!("configs.{}", &cap[1]), cap[2].to_string()))
         } else {
             panic!("failed to get value for config '{}'", c);
         }
     } else {
-        return Ok(("configs.local".to_string(), c.to_string()));
+        Ok(("configs.local".to_string(), c.to_string()))
     }
 }

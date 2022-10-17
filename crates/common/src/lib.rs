@@ -1,4 +1,7 @@
-use std::{path::{Path, PathBuf}, collections::HashMap};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Result;
 use as_any::AsAny;
