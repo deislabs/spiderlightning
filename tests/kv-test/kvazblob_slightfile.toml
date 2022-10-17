@@ -1,5 +1,8 @@
 specversion = "0.1"
-secret_store = "configs.azapp"
 
 [[capability]]
-name = "kv.azblob"
+resource = "kv.azblob"
+name = "my-container"
+    [capability.configs]
+    AZURE_STORAGE_ACCOUNT = "${azapp.AZURE_STORAGE_ACCOUNT}"
+    AZURE_STORAGE_KEY = "${azapp.AZURE_STORAGE_KEY}"
