@@ -19,14 +19,18 @@ jobs:
       matrix:
         config:
           - os: "ubuntu-latest"
-            extension: ""
             platformAgnosticChecks: true
-          - os: "macos-latest"
-            extension: ""
-            extraArgs: ""
+          - {
+            os: "macos-latest",
+            arch: "amd64"
+          }
+          - {
+            os: macos-latest,
+            arch: aarch64,
+            extraArgs: "--target aarch64-apple-darwin"
+          }
           - os: "windows-latest"
             extension: ".exe"
-            extraArgs: ""
 
     steps:
       # 
@@ -51,9 +55,11 @@ jobs:
       - name: "Install Dependencies on Linux"
         run: make install-deps
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
       - name: "Install Dependencies on MacOS"
         run: make install-deps-macos
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+
       - name: "Install Dependencies on Windows"
         run: |
           choco install wget
@@ -62,7 +68,6 @@ jobs:
           mkdir -p /opt/wasi-sdk
           mv wasi-sdk-15.0/* /opt/wasi-sdk/
           make install-deps-win
-
           ls /opt/wasi-sdk/bin/
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
         
@@ -71,6 +76,7 @@ jobs:
         run: |
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
+          rustup target add aarch64-apple-darwin  
 
       - name: "Install wit-bindgen-cli"
         run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0                         
@@ -88,16 +94,21 @@ jobs:
 
       - name: "Build SpiderLightning and Slight"
         run: make build
-        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
-        env:
-          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'amd64') }}
+
+      - name: "Build SpiderLightning and Slight"
+        run: cargo build --manifest-path ./slight/Cargo.toml --release ${{ matrix.config.extraArgs }}
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'aarch64') }}
 
       - name: "Build SpiderLightning and Slight"
         run: make build
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
         env:
           OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
-
+          OPENSSL_NO_VENDOR: true
+          
       - name: "Build Rust Examples"
         run: make build-rust
 
@@ -123,11 +134,10 @@ jobs:
       - name: "Run Unit Tests"
         run: make test
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
-        env:
-          OPENSSL_ROOT_DIR: /usr/local/opt/openssl
 
       - name: "Run Unit Tests"
         run: make test
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
         env:
           OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          OPENSSL_NO_VENDOR: true
