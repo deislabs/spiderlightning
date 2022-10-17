@@ -12,7 +12,6 @@ pub async fn get(blob_client: BlobClient) -> Result<Vec<u8>> {
         // For each response, we stream the body instead of collecting it all into one large allocation.
         while let Some(value) = body.next().await {
             let value = value?;
-            println!("received {:?} bytes", value.len());
             result.extend(&value);
         }
     }

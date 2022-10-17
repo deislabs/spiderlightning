@@ -78,12 +78,18 @@ build-rust:
 	wait; \
 	/bin/sh -c 'echo "DONE"'
 
+# The dependencies to run this rule include:
+# - etcd,
+# - mosquitto,
+# - redis, and
+# - python.
 .PHONY: run-rust
 run-rust:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./examples/multi_capability-demo/target/wasm32-wasi/release/multi_capability-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvfilesystem_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvawsdynamodb_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvazblob_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvredis_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./examples/watch-demo/target/wasm32-wasi/release/watch-demo.wasm & python ./examples/watch-demo/simulate.py
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/usersecrets_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/envvars_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
@@ -116,6 +122,8 @@ clean-rust:
 ### END OF RUST EXAMPLES
 
 ### C EXAMPLES
+
+# To run this rule, you'll need wit-bindgen v0.2.0 installed (cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0)
 .PHONY: build-c
 build-c:
 	$(MAKE) -C examples/multi_capability-demo-clang/ clean

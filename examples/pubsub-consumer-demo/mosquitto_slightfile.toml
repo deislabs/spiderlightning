@@ -1,6 +1,9 @@
 specversion = "0.1"
-secret_store = "configs.azapp"
 
 [[capability]]
-name = "pubsub.mosquitto"
+resource = "pubsub.mosquitto"
+name = "my-pubsub"
+    [capability.configs]
+    MOSQUITTO_HOST = "localhost"
+    MOSQUITTO_PORT = "1884"
 

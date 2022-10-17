@@ -1,5 +1,7 @@
 specversion = "0.1"
-secret_store = "configs.envvars"
 
 [[capability]]
-name = "kv.redis"
+resource = "kv.redis"
+name = "my-container"
+    [capability.configs]
+    REDIS_ADDRESS = "redis://127.0.0.1:6379"
