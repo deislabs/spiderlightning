@@ -7,4 +7,5 @@ name = "my-rest-api"
 
 [[capability]]
 resource = "mq.filesystem"
+name = "slight-restaurant"
     # This capability does not require any configs

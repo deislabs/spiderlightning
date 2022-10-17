@@ -1,4 +1,6 @@
 specversion = "0.1"
 
 [[capability]]
-name = "http"
+resource = "http"
+name = "my-rest-api"
+    # This capability does not require any configs
