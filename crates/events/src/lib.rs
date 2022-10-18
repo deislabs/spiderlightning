@@ -4,6 +4,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use async_trait::async_trait;
 use crossbeam_utils::thread;
 use events::EventsTables;
 
@@ -15,7 +16,7 @@ use slight_common::{impl_resource, Buildable, Builder, Ctx};
 use slight_events_api::{AttributesReader, Event, EventHandler, EventParam, ResourceMap};
 use uuid::Uuid;
 
-wit_bindgen_wasmtime::export!("../../wit/events.wit");
+wit_bindgen_wasmtime::export!({paths: ["../../wit/events.wit"], async: *});
 wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
@@ -80,13 +81,14 @@ impl<T: Buildable> Events<T> {
     }
 }
 
+#[async_trait]
 impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
     type Events = EventsGuest;
-    fn events_get(&mut self) -> Result<Self::Events, Error> {
+    async fn events_get(&mut self) -> Result<Self::Events, Error> {
         Ok(Default::default())
     }
 
-    fn events_listen(
+    async fn events_listen(
         &mut self,
         self_: &Self::Events,
         ob: GeneratedObservable<'_>,
@@ -101,7 +103,7 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
         Ok(Self::Events { observables })
     }
 
-    fn events_exec(&mut self, self_: &Self::Events, duration: u64) -> Result<(), Error> {
+    async fn events_exec(&mut self, self_: &Self::Events, duration: u64) -> Result<(), Error> {
         for ob in &self_.observables {
             // check if observable has changed
 
@@ -149,7 +151,7 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
                                 subject: event.subject(),
                                 time: time.as_deref(),
                             };
-                            let event_res = handler.handle_event(&mut store, event_param);
+                            let event_res = block_on(handler.handle_event(&mut store, event_param));
                             match event_res {
                                 Ok(_) => (),
                                 Err(e) => {

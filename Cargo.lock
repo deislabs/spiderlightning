@@ -3687,6 +3687,7 @@ name = "slight-events"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "crossbeam-channel",
  "crossbeam-utils",
  "futures",
