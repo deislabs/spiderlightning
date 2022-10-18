@@ -56,7 +56,9 @@ pub struct KvState {
 
 impl KvState {
     pub fn new(kv_store: HashMap<String, BasicState>) -> Self {
-        Self { capability_store: kv_store }
+        Self {
+            capability_store: kv_store,
+        }
     }
 }
 

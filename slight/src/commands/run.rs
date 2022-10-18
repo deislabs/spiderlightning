@@ -11,14 +11,14 @@ use slight_events::{Events, EventsState};
 use slight_events_api::StateTable;
 use slight_http::Http;
 use slight_kv::Kv;
-use slight_lockd::{Lockd};
-use slight_mq::{Mq};
-use slight_pubsub::{Pubsub};
+use slight_lockd::Lockd;
+use slight_mq::Mq;
+use slight_pubsub::Pubsub;
 use slight_runtime::{
     ctx::{SlightCtxBuilder, State},
     Builder, Ctx,
 };
-use slight_runtime_configs::{Configs};
+use slight_runtime_configs::Configs;
 use spiderlightning::core::slightfile::TomlFile;
 use wit_bindgen_wasmtime::wasmtime::Store;
 
@@ -159,17 +159,16 @@ fn build_store_instance(
                         linked_capabilities.insert("kv".to_string());
                     }
 
-                    if !capability_store.contains_key(&c.name.clone()) {
-                        capability_store.insert(
+                    if let std::collections::hash_map::Entry::Vacant(e) =
+                        capability_store.entry(c.name.clone())
+                    {
+                        e.insert(BasicState::new(
+                            resource_map.clone(),
+                            c.resource.clone(),
                             c.name.clone(),
-                            BasicState::new(
-                                resource_map.clone(),
-                                c.resource.clone(),
-                                c.name.clone(),
-                                c.configs.clone(),
-                                &toml_file_path,
-                            ),
-                        );
+                            c.configs.clone(),
+                            &toml_file_path,
+                        ));
                     } else {
                         bail!("cannot add capabilities of the same name");
                     }
@@ -183,17 +182,16 @@ fn build_store_instance(
                         linked_capabilities.insert("mq".to_string());
                     }
 
-                    if !capability_store.contains_key(&c.name.clone()) {
-                        capability_store.insert(
+                    if let std::collections::hash_map::Entry::Vacant(e) =
+                        capability_store.entry(c.name.clone())
+                    {
+                        e.insert(BasicState::new(
+                            resource_map.clone(),
+                            c.resource.clone(),
                             c.name.clone(),
-                            BasicState::new(
-                                resource_map.clone(),
-                                c.resource.clone(),
-                                c.name.clone(),
-                                c.configs.clone(),
-                                &toml_file_path,
-                            ),
-                        );
+                            c.configs.clone(),
+                            &toml_file_path,
+                        ));
                     } else {
                         bail!("cannot add capabilities of the same name");
                     }
@@ -207,17 +205,16 @@ fn build_store_instance(
                         linked_capabilities.insert("lockd".to_string());
                     }
 
-                    if !capability_store.contains_key(&c.name.clone()) {
-                        capability_store.insert(
+                    if let std::collections::hash_map::Entry::Vacant(e) =
+                        capability_store.entry(c.name.clone())
+                    {
+                        e.insert(BasicState::new(
+                            resource_map.clone(),
+                            c.resource.clone(),
                             c.name.clone(),
-                            BasicState::new(
-                                resource_map.clone(),
-                                c.resource.clone(),
-                                c.name.clone(),
-                                c.configs.clone(),
-                                &toml_file_path,
-                            ),
-                        );
+                            c.configs.clone(),
+                            &toml_file_path,
+                        ));
                     } else {
                         bail!("cannot add capabilities of the same name");
                     }
@@ -232,17 +229,16 @@ fn build_store_instance(
                         linked_capabilities.insert("pubsub".to_string());
                     }
 
-                    if !capability_store.contains_key(&c.name.clone()) {
-                        capability_store.insert(
+                    if let std::collections::hash_map::Entry::Vacant(e) =
+                        capability_store.entry(c.name.clone())
+                    {
+                        e.insert(BasicState::new(
+                            resource_map.clone(),
+                            c.resource.clone(),
                             c.name.clone(),
-                            BasicState::new(
-                                resource_map.clone(),
-                                c.resource.clone(),
-                                c.name.clone(),
-                                c.configs.clone(),
-                                &toml_file_path,
-                            ),
-                        );
+                            c.configs.clone(),
+                            &toml_file_path,
+                        ));
                     } else {
                         bail!("cannot add capabilities of the same name");
                     }
@@ -257,17 +253,16 @@ fn build_store_instance(
                         linked_capabilities.insert("configs".to_string());
                     }
 
-                    if !capability_store.contains_key(&c.name.clone()) {
-                        capability_store.insert(
+                    if let std::collections::hash_map::Entry::Vacant(e) =
+                        capability_store.entry(c.name.clone())
+                    {
+                        e.insert(BasicState::new(
+                            resource_map.clone(),
+                            c.resource.clone(),
                             c.name.clone(),
-                            BasicState::new(
-                                resource_map.clone(),
-                                c.resource.clone(),
-                                c.name.clone(),
-                                c.configs.clone(),
-                                &toml_file_path,
-                            ),
-                        );
+                            c.configs.clone(),
+                            &toml_file_path,
+                        ));
                     } else {
                         bail!("cannot add capabilities of the same name");
                     }

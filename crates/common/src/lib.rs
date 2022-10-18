@@ -50,7 +50,11 @@ impl BasicState {
 
 impl std::fmt::Debug for BasicState {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "BasicState {{name: {}, implementor: {}}}", self.name, self.implementor)
+        write!(
+            f,
+            "BasicState {{name: {}, implementor: {}}}",
+            self.name, self.implementor
+        )
     }
 }
 
