@@ -90,6 +90,22 @@ impl AwsDynamoDbImplementor {
         Ok(())
     }
 
+    pub async fn keys(&self) -> Result<Vec<String>> {
+        let res = self
+            .client
+            .scan()
+            .table_name(&self.table_name)
+            .select(Select::AllAttributes)
+            .send()
+            .await?;
+        let items = res.items.unwrap_or_default();
+        let keys = items
+            .iter()
+            .map(|item| item.get("key").unwrap().as_s().unwrap().to_string())
+            .collect();
+        Ok(keys)
+    }
+
     /// FIXME: should delete return a success if it is a noop
     /// or should it return an error if the key is not found?
     pub async fn delete(&self, key: &str) -> Result<()> {

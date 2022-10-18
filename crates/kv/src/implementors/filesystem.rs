@@ -61,6 +61,18 @@ impl FilesystemImplementor {
         Ok(())
     }
 
+    pub fn keys(&self) -> Result<Vec<String>> {
+        fs::create_dir_all(&self.base)
+            .with_context(|| "failed to create base directory for kv store instance")?;
+
+        let mut keys = Vec::new();
+        for entry in fs::read_dir(&self.base).with_context(|| "failed to read base directory")? {
+            let entry = entry.with_context(|| "failed to read base directory entry")?;
+            keys.push(entry.file_name().to_str().unwrap().to_owned());
+        }
+        Ok(keys)
+    }
+
     pub fn delete(&self, key: &str) -> Result<()> {
         fs::create_dir_all(&self.base)
             .with_context(|| "failed to create base directory for kv store instance")?;

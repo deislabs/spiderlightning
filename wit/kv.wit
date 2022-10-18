@@ -12,6 +12,9 @@ resource kv {
 	// set the payload for a given key.
 	set: func(key: string, value: payload) -> expected<unit, error>
 
+	// list the keys in the store.
+	keys: func() -> expected<list<string>, error>
+
 	// delete the payload for a given key.
 	delete: func(key:string) -> expected<unit, error>
 
