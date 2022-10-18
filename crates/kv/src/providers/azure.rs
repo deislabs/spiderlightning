@@ -1,5 +1,5 @@
 use anyhow::Result;
-use azure_storage_blobs::prelude::{BlobClient, DeleteSnapshotsMethod};
+use azure_storage_blobs::prelude::{Blob, BlobClient, ContainerClient, DeleteSnapshotsMethod};
 use futures::stream::StreamExt;
 
 /// Get the value given a `blob_client`
@@ -37,4 +37,21 @@ pub async fn delete(blob_client: BlobClient) -> Result<()> {
         .into_future()
         .await?;
     Ok(())
+}
+
+pub async fn list_blobs(container_client: ContainerClient) -> Result<Vec<Blob>> {
+    let mut stream = container_client.list_blobs().into_stream();
+    let mut results = vec![];
+    while let Some(value) = stream.next().await {
+        let value = value?;
+        results.push(value);
+    }
+
+    let mut result = vec![];
+    for list_blob in results {
+        for blob in list_blob.blobs.blobs {
+            result.push(blob);
+        }
+    }
+    Ok(result)
 }

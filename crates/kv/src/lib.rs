@@ -188,6 +188,15 @@ impl kv::Kv for Kv {
         Ok(())
     }
 
+    async fn kv_keys(&mut self, self_: &Self::Kv) -> Result<Vec<String>, Error> {
+        Ok(match &self_.kv_implementor {
+            KvImplementors::Filesystem(fi) => fi.keys()?,
+            KvImplementors::AzBlob(ai) => ai.keys().await?,
+            KvImplementors::AwsDynamoDb(adp) => adp.keys().await?,
+            KvImplementors::Redis(ri) => ri.keys()?,
+        })
+    }
+
     async fn kv_delete(&mut self, self_: &Self::Kv, key: &str) -> Result<(), Error> {
         match &self_.kv_implementor {
             KvImplementors::Filesystem(fi) => fi.delete(key)?,

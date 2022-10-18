@@ -10,6 +10,10 @@ fn main() -> Result<()> {
     let value = b"spiderlightning";
     kv1.set("key", value)?;
     kv2.set("key", value)?;
+
+    let keys = kv1.keys()?;
+    assert_eq!(keys.len(), 1);
+    
     println!(
         "Hello, world! the value for kv1 is: {}, kv2 is {}",
         std::str::from_utf8(&kv1.get("key")?)?,
