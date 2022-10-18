@@ -23,9 +23,10 @@ fn main() {
         .expect("failed to execute process");
     let output = std::str::from_utf8(&output.stdout).unwrap();
     if !output.lines().any(|line| line == target) {
-        eprintln!("Error: {} target is not installed. Run `rustup target add {}`",
-            target,
-            target);
+        eprintln!(
+            "Error: {} target is not installed. Run `rustup target add {}`",
+            target, target
+        );
         std::process::exit(1);
     }
 
