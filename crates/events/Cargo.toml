@@ -11,7 +11,7 @@ doctest = false
 [dependencies]
 wasmtime = "0.39"
 anyhow = "1"
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0", features = ["async"]}
 slight-common = { path = "../common" }
 slight-events-api = { path = "../events-api" }
 url = "2.2"
@@ -21,3 +21,4 @@ crossbeam-channel = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 uuid = { version = "1.1", features = ["v4"] }
 futures = "0.3"
+async-trait = "0.1"
