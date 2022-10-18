@@ -1,5 +1,7 @@
 mod implementors;
 pub mod providers;
+use std::collections::HashMap;
+
 use anyhow::Result;
 use async_trait::async_trait;
 
@@ -43,16 +45,12 @@ impl_resource!(Pubsub, pubsub::PubsubTables<Pubsub>, PubsubState);
 ///     the `config_type`, and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct PubsubState {
-    pubsub_implementor: String,
-    slight_state: BasicState,
+    capability_store: HashMap<String, BasicState>,
 }
 
 impl PubsubState {
-    pub fn new(pubsub_implementor: String, slight_state: BasicState) -> Self {
-        Self {
-            pubsub_implementor,
-            slight_state,
-        }
+    pub fn new(capability_store: HashMap<String, BasicState>) -> Self {
+        Self { capability_store }
     }
 }
 
@@ -61,18 +59,17 @@ impl pubsub::Pubsub for Pubsub {
     type Pub = PubInner;
     type Sub = SubInner;
 
-    async fn pub_open(&mut self) -> Result<Self::Pub, Error> {
+    async fn pub_open(&mut self, name: &str) -> Result<Self::Pub, Error> {
         // populate our inner pubsub object w/ the state received from `slight`
         // (i.e., what type of pubsub implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Pub::new(
-            &self.host_state.pubsub_implementor,
-            &self.host_state.slight_state,
-        )
-        .await;
+        let state = self.host_state.capability_store.get(name).unwrap().clone();
 
-        self.host_state
-            .slight_state
+        tracing::log::info!("Opening implementor {}", &state.implementor);
+
+        let inner = Self::Pub::new(&state.implementor, &state).await;
+
+        state
             .resource_map
             .lock()
             .unwrap()
@@ -81,18 +78,17 @@ impl pubsub::Pubsub for Pubsub {
         Ok(inner)
     }
 
-    async fn sub_open(&mut self) -> Result<Self::Sub, Error> {
+    async fn sub_open(&mut self, name: &str) -> Result<Self::Sub, Error> {
         // populate our inner pubsub object w/ the state received from `slight`
         // (i.e., what type of pubsub implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Sub::new(
-            &self.host_state.pubsub_implementor,
-            &self.host_state.slight_state,
-        )
-        .await;
+        let state = self.host_state.capability_store.get(name).unwrap().clone();
 
-        self.host_state
-            .slight_state
+        tracing::log::info!("Opening implementor {}", &state.implementor);
+
+        let inner = Self::Sub::new(&state.implementor, &state).await;
+
+        state
             .resource_map
             .lock()
             .unwrap()

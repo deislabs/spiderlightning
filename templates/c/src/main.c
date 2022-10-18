@@ -10,7 +10,7 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
     kv_expected_kv_error_t open_result;
     kv_kv_t kv;
     kv_string_t kv_name;
-    kv_string_set(&kv_name, "my-folder");
+    kv_string_set(&kv_name, "placeholder-name");
     kv_kv_open(&kv_name, &open_result);
     if (open_result.is_err)
     {

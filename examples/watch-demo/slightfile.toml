@@ -1,8 +1,13 @@
-specversion = "0.1"
+specversion = "0.2"
 
 [[capability]]
 resource = "kv.filesystem"
 name = "my-container"
+    # This capability does not require any configs
+
+[[capability]]
+resource = "kv.filesystem"
+name = "my-container2"
     # This capability does not require any configs
 
 [[capability]]

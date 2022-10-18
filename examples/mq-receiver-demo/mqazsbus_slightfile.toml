@@ -1,4 +1,4 @@
-specversion = "0.1"
+specversion = "0.2"
 
 [[capability]]
 resource = "mq.azsbus"

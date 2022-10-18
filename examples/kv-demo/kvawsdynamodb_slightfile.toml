@@ -1,8 +1,16 @@
-specversion = "0.1"
+specversion = "0.2"
 
 [[capability]]
 resource = "kv.awsdynamodb"
 name = "my-container"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.
+
+[[capability]]
+resource = "kv.awsdynamodb"
+name = "my-container2"
     # This capability loads its' config from environment variables. It requires:
     #   - `AWS_ACCESS_KEY_ID`,
     #   - `AWS_SECRET_ACCESS_KEY`, and

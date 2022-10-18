@@ -1,6 +1,6 @@
 pub mod implementors;
 
-use std::path::Path;
+use std::{collections::HashMap, path::Path};
 
 use anyhow::{Context, Result};
 use async_trait::async_trait;
@@ -39,16 +39,12 @@ impl_resource!(Configs, configs::ConfigsTables<Configs>, ConfigsState);
 ///     the `config_type`, and the `slightfile_path`).
 #[derive(Clone, Default)]
 pub struct ConfigsState {
-    pub configs_implementor: String,
-    pub slight_state: BasicState,
+    capability_store: HashMap<String, BasicState>,
 }
 
 impl ConfigsState {
-    pub fn new(configs_implementor: String, slight_state: BasicState) -> Self {
-        Self {
-            configs_implementor,
-            slight_state,
-        }
+    pub fn new(capability_store: HashMap<String, BasicState>) -> Self {
+        Self { capability_store }
     }
 }
 
@@ -56,14 +52,17 @@ impl ConfigsState {
 impl configs::Configs for Configs {
     type Configs = ConfigsInner;
 
-    async fn configs_open(&mut self) -> Result<Self::Configs, configs::Error> {
+    async fn configs_open(&mut self, name: &str) -> Result<Self::Configs, configs::Error> {
         // populate our inner configs object w/ the state received from `slight`
         // (i.e., what type of configs implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Configs::new(&self.host_state.configs_implementor);
+        let state = self.host_state.capability_store.get(name).unwrap().clone();
 
-        self.host_state
-            .slight_state
+        tracing::log::info!("Opening implementor {}", &state.implementor);
+
+        let inner = Self::Configs::new(&state.implementor, &state);
+
+        state
             .resource_map
             .lock()
             .unwrap()
@@ -80,7 +79,7 @@ impl configs::Configs for Configs {
         Ok(get(
             &String::from(&self_.configs_implementor),
             key,
-            &self.host_state.slight_state.slightfile_path,
+            &self_.slight_state.slightfile_path,
         )
         .await?)
     }
@@ -95,7 +94,7 @@ impl configs::Configs for Configs {
             &String::from(&self_.configs_implementor),
             key,
             value,
-            &self.host_state.slight_state.slightfile_path,
+            &self_.slight_state.slightfile_path,
         )
         .await?;
 
@@ -122,13 +121,15 @@ impl configs::Configs for Configs {
 pub struct ConfigsInner {
     configs_implementor: ConfigsImplementor,
     resource_descriptor: String,
+    slight_state: BasicState,
 }
 
 impl ConfigsInner {
-    fn new(configs_implementor: &str) -> Self {
+    fn new(configs_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
             configs_implementor: configs_implementor.into(),
             resource_descriptor: Uuid::new_v4().to_string(),
+            slight_state: slight_state.clone(),
         }
     }
 }

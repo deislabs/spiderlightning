@@ -1,7 +1,10 @@
 mod implementors;
 pub mod providers;
 
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -48,16 +51,12 @@ impl Kv {
 ///     the `config_type`, and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct KvState {
-    kv_implementor: String,
-    slight_state: BasicState,
+    capability_store: HashMap<String, BasicState>,
 }
 
 impl KvState {
-    pub fn new(kv_implementor: String, slight_state: BasicState) -> Self {
-        Self {
-            kv_implementor,
-            slight_state,
-        }
+    pub fn new(kv_store: HashMap<String, BasicState>) -> Self {
+        Self { capability_store: kv_store }
     }
 }
 
@@ -147,15 +146,14 @@ impl kv::Kv for Kv {
         // populate our inner kv object w/ the state received from `slight`
         // (i.e., what type of kv implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Kv::new(
-            &self.host_state.kv_implementor,
-            &self.host_state.slight_state,
-            name,
-        )
-        .await;
 
-        self.host_state
-            .slight_state
+        let state = self.host_state.capability_store.get(name).unwrap().clone();
+
+        tracing::log::info!("Opening implementor {}", &state.implementor);
+
+        let inner = Self::Kv::new(&state.implementor, &state, &state.name).await;
+
+        state
             .resource_map
             .lock()
             .unwrap()

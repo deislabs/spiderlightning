@@ -1,6 +1,8 @@
 mod implementors;
 pub mod providers;
 
+use std::collections::HashMap;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use uuid::Uuid;
@@ -41,16 +43,12 @@ impl_resource!(Lockd, lockd::LockdTables<Lockd>, LockdState);
 ///     the `config_type`, and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct LockdState {
-    lockd_implementor: String,
-    slight_state: BasicState,
+    capability_store: HashMap<String, BasicState>,
 }
 
 impl LockdState {
-    pub fn new(lockd_implementor: String, slight_state: BasicState) -> Self {
-        Self {
-            lockd_implementor,
-            slight_state,
-        }
+    pub fn new(capability_store: HashMap<String, BasicState>) -> Self {
+        Self { capability_store }
     }
 }
 
@@ -58,18 +56,17 @@ impl LockdState {
 impl lockd::Lockd for Lockd {
     type Lockd = LockdInner;
 
-    async fn lockd_open(&mut self) -> Result<Self::Lockd, Error> {
+    async fn lockd_open(&mut self, name: &str) -> Result<Self::Lockd, Error> {
         // populate our inner lockd object w/ the state received from `slight`
         // (i.e., what type of lockd implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Lockd::new(
-            &self.host_state.lockd_implementor,
-            &self.host_state.slight_state,
-        )
-        .await;
+        let state = self.host_state.capability_store.get(name).unwrap().clone();
 
-        self.host_state
-            .slight_state
+        tracing::log::info!("Opening implementor {}", &state.implementor);
+
+        let inner = Self::Lockd::new(&state.implementor, &state).await;
+
+        state
             .resource_map
             .lock()
             .unwrap()

@@ -128,7 +128,7 @@ mod unittests {
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
         let toml_str = r#"
-        specversion = "0.1"
+        specversion = "0.2"
         [[secret_settings]]
         name = "foo"
         value = "foo_val_unencrypted"
@@ -179,7 +179,7 @@ mod unittests {
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
         let toml_str = r#"
-        specversion = "0.1"
+        specversion = "0.2"
         [[secret_settings]]
         name = "foo"
         value = "foo_val_unencrypted"
@@ -216,7 +216,7 @@ mod unittests {
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
         let toml_str = r#"
-        specversion = "0.1"
+        specversion = "0.2"
         [[secret_settings]]
         name = "foo"
         value = "foo_val_unencrypted"

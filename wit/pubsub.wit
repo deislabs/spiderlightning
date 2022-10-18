@@ -4,7 +4,7 @@ use * from resources
 
 resource pub {
 	// open a pub object
-	static open: func() -> expected<pub, error>
+	static open: func(name: string) -> expected<pub, error>
 
 	// pub a message
 	publish: func(message: payload, topic: string) -> expected<unit, error> 
@@ -12,7 +12,7 @@ resource pub {
 
 resource sub {
 	// open a sub object
-	static open: func() -> expected<sub, error>
+	static open: func(name: string) -> expected<sub, error>
 	
 	// sub to a topic
 	subscribe: func(topic: string) -> expected<unit, error>

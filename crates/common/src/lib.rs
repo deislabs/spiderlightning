@@ -17,11 +17,15 @@ use slight_http_api::HttpHandlerData;
 ///
 /// It contains:
 ///     - a `resource_map`,
+///     - a `implementor`,
+///     - a `name`,
 ///     - a `configs_map`, and
 ///     - the `slightfile_path`.
 #[derive(Clone, Default)]
 pub struct BasicState {
     pub resource_map: ResourceMap,
+    pub implementor: String,
+    pub name: String,
     pub configs_map: Option<HashMap<String, String>>,
     pub slightfile_path: PathBuf,
 }
@@ -29,14 +33,24 @@ pub struct BasicState {
 impl BasicState {
     pub fn new(
         resource_map: ResourceMap,
+        implementor: String,
+        name: String,
         configs_map: Option<HashMap<String, String>>,
         slightfile_path: impl AsRef<Path>,
     ) -> Self {
         Self {
             resource_map,
+            implementor,
+            name,
             configs_map,
             slightfile_path: slightfile_path.as_ref().to_owned(),
         }
+    }
+}
+
+impl std::fmt::Debug for BasicState {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "BasicState {{name: {}, implementor: {}}}", self.name, self.implementor)
     }
 }
 

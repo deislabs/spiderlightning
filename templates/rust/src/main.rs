@@ -5,7 +5,7 @@ wit_bindgen_rust::import!("wit/kv_{{release}}/kv.wit");
 wit_error_rs::impl_error!(kv::Error);
 
 fn main() -> Result<()> {
-    let my_kv = Kv::open("my_folder")?;
+    let my_kv = Kv::open("placeholder-name")?;
     my_kv.set("hello-spiderlightning", b"Hello, SpiderLightning!")?;
     println!(
         "{}",

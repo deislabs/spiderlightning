@@ -1,6 +1,8 @@
 mod implementors;
 pub mod providers;
 
+use std::collections::HashMap;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use implementors::{azsbus::AzSbusImplementor, filesystem::FilesystemImplementor};
@@ -45,16 +47,12 @@ impl_resource!(Mq, mq::MqTables<Mq>, MqState);
 ///     the `config_type`, and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct MqState {
-    mq_implementor: String,
-    slight_state: BasicState,
+    capability_store: HashMap<String, BasicState>,
 }
 
 impl MqState {
-    pub fn new(mq_implementor: String, slight_state: BasicState) -> Self {
-        Self {
-            mq_implementor,
-            slight_state,
-        }
+    pub fn new(capability_store: HashMap<String, BasicState>) -> Self {
+        Self { capability_store }
     }
 }
 
@@ -66,15 +64,13 @@ impl mq::Mq for Mq {
         // populate our inner mq object w/ the state received from `slight`
         // (i.e., what type of mq implementor we are using), and the assigned
         // name of the object.
-        let inner = Self::Mq::new(
-            &self.host_state.mq_implementor,
-            &self.host_state.slight_state,
-            name,
-        )
-        .await;
+        let state = self.host_state.capability_store.get(name).unwrap().clone();
 
-        self.host_state
-            .slight_state
+        tracing::log::info!("Opening implementor {}", &state.implementor);
+
+        let inner = Self::Mq::new(&state.implementor, &state, &state.name).await;
+
+        state
             .resource_map
             .lock()
             .unwrap()
