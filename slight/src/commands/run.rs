@@ -147,11 +147,17 @@ fn build_store_instance(
             let resource_type: &str = c.resource.as_str();
             match resource_type {
                 "events" => {
-                    builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
-                    slight_builder =
-                        slight_builder.add_state(State::Events(EventsState::<Builder>::new(
-                            resource_map.clone(),
-                        )))?;
+                    if !linked_capabilities.contains("events") {
+                        builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
+                        linked_capabilities.insert("events".to_string());
+
+                        slight_builder =
+                            slight_builder.add_state(State::Events(
+                                EventsState::<Builder>::new(resource_map.clone()),
+                            ))?;
+                    } else {
+                        bail!("the events capability was already linked");
+                    }
                 }
                 _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
                     if !linked_capabilities.contains("kv") {
@@ -272,10 +278,19 @@ fn build_store_instance(
                     ))?;
                 }
                 "http" => {
-                    builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
-                    slight_builder = slight_builder.add_state(State::Http(
-                        slight_http::HttpState::<Builder>::new(resource_map.clone()),
-                    ))?;
+                    if !linked_capabilities.contains("http") {
+                        builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
+                        linked_capabilities.insert("http".to_string());
+
+                        slight_builder =
+                            slight_builder.add_state(State::Http(slight_http::HttpState::<
+                                Builder,
+                            >::new(
+                                resource_map.clone()
+                            )))?;
+                    } else {
+                        bail!("the http capability was already linked");
+                    }
                 }
                 _ => {
                     bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
