@@ -259,7 +259,7 @@ fn maybe_add_named_capability_to_store(
             resource_map,
             c.resource.clone(),
             c.name.clone(),
-            c.configs.clone(),
+            c.configs,
             toml_file_path,
         ));
     } else {

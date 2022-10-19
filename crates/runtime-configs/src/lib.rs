@@ -258,7 +258,7 @@ mod unittests {
             [capability.configs]
             a = "${azapp.hello}"
         "#;
-        let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+        let toml = toml::from_str::<TomlFile>(toml_file_contents)?;
         assert_eq!(
             ("configs.azapp".to_string(), "hello".to_string()),
             maybe_get_config_store_and_value(
@@ -285,7 +285,7 @@ mod unittests {
             [capability.configs]
             b = "${cruel}"
         "#;
-        let toml = toml::from_str::<TomlFile>(&toml_file_contents).unwrap();
+        let toml = toml::from_str::<TomlFile>(toml_file_contents).unwrap();
         maybe_get_config_store_and_value(
             toml.capability.as_ref().unwrap()[0]
                 .configs
@@ -307,7 +307,7 @@ mod unittests {
             [capability.configs]
             c = "world"
         "#;
-        let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+        let toml = toml::from_str::<TomlFile>(toml_file_contents)?;
         assert_eq!(
             ("configs.local".to_string(), "world".to_string()),
             maybe_get_config_store_and_value(
