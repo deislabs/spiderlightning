@@ -31,7 +31,16 @@ echo ">>> DONLOADING FROM: $URL..."
 curl -L -s $URL --output $TAR
 echo ">>> DOWNLOADED BINARY TAR."
 
-tar -xf $TAR
+if [[ "${OS}" == "Linux" ]]
+then
+  tar -xf $TAR
+elif [[ "${OS}" == "Darwin" ]]
+then
+  tar -xf $TAR --strip-components=1
+else
+  echo ">>> THIS INSTALLATION METHOD ONLY WORKS FOR MACOS AND LINUX."
+  exit 1
+fi
 echo ">>> EXTRACTED BINARY TAR."
 
 sudo install ./release/$BINARY_NAME $INSTALL_DIR/bin
