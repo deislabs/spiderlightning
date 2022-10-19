@@ -146,7 +146,7 @@ stages:
               BUILD_ARCH: $(target_arch)
           
           - script: |
-              redis-server --version
+              /home/linuxbrew/.linuxbrew/opt/redis/bin/redis-server --version
             displayName: Smoke test redis-server cli in the path
             condition: and(succeeded(), eq(variables['target_os'], 'linux'))
             env:
