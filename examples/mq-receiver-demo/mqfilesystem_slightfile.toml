@@ -1,5 +1,6 @@
-specversion = "0.1"
-secret_store = "configs.azapp"
+specversion = "0.2"
 
 [[capability]]
-name = "mq.filesystem"
+resource = "mq.filesystem"
+name = "wasi-cloud-queue"
+    # This capability does not require any configs

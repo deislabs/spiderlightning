@@ -1,5 +1,33 @@
-specversion = "0.1"
-secret_store = "configs.azapp"
+specversion = "0.2"
 
 [[capability]]
-name = "kv.awsdynamodb"
+resource = "kv.awsdynamodb"
+name = "rand"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.
+
+[[capability]]
+resource = "kv.awsdynamodb"
+name = "random1"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.
+
+[[capability]]
+resource = "kv.awsdynamodb"
+name = "random2"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.
+
+[[capability]]
+resource = "kv.awsdynamodb"
+name = "random3"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.

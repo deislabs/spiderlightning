@@ -1,5 +1,9 @@
-specversion = "0.1"
-secret_store = "configs.azapp"
+specversion = "0.2"
 
 [[capability]]
-name = "mq.azsbus"
+resource = "mq.azsbus"
+name = "wasi-cloud-queue"
+    [capability.configs]
+    AZURE_SERVICE_BUS_NAMESPACE = "${azapp.AZURE_SERVICE_BUS_NAMESPACE}"
+    AZURE_POLICY_NAME = "${azapp.AZURE_POLICY_NAME}"
+    AZURE_POLICY_KEY = "${azapp.AZURE_POLICY_KEY}"

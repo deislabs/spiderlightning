@@ -3,7 +3,7 @@ use { error, payload } from types
 
 resource configs {
     // Obtain an app config store, identifiable through a resource descriptor
-    static open: func() -> expected<configs, error>
+    static open: func(name: string) -> expected<configs, error>
 
     // Get an app configuration given a config store, and an identifiable key
     get: func(key: string) -> expected<payload, error>

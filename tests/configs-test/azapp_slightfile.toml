@@ -1,4 +1,9 @@
-specversion = "0.1"
+specversion = "0.2"
 
 [[capability]]
-name = "configs.azapp"
+resource = "configs.azapp"
+name = "my-secret-store"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AZAPPCONFIG_ENDPOINT`,
+    #   - `AZAPPCONFIG_KEYID`, and
+    #   - `AZAPPCONFIG_KEYSECRET`.

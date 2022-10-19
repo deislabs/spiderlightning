@@ -1,6 +1,13 @@
-specversion = "0.1"
-secret_store = "configs.azapp"
+specversion = "0.2"
 
 [[capability]]
-name = "pubsub.confluent_apache_kafka"
-
+resource = "pubsub.confluent_apache_kafka"
+name = "my-pubsub"
+    [capability.configs]
+    CAK_ENDPOINT = "${azapp.CAK_ENDPOINT}"
+    CAK_SECURITY_PROTOCOL = "${azapp.CAK_SECURITY_PROTOCOL}"
+    CAK_SASL_MECHANISMS = "${azapp.CAK_SASL_MECHANISMS}"
+    CAK_SASL_USERNAME = "${azapp.CAK_SASL_USERNAME}"
+    CAK_SASL_PASSWORD = "${azapp.CAK_SASL_PASSWORD}"
+    CAK_GROUP_ID = "${azapp.CAK_GROUP_ID}"
+    

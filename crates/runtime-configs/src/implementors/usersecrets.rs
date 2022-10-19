@@ -63,7 +63,10 @@ impl UserSecrets {
 
 #[cfg(test)]
 mod unittests {
+    use std::{fs::OpenOptions, io::Write};
+
     use anyhow::Result;
+    use spiderlightning::core::slightfile::TomlFile;
     use tempdir::TempDir;
 
     use super::UserSecrets;
@@ -71,10 +74,20 @@ mod unittests {
     #[test]
     fn set_then_get_test() -> Result<()> {
         let dir = TempDir::new("tmp")?;
-        let file_path = dir.path().join("slightfile.toml");
-        let toml_file_path = file_path.to_str().unwrap();
-        UserSecrets::set("key", "value".as_bytes(), toml_file_path)?;
-        assert!(UserSecrets::get("key", toml_file_path).is_ok());
+        let toml_file_pathpuf = dir.path().join("slightfile.toml");
+        let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
+
+        let tmp_toml = toml::from_str::<TomlFile>("specversion = \"0.2\"")?;
+        let mut toml_file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(toml_file_pathstr)?;
+
+        toml_file.write_all(toml::to_string(&tmp_toml)?.as_bytes())?;
+
+        UserSecrets::set("key", "value".as_bytes(), toml_file_pathstr)?;
+        assert!(UserSecrets::get("key", toml_file_pathstr).is_ok());
         Ok(())
     }
 }

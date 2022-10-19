@@ -109,7 +109,7 @@ mod unittests {
         let toml_file_pathpuf = dir.path().join("slightfile.toml");
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
-        let mut tmp_toml = toml::from_str::<TomlFile>("")?;
+        let mut tmp_toml = toml::from_str::<TomlFile>("specversion = \"0.2\"")?;
         let mut toml_file = OpenOptions::new()
             .read(true)
             .write(true)
@@ -128,7 +128,7 @@ mod unittests {
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
         let toml_str = r#"
-        specversion = "0.1"
+        specversion = "0.2"
         [[secret_settings]]
         name = "foo"
         value = "foo_val_unencrypted"
@@ -179,7 +179,7 @@ mod unittests {
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
         let toml_str = r#"
-        specversion = "0.1"
+        specversion = "0.2"
         [[secret_settings]]
         name = "foo"
         value = "foo_val_unencrypted"
@@ -216,7 +216,7 @@ mod unittests {
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
         let toml_str = r#"
-        specversion = "0.1"
+        specversion = "0.2"
         [[secret_settings]]
         name = "foo"
         value = "foo_val_unencrypted"

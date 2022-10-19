@@ -1,4 +1,6 @@
-specversion = "0.1"
+specversion = "0.2"
 
 [[capability]]
-name = "configs.envvars"
+resource = "configs.envvars"
+name = "my-secret-store"
+    # This capability does not require any configs

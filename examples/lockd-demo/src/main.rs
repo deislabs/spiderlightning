@@ -10,7 +10,7 @@ wit_error_rs::impl_error!(Error);
 use anyhow::Result;
 
 fn main() -> Result<()> {
-    let lockd = Lockd::open()?;
+    let lockd = Lockd::open("my-etcd-server")?;
 
     println!("trying to acquire a lock with 5s time to live");
     let mut now = SystemTime::now();

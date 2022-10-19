@@ -1,5 +1,6 @@
-specversion = "0.1"
-secret_store = "configs.envvars"
+specversion = "0.2"
 
 [[capability]]
-name = "kv.filesystem"
+resource = "kv.filesystem"
+name = "placeholder-name"
+    # This capability does not require any configs

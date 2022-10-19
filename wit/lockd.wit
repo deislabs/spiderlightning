@@ -4,7 +4,7 @@ use * from resources
 
 resource lockd {
 	// open a lockd object
-	static open: func() -> expected<lockd, error>
+	static open: func(name: string) -> expected<lockd, error>
 
 	// creates a lock with a name, returns the lock key
 	lock: func(lock-name: payload) -> expected<payload, error>

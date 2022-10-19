@@ -11,6 +11,6 @@ pub fn handle_secret(key: &str, value: &str, toml_file_path: impl AsRef<Path>) -
     let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
     let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
 
-    toml.secret_store = Some("configs.usersecrets".to_string());
+    // removed global secret_store
     create_secret(key, value, &mut toml, &mut toml_file)
 }

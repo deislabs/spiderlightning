@@ -3969,6 +3969,7 @@ dependencies = [
  "azure-app-configuration",
  "crossbeam-channel",
  "rand 0.8.5",
+ "regex",
  "short-crypt",
  "slight-common",
  "slight-events-api",
@@ -4031,7 +4032,7 @@ dependencies = [
 
 [[package]]
 name = "spiderlightning"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "hyper",
