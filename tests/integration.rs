@@ -105,7 +105,7 @@ mod integration_tests {
             let port = get_random_port();
 
             // make sure redis-server is running
-            let mut binary_path = "redis-server";
+            let binary_path = "redis-server";
             let output = Command::new("which")
                 .arg(binary_path)
                 .stdout(std::process::Stdio::piped())
@@ -115,7 +115,7 @@ mod integration_tests {
 
             let code = output.status.code().expect("should have status code");
             if code != 0 {
-                let binary_path = "/home/linuxbrew/.linuxbrew/opt/redis/bin/redis-server";
+                let _binary_path = "/home/linuxbrew/.linuxbrew/opt/redis/bin/redis-server";
             }
             
             let mut cmd = Command::new(binary_path)
