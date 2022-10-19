@@ -144,6 +144,13 @@ stages:
             condition: and(succeeded(), eq(variables['target_os'], 'linux'))
             env:
               BUILD_ARCH: $(target_arch)
+          
+          - script: |
+              redis-server --version
+            displayName: Smoke test redis-server cli in the path
+            condition: and(succeeded(), eq(variables['target_os'], 'linux'))
+            env:
+              BUILD_ARCH: $(target_arch)
 
           - script: make install-deps-macos
             displayName: Install build tools on macos
