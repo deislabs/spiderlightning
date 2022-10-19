@@ -240,3 +240,86 @@ fn maybe_get_config_store_and_value(c: &str) -> Result<(String, String)> {
         Ok(("configs.local".to_string(), c.to_string()))
     }
 }
+
+#[cfg(test)]
+mod unittests {
+    use anyhow::Result;
+    use spiderlightning::core::slightfile::TomlFile;
+
+    use crate::maybe_get_config_store_and_value;
+
+    #[test]
+    fn parse_this_dot_that() -> Result<()> {
+        let toml_file_contents = r#"
+        specversion = "0.1"
+        [[capability]]
+        resource = "kv.azblob"
+        name = "customers"
+            [capability.configs]
+            a = "${azapp.hello}"
+        "#;
+        let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+        assert_eq!(
+            ("configs.azapp".to_string(), "hello".to_string()),
+            maybe_get_config_store_and_value(
+                toml.capability.as_ref().unwrap()[0]
+                    .configs
+                    .as_ref()
+                    .unwrap()
+                    .get("a")
+                    .unwrap(),
+            )?
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    #[should_panic]
+    fn parse_this_missing_dot_that() {
+        let toml_file_contents = r#"
+        specversion = "0.1"
+        [[capability]]
+        resource = "kv.azblob"
+        name = "customers"
+            [capability.configs]
+            b = "${cruel}"
+        "#;
+        let toml = toml::from_str::<TomlFile>(&toml_file_contents).unwrap();
+        maybe_get_config_store_and_value(
+            toml.capability.as_ref().unwrap()[0]
+                .configs
+                .as_ref()
+                .unwrap()
+                .get("b")
+                .unwrap(),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn parse_local_config() -> Result<()> {
+        let toml_file_contents = r#"
+        specversion = "0.1"
+        [[capability]]
+        resource = "kv.azblob"
+        name = "customers"
+            [capability.configs]
+            c = "world"
+        "#;
+        let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+        assert_eq!(
+            ("configs.local".to_string(), "world".to_string()),
+            maybe_get_config_store_and_value(
+                toml.capability.as_ref().unwrap()[0]
+                    .configs
+                    .as_ref()
+                    .unwrap()
+                    .get("c")
+                    .unwrap(),
+            )?
+        );
+
+        Ok(())
+    }
+}

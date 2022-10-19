@@ -9,7 +9,7 @@ pub struct TomlFile {
     pub capability: Option<Vec<Capability>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Capability {
     pub resource: String,
     pub name: String,

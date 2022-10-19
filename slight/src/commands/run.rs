@@ -19,7 +19,7 @@ use slight_runtime::{
     Builder, Ctx,
 };
 use slight_runtime_configs::Configs;
-use spiderlightning::core::slightfile::TomlFile;
+use spiderlightning::core::slightfile::{Capability, TomlFile};
 use wit_bindgen_wasmtime::wasmtime::Store;
 
 const KV_HOST_IMPLEMENTORS: [&str; 4] =
@@ -34,21 +34,11 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
     let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
     let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
 
-    let mut linked_capabilities: HashSet<String> = HashSet::new();
-    let mut capability_store: HashMap<String, BasicState> = HashMap::new();
-
     tracing::info!("Starting slight");
 
     let resource_map = Arc::new(Mutex::new(StateTable::default()));
 
-    let host_builder = build_store_instance(
-        &toml,
-        &toml_file_path,
-        &mut linked_capabilities,
-        &mut capability_store,
-        resource_map.clone(),
-        &module,
-    )?;
+    let host_builder = build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
     let (mut store, instance) = host_builder.build().await?;
 
     let caps = toml.capability.as_ref().unwrap();
@@ -60,28 +50,16 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
 
     if events_enabled {
         log::debug!("Events capability enabled");
-        let guest_builder = build_store_instance(
-            &toml,
-            &toml_file_path,
-            &mut linked_capabilities,
-            &mut capability_store,
-            resource_map.clone(),
-            &module,
-        )?;
+        let guest_builder =
+            build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
         let event_handler_resource: &mut Events<Builder> = get_resource(&mut store, "events");
         event_handler_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
 
     if http_enabled {
         log::debug!("Http capability enabled");
-        let guest_builder: Builder = build_store_instance(
-            &toml,
-            &toml_file_path,
-            &mut linked_capabilities,
-            &mut capability_store,
-            resource_map.clone(),
-            &module,
-        )?;
+        let guest_builder: Builder =
+            build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
         let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
         http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
@@ -134,13 +112,14 @@ async fn shutdown_signal() {
 fn build_store_instance(
     toml: &TomlFile,
     toml_file_path: impl AsRef<Path>,
-    linked_capabilities: &mut HashSet<String>,
-    capability_store: &mut HashMap<String, BasicState>,
     resource_map: Arc<Mutex<StateTable>>,
     module: impl AsRef<Path>,
 ) -> Result<Builder> {
     let mut builder = Builder::new_default(module)?;
     let mut slight_builder = SlightCtxBuilder::default();
+    let mut linked_capabilities: HashSet<String> = HashSet::new();
+    let mut capability_store: HashMap<String, BasicState> = HashMap::new();
+
     builder.link_wasi()?;
     if toml.specversion.as_ref().unwrap() == "0.2" {
         for c in toml.capability.as_ref().unwrap() {
@@ -165,19 +144,12 @@ fn build_store_instance(
                         linked_capabilities.insert("kv".to_string());
                     }
 
-                    if let std::collections::hash_map::Entry::Vacant(e) =
-                        capability_store.entry(c.name.clone())
-                    {
-                        e.insert(BasicState::new(
-                            resource_map.clone(),
-                            c.resource.clone(),
-                            c.name.clone(),
-                            c.configs.clone(),
-                            &toml_file_path,
-                        ));
-                    } else {
-                        bail!("cannot add capabilities of the same name");
-                    }
+                    maybe_add_named_capability_to_store(
+                        &mut capability_store,
+                        c.clone(),
+                        resource_map.clone(),
+                        &toml_file_path,
+                    )?;
 
                     slight_builder = slight_builder
                         .add_state(State::Kv(slight_kv::KvState::new(capability_store.clone())))?;
@@ -188,19 +160,12 @@ fn build_store_instance(
                         linked_capabilities.insert("mq".to_string());
                     }
 
-                    if let std::collections::hash_map::Entry::Vacant(e) =
-                        capability_store.entry(c.name.clone())
-                    {
-                        e.insert(BasicState::new(
-                            resource_map.clone(),
-                            c.resource.clone(),
-                            c.name.clone(),
-                            c.configs.clone(),
-                            &toml_file_path,
-                        ));
-                    } else {
-                        bail!("cannot add capabilities of the same name");
-                    }
+                    maybe_add_named_capability_to_store(
+                        &mut capability_store,
+                        c.clone(),
+                        resource_map.clone(),
+                        &toml_file_path,
+                    )?;
 
                     slight_builder = slight_builder
                         .add_state(State::Mq(slight_mq::MqState::new(capability_store.clone())))?;
@@ -211,19 +176,12 @@ fn build_store_instance(
                         linked_capabilities.insert("lockd".to_string());
                     }
 
-                    if let std::collections::hash_map::Entry::Vacant(e) =
-                        capability_store.entry(c.name.clone())
-                    {
-                        e.insert(BasicState::new(
-                            resource_map.clone(),
-                            c.resource.clone(),
-                            c.name.clone(),
-                            c.configs.clone(),
-                            &toml_file_path,
-                        ));
-                    } else {
-                        bail!("cannot add capabilities of the same name");
-                    }
+                    maybe_add_named_capability_to_store(
+                        &mut capability_store,
+                        c.clone(),
+                        resource_map.clone(),
+                        &toml_file_path,
+                    )?;
 
                     slight_builder = slight_builder.add_state(State::Lockd(
                         slight_lockd::LockdState::new(capability_store.clone()),
@@ -235,19 +193,12 @@ fn build_store_instance(
                         linked_capabilities.insert("pubsub".to_string());
                     }
 
-                    if let std::collections::hash_map::Entry::Vacant(e) =
-                        capability_store.entry(c.name.clone())
-                    {
-                        e.insert(BasicState::new(
-                            resource_map.clone(),
-                            c.resource.clone(),
-                            c.name.clone(),
-                            c.configs.clone(),
-                            &toml_file_path,
-                        ));
-                    } else {
-                        bail!("cannot add capabilities of the same name");
-                    }
+                    maybe_add_named_capability_to_store(
+                        &mut capability_store,
+                        c.clone(),
+                        resource_map.clone(),
+                        &toml_file_path,
+                    )?;
 
                     slight_builder = slight_builder.add_state(State::PubSub(
                         slight_pubsub::PubsubState::new(capability_store.clone()),
@@ -259,19 +210,12 @@ fn build_store_instance(
                         linked_capabilities.insert("configs".to_string());
                     }
 
-                    if let std::collections::hash_map::Entry::Vacant(e) =
-                        capability_store.entry(c.name.clone())
-                    {
-                        e.insert(BasicState::new(
-                            resource_map.clone(),
-                            c.resource.clone(),
-                            c.name.clone(),
-                            c.configs.clone(),
-                            &toml_file_path,
-                        ));
-                    } else {
-                        bail!("cannot add capabilities of the same name");
-                    }
+                    maybe_add_named_capability_to_store(
+                        &mut capability_store,
+                        c.clone(),
+                        resource_map.clone(),
+                        &toml_file_path,
+                    )?;
 
                     slight_builder = slight_builder.add_state(State::RtCfg(
                         slight_runtime_configs::ConfigsState::new(capability_store.clone()),
@@ -302,4 +246,25 @@ fn build_store_instance(
     }
     builder = builder.add_slight_states(slight_builder);
     Ok(builder)
+}
+
+fn maybe_add_named_capability_to_store(
+    capability_store: &mut HashMap<String, BasicState>,
+    c: Capability,
+    resource_map: Arc<Mutex<StateTable>>,
+    toml_file_path: impl AsRef<Path>,
+) -> Result<()> {
+    if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone()) {
+        e.insert(BasicState::new(
+            resource_map,
+            c.resource.clone(),
+            c.name.clone(),
+            c.configs.clone(),
+            toml_file_path,
+        ));
+    } else {
+        bail!("cannot add capabilities of the same name");
+    }
+
+    Ok(())
 }
