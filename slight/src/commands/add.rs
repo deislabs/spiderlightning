@@ -15,9 +15,9 @@ const LOCKD_DOWNLOADS: [&str; 3] = ["lockd", "types", "resources"];
 const MQ_DOWNLOADS: [&str; 3] = ["mq", "types", "resources"];
 const PUBSUB_DOWNLOADS: [&str; 3] = ["pubsub", "types", "resources"];
 
-pub async fn handle_add(what_to_add: &str) -> Result<()> {
+pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Result<()> {
     let (interface, release, folder_name) = if !what_to_add.contains('@') {
-        panic!("invalid use: to download an interface, say `slight add <interface-name>@<release-tag>`");
+        panic!("invalid usage: to add an interface to your project, say `slight add -i <interface-name>@<release-tag>`");
         // TODO: In the future, let's support omitting the release tag to download the latest release
     } else {
         let find_at = what_to_add.find('@').unwrap();
@@ -38,13 +38,18 @@ pub async fn handle_add(what_to_add: &str) -> Result<()> {
             | interface.eq("mq")
             | interface.eq("pubsub") =>
         {
-            maybe_recreate_dir(&folder_name)?;
+            maybe_recreate_dir(&format!("{}{}", folder_prefix.unwrap_or("./"), folder_name))?;
             for i in get_interface_downloads_by_name(interface) {
                 let resp = reqwest::get(format!("{}/{}/{}.wit", GITHUB_URL, release, i))
                     .await?
                     .text()
                     .await?;
-                let mut out = File::create(format!("{}/{}.wit", folder_name, i))?;
+                let mut out = File::create(format!(
+                    "{}{}/{}.wit",
+                    folder_prefix.unwrap_or("./"),
+                    folder_name,
+                    i
+                ))?;
                 io::copy(&mut resp.as_bytes(), &mut out)?;
             }
         }

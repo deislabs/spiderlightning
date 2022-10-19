@@ -18,6 +18,17 @@ fn main() -> Result<()> {
     let value = kv.get("key");
     assert!(value.is_err());
 
+    // test keys
+    let kv = Kv::open("rand")?;
+    let value = "spiderlightning".as_bytes();
+    kv.set("key", value)?;
+    kv.set("key2", value)?;
+    let keys = kv.keys()?;
+    assert_eq!(keys.len(), 2);
+    assert!(keys.contains(&"key".to_string()));
+    kv.delete("key")?;
+    kv.delete("key2")?;
+
     // test get_kv() will have a unique allocation in the resource table.
     // so two `get_kv()` with different names will return different allocations.
     let kv1 = Kv::open("random1")?;

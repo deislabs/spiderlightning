@@ -17,6 +17,7 @@ In simple terms, SpiderLightning allows you to go:
 
 
 ## Repository Structure
+
 - `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
 - `/src`: the SpiderLightning host cli (i.e., Slight)
 - `/crates`: service implementations
@@ -32,18 +33,57 @@ Aside from the `CONTRIBUTING.md` doc, here are a few other good starting points 
 - the [`service-implementation-101.md` doc](https://github.com/deislabs/spiderlightning/blob/main/docs/service-implementation-101.md): a step-by-step guide to develop your first service implementor, and
 - the [SpiderLightning YouTube Playlist](https://www.youtube.com/playlist?list=PLL6BzOBDywQcXy3otj_Y-20SCSOv-MxT3): a collection of informative and tutorial videos on SpiderLightning/`slight`.
 
+## How to install on MacOS and Linux?
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.sh)"
+```
+
+## How to install on Windows?
+
+```sh
+iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.ps1'))
+```
+
 ## Getting Started
 
 ```sh
-$ git clone https://github.com/deislabs/spiderlightning.git && cd spiderlightning/ # clone our repo locally and go into it
-$ make install-deps # installs the WASI-SDK
-$ make build # builds SpiderLightning/Slight
-$ make build-c # builds our c example
-$ make run-c # runs our c example
+slight new -n spidey@v0.1 rust && cd spidey
+# ^^^ starts a new rust project under SpiderLightning's v0.1 spec
+# use: `slight new -n spidey@v0.1 c` to start a new c project
+
+cargo build --target wasm32-wasi
+# ^^^ for c...
+# you might want to install wasi-sdk dependencies...
+# on unix, run: 
+# make install-deps
+# on windows, run:
+# make install-deps-win
+# on unix, run:
+# make bindings && make build
+# on windows, run:
+# make bindings && make build-win
+
+slight -c slightfile.toml run -m target/wasm32-wasi/debug/spidey.wasm
+# ^^^ for c, run:
+# slight -c slightfile.toml run -m spidey.wasm
+
+# At this point, you should see: "Hello, SpiderLightning!"
 ```
 
-> Note: There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, some of these examples have some dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.
+## Building C Examples
 
+```sh
+git clone https://github.com/deislabs/spiderlightning.git && cd spiderlightning/ # clone our repo locally and go into it
+make install-deps # installs the WASI-SDK
+make build # builds SpiderLightning/Slight
+make build-c # builds our c example
+make run-c # runs our c example
+```
+
+# Building Rust Examples
+
+There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, we do not recommend running them because some of these examples have dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.
 
 ## FAQ
 

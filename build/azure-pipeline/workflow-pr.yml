@@ -156,13 +156,7 @@ stages:
           
           #
           # Build
-          #
           
-          # - script: make build
-          #   displayName: Build
-          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-          #   env:
-          #     OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
 
           - script: make build
             displayName: Build
@@ -171,8 +165,6 @@ stages:
           - script: make build
             displayName: Build
             condition: and(succeeded(), eq(variables['target_os'], 'macos'))
-            env:
-              OPENSSL_ROOT_DIR: /usr/local/opt/openssl
           
           - script: make build-rust
             displayName: Build Rust Examples

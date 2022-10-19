@@ -46,7 +46,6 @@ install-deps-macos:
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 	chmod +x /opt/wasi-sdk/bin/clang
-	brew install openssl
 	brew install redis
 
 .PHONY: install-deps-win
@@ -58,7 +57,6 @@ install-deps-win:
 	# tar -xvzf wasi-sdk-15.0-mingw.tar.gz
 	# mkdir -p /opt/wasi-sdk
 	# mv wasi-sdk-15.0/* /opt/wasi-sdk/
-
 	choco install openssl
 
 .PHONY: install-slight
@@ -148,3 +146,20 @@ run-restaurant-backend:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c ./examples/app-demos/restaurant-backend/slightfile.toml run -m ./examples/app-demos/restaurant-backend/target/wasm32-wasi/release/restaurant-backend.wasm
 	
 ### END OF APP DEMO
+
+### GITHUB RELEASES
+.PHONY: prepare-release
+prepare-release:
+	tar -C target/ -czvf slight-linux-x86_64.tar.gz release/slight
+	tar -C templates/ -czvf rust-template.tar.gz rust
+	tar -C templates/ -czvf c-template.tar.gz c
+
+.PHONY: prepare-release-win
+prepare-release-win:
+	tar -C target/ -czvf slight-windows-x86_64.tar.gz release/slight.exe
+
+.PHONY: prepare-release-mac
+prepare-release-mac:
+	tar -C target/ -czvf slight-macos-amd64.tar.gz release/slight	
+
+### END OF GITHUB RELEASES

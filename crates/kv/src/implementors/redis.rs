@@ -44,6 +44,12 @@ impl RedisImplementor {
         Ok(())
     }
 
+    pub fn keys(&self) -> Result<Vec<String>> {
+        let mut con = self.client.get_connection()?;
+        let keys: Vec<String> = con.keys(format!("{}:*", self.container_name))?;
+        Ok(keys)
+    }
+
     pub fn delete(&self, key: &str) -> Result<()> {
         let mut con = self.client.get_connection()?;
         con.del(format!("{}:{}", self.container_name, key))?;

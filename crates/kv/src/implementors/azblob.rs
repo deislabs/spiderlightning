@@ -3,6 +3,7 @@ use azure_storage::clients::StorageClient;
 use azure_storage_blobs::prelude::{AsContainerClient, ContainerClient};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
+use tracing::log;
 
 use crate::providers::azure;
 
@@ -48,6 +49,18 @@ impl AzBlobImplementor {
             .await
             .with_context(|| format!("failed to set value for key '{}'", key))?;
         Ok(())
+    }
+
+    pub async fn keys(&self) -> Result<Vec<String>> {
+        let blobs = azure::list_blobs(self.container_client.clone())
+            .await
+            .with_context(|| "failed to list blobs")?;
+        log::debug!("found blobs: {:?}", blobs);
+        let keys = blobs
+            .iter()
+            .map(|blob| blob.name.clone())
+            .collect::<Vec<String>>();
+        Ok(keys)
     }
 
     pub async fn delete(&self, key: &str) -> Result<()> {

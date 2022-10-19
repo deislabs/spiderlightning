@@ -9,7 +9,7 @@ test = false
 doctest = false
 
 [dependencies]
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0" }
+wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0", features = ["async"] }
 cloudevents-sdk = { version = "0.5" }
 crossbeam-channel = "0.5"
 anyhow = "1"
