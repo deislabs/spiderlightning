@@ -47,6 +47,11 @@ impl RedisImplementor {
     pub fn keys(&self) -> Result<Vec<String>> {
         let mut con = self.client.get_connection()?;
         let keys: Vec<String> = con.keys(format!("{}:*", self.container_name))?;
+        // remove prefix
+        let keys: Vec<String> = keys
+            .iter()
+            .map(|k| k.replace(format!("{}:", self.container_name).as_str(), ""))
+            .collect();
         Ok(keys)
     }
 
