@@ -51,12 +51,14 @@ impl Kv {
 ///     the `config_type`, and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct KvState {
+    implementor: String,
     capability_store: HashMap<String, BasicState>,
 }
 
 impl KvState {
-    pub fn new(kv_store: HashMap<String, BasicState>) -> Self {
+    pub fn new(implementor: String, kv_store: HashMap<String, BasicState>) -> Self {
         Self {
+            implementor,
             capability_store: kv_store,
         }
     }
@@ -149,11 +151,26 @@ impl kv::Kv for Kv {
         // (i.e., what type of kv implementor we are using), and the assigned
         // name of the object.
 
-        let state = self.host_state.capability_store.get(name).unwrap().clone();
+        let state = if let Some(r) = self.host_state.capability_store.get(name) {
+            r.clone()
+        } else {
+            if let Some(r) = self
+                .host_state
+                .capability_store
+                .get(&self.host_state.implementor)
+            {
+                r.clone()
+            } else {
+                panic!(
+                    "could not find capability under name '{}' for implementor '{}'",
+                    name, &self.host_state.implementor
+                );
+            }
+        };
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Kv::new(&state.implementor, &state, &state.name).await;
+        let inner = Self::Kv::new(&state.implementor, &state, name).await;
 
         state
             .resource_map

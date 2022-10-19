@@ -24,6 +24,7 @@ use slight_http_api::HttpHandlerData;
 #[derive(Clone, Default)]
 pub struct BasicState {
     pub resource_map: ResourceMap,
+    pub secret_store: Option<String>,
     pub implementor: String,
     pub name: String,
     pub configs_map: Option<HashMap<String, String>>,
@@ -33,6 +34,7 @@ pub struct BasicState {
 impl BasicState {
     pub fn new(
         resource_map: ResourceMap,
+        secret_store: Option<String>,
         implementor: String,
         name: String,
         configs_map: Option<HashMap<String, String>>,
@@ -40,6 +42,7 @@ impl BasicState {
     ) -> Self {
         Self {
             resource_map,
+            secret_store,
             implementor,
             name,
             configs_map,

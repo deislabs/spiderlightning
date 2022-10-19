@@ -43,12 +43,16 @@ impl_resource!(Lockd, lockd::LockdTables<Lockd>, LockdState);
 ///     the `config_type`, and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct LockdState {
+    implementor: String,
     capability_store: HashMap<String, BasicState>,
 }
 
 impl LockdState {
-    pub fn new(capability_store: HashMap<String, BasicState>) -> Self {
-        Self { capability_store }
+    pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
+        Self {
+            implementor,
+            capability_store,
+        }
     }
 }
 
@@ -60,7 +64,22 @@ impl lockd::Lockd for Lockd {
         // populate our inner lockd object w/ the state received from `slight`
         // (i.e., what type of lockd implementor we are using), and the assigned
         // name of the object.
-        let state = self.host_state.capability_store.get(name).unwrap().clone();
+        let state = if let Some(r) = self.host_state.capability_store.get(name) {
+            r.clone()
+        } else {
+            if let Some(r) = self
+                .host_state
+                .capability_store
+                .get(&self.host_state.implementor)
+            {
+                r.clone()
+            } else {
+                panic!(
+                    "could not find capability under name '{}' for implementor '{}'",
+                    name, &self.host_state.implementor
+                );
+            }
+        };
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 

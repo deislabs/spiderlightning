@@ -39,12 +39,16 @@ impl_resource!(Configs, configs::ConfigsTables<Configs>, ConfigsState);
 ///     the `config_type`, and the `slightfile_path`).
 #[derive(Clone, Default)]
 pub struct ConfigsState {
+    implementor: String,
     capability_store: HashMap<String, BasicState>,
 }
 
 impl ConfigsState {
-    pub fn new(capability_store: HashMap<String, BasicState>) -> Self {
-        Self { capability_store }
+    pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
+        Self {
+            implementor,
+            capability_store,
+        }
     }
 }
 
@@ -56,7 +60,22 @@ impl configs::Configs for Configs {
         // populate our inner configs object w/ the state received from `slight`
         // (i.e., what type of configs implementor we are using), and the assigned
         // name of the object.
-        let state = self.host_state.capability_store.get(name).unwrap().clone();
+        let state = if let Some(r) = self.host_state.capability_store.get(name) {
+            r.clone()
+        } else {
+            if let Some(r) = self
+                .host_state
+                .capability_store
+                .get(&self.host_state.implementor)
+            {
+                r.clone()
+            } else {
+                panic!(
+                    "could not find capability under name '{}' for implementor '{}'",
+                    name, &self.host_state.implementor
+                );
+            }
+        };
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
@@ -205,26 +224,40 @@ pub async fn set(
 }
 
 pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<String> {
-    let c = state
-        .configs_map
-        .as_ref()
-        .expect("this capability needs a [capability.configs] section...")
-        .get(config_name)
-        .unwrap_or_else(|| panic!("failed to get config '{}'", config_name));
+    if let Some(ss) = &state.secret_store {
+        let config = String::from_utf8(
+            get(&ss, config_name, &state.slightfile_path)
+                .await
+                .with_context(|| {
+                    format!(
+                        "failed to get '{}' secret using secret store type: {}",
+                        config_name, ss
+                    )
+                })?,
+        )?;
+        Ok(config)
+    } else {
+        let c = state
+            .configs_map
+            .as_ref()
+            .expect("this capability needs a [capability.configs] section...")
+            .get(config_name)
+            .unwrap_or_else(|| panic!("failed to get config '{}'", config_name));
 
-    let (store, name) = maybe_get_config_store_and_value(c)?;
+        let (store, name) = maybe_get_config_store_and_value(c)?;
 
-    let config = String::from_utf8(
-        get(&store, &name, &state.slightfile_path)
-            .await
-            .with_context(|| {
-                format!(
-                    "failed to get '{}' secret using secret store type: '{}'",
-                    config_name, store
-                )
-            })?,
-    )?;
-    Ok(config)
+        let config = String::from_utf8(
+            get(&store, &name, &state.slightfile_path)
+                .await
+                .with_context(|| {
+                    format!(
+                        "failed to get '{}' secret using secret store type: '{}'",
+                        config_name, store
+                    )
+                })?,
+        )?;
+        Ok(config)
+    }
 }
 
 fn maybe_get_config_store_and_value(c: &str) -> Result<(String, String)> {

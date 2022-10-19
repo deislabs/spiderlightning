@@ -42,11 +42,24 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
     let (mut store, instance) = host_builder.build().await?;
 
     let caps = toml.capability.as_ref().unwrap();
-    // looking for events capability.
-    let events_enabled = caps.iter().any(|cap| cap.resource == "events");
 
-    // looking for http capability.
-    let http_enabled = caps.iter().any(|cap| cap.resource == "http");
+    // looking for the events and http capabilities.
+    let events_enabled;
+    let http_enabled;
+
+    if toml.specversion == "0.1" {
+        events_enabled = caps.iter().any(|cap| cap.name == "events");
+        http_enabled = caps.iter().any(|cap| cap.name == "http");
+    } else if toml.specversion == "0.2" {
+        events_enabled = caps
+            .iter()
+            .any(|cap| cap.resource.as_ref().expect("missing resource field") == "events");
+        http_enabled = caps
+            .iter()
+            .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
+    } else {
+        bail!("unsupported toml spec version");
+    }
 
     if events_enabled {
         log::debug!("Events capability enabled");
@@ -121,149 +134,203 @@ fn build_store_instance(
     let mut capability_store: HashMap<String, BasicState> = HashMap::new();
 
     builder.link_wasi()?;
-    if toml.specversion.as_ref().unwrap() == "0.2" {
-        for c in toml.capability.as_ref().unwrap() {
-            let resource_type: &str = c.resource.as_str();
-            match resource_type {
-                "events" => {
-                    if !linked_capabilities.contains("events") {
-                        builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
-                        linked_capabilities.insert("events".to_string());
+    for c in toml.capability.as_ref().unwrap() {
+        let resource_type = if toml.specversion == "0.1" {
+            c.name.as_str()
+        } else if toml.specversion == "0.2" {
+            if let Some(r) = &c.resource {
+                r.as_str()
+            } else {
+                bail!("missing resource field");
+            }
+        } else {
+            bail!("unsupported toml spec version");
+        };
 
-                        slight_builder =
-                            slight_builder.add_state(State::Events(
-                                EventsState::<Builder>::new(resource_map.clone()),
-                            ))?;
-                    } else {
-                        bail!("the events capability was already linked");
-                    }
-                }
-                _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                    if !linked_capabilities.contains("kv") {
-                        builder.link_capability::<Kv>("kv".to_string())?;
-                        linked_capabilities.insert("kv".to_string());
-                    }
+        match resource_type {
+            "events" => {
+                if !linked_capabilities.contains("events") {
+                    builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
+                    linked_capabilities.insert("events".to_string());
 
-                    maybe_add_named_capability_to_store(
-                        &mut capability_store,
-                        c.clone(),
-                        resource_map.clone(),
-                        &toml_file_path,
-                    )?;
-
-                    slight_builder = slight_builder
-                        .add_state(State::Kv(slight_kv::KvState::new(capability_store.clone())))?;
-                }
-                _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                    if !linked_capabilities.contains("mq") {
-                        builder.link_capability::<Mq>("mq".to_string())?;
-                        linked_capabilities.insert("mq".to_string());
-                    }
-
-                    maybe_add_named_capability_to_store(
-                        &mut capability_store,
-                        c.clone(),
-                        resource_map.clone(),
-                        &toml_file_path,
-                    )?;
-
-                    slight_builder = slight_builder
-                        .add_state(State::Mq(slight_mq::MqState::new(capability_store.clone())))?;
-                }
-                _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                    if !linked_capabilities.contains("lockd") {
-                        builder.link_capability::<Lockd>("lockd".to_string())?;
-                        linked_capabilities.insert("lockd".to_string());
-                    }
-
-                    maybe_add_named_capability_to_store(
-                        &mut capability_store,
-                        c.clone(),
-                        resource_map.clone(),
-                        &toml_file_path,
-                    )?;
-
-                    slight_builder = slight_builder.add_state(State::Lockd(
-                        slight_lockd::LockdState::new(capability_store.clone()),
-                    ))?;
-                }
-                _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                    if !linked_capabilities.contains("pubsub") {
-                        builder.link_capability::<Pubsub>("pubsub".to_string())?;
-                        linked_capabilities.insert("pubsub".to_string());
-                    }
-
-                    maybe_add_named_capability_to_store(
-                        &mut capability_store,
-                        c.clone(),
-                        resource_map.clone(),
-                        &toml_file_path,
-                    )?;
-
-                    slight_builder = slight_builder.add_state(State::PubSub(
-                        slight_pubsub::PubsubState::new(capability_store.clone()),
-                    ))?;
-                }
-                _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                    if !linked_capabilities.contains("configs") {
-                        builder.link_capability::<Configs>("configs".to_string())?;
-                        linked_capabilities.insert("configs".to_string());
-                    }
-
-                    maybe_add_named_capability_to_store(
-                        &mut capability_store,
-                        c.clone(),
-                        resource_map.clone(),
-                        &toml_file_path,
-                    )?;
-
-                    slight_builder = slight_builder.add_state(State::RtCfg(
-                        slight_runtime_configs::ConfigsState::new(capability_store.clone()),
-                    ))?;
-                }
-                "http" => {
-                    if !linked_capabilities.contains("http") {
-                        builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
-                        linked_capabilities.insert("http".to_string());
-
-                        slight_builder =
-                            slight_builder.add_state(State::Http(slight_http::HttpState::<
-                                Builder,
-                            >::new(
-                                resource_map.clone()
-                            )))?;
-                    } else {
-                        bail!("the http capability was already linked");
-                    }
-                }
-                _ => {
-                    bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
+                    slight_builder =
+                        slight_builder.add_state(State::Events(EventsState::<Builder>::new(
+                            resource_map.clone(),
+                        )))?;
+                } else {
+                    bail!("the events capability was already linked");
                 }
             }
+            _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("kv") {
+                    builder.link_capability::<Kv>("kv".to_string())?;
+                    linked_capabilities.insert("kv".to_string());
+                }
+
+                maybe_add_named_capability_to_store(
+                    &toml.specversion,
+                    toml.secret_store.clone(),
+                    &mut capability_store,
+                    c.clone(),
+                    resource_map.clone(),
+                    &toml_file_path,
+                )?;
+
+                slight_builder = slight_builder.add_state(State::Kv(slight_kv::KvState::new(
+                    resource_type.to_string(),
+                    capability_store.clone(),
+                )))?;
+            }
+            _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("mq") {
+                    builder.link_capability::<Mq>("mq".to_string())?;
+                    linked_capabilities.insert("mq".to_string());
+                }
+
+                maybe_add_named_capability_to_store(
+                    &toml.specversion,
+                    toml.secret_store.clone(),
+                    &mut capability_store,
+                    c.clone(),
+                    resource_map.clone(),
+                    &toml_file_path,
+                )?;
+
+                slight_builder = slight_builder.add_state(State::Mq(slight_mq::MqState::new(
+                    resource_type.to_string(),
+                    capability_store.clone(),
+                )))?;
+            }
+            _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("lockd") {
+                    builder.link_capability::<Lockd>("lockd".to_string())?;
+                    linked_capabilities.insert("lockd".to_string());
+                }
+
+                maybe_add_named_capability_to_store(
+                    &toml.specversion,
+                    toml.secret_store.clone(),
+                    &mut capability_store,
+                    c.clone(),
+                    resource_map.clone(),
+                    &toml_file_path,
+                )?;
+
+                slight_builder =
+                    slight_builder.add_state(State::Lockd(slight_lockd::LockdState::new(
+                        resource_type.to_string(),
+                        capability_store.clone(),
+                    )))?;
+            }
+            _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("pubsub") {
+                    builder.link_capability::<Pubsub>("pubsub".to_string())?;
+                    linked_capabilities.insert("pubsub".to_string());
+                }
+
+                maybe_add_named_capability_to_store(
+                    &toml.specversion,
+                    toml.secret_store.clone(),
+                    &mut capability_store,
+                    c.clone(),
+                    resource_map.clone(),
+                    &toml_file_path,
+                )?;
+
+                slight_builder =
+                    slight_builder.add_state(State::PubSub(slight_pubsub::PubsubState::new(
+                        resource_type.to_string(),
+                        capability_store.clone(),
+                    )))?;
+            }
+            _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("configs") {
+                    builder.link_capability::<Configs>("configs".to_string())?;
+                    linked_capabilities.insert("configs".to_string());
+                }
+
+                maybe_add_named_capability_to_store(
+                    &toml.specversion,
+                    toml.secret_store.clone(),
+                    &mut capability_store,
+                    c.clone(),
+                    resource_map.clone(),
+                    &toml_file_path,
+                )?;
+
+                slight_builder = slight_builder.add_state(State::RtCfg(
+                    slight_runtime_configs::ConfigsState::new(
+                        resource_type.to_string(),
+                        capability_store.clone(),
+                    ),
+                ))?;
+            }
+            "http" => {
+                if !linked_capabilities.contains("http") {
+                    builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
+                    linked_capabilities.insert("http".to_string());
+
+                    slight_builder = slight_builder.add_state(State::Http(
+                        slight_http::HttpState::<Builder>::new(resource_map.clone()),
+                    ))?;
+                } else {
+                    bail!("the http capability was already linked");
+                }
+            }
+            _ => {
+                bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
+            }
         }
-    } else {
-        bail!("unsupported toml spec version");
     }
+
     builder = builder.add_slight_states(slight_builder);
     Ok(builder)
 }
 
 fn maybe_add_named_capability_to_store(
+    specversion: &str,
+    secret_store: Option<String>,
     capability_store: &mut HashMap<String, BasicState>,
     c: Capability,
     resource_map: Arc<Mutex<StateTable>>,
     toml_file_path: impl AsRef<Path>,
 ) -> Result<()> {
-    if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone()) {
-        e.insert(BasicState::new(
-            resource_map,
-            c.resource.clone(),
-            c.name.clone(),
-            c.configs,
-            toml_file_path,
-        ));
+    if specversion == "0.1" {
+        if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone())
+        {
+            e.insert(BasicState::new(
+                resource_map,
+                secret_store,
+                c.name.clone(),
+                c.name.clone(),
+                c.configs,
+                toml_file_path,
+            ));
+        } else {
+            bail!("cannot add capabilities of the same name");
+        }
+    } else if specversion == "0.2" {
+        if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone())
+        {
+            let resource = if let Some(r) = c.resource {
+                r
+            } else {
+                bail!("missing resource field");
+            };
+
+            e.insert(BasicState::new(
+                resource_map,
+                None,
+                resource,
+                c.name.clone(),
+                c.configs,
+                toml_file_path,
+            ));
+        } else {
+            bail!("cannot add capabilities of the same name");
+        }
     } else {
-        bail!("cannot add capabilities of the same name");
+        bail!("unsupported toml version");
     }
 
     Ok(())
