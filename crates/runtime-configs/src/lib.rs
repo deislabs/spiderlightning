@@ -62,19 +62,17 @@ impl configs::Configs for Configs {
         // name of the object.
         let state = if let Some(r) = self.host_state.capability_store.get(name) {
             r.clone()
+        } else if let Some(r) = self
+            .host_state
+            .capability_store
+            .get(&self.host_state.implementor)
+        {
+            r.clone()
         } else {
-            if let Some(r) = self
-                .host_state
-                .capability_store
-                .get(&self.host_state.implementor)
-            {
-                r.clone()
-            } else {
-                panic!(
-                    "could not find capability under name '{}' for implementor '{}'",
-                    name, &self.host_state.implementor
-                );
-            }
+            panic!(
+                "could not find capability under name '{}' for implementor '{}'",
+                name, &self.host_state.implementor
+            );
         };
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
@@ -226,7 +224,7 @@ pub async fn set(
 pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<String> {
     if let Some(ss) = &state.secret_store {
         let config = String::from_utf8(
-            get(&ss, config_name, &state.slightfile_path)
+            get(ss, config_name, &state.slightfile_path)
                 .await
                 .with_context(|| {
                     format!(
