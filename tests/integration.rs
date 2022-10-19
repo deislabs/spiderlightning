@@ -105,20 +105,20 @@ mod integration_tests {
             let port = get_random_port();
 
             // make sure redis-server is running
-            let mut output = Command::new("which")
+            let output = Command::new("which")
                 .arg("redis-server")
                 .stdout(std::process::Stdio::piped())
                 .stderr(std::process::Stdio::piped())
                 .output()
                 .expect("failed to execute process");
-            
+
             let code = output.status.code().expect("should have status code");
             if code != 0 {
                 panic!("redis-server is not installed");
             }
 
             let mut cmd = Command::new("redis-server")
-                .args(&["--port", port.to_string().as_str()])
+                .args(["--port", port.to_string().as_str()])
                 .spawn()?;
 
             // sleep 5 seconds waiting for redis server to start
