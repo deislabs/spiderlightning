@@ -137,9 +137,7 @@ stages:
           #     BUILD_ARCH: $(target_arch)
 
           # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md#notes
-          - script: |
-              eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-              make install-deps
+          - script: make install-deps
             displayName: Install build tools on linux
             condition: and(succeeded(), eq(variables['target_os'], 'linux'))
             env:
