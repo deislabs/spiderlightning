@@ -38,10 +38,7 @@ install-deps:
 
 	wget https://download.redis.io/redis-stable.tar.gz
 
-	tar -xzvf redis-stable.tar.gz
-	cd redis-stable
-	make
-	make install
+	tar -xzvf redis-stable.tar.gz && cd redis-stable && make && make install
 
 .PHONY: install-deps-macos
 install-deps-macos:
