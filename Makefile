@@ -35,10 +35,8 @@ install-deps:
 	sudo mkdir -p /opt/wasi-sdk
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
-
-	wget https://download.redis.io/redis-stable.tar.gz
-
-	tar -xzvf redis-stable.tar.gz && cd redis-stable && make && make install
+	brew install redis
+	export PATH="/home/linuxbrew/.linuxbrew/opt/redis/bin:$$PATH"
 
 .PHONY: install-deps-macos
 install-deps-macos:
