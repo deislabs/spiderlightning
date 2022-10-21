@@ -3738,7 +3738,7 @@ checksum = "03b634d87b960ab1a38c4fe143b508576f075e7c978bfad18217645ebfdfa2ec"
 
 [[package]]
 name = "slight"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "as-any",
