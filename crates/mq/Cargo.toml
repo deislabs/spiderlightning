@@ -22,8 +22,8 @@ url = "2"
 async-trait = "0.1"
 tokio = { version = "1", features = ["full"] }
 # mq.azsbus deps
-azure_core = { version = "0.2", git = "https://github.com/danbugs/azure-sdk-for-rust", rev = "40deff431c8a87ba60d93c59ea35fd11c4f9caad" }
-azure_messaging_servicebus = { version = "0.2", git = "https://github.com/danbugs/azure-sdk-for-rust", rev = "40deff431c8a87ba60d93c59ea35fd11c4f9caad" }
+azure_core = "0.5.0"
+azure_messaging_servicebus = "0.5.0"
 chrono = "0.4"
 http = "0.2"
 # mq.filesystem has no specific deps
