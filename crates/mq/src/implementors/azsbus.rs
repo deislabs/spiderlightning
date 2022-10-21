@@ -68,8 +68,4 @@ impl AzSbusImplementor {
             .with_context(|| "failed to receive message from Azure Service Bus")?;
         Ok(result)
     }
-
-    // async fn create_queue_if_not_exists(&self, client: Arc<Mutex<Client>>, name: &str) -> Result<()> {
-        
-    // }
 }

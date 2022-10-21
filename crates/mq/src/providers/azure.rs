@@ -26,18 +26,3 @@ pub async fn receive(client: &mut Client) -> Result<Vec<u8>> {
     peek_lock.delete_message().await?;
     Ok(body.as_bytes().to_vec())
 }
-
-// pub async fn create_or_update_queue(client: &Arc<dyn HttpClient>, namespace: &str, queue_name: &str) -> Result<()> {
-//     let url = format!(
-//         "https://{}.servicebus.windows.net/{}",
-//         namespace,
-//         queue_name
-//     );
-//     let req = finalize_request(
-//         &url,
-//         Method::Post,
-//         Some(msg.to_string()),
-//         policy_name,
-//         signing_key,
-//     )?;
-// }
