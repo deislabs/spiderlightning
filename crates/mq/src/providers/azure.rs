@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::{bail, Result};
-use azure_core::{HttpClient, StatusCode};
+use azure_core::{StatusCode};
 use azure_messaging_servicebus::prelude::*;
 
 pub async fn send(client: &mut Client, msg: String) -> Result<()> {
