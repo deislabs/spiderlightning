@@ -13,6 +13,7 @@ use http::*;
 use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
+use routerify_cors::enable_cors_all;
 use slight_common::{impl_resource, Buildable, Builder, Ctx, HostState};
 use slight_events_api::ResourceMap;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
@@ -229,14 +230,15 @@ impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
 
         // The outer builder is used to define the route paths, while creating a scope
         // for the inner builder which passes states to the route handler.
-        let mut outer_builder: RouterBuilder<Body, anyhow::Error> =
-            Router::builder().data(instance_builder);
+        let mut outer_builder: RouterBuilder<Body, http::Error> = Router::builder()
+            .middleware(enable_cors_all())
+            .data(instance_builder);
 
         // There is a one-to-one mapping between the outer router's scope and inner router builder.
         let mut inner_routes = vec![];
         for route in router.routes.iter() {
             // per route state
-            let mut inner_builder: RouterBuilder<Body, anyhow::Error> = Router::builder();
+            let mut inner_builder: RouterBuilder<Body, http::Error> = Router::builder();
             inner_builder = inner_builder.data(route.clone());
             match route.method {
                 Methods::GET => {
@@ -289,7 +291,7 @@ impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
 
 async fn handler<T: Buildable + Send + Sync + 'static>(
     request: hyper::Request<Body>,
-) -> Result<hyper::Response<Body>> {
+) -> Result<hyper::Response<Body>, http::Error> {
     log::debug!("received request: {:?}", &request);
     let (parts, body) = request.into_parts();
 
@@ -331,7 +333,11 @@ async fn handler<T: Buildable + Send + Sync + 'static>(
     //     handler.handle_http(&mut store, req)
     // }).await???;
     // let rt = tokio::runtime::Handle::current();
-    let res = handler.handle_http(&mut store, req).await??;
+    let res = handler
+        .handle_http(&mut store, req)
+        .await
+        .map_err(|e| anyhow::anyhow!(e.to_string()))?
+        .map_err(|e| anyhow::anyhow!(e.to_string()))?;
     // let res = rt.block_on(async {
     //     handler.handle_http(&mut store, req)
     // })??;
