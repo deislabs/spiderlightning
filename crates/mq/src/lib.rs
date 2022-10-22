@@ -85,7 +85,7 @@ impl mq::Mq for Mq {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Mq::new(&state.implementor, &state, &state.name).await;
+        let inner = Self::Mq::new(&state.implementor, &state, name).await;
 
         state
             .resource_map

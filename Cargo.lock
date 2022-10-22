@@ -3397,6 +3397,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "routerify-cors"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53844cd732937d7c582a93d6b6875e11f18aa90cc65cac780591837655841244"
+dependencies = [
+ "hyper",
+ "routerify",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3728,7 +3738,7 @@ checksum = "03b634d87b960ab1a38c4fe143b508576f075e7c978bfad18217645ebfdfa2ec"
 
 [[package]]
 name = "slight"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "as-any",
@@ -3808,6 +3818,7 @@ dependencies = [
  "futures",
  "hyper",
  "routerify",
+ "routerify-cors",
  "slight-common",
  "slight-events-api",
  "slight-http-api",
