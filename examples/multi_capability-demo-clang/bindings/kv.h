@@ -64,6 +64,19 @@ extern "C"
   } kv_expected_unit_error_t;
   void kv_expected_unit_error_free(kv_expected_unit_error_t *ptr);
   typedef struct {
+    kv_string_t *ptr;
+    size_t len;
+  } kv_list_string_t;
+  void kv_list_string_free(kv_list_string_t *ptr);
+  typedef struct {
+    bool is_err;
+    union {
+      kv_list_string_t ok;
+      kv_error_t err;
+    } val;
+  } kv_expected_list_string_error_t;
+  void kv_expected_list_string_error_free(kv_expected_list_string_error_t *ptr);
+  typedef struct {
     bool is_err;
     union {
       kv_observable_t ok;
@@ -74,6 +87,7 @@ extern "C"
   void kv_kv_open(kv_string_t *name, kv_expected_kv_error_t *ret0);
   void kv_kv_get(kv_kv_t self, kv_string_t *key, kv_expected_payload_error_t *ret0);
   void kv_kv_set(kv_kv_t self, kv_string_t *key, kv_payload_t *value, kv_expected_unit_error_t *ret0);
+  void kv_kv_keys(kv_kv_t self, kv_expected_list_string_error_t *ret0);
   void kv_kv_delete(kv_kv_t self, kv_string_t *key, kv_expected_unit_error_t *ret0);
   void kv_kv_watch(kv_kv_t self, kv_string_t *key, kv_expected_observable_error_t *ret0);
   #ifdef __cplusplus
