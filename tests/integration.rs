@@ -108,13 +108,10 @@ mod integration_tests {
             let binary_path = "redis-server";
             let output = Command::new("which")
                 .arg(binary_path)
-                .stdout(std::process::Stdio::piped())
-                .stderr(std::process::Stdio::piped())
                 .output()
                 .expect("failed to execute process");
 
-            let code = output.status.code().expect("should have status code");
-            if code != 0 {
+            if !output.status.success() {
                 let _binary_path = "/home/linuxbrew/.linuxbrew/opt/redis/bin/redis-server";
             }
             
