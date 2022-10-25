@@ -48,9 +48,9 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 ## Getting Started
 
 ```sh
-slight new -n spidey@v0.1 rust && cd spidey
-# ^^^ starts a new rust project under SpiderLightning's v0.1 spec
-# use: `slight new -n spidey@v0.1 c` to start a new c project
+slight new -n spidey@v0.1.0 rust && cd spidey
+# ^^^ starts a new rust project under SpiderLightning's v0.1.0 spec
+# use: `slight new -n spidey@v0.1.0 c` to start a new c project
 
 cargo build --target wasm32-wasi
 # ^^^ for c...
