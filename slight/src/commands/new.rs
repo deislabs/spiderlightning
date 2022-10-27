@@ -1,4 +1,4 @@
-use anyhow::{Result, bail, Context};
+use anyhow::{bail, Context, Result};
 use flate2::bufread::GzDecoder;
 use std::io::Write;
 use std::{
@@ -63,7 +63,7 @@ fn setup_c_template(project_name: &str, release: &str) -> Result<()> {
     let mut makefile_f = File::create("./c/Makefile")?;
     write!(makefile_f, "{}", makefile_s)?;
     drop(makefile_f);
-    
+
     better_rename("c", project_name)?;
 
     Ok(())
@@ -88,9 +88,6 @@ fn setup_rust_template(project_name: &str, release: &str) -> Result<()> {
 }
 
 fn better_rename(from: &str, to: &str) -> Result<()> {
-    std::fs::rename(from, to).with_context(|| format!(
-        "could not create project: {}",
-        to
-    ))?;
+    std::fs::rename(from, to).with_context(|| format!("could not create project: {}", to))?;
     Ok(())
 }
