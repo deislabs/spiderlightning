@@ -105,16 +105,23 @@ mod integration_tests {
             let port = get_random_port();
 
             // make sure redis-server is running
-            let binary_path = "redis-server";
+            let mut binary_path = "redis-server";
             let output = Command::new("which")
                 .arg(binary_path)
                 .output()
                 .expect("failed to execute process");
 
             if !output.status.success() {
-                let _binary_path = "/home/linuxbrew/.linuxbrew/opt/redis/bin/redis-server";
+                binary_path = "/home/linuxbrew/.linuxbrew/opt/redis/bin/redis-server";
+                let output = Command::new("which")
+                    .arg(binary_path)
+                    .output()
+                    .expect("failed to execute process");
+                if !output.status.success() {
+                    panic!("redis-server not found");
+                }
             }
-            
+
             let mut cmd = Command::new(binary_path)
                 .args(["--port", port.to_string().as_str()])
                 .spawn()?;
