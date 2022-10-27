@@ -629,33 +629,6 @@ dependencies = [
 
 [[package]]
 name = "azure_core"
-version = "0.2.2"
-source = "git+https://github.com/danbugs/azure-sdk-for-rust?rev=40deff431c8a87ba60d93c59ea35fd11c4f9caad#40deff431c8a87ba60d93c59ea35fd11c4f9caad"
-dependencies = [
- "async-trait",
- "base64 0.13.0",
- "bytes 1.2.1",
- "chrono",
- "dyn-clone",
- "futures",
- "getrandom 0.2.7",
- "http",
- "log",
- "oauth2",
- "pin-project",
- "rand 0.8.5",
- "reqwest",
- "rustc_version 0.4.0",
- "serde",
- "serde_derive",
- "serde_json",
- "thiserror",
- "url",
- "uuid 1.2.1",
-]
-
-[[package]]
-name = "azure_core"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6e66a6d993197d1b575cffd08bf725e04bc1414de6586baeb3537925e49b4ff"
@@ -681,19 +654,45 @@ dependencies = [
 ]
 
 [[package]]
-name = "azure_messaging_servicebus"
-version = "0.2.0"
-source = "git+https://github.com/danbugs/azure-sdk-for-rust?rev=40deff431c8a87ba60d93c59ea35fd11c4f9caad#40deff431c8a87ba60d93c59ea35fd11c4f9caad"
+name = "azure_core"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6424becb946de1b1eff7bf5fbc86fabf7457637c88b63dd967b219a712c322c"
 dependencies = [
- "azure_core 0.2.2",
+ "async-trait",
  "base64 0.13.0",
  "bytes 1.2.1",
- "chrono",
+ "dyn-clone",
+ "futures",
+ "getrandom 0.2.7",
+ "http-types",
+ "log",
+ "paste",
+ "pin-project",
+ "rand 0.8.5",
+ "reqwest",
+ "rustc_version 0.4.0",
+ "serde",
+ "serde_json",
+ "time 0.3.15",
+ "url",
+ "uuid 1.2.1",
+]
+
+[[package]]
+name = "azure_messaging_servicebus"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fbeb6a8f76a4040739147e91fa412ba67e15600635ff97a83bfa85a0aa670b71"
+dependencies = [
+ "azure_core 0.5.0",
+ "base64 0.13.0",
+ "bytes 1.2.1",
  "hmac 0.12.1",
- "http",
  "log",
  "ring",
  "sha2 0.10.6",
+ "time 0.3.15",
  "url",
 ]
 
@@ -2690,26 +2689,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oauth2"
-version = "4.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d62c436394991641b970a92e23e8eeb4eb9bca74af4f5badc53bcd568daadbd"
-dependencies = [
- "base64 0.13.0",
- "chrono",
- "getrandom 0.2.7",
- "http",
- "rand 0.8.5",
- "reqwest",
- "serde",
- "serde_json",
- "serde_path_to_error",
- "sha2 0.10.6",
- "thiserror",
- "url",
-]
-
-[[package]]
 name = "object"
 version = "0.28.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3606,15 +3585,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_path_to_error"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "184c643044780f7ceb59104cef98a5a6f12cb2288a7bc701ab93a362b49fd47d"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "serde_qs"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3907,7 +3877,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "azure_core 0.2.2",
+ "azure_core 0.5.0",
  "azure_messaging_servicebus",
  "chrono",
  "crossbeam-channel",
