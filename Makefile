@@ -35,6 +35,8 @@ install-deps:
 	sudo mkdir -p /opt/wasi-sdk
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
+	brew install redis
+	export PATH="/home/linuxbrew/.linuxbrew/opt/redis/bin:$$PATH"
 
 .PHONY: install-deps-macos
 install-deps-macos:
@@ -45,6 +47,7 @@ install-deps-macos:
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 	chmod +x /opt/wasi-sdk/bin/clang
+	brew install redis
 
 .PHONY: install-deps-win
 install-deps-win:

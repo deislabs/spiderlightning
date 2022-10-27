@@ -112,12 +112,6 @@ stages:
             displayName: cache cargo registry 
             # condition: and(succeeded(), ne(variables['target_os'], 'windows'))   
 
-          #
-          # Environment variable updates
-          #
-          - bash: |
-              echo "todo"
-            displayName: Update build environment variables
 
           #
           # Update build environment
@@ -141,9 +135,18 @@ stages:
           #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
           #   env:
           #     BUILD_ARCH: $(target_arch)
-          
-          - script: make install-deps
+
+          # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md#notes
+          - script: |
+              eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+              make install-deps
             displayName: Install build tools on linux
+            condition: and(succeeded(), eq(variables['target_os'], 'linux'))
+            env:
+              BUILD_ARCH: $(target_arch)
+          
+          - script: which /home/linuxbrew/.linuxbrew/opt/redis/bin/redis-server
+            displayName: Check redis-server exists
             condition: and(succeeded(), eq(variables['target_os'], 'linux'))
             env:
               BUILD_ARCH: $(target_arch)
