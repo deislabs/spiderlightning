@@ -21,24 +21,13 @@ wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 /// Events capability
-#[derive(Default)]
-pub struct Events<T: Buildable> {
-    host_state: EventsState<T>,
-}
-
-impl<T: Buildable> Events<T> {
-    pub fn from_state(host_state: EventsState<T>) -> Self {
-        Self { host_state }
-    }
-}
-
 #[derive(Default, Clone)]
-pub struct EventsState<T: Buildable> {
+pub struct Events<T: Buildable> {
     resource_map: ResourceMap,
     builder: Option<Builder<T>>,
 }
 
-impl<T: Buildable> EventsState<T> {
+impl<T: Buildable> Events<T> {
     pub fn new(resource_map: ResourceMap) -> Self {
         Self {
             resource_map,
@@ -76,7 +65,7 @@ impl From<GeneratedObservable<'_>> for Observable {
 impl<T: Buildable> Events<T> {
     /// Host will call this function to update store and event_handler
     pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
-        self.host_state.builder = Some(builder);
+        self.builder = Some(builder);
         Ok(())
     }
 }
@@ -107,7 +96,7 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
         for ob in &self_.observables {
             // check if observable has changed
 
-            let map = self.host_state.resource_map.clone();
+            let map = self.resource_map.clone();
 
             let mut map = map.lock().unwrap();
             let resource = map.get_mut(&ob.rd).unwrap();
@@ -116,7 +105,7 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
         thread::scope(|s| -> Result<()> {
             let mut thread_handles = vec![];
             for ob in &self_.observables {
-                let builder = self.host_state.builder.as_ref().unwrap().clone();
+                let builder = self.builder.as_ref().unwrap().clone();
                 let receiver = ob.receiver.clone();
                 let receive_thread = s.spawn(move |_| loop {
                     let recv = receiver

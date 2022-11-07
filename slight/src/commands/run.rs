@@ -7,7 +7,7 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use slight_common::{BasicState, Resource};
-use slight_events::{Events, EventsState};
+use slight_events::Events;
 use slight_events_api::StateTable;
 use slight_http::Http;
 use slight_kv::Kv;
@@ -153,10 +153,8 @@ fn build_store_instance(
                     builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
                     linked_capabilities.insert("events".to_string());
 
-                    slight_builder =
-                        slight_builder.add_state(State::Events(EventsState::<Builder>::new(
-                            resource_map.clone(),
-                        )))?;
+                    slight_builder = slight_builder
+                        .add_state(State::Events(Events::<Builder>::new(resource_map.clone())))?;
                 } else {
                     bail!("the events capability was already linked");
                 }
@@ -176,7 +174,7 @@ fn build_store_instance(
                     &toml_file_path,
                 )?;
 
-                slight_builder = slight_builder.add_state(State::Kv(slight_kv::KvState::new(
+                slight_builder = slight_builder.add_state(State::Kv(slight_kv::Kv::new(
                     resource_type.to_string(),
                     capability_store.clone(),
                 )))?;
@@ -196,7 +194,7 @@ fn build_store_instance(
                     &toml_file_path,
                 )?;
 
-                slight_builder = slight_builder.add_state(State::Mq(slight_mq::MqState::new(
+                slight_builder = slight_builder.add_state(State::Mq(slight_mq::Mq::new(
                     resource_type.to_string(),
                     capability_store.clone(),
                 )))?;
@@ -216,11 +214,9 @@ fn build_store_instance(
                     &toml_file_path,
                 )?;
 
-                slight_builder =
-                    slight_builder.add_state(State::Lockd(slight_lockd::LockdState::new(
-                        resource_type.to_string(),
-                        capability_store.clone(),
-                    )))?;
+                slight_builder = slight_builder.add_state(State::Lockd(
+                    slight_lockd::Lockd::new(resource_type.to_string(), capability_store.clone()),
+                ))?;
             }
             _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("pubsub") {
@@ -237,11 +233,9 @@ fn build_store_instance(
                     &toml_file_path,
                 )?;
 
-                slight_builder =
-                    slight_builder.add_state(State::PubSub(slight_pubsub::PubsubState::new(
-                        resource_type.to_string(),
-                        capability_store.clone(),
-                    )))?;
+                slight_builder = slight_builder.add_state(State::PubSub(
+                    slight_pubsub::Pubsub::new(resource_type.to_string(), capability_store.clone()),
+                ))?;
             }
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("configs") {
@@ -259,7 +253,7 @@ fn build_store_instance(
                 )?;
 
                 slight_builder = slight_builder.add_state(State::RtCfg(
-                    slight_runtime_configs::ConfigsState::new(
+                    slight_runtime_configs::Configs::new(
                         resource_type.to_string(),
                         capability_store.clone(),
                     ),
@@ -270,9 +264,10 @@ fn build_store_instance(
                     builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
                     linked_capabilities.insert("http".to_string());
 
-                    slight_builder = slight_builder.add_state(State::Http(
-                        slight_http::HttpState::<Builder>::new(resource_map.clone()),
-                    ))?;
+                    slight_builder =
+                        slight_builder.add_state(State::Http(
+                            slight_http::Http::<Builder>::new(resource_map.clone()),
+                        ))?;
                 } else {
                     bail!("the http capability was already linked");
                 }

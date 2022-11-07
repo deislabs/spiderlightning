@@ -68,9 +68,7 @@ pub trait Resource: AsAny {}
 pub trait ResourceTables<T: ?Sized>: AsAny {}
 
 pub trait ResourceBuilder {
-    type State;
-
-    fn build(state: Self::State) -> Result<HostState>;
+    fn build(self) -> Result<HostState>;
 }
 
 /// HostState abstract out generated bindings for the resource,
@@ -117,15 +115,13 @@ macro_rules! impl_resource {
         impl slight_common::Resource for $resource {}
         impl slight_common::ResourceTables<dyn slight_common::Resource> for $resource_table {}
         impl slight_common::ResourceBuilder for $resource {
-            type State = $state;
 
-            fn build(state: Self::State) -> anyhow::Result<slight_common::HostState> {
+            fn build(self) -> anyhow::Result<slight_common::HostState> {
                 /// We prepare a default resource with host-provided state.
                 /// Then the guest will pass other configuration state to the resource.
                 /// This is done in the `<Capability>::open` function.
-                let mut resource = Self { host_state: state };
                 Ok((
-                    Box::new(resource),
+                    Box::new(self),
                     Some(Box::new(<$resource_table>::default())),
                 ))
             }
@@ -145,15 +141,12 @@ macro_rules! impl_resource {
         where
             $lt: slight_common::Buildable + Send + Sync + 'static
         {
-            type State = $state;
-
-            fn build(state: Self::State) -> anyhow::Result<slight_common::HostState> {
+            fn build(self) -> anyhow::Result<slight_common::HostState> {
                 /// We prepare a default resource with host-provided state.
                 /// Then the guest will pass other configuration state to the resource.
                 /// This is done in the `<Capability>::open` function.
-                let mut resource = Self { host_state: state };
                 Ok((
-                    Box::new(resource),
+                    Box::new(self),
                     Some(Box::new(<$resource_table>::default())),
                 ))
             }

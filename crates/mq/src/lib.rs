@@ -20,9 +20,26 @@ wit_error_rs::impl_from!(anyhow::Error, mq::Error::ErrorWithDescription);
 /// The `Mq` structure is what will implement the `mq::Mq` trait
 /// coming from the generated code of off `mq.wit`.
 ///
-/// It maintains a `host_state`.
+/// It holds:
+///     - a `mq_implementor` `String` — this comes directly from a
+///     user's `slightfile` and it is what allows us to dynamically
+///     dispatch to a specific implementor's implentation, and
+///     - the `slight_state` (of type `BasicState`) that contains common
+///     things received from the slight binary (i.e., the `resource_map`,
+///     the `config_type`, and the `config_toml_file_path`).
+#[derive(Clone, Default)]
 pub struct Mq {
-    host_state: MqState,
+    implementor: String,
+    capability_store: HashMap<String, BasicState>,
+}
+
+impl Mq {
+    pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
+        Self {
+            implementor,
+            capability_store,
+        }
+    }
 }
 
 // This implements the `ResourceBuilder`, and `Resource` trait
@@ -36,30 +53,6 @@ pub struct Mq {
 // grouping of resources through `dyn Resource`, and `dyn ResourceTables`.
 impl_resource!(Mq, mq::MqTables<Mq>, MqState);
 
-/// This is the type of the `host_state` property from our `Mq` structure.
-///
-/// It holds:
-///     - a `mq_implementor` `String` — this comes directly from a
-///     user's `slightfile` and it is what allows us to dynamically
-///     dispatch to a specific implementor's implentation, and
-///     - the `slight_state` (of type `BasicState`) that contains common
-///     things received from the slight binary (i.e., the `resource_map`,
-///     the `config_type`, and the `config_toml_file_path`).
-#[derive(Clone, Default)]
-pub struct MqState {
-    implementor: String,
-    capability_store: HashMap<String, BasicState>,
-}
-
-impl MqState {
-    pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
-        Self {
-            implementor,
-            capability_store,
-        }
-    }
-}
-
 #[async_trait]
 impl mq::Mq for Mq {
     type Mq = MqInner;
@@ -68,18 +61,14 @@ impl mq::Mq for Mq {
         // populate our inner mq object w/ the state received from `slight`
         // (i.e., what type of mq implementor we are using), and the assigned
         // name of the object.
-        let state = if let Some(r) = self.host_state.capability_store.get(name) {
+        let state = if let Some(r) = self.capability_store.get(name) {
             r.clone()
-        } else if let Some(r) = self
-            .host_state
-            .capability_store
-            .get(&self.host_state.implementor)
-        {
+        } else if let Some(r) = self.capability_store.get(&self.implementor) {
             r.clone()
         } else {
             panic!(
                 "could not find capability under name '{}' for implementor '{}'",
-                name, &self.host_state.implementor
+                name, &self.implementor
             );
         };
 

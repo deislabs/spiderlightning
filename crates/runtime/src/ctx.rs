@@ -7,13 +7,13 @@ use std::collections::HashMap;
 /// This is used in the builder to build the runtime context.
 #[derive(Clone)]
 pub enum State<T: Buildable> {
-    Kv(slight_kv::KvState),
-    Mq(slight_mq::MqState),
-    Http(slight_http::HttpState<T>),
-    PubSub(slight_pubsub::PubsubState),
-    Lockd(slight_lockd::LockdState),
-    RtCfg(slight_runtime_configs::ConfigsState),
-    Events(slight_events::EventsState<T>),
+    Kv(slight_kv::Kv),
+    Mq(slight_mq::Mq),
+    Http(slight_http::Http<T>),
+    PubSub(slight_pubsub::Pubsub),
+    Lockd(slight_lockd::Lockd),
+    RtCfg(slight_runtime_configs::Configs),
+    Events(slight_events::Events<T>),
 }
 
 /// A runtime context for slight capabilities.
@@ -128,15 +128,13 @@ mod unittests {
     fn test_ctx_builder() -> Result<()> {
         let resource_map = Arc::new(Mutex::new(StateTable::default()));
         let builder = SlightCtxBuilder::<Builder>::new()
-            .add_state(State::Kv(slight_kv::KvState::default()))?
-            .add_state(State::Mq(slight_mq::MqState::default()))?
-            .add_state(State::PubSub(slight_pubsub::PubsubState::default()))?
-            .add_state(State::Lockd(slight_lockd::LockdState::default()))?
-            .add_state(State::RtCfg(slight_runtime_configs::ConfigsState::default()))?
-            .add_state(State::Http(slight_http::HttpState::new(
-                resource_map.clone(),
-            )))?
-            .add_state(State::Events(slight_events::EventsState::new(resource_map)))?;
+            .add_state(State::Kv(slight_kv::Kv::default()))?
+            .add_state(State::Mq(slight_mq::Mq::default()))?
+            .add_state(State::PubSub(slight_pubsub::Pubsub::default()))?
+            .add_state(State::Lockd(slight_lockd::Lockd::default()))?
+            .add_state(State::RtCfg(slight_runtime_configs::Configs::default()))?
+            .add_state(State::Http(slight_http::Http::new(resource_map.clone())))?
+            .add_state(State::Events(slight_events::Events::new(resource_map)))?;
 
         let ctx = builder.build();
         assert_eq!(ctx.0.len(), 7);
