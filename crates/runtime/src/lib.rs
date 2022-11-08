@@ -160,7 +160,7 @@ impl Builder {
     //     self
     // }
 
-    pub fn add_to_builder(&mut self, name: String, get_cx: impl GetCxFn) -> &mut Self {
+    pub fn add_to_builder(&mut self, get_cx: impl GetCxFn) -> &mut Self {
         self.state_builder.get_cx_fns.push(Box::new(get_cx));
         self
     }
