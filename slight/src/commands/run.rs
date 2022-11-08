@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use slight_common::{BasicState, Resource};
+use slight_common::{BasicState, Resource, ResourceBuilder};
 use slight_events::Events;
 use slight_events_api::StateTable;
 use slight_http::Http;
@@ -15,8 +15,11 @@ use slight_lockd::Lockd;
 use slight_mq::Mq;
 use slight_pubsub::Pubsub;
 use slight_runtime::{
-    ctx::{SlightCtxBuilder, State},
-    Builder, Ctx,
+    // ctx::{SlightCtxBuilder, State},
+    Builder,
+    Ctx,
+    RuntimeContext,
+    SlightCtx,
 };
 use slight_runtime_configs::Configs;
 use spiderlightning::core::slightfile::{Capability, TomlFile};
@@ -129,7 +132,7 @@ fn build_store_instance(
     module: impl AsRef<Path>,
 ) -> Result<Builder> {
     let mut builder = Builder::new_default(module)?;
-    let mut slight_builder = SlightCtxBuilder::default();
+    // let mut slight_builder = SlightCtxBuilder::default();
     let mut linked_capabilities: HashSet<String> = HashSet::new();
     let mut capability_store: HashMap<String, BasicState> = HashMap::new();
 
@@ -151,10 +154,18 @@ fn build_store_instance(
             "events" => {
                 if !linked_capabilities.contains("events") {
                     builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
+                    let rsc_map = resource_map.clone();
+                    builder.add_to_builder("events".to_string(), |ctx: &mut SlightCtx| {
+                        let state = Events::<Builder>::new(rsc_map);
+                        ctx.get_mut().insert(
+                            "events".to_string(),
+                            slight_events::Events::build(state).unwrap(),
+                        );
+                    });
                     linked_capabilities.insert("events".to_string());
 
-                    slight_builder = slight_builder
-                        .add_state(State::Events(Events::<Builder>::new(resource_map.clone())))?;
+                    // slight_builder = slight_builder
+                    // .add_state(State::Events(Events::<Builder>::new(resource_map.clone())))?;
                 } else {
                     bail!("the events capability was already linked");
                 }
@@ -173,11 +184,17 @@ fn build_store_instance(
                     resource_map.clone(),
                     &toml_file_path,
                 )?;
-
-                slight_builder = slight_builder.add_state(State::Kv(slight_kv::Kv::new(
-                    resource_type.to_string(),
-                    capability_store.clone(),
-                )))?;
+                let cap = capability_store.clone();
+                let rsc_type = resource_type.to_string();
+                builder.add_to_builder("kv".to_string(), move |ctx: &mut SlightCtx| {
+                    let state = slight_kv::Kv::new(rsc_type, cap);
+                    ctx.get_mut()
+                        .insert("kv".to_string(), slight_kv::Kv::build(state).unwrap());
+                });
+                // slight_builder = slight_builder.add_state(State::Kv(slight_kv::Kv::new(
+                //     resource_type.to_string(),
+                //     capability_store.clone(),
+                // )))?;
             }
             _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("mq") {
@@ -193,11 +210,17 @@ fn build_store_instance(
                     resource_map.clone(),
                     &toml_file_path,
                 )?;
-
-                slight_builder = slight_builder.add_state(State::Mq(slight_mq::Mq::new(
-                    resource_type.to_string(),
-                    capability_store.clone(),
-                )))?;
+                let cap = capability_store.clone();
+                let rsc_type = resource_type.to_string();
+                builder.add_to_builder("mq".to_string(), move |ctx: &mut SlightCtx| {
+                    let state = slight_mq::Mq::new(rsc_type, cap);
+                    ctx.get_mut()
+                        .insert("mq".to_string(), slight_mq::Mq::build(state).unwrap());
+                });
+                // slight_builder = slight_builder.add_state(State::Mq(slight_mq::Mq::new(
+                //     resource_type.to_string(),
+                //     capability_store.clone(),
+                // )))?;
             }
             _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("lockd") {
@@ -213,10 +236,18 @@ fn build_store_instance(
                     resource_map.clone(),
                     &toml_file_path,
                 )?;
-
-                slight_builder = slight_builder.add_state(State::Lockd(
-                    slight_lockd::Lockd::new(resource_type.to_string(), capability_store.clone()),
-                ))?;
+                let cap = capability_store.clone();
+                let rsc_type = resource_type.to_string();
+                builder.add_to_builder("lockd".to_string(), move |ctx: &mut SlightCtx| {
+                    let state = slight_lockd::Lockd::new(rsc_type, cap);
+                    ctx.get_mut().insert(
+                        "lockd".to_string(),
+                        slight_lockd::Lockd::build(state).unwrap(),
+                    );
+                });
+                // slight_builder = slight_builder.add_state(State::Lockd(
+                //     slight_lockd::Lockd::new(resource_type.to_string(), capability_store.clone()),
+                // ))?;
             }
             _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("pubsub") {
@@ -232,10 +263,18 @@ fn build_store_instance(
                     resource_map.clone(),
                     &toml_file_path,
                 )?;
-
-                slight_builder = slight_builder.add_state(State::PubSub(
-                    slight_pubsub::Pubsub::new(resource_type.to_string(), capability_store.clone()),
-                ))?;
+                let cap = capability_store.clone();
+                let rsc_type = resource_type.to_string();
+                builder.add_to_builder("pubsub".to_string(), move |ctx: &mut SlightCtx| {
+                    let state = slight_pubsub::Pubsub::new(rsc_type, cap);
+                    ctx.get_mut().insert(
+                        "pubsub".to_string(),
+                        slight_pubsub::Pubsub::build(state).unwrap(),
+                    );
+                });
+                // slight_builder = slight_builder.add_state(State::PubSub(
+                //     slight_pubsub::Pubsub::new(resource_type.to_string(), capability_store.clone()),
+                // ))?;
             }
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("configs") {
@@ -251,23 +290,36 @@ fn build_store_instance(
                     resource_map.clone(),
                     &toml_file_path,
                 )?;
-
-                slight_builder = slight_builder.add_state(State::RtCfg(
-                    slight_runtime_configs::Configs::new(
-                        resource_type.to_string(),
-                        capability_store.clone(),
-                    ),
-                ))?;
+                let cap = capability_store.clone();
+                let rsc_type = resource_type.to_string();
+                builder.add_to_builder("configs".to_string(), move |ctx: &mut SlightCtx| {
+                    let state = slight_runtime_configs::Configs::new(rsc_type, cap);
+                    ctx.get_mut().insert(
+                        "configs".to_string(),
+                        slight_runtime_configs::Configs::build(state).unwrap(),
+                    );
+                });
+                // slight_builder = slight_builder.add_state(State::RtCfg(
+                //     slight_runtime_configs::Configs::new(
+                //         resource_type.to_string(),
+                //         capability_store.clone(),
+                //     ),
+                // ))?;
             }
             "http" => {
                 if !linked_capabilities.contains("http") {
                     builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
                     linked_capabilities.insert("http".to_string());
-
-                    slight_builder =
-                        slight_builder.add_state(State::Http(
-                            slight_http::Http::<Builder>::new(resource_map.clone()),
-                        ))?;
+                    let rsc_map = resource_map.clone();
+                    builder.add_to_builder("http".to_string(), move |ctx: &mut SlightCtx| {
+                        let state = slight_http::Http::<Builder>::new(rsc_map);
+                        ctx.get_mut()
+                            .insert("http".to_string(), slight_http::Http::build(state).unwrap());
+                    });
+                    // slight_builder =
+                    //     slight_builder.add_state(State::Http(
+                    //         slight_http::Http::<Builder>::new(resource_map.clone()),
+                    //     ))?;
                 } else {
                     bail!("the http capability was already linked");
                 }
@@ -278,7 +330,7 @@ fn build_store_instance(
         }
     }
 
-    builder = builder.add_slight_states(slight_builder);
+    // builder = builder.add_slight_states(slight_builder);
     Ok(builder)
 }
 
