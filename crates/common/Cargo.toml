@@ -14,6 +14,9 @@ doctest = false
 slight-events-api = { path = "../events-api" }
 slight-http-api = { path = "../http-api/" }
 as-any = "0.3"
-wasmtime = "0.39"
+wasmtime = { version = "0.39", optional = true }
 anyhow = "1"
 async-trait = "0.1"
+
+[features]
+default = ["wasmtime"]

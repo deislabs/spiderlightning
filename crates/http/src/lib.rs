@@ -14,7 +14,7 @@ use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
 use routerify_cors::enable_cors_all;
-use slight_common::{impl_resource, Buildable, Builder, Ctx};
+use slight_common::{impl_resource, Builder, Ctx, WasmtimeBuildable};
 use slight_events_api::ResourceMap;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
@@ -112,13 +112,13 @@ impl ServerInner {
 
 /// Http capability
 #[derive(Clone)]
-pub struct Http<T: Buildable> {
+pub struct Http<T: WasmtimeBuildable> {
     _resource_map: ResourceMap,
     builder: Option<Builder<T>>,
     closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
 }
 
-impl<T: Buildable> Http<T> {
+impl<T: WasmtimeBuildable> Http<T> {
     pub fn new(_resource_map: ResourceMap) -> Self {
         Self {
             _resource_map,
@@ -128,7 +128,7 @@ impl<T: Buildable> Http<T> {
     }
 }
 
-impl<T: Buildable + Send + Sync + 'static> Http<T> {
+impl<T: WasmtimeBuildable + Send + Sync + 'static> Http<T> {
     pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
         self.builder = Some(builder);
         Ok(())
@@ -142,7 +142,7 @@ impl<T: Buildable + Send + Sync + 'static> Http<T> {
     }
 }
 
-impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
+impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
     type Router = RouterInner;
     type Server = ServerInner;
 
@@ -271,7 +271,7 @@ impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
     }
 }
 
-async fn handler<T: Buildable + Send + Sync + 'static>(
+async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     request: hyper::Request<Body>,
 ) -> Result<hyper::Response<Body>, http::Error> {
     log::debug!("received request: {:?}", &request);

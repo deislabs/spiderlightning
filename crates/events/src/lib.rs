@@ -12,7 +12,7 @@ use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::executor::block_on;
-use slight_common::{impl_resource, Buildable, Builder, Ctx};
+use slight_common::{impl_resource, Builder, Ctx, WasmtimeBuildable};
 use slight_events_api::{AttributesReader, Event, EventHandler, EventParam, ResourceMap};
 use uuid::Uuid;
 
@@ -22,12 +22,12 @@ wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 /// Events capability
 #[derive(Default, Clone)]
-pub struct Events<T: Buildable> {
+pub struct Events<T: WasmtimeBuildable> {
     resource_map: ResourceMap,
     builder: Option<Builder<T>>,
 }
 
-impl<T: Buildable> Events<T> {
+impl<T: WasmtimeBuildable> Events<T> {
     pub fn new(resource_map: ResourceMap) -> Self {
         Self {
             resource_map,
@@ -62,7 +62,7 @@ impl From<GeneratedObservable<'_>> for Observable {
     }
 }
 
-impl<T: Buildable> Events<T> {
+impl<T: WasmtimeBuildable> Events<T> {
     /// Host will call this function to update store and event_handler
     pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
         self.builder = Some(builder);
@@ -71,7 +71,7 @@ impl<T: Buildable> Events<T> {
 }
 
 #[async_trait]
-impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
+impl<T: WasmtimeBuildable + Send + Sync + 'static> events::Events for Events<T> {
     type Events = EventsGuest;
     async fn events_get(&mut self) -> Result<Self::Events, Error> {
         Ok(Default::default())

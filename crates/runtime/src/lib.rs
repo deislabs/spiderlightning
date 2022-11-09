@@ -1,4 +1,3 @@
-// pub mod ctx;
 pub mod resource;
 
 use std::{collections::HashMap, path::Path};
@@ -6,8 +5,8 @@ use std::{collections::HashMap, path::Path};
 use anyhow::Result;
 use async_trait::async_trait;
 // use ctx::{SlightCtx, SlightCtxBuilder};
-use resource::{get_table, EventsData, HttpData};
-use slight_common::{Buildable, HostState, Linkable};
+use resource::{get_host_state, EventsData, HttpData};
+use slight_common::{HostState, WasmtimeBuildable, WasmtimeLinkable};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
@@ -42,11 +41,11 @@ impl slight_common::Ctx for RuntimeContext {
         &mut self.events_state
     }
 
-    fn get_table<T: 'static, TTable: 'static>(
+    fn get_host_state<T: 'static, TTable: 'static>(
         &mut self,
         resource_key: String,
     ) -> (&mut T, &mut TTable) {
-        get_table(self, resource_key)
+        get_host_state(self, resource_key)
     }
 }
 
@@ -150,7 +149,7 @@ impl Builder {
     }
 
     /// Link a host capability to the wasmtime::Linker
-    pub fn link_capability<T: Linkable>(&mut self, name: String) -> Result<&mut Self> {
+    pub fn link_capability<T: WasmtimeLinkable>(&mut self, name: String) -> Result<&mut Self> {
         tracing::log::info!("Adding capability: {}", &name);
         // self.store
         //     .data_mut()
@@ -196,7 +195,7 @@ impl Builder {
 }
 
 #[async_trait]
-impl Buildable for Builder {
+impl WasmtimeBuildable for Builder {
     type Ctx = Ctx;
 
     async fn build(&self) -> (Store<Self::Ctx>, Instance) {

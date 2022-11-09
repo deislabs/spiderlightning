@@ -1,5 +1,5 @@
+use crate::Ctx;
 pub use crate::RuntimeContext;
-use crate::{Ctx};
 
 use as_any::Downcast;
 
@@ -13,7 +13,7 @@ pub type EventsData = EventHandlerData;
 pub type HttpData = HttpHandlerData;
 
 /// Dynamically dispatch to respective host resource
-pub(crate) fn get_table<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)
+pub(crate) fn get_host_state<T, TTable>(cx: &mut Ctx, resource_key: String) -> (&mut T, &mut TTable)
 where
     T: 'static,
     TTable: 'static,
