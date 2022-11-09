@@ -9,7 +9,7 @@ use crate::Ctx;
 pub trait WasmtimeBuildable: Clone {
     type Ctx: Ctx + Send + Sync;
 
-    async fn build(&self) -> (Store<Self::Ctx>, Instance);
+    async fn build(self) -> (Store<Self::Ctx>, Instance);
 }
 
 #[derive(Clone)]
@@ -24,5 +24,9 @@ impl<T: WasmtimeBuildable> Builder<T> {
 
     pub fn inner(&self) -> &T {
         &self.inner
+    }
+
+    pub fn owned_inner(self) -> T {
+        self.inner
     }
 }

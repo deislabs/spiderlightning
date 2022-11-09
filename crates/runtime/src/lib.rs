@@ -87,13 +87,15 @@ where
     T: 'static + Clone + GetCxFn,
 {
     fn clone_box(&self) -> Box<dyn GetCxFn> {
+        dbg!("clone_box");
         Box::new(self.clone())
     }
 }
 
 impl Clone for Box<dyn GetCxFn> {
     fn clone(&self) -> Box<dyn GetCxFn> {
-        self.clone_box()
+        dbg!("clone");
+        (**self).clone_box()
     }
 }
 
@@ -104,8 +106,10 @@ pub struct StateBuilder {
 
 impl StateBuilder {
     pub fn build(self) -> SlightCtx {
+        dbg!("build");
         let mut ctx = SlightCtx::default();
         for f in self.get_cx_fns {
+            dbg!("applying closure");
             f(&mut ctx);
         }
         ctx
@@ -170,10 +174,15 @@ impl Builder {
         self.state_builder.get_cx_fns.push(Box::new(get_cx));
         self
     }
+}
+
+#[async_trait]
+impl WasmtimeBuildable for Builder {
+    type Ctx = Ctx;
 
     /// Instantiate the guest module.
-    pub async fn build(self) -> Result<(Store<Ctx>, Instance)> {
-        let wasi = default_wasi()?;
+    async fn build(self) -> (Store<Self::Ctx>, Instance) {
+        let wasi = default_wasi().unwrap();
 
         let mut ctx = RuntimeContext {
             wasi: Some(wasi),
@@ -189,17 +198,9 @@ impl Builder {
         let instance = self
             .linker
             .instantiate_async(&mut store, &self.module)
-            .await?;
-        Ok((store, instance))
-    }
-}
-
-#[async_trait]
-impl WasmtimeBuildable for Builder {
-    type Ctx = Ctx;
-
-    async fn build(&self) -> (Store<Self::Ctx>, Instance) {
-        self.build().await
+            .await
+            .unwrap();
+        (store, instance)
     }
 }
 

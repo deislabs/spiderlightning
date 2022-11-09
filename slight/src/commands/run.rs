@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use slight_common::{BasicState, Resource, ResourceBuilder};
+use slight_common::{BasicState, Resource, ResourceBuilder, WasmtimeBuildable};
 use slight_events::Events;
 use slight_events_api::StateTable;
 use slight_http::Http;
@@ -41,7 +41,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
     let resource_map = Arc::new(Mutex::new(StateTable::default()));
 
     let host_builder = build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
-    let (mut store, instance) = host_builder.build().await?;
+    let (mut store, instance) = host_builder.build().await;
 
     let caps = toml.capability.as_ref().unwrap();
 
@@ -182,7 +182,7 @@ fn build_store_instance(
                 )?;
                 let cap = capability_store.clone();
                 let rsc_type = resource_type.to_string();
-                builder.add_to_builder(move |ctx: &mut SlightCtx| {
+                builder.add_to_builder(|ctx: &mut SlightCtx| {
                     let state = slight_kv::Kv::new(rsc_type, cap);
                     ctx.get_mut()
                         .insert("kv".to_string(), slight_kv::Kv::build(state).unwrap());

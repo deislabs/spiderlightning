@@ -114,7 +114,8 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> events::Events for Events<T> 
                         .recv_deadline(Instant::now() + Duration::from_secs(duration));
                     match recv {
                         Ok(mut event) => {
-                            let (mut store, instance) = block_on(builder.inner().build());
+                            let (mut store, instance) =
+                                block_on(builder.clone().owned_inner().build());
                             let handler = EventHandler::new(&mut store, &instance, |ctx| {
                                 ctx.get_events_state_mut()
                             })?;
