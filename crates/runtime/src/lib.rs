@@ -6,8 +6,8 @@ use std::{collections::HashMap, path::Path};
 use anyhow::Result;
 use async_trait::async_trait;
 // use ctx::{SlightCtx, SlightCtxBuilder};
-use resource::{EventsData, HttpData, Linkable};
-use slight_common::{Buildable, HostState};
+use resource::{get_table, EventsData, HttpData};
+use slight_common::{Buildable, HostState, Linkable};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
@@ -40,6 +40,13 @@ impl slight_common::Ctx for RuntimeContext {
 
     fn get_events_state_mut(&mut self) -> &mut EventsData {
         &mut self.events_state
+    }
+
+    fn get_table<T: 'static, TTable: 'static>(
+        &mut self,
+        resource_key: String,
+    ) -> (&mut T, &mut TTable) {
+        get_table(self, resource_key)
     }
 }
 

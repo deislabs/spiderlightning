@@ -12,6 +12,7 @@ use wasmtime::{Instance, Store};
 use slight_events_api::{EventHandlerData, ResourceMap};
 use slight_http_api::HttpHandlerData;
 
+pub use wasmtime::Linker;
 /// `BasicState` provides an attempt at a "fit-all" for basic scenarios
 /// of a host's state.
 ///
@@ -82,6 +83,10 @@ pub type HostState = (
 pub trait Ctx {
     fn get_http_state_mut(&mut self) -> &mut HttpHandlerData;
     fn get_events_state_mut(&mut self) -> &mut EventHandlerData;
+    fn get_table<T: 'static, TTable: 'static>(
+        &mut self,
+        resource_key: String,
+    ) -> (&mut T, &mut TTable);
 }
 
 /// A trait for builder
@@ -107,11 +112,17 @@ impl<T: Buildable> Builder<T> {
     }
 }
 
+/// A trait for Linkable resources
+pub trait Linkable {
+    /// Link the resource to the runtime
+    fn add_to_linker<T: Ctx + Send + Sync + 'static>(linker: &mut Linker<T>) -> Result<()>;
+}
+
 #[macro_export]
 #[allow(unknown_lints)]
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
-    ($resource:ident, $resource_table:ty, $state:ident) => {
+    ($resource:ident, $resource_table:ty, $state:ident, $add_to_linker:path, $scheme_name:expr) => {
         impl slight_common::Resource for $resource {}
         impl slight_common::ResourceTables<dyn slight_common::Resource> for $resource_table {}
         impl slight_common::ResourceBuilder for $resource {
@@ -126,9 +137,17 @@ macro_rules! impl_resource {
                 ))
             }
         }
+
+        impl slight_common::Linkable for $resource {
+            fn add_to_linker<Ctx: slight_common::Ctx + Send + Sync + 'static>(linker: &mut slight_common::Linker<Ctx>) -> anyhow::Result<()> {
+                $add_to_linker(linker, |ctx| {
+                    Ctx::get_table::<$resource, $resource_table>(ctx, $scheme_name)
+                })
+            }
+        }
     };
 
-    ($resource:ty, $resource_table:ty, $state:ty, $lt:tt) => {
+    ($resource:ty, $resource_table:ty, $state:ty, $lt:tt, $add_to_linker:path, $scheme_name:expr) => {
         impl<$lt> slight_common::Resource for $resource
         where
             $lt: slight_common::Buildable + 'static
@@ -149,6 +168,17 @@ macro_rules! impl_resource {
                     Box::new(self),
                     Some(Box::new(<$resource_table>::default())),
                 ))
+            }
+        }
+
+        impl<$lt> slight_common::Linkable for $resource
+        where
+            $lt: slight_common::Buildable + Send + Sync + 'static
+        {
+            fn add_to_linker<Ctx: slight_common::Ctx + Send + Sync + 'static>(linker: &mut slight_common::Linker<Ctx>) -> anyhow::Result<()> {
+                $add_to_linker(linker, |ctx| {
+                    Ctx::get_table::<$resource, $resource_table>(ctx, $scheme_name)
+                })
             }
         }
     };

@@ -173,4 +173,11 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
     }
 }
 
-impl_resource!(Events<T>, EventsTables<Events<T>>, EventsState<T>, T);
+impl_resource!(
+    Events<T>,
+    EventsTables<Events<T>>,
+    EventsState<T>,
+    T,
+    events::add_to_linker,
+    "events".to_string()
+);

@@ -43,7 +43,13 @@ impl Configs {
     }
 }
 
-impl_resource!(Configs, configs::ConfigsTables<Configs>, ConfigsState);
+impl_resource!(
+    Configs,
+    configs::ConfigsTables<Configs>,
+    ConfigsState,
+    configs::add_to_linker,
+    "configs".to_string()
+);
 
 #[async_trait]
 impl configs::Configs for Configs {

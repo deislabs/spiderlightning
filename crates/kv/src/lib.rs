@@ -126,7 +126,13 @@ impl KvImplementors {
 //
 // The `Resource` and `ResourceTables` traits are empty traits that allow
 // grouping of resources through `dyn Resource`, and `dyn ResourceTables`.
-impl_resource!(Kv, kv::KvTables<Kv>, KvState);
+impl_resource!(
+    Kv,
+    kv::KvTables<Kv>,
+    KvState,
+    kv::add_to_linker,
+    "kv".to_string()
+);
 
 /// This is the implementation for the generated `kv::Kv` trait from the `kv.wit` file.
 #[async_trait]

@@ -344,7 +344,14 @@ fn str_to_socket_address(s: &str) -> Result<SocketAddr> {
     }
 }
 
-impl_resource!(Http<T>, HttpTables<Http<T>>, HttpState<T>, T);
+impl_resource!(
+    Http<T>,
+    HttpTables<Http<T>>,
+    HttpState<T>,
+    T,
+    http::add_to_linker,
+    "http".to_string()
+);
 
 #[cfg(test)]
 mod unittests {

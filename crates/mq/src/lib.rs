@@ -51,7 +51,13 @@ impl Mq {
 //
 // The `Resource` and `ResourceTables` traits are empty traits that allow
 // grouping of resources through `dyn Resource`, and `dyn ResourceTables`.
-impl_resource!(Mq, mq::MqTables<Mq>, MqState);
+impl_resource!(
+    Mq,
+    mq::MqTables<Mq>,
+    MqState,
+    mq::add_to_linker,
+    "mq".to_string()
+);
 
 #[async_trait]
 impl mq::Mq for Mq {

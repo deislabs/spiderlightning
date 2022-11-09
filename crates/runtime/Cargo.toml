@@ -23,11 +23,3 @@ tracing = { version = "0.1", features = ["log"] }
 slight-common = { path = "../common" }
 dyn-clone = "1"
 async-trait = "0.1"
-
-slight-kv = { path = "../kv" }
-slight-http = { path = "../http" }
-slight-mq = { path = "../mq" }
-slight-lockd = { path = "../lockd" }
-slight-pubsub = { path = "../pubsub" }
-slight-runtime-configs = { path = "../runtime-configs" }
-slight-events = { path = "../events" } 

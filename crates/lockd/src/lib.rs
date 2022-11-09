@@ -47,7 +47,13 @@ impl Lockd {
     }
 }
 
-impl_resource!(Lockd, lockd::LockdTables<Lockd>, LockdState);
+impl_resource!(
+    Lockd,
+    lockd::LockdTables<Lockd>,
+    LockdState,
+    lockd::add_to_linker,
+    "lockd".to_string()
+);
 
 #[async_trait]
 impl lockd::Lockd for Lockd {

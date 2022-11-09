@@ -50,7 +50,13 @@ impl Pubsub {
     }
 }
 
-impl_resource!(Pubsub, pubsub::PubsubTables<Pubsub>, PubsubState);
+impl_resource!(
+    Pubsub,
+    pubsub::PubsubTables<Pubsub>,
+    PubsubState,
+    pubsub::add_to_linker,
+    "pubsub".to_string()
+);
 
 #[async_trait]
 impl pubsub::Pubsub for Pubsub {
