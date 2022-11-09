@@ -108,7 +108,6 @@ where
     store
         .data_mut()
         .slight
-        .get_mut()
         .get_mut(scheme_name)
         .expect(&err_msg)
         .0
@@ -156,7 +155,7 @@ fn build_store_instance(
                     let rsc_map = resource_map.clone();
                     builder.add_to_builder(|ctx: &mut SlightCtx| {
                         let state = Events::<Builder>::new(rsc_map);
-                        ctx.get_mut().insert(
+                        ctx.insert(
                             "events".to_string(),
                             slight_events::Events::build(state).unwrap(),
                         );
@@ -184,8 +183,7 @@ fn build_store_instance(
                 let rsc_type = resource_type.to_string();
                 builder.add_to_builder(|ctx: &mut SlightCtx| {
                     let state = slight_kv::Kv::new(rsc_type, cap);
-                    ctx.get_mut()
-                        .insert("kv".to_string(), slight_kv::Kv::build(state).unwrap());
+                    ctx.insert("kv".to_string(), slight_kv::Kv::build(state).unwrap());
                 });
             }
             _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
@@ -206,8 +204,7 @@ fn build_store_instance(
                 let rsc_type = resource_type.to_string();
                 builder.add_to_builder(move |ctx: &mut SlightCtx| {
                     let state = slight_mq::Mq::new(rsc_type, cap);
-                    ctx.get_mut()
-                        .insert("mq".to_string(), slight_mq::Mq::build(state).unwrap());
+                    ctx.insert("mq".to_string(), slight_mq::Mq::build(state).unwrap());
                 });
             }
             _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
@@ -228,7 +225,7 @@ fn build_store_instance(
                 let rsc_type = resource_type.to_string();
                 builder.add_to_builder(move |ctx: &mut SlightCtx| {
                     let state = slight_lockd::Lockd::new(rsc_type, cap);
-                    ctx.get_mut().insert(
+                    ctx.insert(
                         "lockd".to_string(),
                         slight_lockd::Lockd::build(state).unwrap(),
                     );
@@ -252,7 +249,7 @@ fn build_store_instance(
                 let rsc_type = resource_type.to_string();
                 builder.add_to_builder(move |ctx: &mut SlightCtx| {
                     let state = slight_pubsub::Pubsub::new(rsc_type, cap);
-                    ctx.get_mut().insert(
+                    ctx.insert(
                         "pubsub".to_string(),
                         slight_pubsub::Pubsub::build(state).unwrap(),
                     );
@@ -276,7 +273,7 @@ fn build_store_instance(
                 let rsc_type = resource_type.to_string();
                 builder.add_to_builder(move |ctx: &mut SlightCtx| {
                     let state = slight_runtime_configs::Configs::new(rsc_type, cap);
-                    ctx.get_mut().insert(
+                    ctx.insert(
                         "configs".to_string(),
                         slight_runtime_configs::Configs::build(state).unwrap(),
                     );
@@ -289,8 +286,7 @@ fn build_store_instance(
                     let rsc_map = resource_map.clone();
                     builder.add_to_builder(move |ctx: &mut SlightCtx| {
                         let state = slight_http::Http::<Builder>::new(rsc_map);
-                        ctx.get_mut()
-                            .insert("http".to_string(), slight_http::Http::build(state).unwrap());
+                        ctx.insert("http".to_string(), slight_http::Http::build(state).unwrap());
                     });
                 } else {
                     bail!("the http capability was already linked");

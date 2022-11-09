@@ -1,16 +1,18 @@
+mod ctx;
 pub mod resource;
 
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 
 use anyhow::Result;
 use async_trait::async_trait;
-// use ctx::{SlightCtx, SlightCtxBuilder};
+use ctx::{FnModifySlightCtx, SlightCtxBuilder};
 use resource::{get_host_state, EventsData, HttpData};
-use slight_common::{HostState, WasmtimeBuildable, WasmtimeLinkable};
+use slight_common::{WasmtimeBuildable, WasmtimeLinkable};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
 
+pub use ctx::SlightCtx;
 /// Runtime Context for the wasm module
 pub type Ctx = RuntimeContext;
 
@@ -49,73 +51,6 @@ impl slight_common::Ctx for RuntimeContext {
     }
 }
 
-/// A runtime context for slight capabilities.
-///
-/// It is a wrapper around a HashMap of HostState, which are
-/// generated bindings for the capabilities, and are linked to
-/// the `wasmtime::Linker`.
-///
-/// The `SlightCtx` cannot be created directly, but it can be
-/// constructed using the `SlightCtxBuilder`.
-///
-/// The `SlightCtx` is not cloneable, but the `SlightCtxBuilder` is.
-#[derive(Default)]
-pub struct SlightCtx(HashMap<String, HostState>);
-
-impl SlightCtx {
-    /// Get a reference to the inner HashMap.
-    pub fn get_ref(&self) -> &HashMap<String, HostState> {
-        &self.0
-    }
-
-    /// Get a mutable reference to the inner HashMap.
-    pub fn get_mut(&mut self) -> &mut HashMap<String, HostState> {
-        &mut self.0
-    }
-}
-
-pub trait GetCxFn: FnOnce(&mut SlightCtx) + GetCxFnClone + Send + Sync + 'static {}
-
-impl<T: FnOnce(&mut SlightCtx) + Send + Sync + Clone + 'static> GetCxFn for T {}
-
-pub trait GetCxFnClone {
-    fn clone_box(&self) -> Box<dyn GetCxFn>;
-}
-
-impl<T> GetCxFnClone for T
-where
-    T: 'static + Clone + GetCxFn,
-{
-    fn clone_box(&self) -> Box<dyn GetCxFn> {
-        dbg!("clone_box");
-        Box::new(self.clone())
-    }
-}
-
-impl Clone for Box<dyn GetCxFn> {
-    fn clone(&self) -> Box<dyn GetCxFn> {
-        dbg!("clone");
-        (**self).clone_box()
-    }
-}
-
-#[derive(Clone, Default)]
-pub struct StateBuilder {
-    pub get_cx_fns: Vec<Box<dyn GetCxFn>>,
-}
-
-impl StateBuilder {
-    pub fn build(self) -> SlightCtx {
-        dbg!("build");
-        let mut ctx = SlightCtx::default();
-        for f in self.get_cx_fns {
-            dbg!("applying closure");
-            f(&mut ctx);
-        }
-        ctx
-    }
-}
-
 /// A wasmtime-based runtime builder.
 ///
 /// It knows how to build a `Store` and `Instance` for a wasm module, given
@@ -126,7 +61,7 @@ pub struct Builder {
     engine: Engine,
     module: Module,
     // states_builder: SlightCtxBuilder<Self>,
-    state_builder: StateBuilder,
+    state_builder: SlightCtxBuilder,
 }
 
 impl Builder {
@@ -142,7 +77,7 @@ impl Builder {
             engine,
             module,
             // states_builder: SlightCtxBuilder::default(),
-            state_builder: StateBuilder::default(),
+            state_builder: SlightCtxBuilder::default(),
         })
     }
 
@@ -155,23 +90,12 @@ impl Builder {
     /// Link a host capability to the wasmtime::Linker
     pub fn link_capability<T: WasmtimeLinkable>(&mut self, name: String) -> Result<&mut Self> {
         tracing::log::info!("Adding capability: {}", &name);
-        // self.store
-        //     .data_mut()
-        //     .data
-        //     .insert(name, T::build_data(state)?);
         T::add_to_linker(&mut self.linker)?;
-        // self.states.insert(name, Box::new(state));
         Ok(self)
     }
 
-    /// Add slight states to the RuntimeContext
-    // pub fn add_slight_states(mut self, state_builder: SlightCtxBuilder<Self>) -> Self {
-    //     self.states_builder = state_builder;
-    //     self
-    // }
-
-    pub fn add_to_builder(&mut self, get_cx: impl GetCxFn) -> &mut Self {
-        self.state_builder.get_cx_fns.push(Box::new(get_cx));
+    pub fn add_to_builder(&mut self, get_cx: impl FnModifySlightCtx) -> &mut Self {
+        self.state_builder.add_to_builder(get_cx);
         self
     }
 }
@@ -184,15 +108,12 @@ impl WasmtimeBuildable for Builder {
     async fn build(self) -> (Store<Self::Ctx>, Instance) {
         let wasi = default_wasi().unwrap();
 
-        let mut ctx = RuntimeContext {
+        let ctx = RuntimeContext {
             wasi: Some(wasi),
-            slight: SlightCtx::default(),
+            slight: self.state_builder.build(),
             events_state: EventsData::default(),
             http_state: HttpData::default(),
         };
-
-        // ctx.slight = self.states_builder.clone().build();
-        ctx.slight = self.state_builder.build();
 
         let mut store = Store::new(&self.engine, ctx);
         let instance = self

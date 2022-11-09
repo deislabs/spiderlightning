@@ -20,7 +20,6 @@ where
 {
     let data = cx
         .slight
-        .get_mut()
         .get_mut(&resource_key)
         .expect("internal error: Runtime context data is None");
     (

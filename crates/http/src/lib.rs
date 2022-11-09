@@ -282,9 +282,7 @@ async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
 
     let instance_builder = parts.data::<Builder<T>>().unwrap();
     let instance_builder = instance_builder.clone();
-    dbg!("before");
     let (mut store, instance) = instance_builder.owned_inner().build().await;
-    dbg!("after");
     // Perform conversion from the `hyper::Request` to `handle_http::Request`.
     let params = parts.params();
     let params: Vec<(&str, &str)> = params
