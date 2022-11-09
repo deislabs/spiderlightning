@@ -1,13 +1,13 @@
 // pub mod ctx;
 pub mod resource;
 
-use std::{any::Any, collections::HashMap, path::Path};
+use std::{collections::HashMap, path::Path};
 
 use anyhow::Result;
 use async_trait::async_trait;
 // use ctx::{SlightCtx, SlightCtxBuilder};
 use resource::{EventsData, HttpData, Linkable};
-use slight_common::{Buildable, HostState, Resource};
+use slight_common::{Buildable, HostState};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
