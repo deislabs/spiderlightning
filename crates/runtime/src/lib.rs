@@ -66,7 +66,7 @@ pub struct Builder {
 
 impl Builder {
     /// Create a new runtime builder.
-    pub fn new_default(module: impl AsRef<Path>) -> Result<Self> {
+    pub fn from_module(module: impl AsRef<Path>) -> Result<Self> {
         let engine = Engine::new(&default_config()?)?;
         let mut linker = Linker::new(&engine);
         linker.allow_shadowing(true);
@@ -88,8 +88,8 @@ impl Builder {
     }
 
     /// Link a host capability to the wasmtime::Linker
-    pub fn link_capability<T: WasmtimeLinkable>(&mut self, name: String) -> Result<&mut Self> {
-        tracing::log::info!("Adding capability: {}", &name);
+    pub fn link_capability<T: WasmtimeLinkable>(&mut self) -> Result<&mut Self> {
+        tracing::log::info!("Adding capability: {}", std::any::type_name::<T>());
         T::add_to_linker(&mut self.linker)?;
         Ok(self)
     }
@@ -138,4 +138,32 @@ pub fn default_config() -> Result<Config> {
 pub fn default_wasi() -> Result<WasiCtx> {
     let ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
     Ok(ctx.build())
+}
+
+#[cfg(test)]
+mod unittest {
+    use std::collections::HashMap;
+
+    use slight_common::{ResourceBuilder, WasmtimeBuildable};
+    use slight_kv::Kv;
+
+    use crate::{Builder, SlightCtx};
+
+    #[tokio::test]
+    async fn test_builder_build() -> anyhow::Result<()> {
+        let module = "./test/kv-test.wasm";
+        assert!(std::path::Path::new(module).exists());
+        let mut builder = Builder::from_module(module)?;
+
+        builder
+            .link_wasi()?
+            .link_capability::<Kv>()?
+            .add_to_builder(|ctx: &mut SlightCtx| {
+                let state = slight_kv::Kv::new("kv.filesystem".to_string(), HashMap::default());
+                ctx.insert("kv".to_string(), slight_kv::Kv::build(state).unwrap());
+            });
+
+        let (_, _) = builder.build().await;
+        Ok(())
+    }
 }

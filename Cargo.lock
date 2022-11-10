@@ -3926,6 +3926,8 @@ dependencies = [
  "slight-common",
  "slight-events-api",
  "slight-http-api",
+ "slight-kv",
+ "tokio",
  "tracing",
  "wasi-cap-std-sync",
  "wasi-common",

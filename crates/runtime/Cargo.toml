@@ -23,3 +23,7 @@ tracing = { version = "0.1", features = ["log"] }
 slight-common = { path = "../common" }
 dyn-clone = "1"
 async-trait = "0.1"
+
+[dev-dependencies]
+slight-kv = { path = "../kv" }
+tokio = { version = "1", features = ["full"] }

@@ -129,7 +129,7 @@ fn build_store_instance(
     resource_map: Arc<Mutex<StateTable>>,
     module: impl AsRef<Path>,
 ) -> Result<Builder> {
-    let mut builder = Builder::new_default(module)?;
+    let mut builder = Builder::from_module(module)?;
     // let mut slight_builder = SlightCtxBuilder::default();
     let mut linked_capabilities: HashSet<String> = HashSet::new();
     let mut capability_store: HashMap<String, BasicState> = HashMap::new();
@@ -151,7 +151,7 @@ fn build_store_instance(
         match resource_type {
             "events" => {
                 if !linked_capabilities.contains("events") {
-                    builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
+                    builder.link_capability::<Events<Builder>>()?;
                     let rsc_map = resource_map.clone();
                     builder.add_to_builder(|ctx: &mut SlightCtx| {
                         let state = Events::<Builder>::new(rsc_map);
@@ -167,7 +167,7 @@ fn build_store_instance(
             }
             _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("kv") {
-                    builder.link_capability::<Kv>("kv".to_string())?;
+                    builder.link_capability::<Kv>()?;
                     linked_capabilities.insert("kv".to_string());
                 }
 
@@ -188,7 +188,7 @@ fn build_store_instance(
             }
             _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("mq") {
-                    builder.link_capability::<Mq>("mq".to_string())?;
+                    builder.link_capability::<Mq>()?;
                     linked_capabilities.insert("mq".to_string());
                 }
 
@@ -209,7 +209,7 @@ fn build_store_instance(
             }
             _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("lockd") {
-                    builder.link_capability::<Lockd>("lockd".to_string())?;
+                    builder.link_capability::<Lockd>()?;
                     linked_capabilities.insert("lockd".to_string());
                 }
 
@@ -233,7 +233,7 @@ fn build_store_instance(
             }
             _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("pubsub") {
-                    builder.link_capability::<Pubsub>("pubsub".to_string())?;
+                    builder.link_capability::<Pubsub>()?;
                     linked_capabilities.insert("pubsub".to_string());
                 }
 
@@ -257,7 +257,7 @@ fn build_store_instance(
             }
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("configs") {
-                    builder.link_capability::<Configs>("configs".to_string())?;
+                    builder.link_capability::<Configs>()?;
                     linked_capabilities.insert("configs".to_string());
                 }
 
@@ -281,7 +281,7 @@ fn build_store_instance(
             }
             "http" => {
                 if !linked_capabilities.contains("http") {
-                    builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
+                    builder.link_capability::<Http<Builder>>()?;
                     linked_capabilities.insert("http".to_string());
                     let rsc_map = resource_map.clone();
                     builder.add_to_builder(move |ctx: &mut SlightCtx| {
