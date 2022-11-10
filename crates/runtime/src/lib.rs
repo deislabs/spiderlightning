@@ -7,7 +7,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use ctx::{FnModifySlightCtx, SlightCtxBuilder};
 use resource::{get_host_state, EventsData, HttpData};
-use slight_common::{WasmtimeBuildable, WasmtimeLinkable};
+use slight_common::{ResourceBuilder, WasmtimeBuildable, WasmtimeLinkable};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
@@ -94,8 +94,13 @@ impl Builder {
         Ok(self)
     }
 
-    pub fn add_to_builder(&mut self, get_cx: impl FnModifySlightCtx) -> &mut Self {
-        self.state_builder.add_to_builder(get_cx);
+    pub fn add_to_builder<T>(&mut self, name: String, resource: T) -> &mut Self
+    where
+        T: ResourceBuilder + Send + Sync + Clone + 'static,
+    {
+        self.state_builder.add_to_builder(|ctx: &mut SlightCtx| {
+            ctx.insert(name, T::build(resource).unwrap());
+        });
         self
     }
 }
@@ -144,24 +149,22 @@ pub fn default_wasi() -> Result<WasiCtx> {
 mod unittest {
     use std::collections::HashMap;
 
-    use slight_common::{ResourceBuilder, WasmtimeBuildable};
+    use slight_common::WasmtimeBuildable;
     use slight_kv::Kv;
 
-    use crate::{Builder, SlightCtx};
+    use crate::Builder;
 
     #[tokio::test]
     async fn test_builder_build() -> anyhow::Result<()> {
         let module = "./test/kv-test.wasm";
         assert!(std::path::Path::new(module).exists());
         let mut builder = Builder::from_module(module)?;
+        let kv = slight_kv::Kv::new("kv.filesystem".to_string(), HashMap::default());
 
         builder
             .link_wasi()?
             .link_capability::<Kv>()?
-            .add_to_builder(|ctx: &mut SlightCtx| {
-                let state = slight_kv::Kv::new("kv.filesystem".to_string(), HashMap::default());
-                ctx.insert("kv".to_string(), slight_kv::Kv::build(state).unwrap());
-            });
+            .add_to_builder("kv".to_string(), kv);
 
         let (_, _) = builder.build().await;
         Ok(())
