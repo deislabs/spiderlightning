@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use slight_common::{BasicState, Resource, ResourceBuilder, WasmtimeBuildable};
+use slight_common::{BasicState, Resource, WasmtimeBuildable};
 use slight_events::Events;
 use slight_events_api::StateTable;
 use slight_http::Http;
@@ -18,7 +18,6 @@ use slight_runtime::{
     // ctx::{SlightCtxBuilder, State},
     Builder,
     Ctx,
-    SlightCtx,
 };
 use slight_runtime_configs::Configs;
 use spiderlightning::core::slightfile::{Capability, TomlFile};

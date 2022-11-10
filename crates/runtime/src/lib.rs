@@ -5,7 +5,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use ctx::{FnModifySlightCtx, SlightCtxBuilder};
+use ctx::{SlightCtxBuilder};
 use resource::{get_host_state, EventsData, HttpData};
 use slight_common::{ResourceBuilder, WasmtimeBuildable, WasmtimeLinkable};
 use wasi_cap_std_sync::WasiCtxBuilder;
