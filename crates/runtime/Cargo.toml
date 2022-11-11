@@ -19,7 +19,6 @@ anyhow = { workspace = true }
 as-any = "0.3"
 wit-bindgen-wasmtime = { workspace = true }
 crossbeam-channel = "0.5"
-slight-events-api = { path = "../events-api" }
 slight-http-api = { path = "../http-api/" }
 tracing = { version = "0.1", features = ["log"] }
 slight-common = { path = "../common" }

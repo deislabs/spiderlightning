@@ -18,7 +18,6 @@ routerify = "3"
 routerify-cors = "3"
 crossbeam-utils = "0.8"
 crossbeam-channel = "0.5"
-slight-events-api = { path = "../events-api" }
 hyper = "0.14"
 futures = "0.3"
 tokio = { version = "1.18", features = ["full"] }

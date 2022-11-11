@@ -7,7 +7,6 @@ use anyhow::Result;
 use async_trait::async_trait;
 use implementors::{azsbus::AzSbusImplementor, filesystem::FilesystemImplementor};
 use slight_common::{impl_resource, BasicState};
-use uuid::Uuid;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -25,8 +24,8 @@ wit_error_rs::impl_from!(anyhow::Error, mq::Error::ErrorWithDescription);
 ///     user's `slightfile` and it is what allows us to dynamically
 ///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
-///     things received from the slight binary (i.e., the `resource_map`,
-///     the `config_type`, and the `config_toml_file_path`).
+///     things received from the slight binary (i.e., the `config_type`,
+///     and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct Mq {
     implementor: String,
@@ -82,12 +81,6 @@ impl mq::Mq for Mq {
 
         let inner = Self::Mq::new(&state.implementor, &state, name).await;
 
-        state
-            .resource_map
-            .lock()
-            .unwrap()
-            .set(inner.resource_descriptor.clone(), Box::new(inner.clone()));
-
         Ok(inner)
     }
 
@@ -111,9 +104,7 @@ impl mq::Mq for Mq {
 /// implementation.
 ///
 /// It holds:
-///     - a `mq_implementor` (i.e., a variant `MqImplementor` `enum`), and
-///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
-///     resource's instance).
+///     - a `mq_implementor` (i.e., a variant `MqImplementor` `enum`)
 ///
 /// It must `derive`:
 ///     - `Debug` due to a constraint on the associated type.
@@ -125,19 +116,15 @@ impl mq::Mq for Mq {
 #[derive(Debug, Clone)]
 pub struct MqInner {
     mq_implementor: MqImplementor,
-    resource_descriptor: String,
 }
 
 impl MqInner {
     async fn new(mq_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         Self {
             mq_implementor: MqImplementor::new(mq_implementor, slight_state, name).await,
-            resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
 }
-
-impl slight_events_api::Watch for MqInner {}
 
 /// This defines the available implementor implementations for the `Mq` interface.
 ///

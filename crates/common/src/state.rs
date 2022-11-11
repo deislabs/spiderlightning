@@ -3,20 +3,16 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use slight_events_api::ResourceMap;
-
 /// `BasicState` provides an attempt at a "fit-all" for basic scenarios
 /// of a host's state.
 ///
 /// It contains:
-///     - a `resource_map`,
 ///     - a `implementor`,
 ///     - a `name`,
 ///     - a `configs_map`, and
 ///     - the `slightfile_path`.
 #[derive(Clone, Default)]
 pub struct BasicState {
-    pub resource_map: ResourceMap,
     pub secret_store: Option<String>,
     pub implementor: String,
     pub name: String,
@@ -26,7 +22,6 @@ pub struct BasicState {
 
 impl BasicState {
     pub fn new(
-        resource_map: ResourceMap,
         secret_store: Option<String>,
         implementor: String,
         name: String,
@@ -34,7 +29,6 @@ impl BasicState {
         slightfile_path: impl AsRef<Path>,
     ) -> Self {
         Self {
-            resource_map,
             secret_store,
             implementor,
             name,

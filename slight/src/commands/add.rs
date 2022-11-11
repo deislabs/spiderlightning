@@ -9,7 +9,6 @@ const GITHUB_URL: &str = "https://github.com/deislabs/spiderlightning/releases/d
 
 const KV_DOWNLOADS: [&str; 3] = ["kv", "types", "resources"];
 const CONFIGS_DOWNLOADS: [&str; 2] = ["configs", "types"];
-const EVENTS_DOWNLOADS: [&str; 4] = ["events", "event-handler", "types", "resources"];
 const HTTP_DOWNLOADS: [&str; 4] = ["http", "http-handler", "http-types", "types"];
 const LOCKD_DOWNLOADS: [&str; 3] = ["lockd", "types", "resources"];
 const MQ_DOWNLOADS: [&str; 3] = ["mq", "types", "resources"];
@@ -32,7 +31,6 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
     match what_to_add {
         _ if interface.eq("kv")
             | interface.eq("configs")
-            | interface.eq("events")
             | interface.eq("http")
             | interface.eq("lockd")
             | interface.eq("mq")
@@ -54,7 +52,7 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
             }
         }
         _ => {
-            panic!("invalid interface name (1): currently, slight only supports the download of 'configs', 'events', 'kv', 'mq', 'lockd', 'pubsub', and 'http'.")
+            panic!("invalid interface name (1): currently, slight only supports the download of 'configs', 'kv', 'mq', 'lockd', 'pubsub', and 'http'.")
         }
     }
     Ok(())
@@ -77,13 +75,12 @@ fn get_interface_downloads_by_name(name: &str) -> Vec<&str> {
     match name {
         _ if name.eq("kv") => KV_DOWNLOADS.to_vec(),
         _ if name.eq("configs") => CONFIGS_DOWNLOADS.to_vec(),
-        _ if name.eq("events") => EVENTS_DOWNLOADS.to_vec(),
         _ if name.eq("http") => HTTP_DOWNLOADS.to_vec(),
         _ if name.eq("lockd") => LOCKD_DOWNLOADS.to_vec(),
         _ if name.eq("mq") => MQ_DOWNLOADS.to_vec(),
         _ if name.eq("pubsub") => PUBSUB_DOWNLOADS.to_vec(),
         _ => {
-            panic!("invalid interface name (2): currently, slight only supports the download of 'configs', 'events', 'kv', 'mq', 'lockd', 'pubsub', and 'http'.")
+            panic!("invalid interface name (2): currently, slight only supports the download of 'configs', 'kv', 'mq', 'lockd', 'pubsub', and 'http'.")
         }
     }
 }

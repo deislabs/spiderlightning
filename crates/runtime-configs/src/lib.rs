@@ -5,7 +5,6 @@ use std::{collections::HashMap, path::Path};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use regex::Regex;
-use uuid::Uuid;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
 use slight_common::{impl_resource, BasicState};
@@ -26,8 +25,8 @@ wit_error_rs::impl_from!(anyhow::Error, configs::Error::ErrorWithDescription);
 ///     user's `slightfile` and it is what allows us to dynamically
 ///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
-///     things received from the slight binary (i.e., the `resource_map`,
-///     the `config_type`, and the `slightfile_path`).
+///     things received from the slight binary (i.e., the `config_type`
+///     and the `slightfile_path`).
 #[derive(Clone, Default)]
 pub struct Configs {
     implementor: String,
@@ -74,12 +73,6 @@ impl configs::Configs for Configs {
 
         let inner = Self::Configs::new(&state.implementor, &state);
 
-        state
-            .resource_map
-            .lock()
-            .unwrap()
-            .set(inner.resource_descriptor.clone(), Box::new(inner.clone()));
-
         Ok(inner)
     }
 
@@ -119,8 +112,6 @@ impl configs::Configs for Configs {
 ///
 /// It holds:
 ///     - a `configs_implementor` (i.e., a variant `ConfigsImplementor` `enum`), and
-///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
-///     resource's instance).
 ///
 /// It must `derive`:
 ///     - `Debug` due to a constraint on the associated type.
@@ -132,7 +123,6 @@ impl configs::Configs for Configs {
 #[derive(Debug, Clone)]
 pub struct ConfigsInner {
     configs_implementor: ConfigsImplementor,
-    resource_descriptor: String,
     slight_state: BasicState,
 }
 
@@ -140,13 +130,10 @@ impl ConfigsInner {
     fn new(configs_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
             configs_implementor: configs_implementor.into(),
-            resource_descriptor: Uuid::new_v4().to_string(),
             slight_state: slight_state.clone(),
         }
     }
 }
-
-impl slight_events_api::Watch for ConfigsInner {}
 
 /// This defines the available implementor implementations for the `Configs` interface.
 ///

@@ -15,7 +15,6 @@ anyhow = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
 slight-common = { path = "../common" }
-slight-events-api = { path = "../events-api" }
 slight-runtime-configs = { path = "../runtime-configs" }
 uuid = { version = "1.1", features = ["v4"] }
 tracing = { version = "0.1", features = ["log"] }

@@ -23,8 +23,6 @@ slight-lockd = { path = "../crates/lockd" }
 slight-pubsub = { path = "../crates/pubsub" }
 slight-runtime-configs = { path = "../crates/runtime-configs" }
 slight-common = { path = "../crates/common" }
-slight-events = { path = "../crates/events" }
-slight-events-api = { path = "../crates/events-api" }
 slight-http = { path = "../crates/http" }
 anyhow = { workspace = true }
 env_logger = "0.9"

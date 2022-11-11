@@ -6,7 +6,7 @@ use std::path::Path;
 use anyhow::Result;
 use async_trait::async_trait;
 use ctx::SlightCtxBuilder;
-use resource::{get_host_state, EventsData, HttpData};
+use resource::{get_host_state, HttpData};
 use slight_common::{CapabilityBuilder, WasmtimeBuildable, WasmtimeLinkable};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
@@ -21,7 +21,6 @@ pub type Ctx = RuntimeContext;
 /// This context contains the following resources:
 ///    - `wasi`: a wasi context
 ///    - `slight`: a slight context
-///    - `events_state`: events handler's data
 ///    - `http_state`: http handler's data
 ///
 /// The runtime context will be used inside of the `Builder`
@@ -30,17 +29,12 @@ pub type Ctx = RuntimeContext;
 pub struct RuntimeContext {
     pub wasi: Option<WasiCtx>,
     pub slight: SlightCtx,
-    pub events_state: EventsData,
     pub http_state: HttpData,
 }
 
 impl slight_common::Ctx for RuntimeContext {
     fn get_http_state_mut(&mut self) -> &mut HttpData {
         &mut self.http_state
-    }
-
-    fn get_events_state_mut(&mut self) -> &mut EventsData {
-        &mut self.events_state
     }
 
     fn get_host_state<T: 'static, TTable: 'static>(
@@ -114,7 +108,6 @@ impl WasmtimeBuildable for Builder {
         let ctx = RuntimeContext {
             wasi: Some(wasi),
             slight: self.state_builder.build(),
-            events_state: EventsData::default(),
             http_state: HttpData::default(),
         };
 

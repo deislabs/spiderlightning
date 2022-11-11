@@ -3,13 +3,11 @@ pub use crate::RuntimeContext;
 
 use as_any::Downcast;
 
-use slight_events_api::EventHandlerData;
 use slight_http_api::HttpHandlerData;
 pub use wasmtime::Linker;
 
-/// Guest data for event handler
+/// Guest data for http handler
 /// TODO (Joe): abstract this to a general guest data
-pub type EventsData = EventHandlerData;
 pub type HttpData = HttpHandlerData;
 
 /// Dynamically dispatch to respective host resource
