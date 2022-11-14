@@ -14,11 +14,7 @@ use slight_kv::Kv;
 use slight_lockd::Lockd;
 use slight_mq::Mq;
 use slight_pubsub::Pubsub;
-use slight_runtime::{
-    // ctx::{SlightCtxBuilder, State},
-    Builder,
-    Ctx,
-};
+use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
 use spiderlightning::core::slightfile::{Capability, TomlFile};
 use wit_bindgen_wasmtime::wasmtime::Store;
@@ -129,7 +125,6 @@ fn build_store_instance(
     module: impl AsRef<Path>,
 ) -> Result<Builder> {
     let mut builder = Builder::from_module(module)?;
-    // let mut slight_builder = SlightCtxBuilder::default();
     let mut linked_capabilities: HashSet<String> = HashSet::new();
     let mut capability_store: HashMap<String, BasicState> = HashMap::new();
 
@@ -228,6 +223,7 @@ fn build_store_instance(
                     builder
                         .link_capability::<Http<Builder>>()?
                         .add_to_builder("http".to_string(), http);
+                    linked_capabilities.insert("http".to_string());
                 } else {
                     bail!("the http capability was already linked");
                 }
@@ -238,7 +234,6 @@ fn build_store_instance(
         }
     }
 
-    // builder = builder.add_slight_states(slight_builder);
     Ok(builder)
 }
 

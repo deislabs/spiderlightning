@@ -60,7 +60,6 @@ pub struct Builder {
     linker: Linker<Ctx>,
     engine: Engine,
     module: Module,
-    // states_builder: SlightCtxBuilder<Self>,
     state_builder: SlightCtxBuilder,
 }
 
@@ -76,7 +75,6 @@ impl Builder {
             linker,
             engine,
             module,
-            // states_builder: SlightCtxBuilder::default(),
             state_builder: SlightCtxBuilder::default(),
         })
     }
