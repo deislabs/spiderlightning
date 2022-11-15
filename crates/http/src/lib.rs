@@ -236,20 +236,20 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
                     inner_builder = inner_builder.delete("/", handler::<T>);
                 }
             }
-            inner_routes.push(inner_builder.build().unwrap());
+            inner_routes.push(inner_builder.build().map_err(|e| anyhow::anyhow!(e))?);
         }
 
         // Create a scope for each inner route.
         for (route, built) in zip(router.routes.clone(), inner_routes) {
             outer_builder = outer_builder.scope(&route.route, built);
         }
-        let built = outer_builder.build().unwrap();
+        let built = outer_builder.build().map_err(|e| anyhow::anyhow!(e))?;
 
         // Log the routes for debugging purposes.
         log::debug!("{:#?}", built);
 
         // Defines the server
-        let service = RouterService::new(built).unwrap();
+        let service = RouterService::new(built).map_err(|e| anyhow::anyhow!(e))?;
         let addr = str_to_socket_address(address)?;
         let server = Server::bind(&addr).serve(service);
         // Create a channel to send the termination message
@@ -278,9 +278,17 @@ async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     let (parts, body) = request.into_parts();
 
     // Fetch states from the request, including the route name and builder.
-    let route = parts.data::<Route>().unwrap();
+    let route = parts
+        .data::<Route>()
+        .ok_or(http::Error::ErrorWithDescription(
+            "missing route".to_owned(),
+        ))?;
 
-    let instance_builder = parts.data::<Builder<T>>().unwrap();
+    let instance_builder = parts
+        .data::<Builder<T>>()
+        .ok_or(http::Error::ErrorWithDescription(
+            "missing builder".to_owned(),
+        ))?;
     let instance_builder = instance_builder.clone();
     let (mut store, instance) = instance_builder.owned_inner().build().await;
     // Perform conversion from the `hyper::Request` to `handle_http::Request`.
