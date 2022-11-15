@@ -280,15 +280,11 @@ async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     // Fetch states from the request, including the route name and builder.
     let route = parts
         .data::<Route>()
-        .ok_or(http::Error::ErrorWithDescription(
-            "missing route".to_owned(),
-        ))?;
+        .ok_or_else(|| http::Error::ErrorWithDescription("missing route".to_owned()))?;
 
     let instance_builder = parts
         .data::<Builder<T>>()
-        .ok_or(http::Error::ErrorWithDescription(
-            "missing builder".to_owned(),
-        ))?;
+        .ok_or_else(|| http::Error::ErrorWithDescription("missing builder".to_owned()))?;
     let instance_builder = instance_builder.clone();
     let (mut store, instance) = instance_builder.owned_inner().build().await;
     // Perform conversion from the `hyper::Request` to `handle_http::Request`.
