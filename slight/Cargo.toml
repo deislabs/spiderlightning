@@ -3,6 +3,8 @@ name = "slight"
 version = "0.2.0"
 edition = { workspace = true }
 authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [[bin]]
 name = "slight"

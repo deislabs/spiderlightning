@@ -4,11 +4,13 @@ version = "0.2.0"
 edition = { workspace = true }
 authors = { workspace = true }
 license = { workspace = true }
+repository = { workspace = true }
 
 [workspace.package]
 authors = ["DeisLabs Engineering Team"]
 edition = "2021"
 license = "MIT"
+repository = "https://github.com/deislabs/spiderlightning"
 
 [lib]
 doctest = false
