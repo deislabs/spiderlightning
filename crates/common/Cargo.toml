@@ -1,8 +1,8 @@
 [package]
 name = "slight-common"
 version = "0.1.0"
-edition = "2021"
-authors = ["DeisLabs Engineering Team"]
+edition = { workspace = true }
+authors = { workspace = true }
 
 [lib]
 test = false
@@ -14,9 +14,9 @@ doctest = false
 slight-events-api = { path = "../events-api" }
 slight-http-api = { path = "../http-api/" }
 as-any = "0.3"
-wasmtime = { version = "0.39", optional = true }
-anyhow = "1"
-async-trait = "0.1"
+wasmtime = { workspace = true, optional = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
 
 [features]
 default = ["wasmtime"]

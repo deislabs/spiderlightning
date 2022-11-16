@@ -1,28 +1,28 @@
 [package]
 name = "slight-runtime"
 version = "0.1.0"
-edition = "2021"
-authors = ["DeisLabs Engineering Team"]
+edition = { workspace = true }
+authors = { workspace = true }
 
 [lib]
 doctest = false
 test = false
 
 [dependencies]
-wasmtime = "0.39"
-wasmtime-wasi = "0.39"
-wasi-common = "0.39"
-wasi-cap-std-sync = "0.39"
-anyhow = "1"
+wasmtime = { workspace = true }
+wasmtime-wasi = { workspace = true }
+wasi-common = { workspace = true }
+wasi-cap-std-sync = { workspace = true }
+anyhow = { workspace = true }
 as-any = "0.3"
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0" }
+wit-bindgen-wasmtime = { workspace = true }
 crossbeam-channel = "0.5"
 slight-events-api = { path = "../events-api" }
 slight-http-api = { path = "../http-api/" }
 tracing = { version = "0.1", features = ["log"] }
 slight-common = { path = "../common" }
 dyn-clone = "1"
-async-trait = "0.1"
+async-trait = { workspace = true }
 
 [dev-dependencies]
 slight-kv = { path = "../kv" }
