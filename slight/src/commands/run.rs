@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use slight_common::{BasicState, Resource, WasmtimeBuildable};
+use slight_common::{BasicState, Capability, WasmtimeBuildable};
 use slight_events::Events;
 use slight_events_api::StateTable;
 use slight_http::Http;
@@ -16,7 +16,7 @@ use slight_mq::Mq;
 use slight_pubsub::Pubsub;
 use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
-use spiderlightning::core::slightfile::{Capability, TomlFile};
+use spiderlightning::core::slightfile::{Capability as TomlCapability, TomlFile};
 use wit_bindgen_wasmtime::wasmtime::Store;
 
 const KV_HOST_IMPLEMENTORS: [&str; 4] =
@@ -90,7 +90,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
 
 fn get_resource<'a, T>(store: &'a mut Store<Ctx>, scheme_name: &'a str) -> &'a mut T
 where
-    T: Resource,
+    T: Capability,
 {
     let err_msg = format!(
         "internal error: resource_map does not contain key: {}",
@@ -241,7 +241,7 @@ fn maybe_add_named_capability_to_store(
     specversion: &str,
     secret_store: Option<String>,
     capability_store: &mut HashMap<String, BasicState>,
-    c: Capability,
+    c: TomlCapability,
     resource_map: Arc<Mutex<StateTable>>,
     toml_file_path: impl AsRef<Path>,
 ) -> Result<()> {

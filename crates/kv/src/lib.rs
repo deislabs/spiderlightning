@@ -117,15 +117,15 @@ impl KvImplementors {
     }
 }
 
-// This implements the `ResourceBuilder`, and `Resource` trait
-// for our `Kv` `struct`, and `ResourceTables` for our `kv::KvTables` object.
+// This implements the `CapabilityBuilder`, and `Capability` trait
+// for our `Kv` `struct`, and `CapabilityIndexTable` for our `kv::KvTables` object.
 //
-// The `ResourceBuilder` trait provides two functions:
+// The `CapabilityBuilder` trait provides two functions:
 // - `add_to_linker`, and
 // - `builda_data`.
 //
-// The `Resource` and `ResourceTables` traits are empty traits that allow
-// grouping of resources through `dyn Resource`, and `dyn ResourceTables`.
+// The `Capability` and `CapabilityIndexTable` traits are empty traits that allow
+// grouping of resources through `dyn Capability`, and `dyn CapabilityIndexTable`.
 impl_resource!(
     Kv,
     kv::KvTables<Kv>,

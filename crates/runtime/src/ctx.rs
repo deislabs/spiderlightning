@@ -61,7 +61,7 @@ impl SlightCtxBuilder {
 
 #[cfg(test)]
 mod unittest {
-    use slight_common::{Resource, ResourceTables};
+    use slight_common::{Capability, CapabilityIndexTable};
 
     use super::{SlightCtx, SlightCtxBuilder};
 
@@ -75,9 +75,9 @@ mod unittest {
         _phantom: std::marker::PhantomData<T>,
     }
 
-    impl Resource for Dummy {}
-    impl Resource for Dummy2 {}
-    impl ResourceTables<dyn Resource> for Dummy2Table<Dummy2> {}
+    impl Capability for Dummy {}
+    impl Capability for Dummy2 {}
+    impl CapabilityIndexTable for Dummy2Table<Dummy2> {}
 
     #[test]
     fn test_slight_builder() {

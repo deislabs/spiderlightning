@@ -10,7 +10,7 @@ SpiderLightning is a set of consistent, modular, and portable interfaces that pr
 
 ## SpiderLightning capabilities
 
-| Capability | Implemented Resource Examples | Future Resource Examples | Description | Work Status |
+| Capability | Implemented Capability Examples | Future Capability Examples | Description | Work Status |
 | - | - | - | - | - |
 | distributed lock service | [etcd](https://etcd.io/) | [Apache Zookeeper](https://zookeeper.apache.org/) | / | ✅ `lockd.wit` |
 | key-value store | Local Filesystem, [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs), [AWS DynamoDB](https://aws.amazon.com/dynamodb/), | [Redis](https://redis.io/), [Azure CosmosDB](https://azure.microsoft.com/en-us/services/cosmos-db/) | / | ✅ `kv.wit` |

@@ -42,15 +42,15 @@ impl Mq {
     }
 }
 
-// This implements the `ResourceBuilder`, and `Resource` trait
-// for our `Mq` `struct`, and `ResourceTables` for our `mq::MqTables` object.
+// This implements the `CapabilityBuilder`, and `Capability` trait
+// for our `Mq` `struct`, and `CapabilityIndexTable` for our `mq::MqTables` object.
 //
-// The `ResourceBuilder` trait provides two functions:
+// The `CapabilityBuilder` trait provides two functions:
 // - `add_to_linker`, and
 // - `builda_data`.
 //
-// The `Resource` and `ResourceTables` traits are empty traits that allow
-// grouping of resources through `dyn Resource`, and `dyn ResourceTables`.
+// The `Capability` and `CapabilityIndexTable` traits are empty traits that allow
+// grouping of resources through `dyn Capability`, and `dyn CapabilityIndexTable`.
 impl_resource!(
     Mq,
     mq::MqTables<Mq>,

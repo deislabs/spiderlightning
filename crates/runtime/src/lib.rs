@@ -7,7 +7,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use ctx::SlightCtxBuilder;
 use resource::{get_host_state, EventsData, HttpData};
-use slight_common::{ResourceBuilder, WasmtimeBuildable, WasmtimeLinkable};
+use slight_common::{CapabilityBuilder, WasmtimeBuildable, WasmtimeLinkable};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
@@ -94,7 +94,7 @@ impl Builder {
 
     pub fn add_to_builder<T>(&mut self, name: String, resource: T) -> &mut Self
     where
-        T: ResourceBuilder + Send + Sync + Clone + 'static,
+        T: CapabilityBuilder + Send + Sync + Clone + 'static,
     {
         self.state_builder.add_to_builder(|ctx: &mut SlightCtx| {
             ctx.insert(name, T::build(resource).unwrap());
