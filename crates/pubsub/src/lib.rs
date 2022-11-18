@@ -27,15 +27,6 @@ wit_error_rs::impl_from!(
 /// The `Pubsub` structure is what will implement the `pubsub::Pubsub` trait
 /// coming from the generated code of off `pubsub.wit`.
 ///
-/// It maintains a `host_state`.
-pub struct Pubsub {
-    host_state: PubsubState,
-}
-
-impl_resource!(Pubsub, pubsub::PubsubTables<Pubsub>, PubsubState);
-
-/// This is the type of the `host_state` property from our `Pubsub` structure.
-///
 /// It holds:
 ///     - a `pubsub_implementor` `String` — this comes directly from a
 ///     user's `slightfile` and it is what allows us to dynamically
@@ -43,13 +34,14 @@ impl_resource!(Pubsub, pubsub::PubsubTables<Pubsub>, PubsubState);
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `config_toml_file_path`).
+
 #[derive(Clone, Default)]
-pub struct PubsubState {
+pub struct Pubsub {
     implementor: String,
     capability_store: HashMap<String, BasicState>,
 }
 
-impl PubsubState {
+impl Pubsub {
     pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
         Self {
             implementor,
@@ -57,6 +49,14 @@ impl PubsubState {
         }
     }
 }
+
+impl_resource!(
+    Pubsub,
+    pubsub::PubsubTables<Pubsub>,
+    PubsubState,
+    pubsub::add_to_linker,
+    "pubsub".to_string()
+);
 
 #[async_trait]
 impl pubsub::Pubsub for Pubsub {
@@ -67,7 +67,7 @@ impl pubsub::Pubsub for Pubsub {
         // populate our inner pubsub object w/ the state received from `slight`
         // (i.e., what type of pubsub implementor we are using), and the assigned
         // name of the object.
-        let state = self.host_state.capability_store.get(name).unwrap().clone();
+        let state = self.capability_store.get(name).unwrap().clone();
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
@@ -86,18 +86,14 @@ impl pubsub::Pubsub for Pubsub {
         // populate our inner pubsub object w/ the state received from `slight`
         // (i.e., what type of pubsub implementor we are using), and the assigned
         // name of the object.
-        let state = if let Some(r) = self.host_state.capability_store.get(name) {
+        let state = if let Some(r) = self.capability_store.get(name) {
             r.clone()
-        } else if let Some(r) = self
-            .host_state
-            .capability_store
-            .get(&self.host_state.implementor)
-        {
+        } else if let Some(r) = self.capability_store.get(&self.implementor) {
             r.clone()
         } else {
             panic!(
                 "could not find capability under name '{}' for implementor '{}'",
-                name, &self.host_state.implementor
+                name, &self.implementor
             );
         };
 

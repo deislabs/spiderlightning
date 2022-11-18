@@ -6,20 +6,17 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use slight_common::{BasicState, Resource};
-use slight_events::{Events, EventsState};
+use slight_common::{BasicState, Capability, WasmtimeBuildable};
+use slight_events::Events;
 use slight_events_api::StateTable;
 use slight_http::Http;
 use slight_kv::Kv;
 use slight_lockd::Lockd;
 use slight_mq::Mq;
 use slight_pubsub::Pubsub;
-use slight_runtime::{
-    ctx::{SlightCtxBuilder, State},
-    Builder, Ctx,
-};
+use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
-use spiderlightning::core::slightfile::{Capability, TomlFile};
+use spiderlightning::core::slightfile::{Capability as TomlCapability, TomlFile};
 use wit_bindgen_wasmtime::wasmtime::Store;
 
 const KV_HOST_IMPLEMENTORS: [&str; 4] =
@@ -39,7 +36,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
     let resource_map = Arc::new(Mutex::new(StateTable::default()));
 
     let host_builder = build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
-    let (mut store, instance) = host_builder.build().await?;
+    let (mut store, instance) = host_builder.build().await;
 
     let caps = toml.capability.as_ref().unwrap();
 
@@ -93,7 +90,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
 
 fn get_resource<'a, T>(store: &'a mut Store<Ctx>, scheme_name: &'a str) -> &'a mut T
 where
-    T: Resource,
+    T: Capability,
 {
     let err_msg = format!(
         "internal error: resource_map does not contain key: {}",
@@ -106,7 +103,6 @@ where
     store
         .data_mut()
         .slight
-        .get_mut()
         .get_mut(scheme_name)
         .expect(&err_msg)
         .0
@@ -128,8 +124,7 @@ fn build_store_instance(
     resource_map: Arc<Mutex<StateTable>>,
     module: impl AsRef<Path>,
 ) -> Result<Builder> {
-    let mut builder = Builder::new_default(module)?;
-    let mut slight_builder = SlightCtxBuilder::default();
+    let mut builder = Builder::from_module(module)?;
     let mut linked_capabilities: HashSet<String> = HashSet::new();
     let mut capability_store: HashMap<String, BasicState> = HashMap::new();
 
@@ -147,132 +142,88 @@ fn build_store_instance(
             bail!("unsupported toml spec version");
         };
 
+        if resource_type != "events" && resource_type != "http" {
+            maybe_add_named_capability_to_store(
+                &toml.specversion,
+                toml.secret_store.clone(),
+                &mut capability_store,
+                c.clone(),
+                resource_map.clone(),
+                &toml_file_path,
+            )?;
+        }
+
         match resource_type {
             "events" => {
                 if !linked_capabilities.contains("events") {
-                    builder.link_capability::<Events<Builder>>(resource_type.to_string())?;
+                    let events = Events::<Builder>::new(resource_map.clone());
+                    builder
+                        .link_capability::<Events<Builder>>()?
+                        .add_to_builder("events".to_string(), events);
                     linked_capabilities.insert("events".to_string());
-
-                    slight_builder =
-                        slight_builder.add_state(State::Events(EventsState::<Builder>::new(
-                            resource_map.clone(),
-                        )))?;
                 } else {
                     bail!("the events capability was already linked");
                 }
             }
             _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("kv") {
-                    builder.link_capability::<Kv>("kv".to_string())?;
+                    builder.link_capability::<Kv>()?;
                     linked_capabilities.insert("kv".to_string());
                 }
 
-                maybe_add_named_capability_to_store(
-                    &toml.specversion,
-                    toml.secret_store.clone(),
-                    &mut capability_store,
-                    c.clone(),
-                    resource_map.clone(),
-                    &toml_file_path,
-                )?;
-
-                slight_builder = slight_builder.add_state(State::Kv(slight_kv::KvState::new(
-                    resource_type.to_string(),
-                    capability_store.clone(),
-                )))?;
+                let resource =
+                    slight_kv::Kv::new(resource_type.to_string(), capability_store.clone());
+                builder.add_to_builder("kv".to_string(), resource);
             }
             _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("mq") {
-                    builder.link_capability::<Mq>("mq".to_string())?;
+                    builder.link_capability::<Mq>()?;
                     linked_capabilities.insert("mq".to_string());
                 }
 
-                maybe_add_named_capability_to_store(
-                    &toml.specversion,
-                    toml.secret_store.clone(),
-                    &mut capability_store,
-                    c.clone(),
-                    resource_map.clone(),
-                    &toml_file_path,
-                )?;
-
-                slight_builder = slight_builder.add_state(State::Mq(slight_mq::MqState::new(
-                    resource_type.to_string(),
-                    capability_store.clone(),
-                )))?;
+                let resource =
+                    slight_mq::Mq::new(resource_type.to_string(), capability_store.clone());
+                builder.add_to_builder("mq".to_string(), resource);
             }
             _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("lockd") {
-                    builder.link_capability::<Lockd>("lockd".to_string())?;
+                    builder.link_capability::<Lockd>()?;
                     linked_capabilities.insert("lockd".to_string());
                 }
 
-                maybe_add_named_capability_to_store(
-                    &toml.specversion,
-                    toml.secret_store.clone(),
-                    &mut capability_store,
-                    c.clone(),
-                    resource_map.clone(),
-                    &toml_file_path,
-                )?;
-
-                slight_builder =
-                    slight_builder.add_state(State::Lockd(slight_lockd::LockdState::new(
-                        resource_type.to_string(),
-                        capability_store.clone(),
-                    )))?;
+                let resource =
+                    slight_lockd::Lockd::new(resource_type.to_string(), capability_store.clone());
+                builder.add_to_builder("lockd".to_string(), resource);
             }
             _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("pubsub") {
-                    builder.link_capability::<Pubsub>("pubsub".to_string())?;
+                    builder.link_capability::<Pubsub>()?;
                     linked_capabilities.insert("pubsub".to_string());
                 }
 
-                maybe_add_named_capability_to_store(
-                    &toml.specversion,
-                    toml.secret_store.clone(),
-                    &mut capability_store,
-                    c.clone(),
-                    resource_map.clone(),
-                    &toml_file_path,
-                )?;
-
-                slight_builder =
-                    slight_builder.add_state(State::PubSub(slight_pubsub::PubsubState::new(
-                        resource_type.to_string(),
-                        capability_store.clone(),
-                    )))?;
+                let resource =
+                    slight_pubsub::Pubsub::new(resource_type.to_string(), capability_store.clone());
+                builder.add_to_builder("pubsub".to_string(), resource);
             }
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("configs") {
-                    builder.link_capability::<Configs>("configs".to_string())?;
+                    builder.link_capability::<Configs>()?;
                     linked_capabilities.insert("configs".to_string());
                 }
 
-                maybe_add_named_capability_to_store(
-                    &toml.specversion,
-                    toml.secret_store.clone(),
-                    &mut capability_store,
-                    c.clone(),
-                    resource_map.clone(),
-                    &toml_file_path,
-                )?;
-
-                slight_builder = slight_builder.add_state(State::RtCfg(
-                    slight_runtime_configs::ConfigsState::new(
-                        resource_type.to_string(),
-                        capability_store.clone(),
-                    ),
-                ))?;
+                let resource = slight_runtime_configs::Configs::new(
+                    resource_type.to_string(),
+                    capability_store.clone(),
+                );
+                builder.add_to_builder("configs".to_string(), resource);
             }
             "http" => {
                 if !linked_capabilities.contains("http") {
-                    builder.link_capability::<Http<Builder>>(resource_type.to_string())?;
+                    let http = slight_http::Http::<Builder>::new(resource_map.clone());
+                    builder
+                        .link_capability::<Http<Builder>>()?
+                        .add_to_builder("http".to_string(), http);
                     linked_capabilities.insert("http".to_string());
-
-                    slight_builder = slight_builder.add_state(State::Http(
-                        slight_http::HttpState::<Builder>::new(resource_map.clone()),
-                    ))?;
                 } else {
                     bail!("the http capability was already linked");
                 }
@@ -283,7 +234,6 @@ fn build_store_instance(
         }
     }
 
-    builder = builder.add_slight_states(slight_builder);
     Ok(builder)
 }
 
@@ -291,7 +241,7 @@ fn maybe_add_named_capability_to_store(
     specversion: &str,
     secret_store: Option<String>,
     capability_store: &mut HashMap<String, BasicState>,
-    c: Capability,
+    c: TomlCapability,
     resource_map: Arc<Mutex<StateTable>>,
     toml_file_path: impl AsRef<Path>,
 ) -> Result<()> {

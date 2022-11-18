@@ -21,15 +21,6 @@ wit_error_rs::impl_from!(anyhow::Error, configs::Error::ErrorWithDescription);
 /// The `Configs` structure is what will implement the `configs::Configs` trait
 /// coming from the generated code of off `configs.wit`.
 ///
-/// It maintains a `host_state`.
-pub struct Configs {
-    host_state: ConfigsState,
-}
-
-impl_resource!(Configs, configs::ConfigsTables<Configs>, ConfigsState);
-
-/// This is the type of the `host_state` property from our `Configs` structure.
-///
 /// It holds:
 ///     - a `lockd_implementor` `String` — this comes directly from a
 ///     user's `slightfile` and it is what allows us to dynamically
@@ -38,12 +29,12 @@ impl_resource!(Configs, configs::ConfigsTables<Configs>, ConfigsState);
 ///     things received from the slight binary (i.e., the `resource_map`,
 ///     the `config_type`, and the `slightfile_path`).
 #[derive(Clone, Default)]
-pub struct ConfigsState {
+pub struct Configs {
     implementor: String,
     capability_store: HashMap<String, BasicState>,
 }
 
-impl ConfigsState {
+impl Configs {
     pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
         Self {
             implementor,
@@ -51,6 +42,14 @@ impl ConfigsState {
         }
     }
 }
+
+impl_resource!(
+    Configs,
+    configs::ConfigsTables<Configs>,
+    ConfigsState,
+    configs::add_to_linker,
+    "configs".to_string()
+);
 
 #[async_trait]
 impl configs::Configs for Configs {
@@ -60,18 +59,14 @@ impl configs::Configs for Configs {
         // populate our inner configs object w/ the state received from `slight`
         // (i.e., what type of configs implementor we are using), and the assigned
         // name of the object.
-        let state = if let Some(r) = self.host_state.capability_store.get(name) {
+        let state = if let Some(r) = self.capability_store.get(name) {
             r.clone()
-        } else if let Some(r) = self
-            .host_state
-            .capability_store
-            .get(&self.host_state.implementor)
-        {
+        } else if let Some(r) = self.capability_store.get(&self.implementor) {
             r.clone()
         } else {
             panic!(
                 "could not find capability under name '{}' for implementor '{}'",
-                name, &self.host_state.implementor
+                name, &self.implementor
             );
         };
 

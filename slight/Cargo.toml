@@ -1,8 +1,10 @@
 [package]
 name = "slight"
 version = "0.2.0"
-edition = "2021"
-authors = ["DeisLabs Engineering Team"]
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [[bin]]
 name = "slight"
@@ -24,11 +26,11 @@ slight-common = { path = "../crates/common" }
 slight-events = { path = "../crates/events" }
 slight-events-api = { path = "../crates/events-api" }
 slight-http = { path = "../crates/http" }
-anyhow = "1"
+anyhow = { workspace = true }
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
 tokio = { version = "1", features = ["full"] }
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0"}
+wit-bindgen-wasmtime = { workspace = true }
 clap = { version = "3", features = ["derive"] }
 toml = "0.5"
 as-any = "0.3"

@@ -1,15 +1,17 @@
 [package]
 name = "slight-events-api"
 version = "0.1.0"
-edition = "2021"
-authors = [ "DeisLabs Engineering Team" ]
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [lib]
 test = false
 doctest = false
 
 [dependencies]
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0", features = ["async"] }
+wit-bindgen-wasmtime = { workspace = true }
 cloudevents-sdk = { version = "0.5" }
 crossbeam-channel = "0.5"
-anyhow = "1"
+anyhow = { workspace = true }

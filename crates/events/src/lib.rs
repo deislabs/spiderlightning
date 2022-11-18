@@ -12,7 +12,7 @@ use crate::events::Error;
 use crate::events::Observable as GeneratedObservable;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use futures::executor::block_on;
-use slight_common::{impl_resource, Buildable, Builder, Ctx};
+use slight_common::{impl_resource, Builder, Ctx, WasmtimeBuildable};
 use slight_events_api::{AttributesReader, Event, EventHandler, EventParam, ResourceMap};
 use uuid::Uuid;
 
@@ -21,24 +21,13 @@ wit_error_rs::impl_error!(Error);
 wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
 
 /// Events capability
-#[derive(Default)]
-pub struct Events<T: Buildable> {
-    host_state: EventsState<T>,
-}
-
-impl<T: Buildable> Events<T> {
-    pub fn from_state(host_state: EventsState<T>) -> Self {
-        Self { host_state }
-    }
-}
-
 #[derive(Default, Clone)]
-pub struct EventsState<T: Buildable> {
+pub struct Events<T: WasmtimeBuildable> {
     resource_map: ResourceMap,
     builder: Option<Builder<T>>,
 }
 
-impl<T: Buildable> EventsState<T> {
+impl<T: WasmtimeBuildable> Events<T> {
     pub fn new(resource_map: ResourceMap) -> Self {
         Self {
             resource_map,
@@ -73,16 +62,16 @@ impl From<GeneratedObservable<'_>> for Observable {
     }
 }
 
-impl<T: Buildable> Events<T> {
+impl<T: WasmtimeBuildable> Events<T> {
     /// Host will call this function to update store and event_handler
     pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
-        self.host_state.builder = Some(builder);
+        self.builder = Some(builder);
         Ok(())
     }
 }
 
 #[async_trait]
-impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
+impl<T: WasmtimeBuildable + Send + Sync + 'static> events::Events for Events<T> {
     type Events = EventsGuest;
     async fn events_get(&mut self) -> Result<Self::Events, Error> {
         Ok(Default::default())
@@ -107,7 +96,7 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
         for ob in &self_.observables {
             // check if observable has changed
 
-            let map = self.host_state.resource_map.clone();
+            let map = self.resource_map.clone();
 
             let mut map = map.lock().unwrap();
             let resource = map.get_mut(&ob.rd).unwrap();
@@ -116,7 +105,7 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
         thread::scope(|s| -> Result<()> {
             let mut thread_handles = vec![];
             for ob in &self_.observables {
-                let builder = self.host_state.builder.as_ref().unwrap().clone();
+                let builder = self.builder.as_ref().unwrap().clone();
                 let receiver = ob.receiver.clone();
                 let receive_thread = s.spawn(move |_| loop {
                     let recv = receiver
@@ -125,7 +114,8 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
                         .recv_deadline(Instant::now() + Duration::from_secs(duration));
                     match recv {
                         Ok(mut event) => {
-                            let (mut store, instance) = block_on(builder.inner().build());
+                            let (mut store, instance) =
+                                block_on(builder.clone().owned_inner().build());
                             let handler = EventHandler::new(&mut store, &instance, |ctx| {
                                 ctx.get_events_state_mut()
                             })?;
@@ -184,4 +174,11 @@ impl<T: Buildable + Send + Sync + 'static> events::Events for Events<T> {
     }
 }
 
-impl_resource!(Events<T>, EventsTables<Events<T>>, EventsState<T>, T);
+impl_resource!(
+    Events<T>,
+    EventsTables<Events<T>>,
+    EventsState<T>,
+    T,
+    events::add_to_linker,
+    "events".to_string()
+);
