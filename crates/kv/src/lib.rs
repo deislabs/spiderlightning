@@ -1,20 +1,14 @@
 mod implementors;
 pub mod providers;
 
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use crossbeam_channel::Sender;
 use implementors::{
     awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
     filesystem::FilesystemImplementor, redis::RedisImplementor,
 };
-use slight_events_api::Event;
-use uuid::Uuid;
 
 use slight_common::{impl_resource, BasicState};
 
@@ -34,8 +28,8 @@ wit_error_rs::impl_from!(anyhow::Error, kv::Error::ErrorWithDescription);
 ///     user's `slightfile` and it is what allows us to dynamically
 ///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
-///     things received from the slight binary (i.e., the `resource_map`,
-///     the `config_type`, and the `config_toml_file_path`).
+///     things received from the slight binary (i.e., the `config_type`
+///     and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct Kv {
     implementor: String,
@@ -69,23 +63,12 @@ impl Kv {
 #[derive(Debug, Clone)]
 pub struct KvInner {
     kv_implementor: KvImplementors,
-    resource_descriptor: String,
 }
 
 impl KvInner {
     async fn new(kv_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         Self {
             kv_implementor: KvImplementors::new(kv_implementor, slight_state, name).await,
-            resource_descriptor: Uuid::new_v4().to_string(),
-        }
-    }
-}
-
-impl slight_events_api::Watch for KvInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        match &mut self.kv_implementor {
-            KvImplementors::Filesystem(fi) => fi.watch(key, sender),
-            _ => todo!(),
         }
     }
 }
@@ -159,12 +142,6 @@ impl kv::Kv for Kv {
 
         let inner = Self::Kv::new(&state.implementor, &state, name).await;
 
-        state
-            .resource_map
-            .lock()
-            .unwrap()
-            .set(inner.resource_descriptor.clone(), Box::new(inner.clone()));
-
         Ok(inner)
     }
 
@@ -209,12 +186,5 @@ impl kv::Kv for Kv {
             KvImplementors::Redis(ri) => ri.delete(key)?,
         };
         Ok(())
-    }
-
-    async fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
-        Ok(Observable {
-            rd: self_.resource_descriptor.clone(),
-            key: key.to_string(),
-        })
     }
 }

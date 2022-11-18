@@ -52,8 +52,6 @@ members = [
     "crates/http-handler-macro",
     "crates/pubsub",
     "crates/runtime",
-    "crates/events",
-    "crates/events-api",
     "crates/runtime-configs",
     "crates/common",
 ]

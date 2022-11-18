@@ -69,7 +69,6 @@ install-slight:
 .PHONY: build-rust
 build-rust:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/configs-demo/Cargo.toml & \
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/watch-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/kv-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml & \
@@ -93,7 +92,6 @@ run-rust:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvawsdynamodb_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvazblob_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/kv-demo/kvredis_slightfile.toml' run -m ./examples/kv-demo/target/wasm32-wasi/release/kv-demo.wasm
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/watch-demo/slightfile.toml' run -m ./examples/watch-demo/target/wasm32-wasi/release/watch-demo.wasm & python ./examples/watch-demo/simulate.py
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/usersecrets_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/envvars_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/azapp_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
@@ -111,7 +109,6 @@ run-rust:
 .PHONY: clean-rust
 clean-rust:
 	cargo clean --manifest-path ./examples/configs-demo/Cargo.toml & \
-    cargo clean --manifest-path ./examples/watch-demo/Cargo.toml & \
     cargo clean --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
     cargo clean --manifest-path ./examples/kv-demo/Cargo.toml & \
     cargo clean --manifest-path ./examples/mq-sender-demo/Cargo.toml & \

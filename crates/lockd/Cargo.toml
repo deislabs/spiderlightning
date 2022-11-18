@@ -13,12 +13,9 @@ doctest = false
 [dependencies]
 wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
-slight-events-api = { path = "../events-api" }
 slight-common = { path = "../common" }
 slight-runtime-configs = { path = "../runtime-configs" }
 anyhow = { workspace = true }
-uuid = { version = "1.1", features = ["v4"] }
-crossbeam-channel = "0.5"
 tracing = { version = "0.1", features = ["log"] }
 url = "2.2"
 async-trait = { workspace = true }

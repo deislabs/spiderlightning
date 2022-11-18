@@ -15,10 +15,7 @@ anyhow = { workspace = true }
 wit-error-rs = { workspace = true }
 slight-common = { path = "../common" }
 rand = "0.8"
-crossbeam-channel = "0.5"
-uuid = { version = "1.1", features = ["v4"] }
 spiderlightning = { path = "../.." }
-slight-events-api = { path = "../events-api" }
 toml = "0.5"
 short-crypt = "1"
 azure-app-configuration = { git = "https://github.com/danbugs/azure-app-configuration.git", rev = "e6cc5bdd3d5dedb6fb48f0dcdf0ec674c8033cf6" }

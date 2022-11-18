@@ -10,7 +10,6 @@ use implementors::{
     mosquitto::MosquittoImplementor,
 };
 use slight_common::{impl_resource, BasicState};
-use uuid::Uuid;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -32,8 +31,8 @@ wit_error_rs::impl_from!(
 ///     user's `slightfile` and it is what allows us to dynamically
 ///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
-///     things received from the slight binary (i.e., the `resource_map`,
-///     the `config_type`, and the `config_toml_file_path`).
+///     things received from the slight binary (i.e., the `config_type`
+///     and the `config_toml_file_path`).
 
 #[derive(Clone, Default)]
 pub struct Pubsub {
@@ -73,12 +72,6 @@ impl pubsub::Pubsub for Pubsub {
 
         let inner = Self::Pub::new(&state.implementor, &state).await;
 
-        state
-            .resource_map
-            .lock()
-            .unwrap()
-            .set(inner.resource_descriptor.clone(), Box::new(inner.clone()));
-
         Ok(inner)
     }
 
@@ -100,12 +93,6 @@ impl pubsub::Pubsub for Pubsub {
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
         let inner = Self::Sub::new(&state.implementor, &state).await;
-
-        state
-            .resource_map
-            .lock()
-            .unwrap()
-            .set(inner.resource_descriptor.clone(), Box::new(inner.clone()));
 
         Ok(inner)
     }
@@ -145,8 +132,6 @@ impl pubsub::Pubsub for Pubsub {
 ///
 /// It holds:
 ///     - a `pub_implementor` (i.e., a variant `PubImplementor` `enum`), and
-///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
-///     resource's instance).
 ///
 /// It must `derive`:
 ///     - `Debug` due to a constraint on the associated type.
@@ -158,16 +143,12 @@ impl pubsub::Pubsub for Pubsub {
 #[derive(Debug, Clone)]
 pub struct PubInner {
     pub_implementor: PubImplementor,
-    resource_descriptor: String,
 }
-
-impl slight_events_api::Watch for PubInner {}
 
 impl PubInner {
     async fn new(pub_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
             pub_implementor: PubImplementor::new(pub_implementor, slight_state).await,
-            resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
 }
@@ -176,8 +157,6 @@ impl PubInner {
 ///
 /// It holds:
 ///     - a `sub_implementor` (i.e., a variant `SubImplementor` `enum`), and
-///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
-///     resource's instance).
 ///
 /// It must `derive`:
 ///     - `Debug` due to a constraint on the associated type.
@@ -189,16 +168,12 @@ impl PubInner {
 #[derive(Debug, Clone)]
 pub struct SubInner {
     sub_implementor: SubImplementor,
-    resource_descriptor: String,
 }
-
-impl slight_events_api::Watch for SubInner {}
 
 impl SubInner {
     async fn new(sub_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
             sub_implementor: SubImplementor::new(sub_implementor, slight_state).await,
-            resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
 }

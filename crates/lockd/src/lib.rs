@@ -5,7 +5,6 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use uuid::Uuid;
 
 use implementors::etcd::EtcdImplementor;
 use slight_common::{impl_resource, BasicState};
@@ -30,8 +29,8 @@ wit_error_rs::impl_from!(
 ///     user's `slightfile` and it is what allows us to dynamically
 ///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
-///     things received from the slight binary (i.e., the `resource_map`,
-///     the `config_type`, and the `config_toml_file_path`).
+///     things received from the slight binary (i.e., the `config_type`
+///     and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct Lockd {
     implementor: String,
@@ -78,12 +77,6 @@ impl lockd::Lockd for Lockd {
 
         let inner = Self::Lockd::new(&state.implementor, &state).await;
 
-        state
-            .resource_map
-            .lock()
-            .unwrap()
-            .set(inner.resource_descriptor.clone(), Box::new(inner.clone()));
-
         Ok(inner)
     }
 
@@ -128,8 +121,6 @@ impl lockd::Lockd for Lockd {
 ///
 /// It holds:
 ///     - a `lockd_implementor` (i.e., a variant `LockdImplementor` `enum`), and
-///     - a `resource_descriptor` (i.e., an UUID that uniquely identifies
-///     resource's instance).
 ///
 /// It must `derive`:
 ///     - `Debug` due to a constraint on the associated type.
@@ -141,19 +132,15 @@ impl lockd::Lockd for Lockd {
 #[derive(Debug, Clone)]
 pub struct LockdInner {
     lockd_implementor: LockdImplementor,
-    resource_descriptor: String,
 }
 
 impl LockdInner {
     async fn new(lockd_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
             lockd_implementor: LockdImplementor::new(lockd_implementor, slight_state).await,
-            resource_descriptor: Uuid::new_v4().to_string(),
         }
     }
 }
-
-impl slight_events_api::Watch for LockdInner {}
 
 /// This defines the available implementor implementations for the `Lockd` interface.
 ///

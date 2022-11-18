@@ -15,7 +15,6 @@ use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
 use routerify_cors::enable_cors_all;
 use slight_common::{impl_resource, Builder, Ctx, WasmtimeBuildable};
-use slight_events_api::ResourceMap;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
 
@@ -113,15 +112,16 @@ impl ServerInner {
 /// Http capability
 #[derive(Clone)]
 pub struct Http<T: WasmtimeBuildable> {
-    _resource_map: ResourceMap,
     builder: Option<Builder<T>>,
     closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
 }
 
-impl<T: WasmtimeBuildable> Http<T> {
-    pub fn new(_resource_map: ResourceMap) -> Self {
+impl<T> Default for Http<T>
+where
+    T: WasmtimeBuildable,
+{
+    fn default() -> Self {
         Self {
-            _resource_map,
             builder: None,
             closer: None,
         }

@@ -1,14 +1,11 @@
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
-    sync::{Arc, Mutex},
 };
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use slight_common::{BasicState, Capability, WasmtimeBuildable};
-use slight_events::Events;
-use slight_events_api::StateTable;
 use slight_http::Http;
 use slight_kv::Kv;
 use slight_lockd::Lockd;
@@ -33,24 +30,17 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
 
     tracing::info!("Starting slight");
 
-    let resource_map = Arc::new(Mutex::new(StateTable::default()));
-
-    let host_builder = build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
+    let host_builder = build_store_instance(&toml, &toml_file_path, &module)?;
     let (mut store, instance) = host_builder.build().await;
 
     let caps = toml.capability.as_ref().unwrap();
 
-    // looking for the events and http capabilities.
-    let events_enabled;
+    // looking for the http capability.
     let http_enabled;
 
     if toml.specversion == "0.1" {
-        events_enabled = caps.iter().any(|cap| cap.name == "events");
         http_enabled = caps.iter().any(|cap| cap.name == "http");
     } else if toml.specversion == "0.2" {
-        events_enabled = caps
-            .iter()
-            .any(|cap| cap.resource.as_ref().expect("missing resource field") == "events");
         http_enabled = caps
             .iter()
             .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
@@ -58,18 +48,9 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
         bail!("unsupported toml spec version");
     }
 
-    if events_enabled {
-        log::debug!("Events capability enabled");
-        let guest_builder =
-            build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
-        let event_handler_resource: &mut Events<Builder> = get_resource(&mut store, "events");
-        event_handler_resource.update_state(slight_common::Builder::new(guest_builder))?;
-    }
-
     if http_enabled {
         log::debug!("Http capability enabled");
-        let guest_builder: Builder =
-            build_store_instance(&toml, &toml_file_path, resource_map.clone(), &module)?;
+        let guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module)?;
         let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
         http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
@@ -93,11 +74,11 @@ where
     T: Capability,
 {
     let err_msg = format!(
-        "internal error: resource_map does not contain key: {}",
+        "internal error: slight context does not contain key: {}",
         scheme_name
     );
     let err_msg2 = format!(
-        "internal error: resource map contains key {} but can't downcast",
+        "internal error: slight context contains key {} but can't downcast",
         scheme_name
     );
     store
@@ -121,7 +102,6 @@ async fn shutdown_signal() {
 fn build_store_instance(
     toml: &TomlFile,
     toml_file_path: impl AsRef<Path>,
-    resource_map: Arc<Mutex<StateTable>>,
     module: impl AsRef<Path>,
 ) -> Result<Builder> {
     let mut builder = Builder::from_module(module)?;
@@ -142,29 +122,17 @@ fn build_store_instance(
             bail!("unsupported toml spec version");
         };
 
-        if resource_type != "events" && resource_type != "http" {
+        if resource_type != "http" {
             maybe_add_named_capability_to_store(
                 &toml.specversion,
                 toml.secret_store.clone(),
                 &mut capability_store,
                 c.clone(),
-                resource_map.clone(),
                 &toml_file_path,
             )?;
         }
 
         match resource_type {
-            "events" => {
-                if !linked_capabilities.contains("events") {
-                    let events = Events::<Builder>::new(resource_map.clone());
-                    builder
-                        .link_capability::<Events<Builder>>()?
-                        .add_to_builder("events".to_string(), events);
-                    linked_capabilities.insert("events".to_string());
-                } else {
-                    bail!("the events capability was already linked");
-                }
-            }
             _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("kv") {
                     builder.link_capability::<Kv>()?;
@@ -219,7 +187,7 @@ fn build_store_instance(
             }
             "http" => {
                 if !linked_capabilities.contains("http") {
-                    let http = slight_http::Http::<Builder>::new(resource_map.clone());
+                    let http = slight_http::Http::<Builder>::default();
                     builder
                         .link_capability::<Http<Builder>>()?
                         .add_to_builder("http".to_string(), http);
@@ -229,7 +197,7 @@ fn build_store_instance(
                 }
             }
             _ => {
-                bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'events', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
+                bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
             }
         }
     }
@@ -242,14 +210,12 @@ fn maybe_add_named_capability_to_store(
     secret_store: Option<String>,
     capability_store: &mut HashMap<String, BasicState>,
     c: TomlCapability,
-    resource_map: Arc<Mutex<StateTable>>,
     toml_file_path: impl AsRef<Path>,
 ) -> Result<()> {
     if specversion == "0.1" {
         if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone())
         {
             e.insert(BasicState::new(
-                resource_map,
                 secret_store,
                 c.name.clone(),
                 c.name.clone(),
@@ -269,7 +235,6 @@ fn maybe_add_named_capability_to_store(
             };
 
             e.insert(BasicState::new(
-                resource_map,
                 None,
                 resource,
                 c.name.clone(),

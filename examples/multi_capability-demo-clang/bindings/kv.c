@@ -102,16 +102,9 @@ void kv_expected_list_string_error_free(kv_expected_list_string_error_t *ptr) {
     kv_error_free(&ptr->val.err);
   }
 }
-void kv_expected_observable_error_free(kv_expected_observable_error_t *ptr) {
-  if (!ptr->is_err) {
-    kv_observable_free(&ptr->val.ok);
-  } else {
-    kv_error_free(&ptr->val.err);
-  }
-}
 
 __attribute__((aligned(4)))
-static uint8_t RET_AREA[20];
+static uint8_t RET_AREA[16];
 __attribute__((import_module("kv"), import_name("kv::open")))
 void __wasm_import_kv_kv_open(int32_t, int32_t, int32_t);
 void kv_kv_open(kv_string_t *name, kv_expected_kv_error_t *ret0) {
@@ -239,38 +232,6 @@ void kv_kv_delete(kv_kv_t self, kv_string_t *key, kv_expected_unit_error_t *ret0
       expected.is_err = false;
       
       
-      break;
-    }
-    case 1: {
-      expected.is_err = true;
-      kv_error_t variant;
-      variant.tag = (int32_t) (*((uint8_t*) (ptr + 4)));
-      switch ((int32_t) variant.tag) {
-        case 0: {
-          variant.val.error_with_description = (kv_string_t) { (char*)(*((int32_t*) (ptr + 8))), (size_t)(*((int32_t*) (ptr + 12))) };
-          break;
-        }
-      }
-      
-      expected.val.err = variant;
-      break;
-    }
-  }*ret0 = expected;
-}
-__attribute__((import_module("kv"), import_name("kv::watch")))
-void __wasm_import_kv_kv_watch(int32_t, int32_t, int32_t, int32_t);
-void kv_kv_watch(kv_kv_t self, kv_string_t *key, kv_expected_observable_error_t *ret0) {
-  int32_t ptr = (int32_t) &RET_AREA;
-  __wasm_import_kv_kv_watch((self).idx, (int32_t) (*key).ptr, (int32_t) (*key).len, ptr);
-  kv_expected_observable_error_t expected;
-  switch ((int32_t) (*((uint8_t*) (ptr + 0)))) {
-    case 0: {
-      expected.is_err = false;
-      
-      expected.val.ok = (kv_observable_t) {
-        (kv_string_t) { (char*)(*((int32_t*) (ptr + 4))), (size_t)(*((int32_t*) (ptr + 8))) },
-        (kv_string_t) { (char*)(*((int32_t*) (ptr + 12))), (size_t)(*((int32_t*) (ptr + 16))) },
-      };
       break;
     }
     case 1: {
