@@ -31,9 +31,17 @@ echo ">>> DONLOADING FROM: $URL..."
 curl -L -s $URL --output $TAR
 echo ">>> DOWNLOADED BINARY TAR."
 
-if [[ "${OS}" == "Linux" || "${OS}" == "Darwin" ]]
+if [[ "${OS}" == "Linux" ]]
 then
   tar -xf $TAR
+elif [[ "${OS}" == "Darwin" ]]
+then
+    if [[ "${ARCH}" == "arm64" ]]
+    then
+        tar -xf $TAR --strip-components=1
+    else
+        tar -xf $TAR
+    fi
 else
   echo ">>> THIS INSTALLATION METHOD ONLY WORKS FOR MACOS AND LINUX."
   exit 1
