@@ -36,7 +36,12 @@ then
   tar -xf $TAR
 elif [[ "${OS}" == "Darwin" ]]
 then
-  tar -xf $TAR --strip-components=1
+    if [[ "${ARCH}" == "arm64" ]]
+    then
+        tar -xf $TAR --strip-components=1
+    else
+        tar -xf $TAR
+    fi
 else
   echo ">>> THIS INSTALLATION METHOD ONLY WORKS FOR MACOS AND LINUX."
   exit 1
