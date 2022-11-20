@@ -14,8 +14,7 @@ use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
 use routerify_cors::enable_cors_all;
-use slight_common::{impl_resource, Buildable, Builder, Ctx, HostState};
-use slight_events_api::ResourceMap;
+use slight_common::{impl_resource, Builder, Ctx, WasmtimeBuildable};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
 
@@ -111,56 +110,39 @@ impl ServerInner {
 }
 
 /// Http capability
-pub struct Http<T: Buildable> {
-    host_state: HttpState<T>,
-}
-
-impl<T: Buildable> Http<T> {
-    pub fn from_state(host_state: HttpState<T>) -> Self {
-        Self { host_state }
-    }
-}
-
-impl<T: Buildable + Send + Sync + 'static> Http<T> {
-    pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
-        self.host_state.builder = Some(builder);
-        Ok(())
-    }
-
-    pub fn close(&mut self) {
-        if let Some(c) = self.host_state.closer.clone() {
-            // server was started, so send the termination message
-            let _ = c.lock().unwrap().send(());
-        }
-    }
-
-    pub fn build_state(state: HttpState<T>) -> HostState {
-        let http = Self { host_state: state };
-        (
-            Box::new(http),
-            Some(Box::new(http::HttpTables::<Http<T>>::default())),
-        )
-    }
-}
-
 #[derive(Clone)]
-pub struct HttpState<T: Buildable> {
-    _resource_map: ResourceMap,
+pub struct Http<T: WasmtimeBuildable> {
     builder: Option<Builder<T>>,
     closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
 }
 
-impl<T: Buildable> HttpState<T> {
-    pub fn new(_resource_map: ResourceMap) -> Self {
+impl<T> Default for Http<T>
+where
+    T: WasmtimeBuildable,
+{
+    fn default() -> Self {
         Self {
-            _resource_map,
             builder: None,
             closer: None,
         }
     }
 }
 
-impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
+impl<T: WasmtimeBuildable + Send + Sync + 'static> Http<T> {
+    pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
+        self.builder = Some(builder);
+        Ok(())
+    }
+
+    pub fn close(&mut self) {
+        if let Some(c) = self.closer.clone() {
+            // server was started, so send the termination message
+            let _ = c.lock().unwrap().send(());
+        }
+    }
+}
+
+impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
     type Router = RouterInner;
     type Server = ServerInner;
 
@@ -226,7 +208,7 @@ impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
         router: &Self::Router,
     ) -> Result<Self::Server, Error> {
         // Shared states for all routes
-        let instance_builder = self.host_state.builder.as_ref().unwrap().clone();
+        let instance_builder = self.builder.as_ref().unwrap().clone();
 
         // The outer builder is used to define the route paths, while creating a scope
         // for the inner builder which passes states to the route handler.
@@ -254,20 +236,20 @@ impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
                     inner_builder = inner_builder.delete("/", handler::<T>);
                 }
             }
-            inner_routes.push(inner_builder.build().unwrap());
+            inner_routes.push(inner_builder.build().map_err(|e| anyhow::anyhow!(e))?);
         }
 
         // Create a scope for each inner route.
         for (route, built) in zip(router.routes.clone(), inner_routes) {
             outer_builder = outer_builder.scope(&route.route, built);
         }
-        let built = outer_builder.build().unwrap();
+        let built = outer_builder.build().map_err(|e| anyhow::anyhow!(e))?;
 
         // Log the routes for debugging purposes.
         log::debug!("{:#?}", built);
 
         // Defines the server
-        let service = RouterService::new(built).unwrap();
+        let service = RouterService::new(built).map_err(|e| anyhow::anyhow!(e))?;
         let addr = str_to_socket_address(address)?;
         let server = Server::bind(&addr).serve(service);
         // Create a channel to send the termination message
@@ -277,7 +259,7 @@ impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
         tokio::task::spawn(graceful);
 
         let arc_tx = Arc::new(Mutex::new(tx));
-        self.host_state.closer = Some(arc_tx.clone());
+        self.closer = Some(arc_tx.clone());
         Ok(ServerInner { closer: arc_tx })
     }
 
@@ -289,18 +271,22 @@ impl<T: Buildable + Send + Sync + 'static> http::Http for Http<T> {
     }
 }
 
-async fn handler<T: Buildable + Send + Sync + 'static>(
+async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     request: hyper::Request<Body>,
 ) -> Result<hyper::Response<Body>, http::Error> {
     log::debug!("received request: {:?}", &request);
     let (parts, body) = request.into_parts();
 
     // Fetch states from the request, including the route name and builder.
-    let route = parts.data::<Route>().unwrap();
+    let route = parts
+        .data::<Route>()
+        .ok_or_else(|| http::Error::ErrorWithDescription("missing route".to_owned()))?;
 
-    let instance_builder = parts.data::<Builder<T>>().unwrap();
-    let (mut store, instance) = instance_builder.inner().build().await;
-
+    let instance_builder = parts
+        .data::<Builder<T>>()
+        .ok_or_else(|| http::Error::ErrorWithDescription("missing builder".to_owned()))?;
+    let instance_builder = instance_builder.clone();
+    let (mut store, instance) = instance_builder.owned_inner().build().await;
     // Perform conversion from the `hyper::Request` to `handle_http::Request`.
     let params = parts.params();
     let params: Vec<(&str, &str)> = params
@@ -362,7 +348,14 @@ fn str_to_socket_address(s: &str) -> Result<SocketAddr> {
     }
 }
 
-impl_resource!(Http<T>, HttpTables<Http<T>>, HttpState<T>, T);
+impl_resource!(
+    Http<T>,
+    HttpTables<Http<T>>,
+    HttpState<T>,
+    T,
+    http::add_to_linker,
+    "http".to_string()
+);
 
 #[cfg(test)]
 mod unittests {

@@ -1,20 +1,14 @@
 mod implementors;
 pub mod providers;
 
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use crossbeam_channel::Sender;
 use implementors::{
     awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
     filesystem::FilesystemImplementor, redis::RedisImplementor,
 };
-use slight_events_api::Event;
-use uuid::Uuid;
 
 use slight_common::{impl_resource, BasicState};
 
@@ -29,33 +23,20 @@ wit_error_rs::impl_from!(anyhow::Error, kv::Error::ErrorWithDescription);
 /// The `Kv` structure is what will implement the `kv::Kv` trait
 /// coming from the generated code of off `kv.wit`.
 ///
-/// It maintains a `host_state`.
-pub struct Kv {
-    host_state: KvState,
-}
-
-impl Kv {
-    pub fn from_state(host_state: KvState) -> Self {
-        Self { host_state }
-    }
-}
-
-/// This is the type of the `host_state` property from our `Kv` structure.
-///
 /// It holds:
 ///     - a `kv_implementor` `String` — this comes directly from a
 ///     user's `slightfile` and it is what allows us to dynamically
 ///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
-///     things received from the slight binary (i.e., the `resource_map`,
-///     the `config_type`, and the `config_toml_file_path`).
+///     things received from the slight binary (i.e., the `config_type`
+///     and the `config_toml_file_path`).
 #[derive(Clone, Default)]
-pub struct KvState {
+pub struct Kv {
     implementor: String,
     capability_store: HashMap<String, BasicState>,
 }
 
-impl KvState {
+impl Kv {
     pub fn new(implementor: String, kv_store: HashMap<String, BasicState>) -> Self {
         Self {
             implementor,
@@ -82,23 +63,12 @@ impl KvState {
 #[derive(Debug, Clone)]
 pub struct KvInner {
     kv_implementor: KvImplementors,
-    resource_descriptor: String,
 }
 
 impl KvInner {
     async fn new(kv_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         Self {
             kv_implementor: KvImplementors::new(kv_implementor, slight_state, name).await,
-            resource_descriptor: Uuid::new_v4().to_string(),
-        }
-    }
-}
-
-impl slight_events_api::Watch for KvInner {
-    fn watch(&mut self, key: &str, sender: Arc<Mutex<Sender<Event>>>) -> Result<()> {
-        match &mut self.kv_implementor {
-            KvImplementors::Filesystem(fi) => fi.watch(key, sender),
-            _ => todo!(),
         }
     }
 }
@@ -130,16 +100,22 @@ impl KvImplementors {
     }
 }
 
-// This implements the `ResourceBuilder`, and `Resource` trait
-// for our `Kv` `struct`, and `ResourceTables` for our `kv::KvTables` object.
+// This implements the `CapabilityBuilder`, and `Capability` trait
+// for our `Kv` `struct`, and `CapabilityIndexTable` for our `kv::KvTables` object.
 //
-// The `ResourceBuilder` trait provides two functions:
+// The `CapabilityBuilder` trait provides two functions:
 // - `add_to_linker`, and
 // - `builda_data`.
 //
-// The `Resource` and `ResourceTables` traits are empty traits that allow
-// grouping of resources through `dyn Resource`, and `dyn ResourceTables`.
-impl_resource!(Kv, kv::KvTables<Kv>, KvState);
+// The `Capability` and `CapabilityIndexTable` traits are empty traits that allow
+// grouping of resources through `dyn Capability`, and `dyn CapabilityIndexTable`.
+impl_resource!(
+    Kv,
+    kv::KvTables<Kv>,
+    KvState,
+    kv::add_to_linker,
+    "kv".to_string()
+);
 
 /// This is the implementation for the generated `kv::Kv` trait from the `kv.wit` file.
 #[async_trait]
@@ -151,30 +127,20 @@ impl kv::Kv for Kv {
         // (i.e., what type of kv implementor we are using), and the assigned
         // name of the object.
 
-        let state = if let Some(r) = self.host_state.capability_store.get(name) {
+        let state = if let Some(r) = self.capability_store.get(name) {
             r.clone()
-        } else if let Some(r) = self
-            .host_state
-            .capability_store
-            .get(&self.host_state.implementor)
-        {
+        } else if let Some(r) = self.capability_store.get(&self.implementor) {
             r.clone()
         } else {
             panic!(
                 "could not find capability under name '{}' for implementor '{}'",
-                name, &self.host_state.implementor
+                name, &self.implementor
             );
         };
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
         let inner = Self::Kv::new(&state.implementor, &state, name).await;
-
-        state
-            .resource_map
-            .lock()
-            .unwrap()
-            .set(inner.resource_descriptor.clone(), Box::new(inner.clone()));
 
         Ok(inner)
     }
@@ -220,12 +186,5 @@ impl kv::Kv for Kv {
             KvImplementors::Redis(ri) => ri.delete(key)?,
         };
         Ok(())
-    }
-
-    async fn kv_watch(&mut self, self_: &Self::Kv, key: &str) -> Result<Observable, Error> {
-        Ok(Observable {
-            rd: self_.resource_descriptor.clone(),
-            key: key.to_string(),
-        })
     }
 }

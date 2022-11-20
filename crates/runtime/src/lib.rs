@@ -1,17 +1,18 @@
-pub mod ctx;
+mod ctx;
 pub mod resource;
 
 use std::path::Path;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use ctx::{SlightCtx, SlightCtxBuilder};
-use resource::{EventsData, HttpData, Linkable};
-use slight_common::Buildable;
+use ctx::SlightCtxBuilder;
+use resource::{get_host_state, HttpData};
+use slight_common::{CapabilityBuilder, WasmtimeBuildable, WasmtimeLinkable};
 use wasi_cap_std_sync::WasiCtxBuilder;
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
 
+pub use ctx::SlightCtx;
 /// Runtime Context for the wasm module
 pub type Ctx = RuntimeContext;
 
@@ -20,7 +21,6 @@ pub type Ctx = RuntimeContext;
 /// This context contains the following resources:
 ///    - `wasi`: a wasi context
 ///    - `slight`: a slight context
-///    - `events_state`: events handler's data
 ///    - `http_state`: http handler's data
 ///
 /// The runtime context will be used inside of the `Builder`
@@ -29,7 +29,6 @@ pub type Ctx = RuntimeContext;
 pub struct RuntimeContext {
     pub wasi: Option<WasiCtx>,
     pub slight: SlightCtx,
-    pub events_state: EventsData,
     pub http_state: HttpData,
 }
 
@@ -38,8 +37,11 @@ impl slight_common::Ctx for RuntimeContext {
         &mut self.http_state
     }
 
-    fn get_events_state_mut(&mut self) -> &mut EventsData {
-        &mut self.events_state
+    fn get_host_state<T: 'static, TTable: 'static>(
+        &mut self,
+        resource_key: String,
+    ) -> (&mut T, &mut TTable) {
+        get_host_state(self, resource_key)
     }
 }
 
@@ -52,23 +54,22 @@ pub struct Builder {
     linker: Linker<Ctx>,
     engine: Engine,
     module: Module,
-    states_builder: SlightCtxBuilder<Self>,
+    state_builder: SlightCtxBuilder,
 }
 
 impl Builder {
     /// Create a new runtime builder.
-    pub fn new_default(module: impl AsRef<Path>) -> Result<Self> {
+    pub fn from_module(module: impl AsRef<Path>) -> Result<Self> {
         let engine = Engine::new(&default_config()?)?;
         let mut linker = Linker::new(&engine);
         linker.allow_shadowing(true);
-        let states_builder = SlightCtxBuilder::<Self>::default();
         let module = Module::from_file(&engine, module)?;
 
         Ok(Self {
             linker,
             engine,
             module,
-            states_builder,
+            state_builder: SlightCtxBuilder::default(),
         })
     }
 
@@ -79,51 +80,44 @@ impl Builder {
     }
 
     /// Link a host capability to the wasmtime::Linker
-    pub fn link_capability<T: Linkable>(&mut self, name: String) -> Result<&mut Self> {
-        tracing::log::info!("Adding capability: {}", &name);
-        // self.store
-        //     .data_mut()
-        //     .data
-        //     .insert(name, T::build_data(state)?);
+    pub fn link_capability<T: WasmtimeLinkable>(&mut self) -> Result<&mut Self> {
+        tracing::log::info!("Adding capability: {}", std::any::type_name::<T>());
         T::add_to_linker(&mut self.linker)?;
-        // self.states.insert(name, Box::new(state));
         Ok(self)
     }
 
-    /// Add slight states to the RuntimeContext
-    pub fn add_slight_states(mut self, state_builder: SlightCtxBuilder<Self>) -> Self {
-        self.states_builder = state_builder;
+    pub fn add_to_builder<T>(&mut self, name: String, resource: T) -> &mut Self
+    where
+        T: CapabilityBuilder + Send + Sync + Clone + 'static,
+    {
+        self.state_builder.add_to_builder(|ctx: &mut SlightCtx| {
+            ctx.insert(name, T::build(resource).unwrap());
+        });
         self
     }
+}
+
+#[async_trait]
+impl WasmtimeBuildable for Builder {
+    type Ctx = Ctx;
 
     /// Instantiate the guest module.
-    pub async fn build(&self) -> Result<(Store<Ctx>, Instance)> {
-        let wasi = default_wasi()?;
+    async fn build(self) -> (Store<Self::Ctx>, Instance) {
+        let wasi = default_wasi().unwrap();
 
-        let mut ctx = RuntimeContext {
+        let ctx = RuntimeContext {
             wasi: Some(wasi),
-            slight: SlightCtx::default(),
-            events_state: EventsData::default(),
+            slight: self.state_builder.build(),
             http_state: HttpData::default(),
         };
-
-        ctx.slight = self.states_builder.clone().build();
 
         let mut store = Store::new(&self.engine, ctx);
         let instance = self
             .linker
             .instantiate_async(&mut store, &self.module)
-            .await?;
-        Ok((store, instance))
-    }
-}
-
-#[async_trait]
-impl Buildable for Builder {
-    type Ctx = Ctx;
-
-    async fn build(&self) -> (Store<Self::Ctx>, Instance) {
-        self.build().await.unwrap()
+            .await
+            .unwrap();
+        (store, instance)
     }
 }
 
@@ -140,4 +134,30 @@ pub fn default_config() -> Result<Config> {
 pub fn default_wasi() -> Result<WasiCtx> {
     let ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
     Ok(ctx.build())
+}
+
+#[cfg(test)]
+mod unittest {
+    use std::collections::HashMap;
+
+    use slight_common::WasmtimeBuildable;
+    use slight_kv::Kv;
+
+    use crate::Builder;
+
+    #[tokio::test]
+    async fn test_builder_build() -> anyhow::Result<()> {
+        let module = "./test/kv-test.wasm";
+        assert!(std::path::Path::new(module).exists());
+        let mut builder = Builder::from_module(module)?;
+        let kv = slight_kv::Kv::new("kv.filesystem".to_string(), HashMap::default());
+
+        builder
+            .link_wasi()?
+            .link_capability::<Kv>()?
+            .add_to_builder("kv".to_string(), kv);
+
+        let (_, _) = builder.build().await;
+        Ok(())
+    }
 }

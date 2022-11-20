@@ -1,22 +1,23 @@
 [package]
 name = "slight-http"
 version = "0.1.0"
-edition = "2021"
-authors = ["DeisLabs Engineering Team"]
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
 
 [lib]
 doctest = false
 
 [dependencies]
-anyhow = "1"
+anyhow = { workspace = true }
 wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "6f80d65a483fe929a79e2661825d99842227b146" }
 url = "2.2"
-wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
+wit-error-rs = { workspace = true }
 routerify = "3"
 routerify-cors = "3"
 crossbeam-utils = "0.8"
 crossbeam-channel = "0.5"
-slight-events-api = { path = "../events-api" }
 hyper = "0.14"
 futures = "0.3"
 tokio = { version = "1.18", features = ["full"] }

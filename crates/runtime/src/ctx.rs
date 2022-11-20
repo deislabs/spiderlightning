@@ -1,24 +1,10 @@
-use anyhow::Result;
-use slight_common::{Buildable, HostState, ResourceBuilder};
 use std::collections::HashMap;
 
-/// A clonable state enum for all the capabilities.
-///
-/// This is used in the builder to build the runtime context.
-#[derive(Clone)]
-pub enum State<T: Buildable> {
-    Kv(slight_kv::KvState),
-    Mq(slight_mq::MqState),
-    Http(slight_http::HttpState<T>),
-    PubSub(slight_pubsub::PubsubState),
-    Lockd(slight_lockd::LockdState),
-    RtCfg(slight_runtime_configs::ConfigsState),
-    Events(slight_events::EventsState<T>),
-}
+use slight_common::HostState;
 
 /// A runtime context for slight capabilities.
 ///
-/// It is a wrapper around a HashMap of HostState, which are
+/// It is a HashMap of HostState, which are
 /// generated bindings for the capabilities, and are linked to
 /// the `wasmtime::Linker`.
 ///
@@ -26,128 +12,102 @@ pub enum State<T: Buildable> {
 /// constructed using the `SlightCtxBuilder`.
 ///
 /// The `SlightCtx` is not cloneable, but the `SlightCtxBuilder` is.
-#[derive(Default)]
-pub struct SlightCtx(HashMap<String, HostState>);
+pub type SlightCtx = HashMap<String, HostState>;
 
-impl SlightCtx {
-    /// Get a reference to the inner HashMap.
-    pub fn get_ref(&self) -> &HashMap<String, HostState> {
-        &self.0
-    }
+pub trait FnModifySlightCtx:
+    FnOnce(&mut SlightCtx) + FnModifySlightCtxClone + Send + Sync + 'static
+{
+}
 
-    /// Get a mutable reference to the inner HashMap.
-    pub fn get_mut(&mut self) -> &mut HashMap<String, HostState> {
-        &mut self.0
+impl<T: FnOnce(&mut SlightCtx) + Send + Sync + Clone + 'static> FnModifySlightCtx for T {}
+
+pub trait FnModifySlightCtxClone {
+    fn clone_box(&self) -> Box<dyn FnModifySlightCtx>;
+}
+
+impl<T> FnModifySlightCtxClone for T
+where
+    T: 'static + Clone + FnModifySlightCtx,
+{
+    fn clone_box(&self) -> Box<dyn FnModifySlightCtx> {
+        Box::new(self.clone())
     }
 }
 
-/// A builder for the `SlightCtx`.
-///
-/// It knows how to build the `HostState` given a `State` enum, because it
-/// is generic to the `Buildable` trait, which has a `build` method.
-#[derive(Clone)]
-pub struct SlightCtxBuilder<T: Buildable + Send + Sync> {
-    states: Vec<State<T>>,
-}
-
-impl<T: Buildable + Send + Sync> Default for SlightCtxBuilder<T> {
-    fn default() -> Self {
-        Self { states: vec![] }
+impl Clone for Box<dyn FnModifySlightCtx> {
+    fn clone(&self) -> Box<dyn FnModifySlightCtx> {
+        (**self).clone_box()
     }
 }
 
-impl<T: Buildable + Send + Sync + 'static> SlightCtxBuilder<T> {
-    /// Create a new `SlightCtxBuilder` with empty states.
-    pub fn new() -> Self {
-        Self { states: Vec::new() }
-    }
+#[derive(Clone, Default)]
+pub struct SlightCtxBuilder {
+    pub slight_ctx_modify_fns: Vec<Box<dyn FnModifySlightCtx>>,
+}
 
-    /// Add a new state to the builder.
-    pub fn add_state(mut self, state: State<T>) -> Result<Self> {
-        self.states.push(state);
-        Ok(self)
-    }
-
-    /// Build the `SlightCtx` from the states.
+impl SlightCtxBuilder {
     pub fn build(self) -> SlightCtx {
         let mut ctx = SlightCtx::default();
-        for state in self.states.into_iter() {
-            match state {
-                State::Kv(state) => {
-                    ctx.0
-                        .insert("kv".to_string(), slight_kv::Kv::build(state).unwrap());
-                }
-                State::Http(state) => {
-                    ctx.0
-                        .insert("http".to_string(), slight_http::Http::build(state).unwrap());
-                }
-                State::Mq(state) => {
-                    ctx.0
-                        .insert("mq".to_string(), slight_mq::Mq::build(state).unwrap());
-                }
-                State::PubSub(state) => {
-                    ctx.0.insert(
-                        "pubsub".to_string(),
-                        slight_pubsub::Pubsub::build(state).unwrap(),
-                    );
-                }
-                State::Lockd(state) => {
-                    ctx.0.insert(
-                        "lockd".to_string(),
-                        slight_lockd::Lockd::build(state).unwrap(),
-                    );
-                }
-                State::RtCfg(state) => {
-                    ctx.0.insert(
-                        "configs".to_string(),
-                        slight_runtime_configs::Configs::build(state).unwrap(),
-                    );
-                }
-                State::Events(state) => {
-                    ctx.0.insert(
-                        "events".to_string(),
-                        slight_events::Events::build(state).unwrap(),
-                    );
-                }
-            };
+        for f in self.slight_ctx_modify_fns {
+            f(&mut ctx);
         }
         ctx
+    }
+    pub fn add_to_builder(&mut self, get_cx: impl FnModifySlightCtx) -> &mut Self {
+        self.slight_ctx_modify_fns.push(Box::new(get_cx));
+        self
     }
 }
 
 #[cfg(test)]
-mod unittests {
-    use std::sync::{Arc, Mutex};
+mod unittest {
+    use slight_common::{Capability, CapabilityIndexTable};
 
-    use super::*;
-    use crate::Builder;
-    use anyhow::Result;
-    use slight_events_api::StateTable;
+    use super::{SlightCtx, SlightCtxBuilder};
+
+    struct Dummy {}
+
+    #[derive(Default)]
+    struct Dummy2 {}
+
+    #[derive(Default)]
+    struct Dummy2Table<T> {
+        _phantom: std::marker::PhantomData<T>,
+    }
+
+    impl Capability for Dummy {}
+    impl Capability for Dummy2 {}
+    impl CapabilityIndexTable for Dummy2Table<Dummy2> {}
 
     #[test]
-    fn test_ctx_builder() -> Result<()> {
-        let resource_map = Arc::new(Mutex::new(StateTable::default()));
-        let builder = SlightCtxBuilder::<Builder>::new()
-            .add_state(State::Kv(slight_kv::KvState::default()))?
-            .add_state(State::Mq(slight_mq::MqState::default()))?
-            .add_state(State::PubSub(slight_pubsub::PubsubState::default()))?
-            .add_state(State::Lockd(slight_lockd::LockdState::default()))?
-            .add_state(State::RtCfg(slight_runtime_configs::ConfigsState::default()))?
-            .add_state(State::Http(slight_http::HttpState::new(
-                resource_map.clone(),
-            )))?
-            .add_state(State::Events(slight_events::EventsState::new(resource_map)))?;
+    fn test_slight_builder() {
+        let mut builder = SlightCtxBuilder::default();
 
-        let ctx = builder.build();
-        assert_eq!(ctx.0.len(), 7);
-        assert!(ctx.0.contains_key("kv"));
-        assert!(ctx.0.contains_key("mq"));
-        assert!(ctx.0.contains_key("pubsub"));
-        assert!(ctx.0.contains_key("lockd"));
-        assert!(ctx.0.contains_key("configs"));
-        assert!(ctx.0.contains_key("http"));
-        assert!(ctx.0.contains_key("events"));
+        builder.add_to_builder(|slight_ctx: &mut SlightCtx| {
+            slight_ctx.insert("dummy".to_string(), (Box::new(Dummy {}), None));
+        });
 
-        Ok(())
+        builder.add_to_builder(|slight_ctx: &mut SlightCtx| {
+            slight_ctx.insert(
+                "dummy2".to_string(),
+                (
+                    Box::new(Dummy {}),
+                    Some(Box::new(Dummy2Table::<Dummy2>::default())),
+                ),
+            );
+        });
+
+        let builder2 = builder.clone();
+
+        let ctx1 = builder.build();
+        let ctx2 = builder2.build();
+
+        assert_eq!(ctx1.len(), 2);
+        assert_eq!(ctx2.len(), 2);
+
+        assert!(ctx1.get("dummy").is_some());
+        assert!(ctx1.get("dummy2").is_some());
+        assert!(ctx2.get("dummy").is_some());
+        assert!(ctx2.get("dummy2").is_some());
     }
 }
