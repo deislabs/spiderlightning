@@ -1,4 +1,4 @@
-# Pub/Sub Capability Design
+# Pub/Sub Study
 
 This document describes the design of the Pub/Sub capability.
 
@@ -7,8 +7,8 @@ This document describes the design of the Pub/Sub capability.
 The Publisher/Subscriber (Pub/Sub) pattern is a messaging system pattern that allows services to communicate asynchronously with each other.
 
 ### Pub/Sub vs Request Response (RPC)
-
 It differs from the traditional request/response pattern in that the sender of a message (aka the publisher/producer) does not expect a response from the receiver (aka the subscriber/consumer) immediately. Instead, the sender sends a message to a message broker, which then delivers the message to the receiver. In this way, the sender and receiver are decoupled from each other. Both the sender and the receiver are clients to the message broker.
+
 
 ### Message Broker
 
