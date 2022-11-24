@@ -8,9 +8,7 @@ use tokio::{runtime::Handle, task::block_in_place};
 
 #[derive(Clone)]
 pub struct MosquittoImplementor {
-    host: String,
-    port: i32,
-    subscriptions: Arc<Mutex<Vec<String>>>,
+    client: Arc<Mutex<Client>>,
 }
 
 // TODO: We need to improve these Debug implementations
@@ -31,30 +29,33 @@ impl MosquittoImplementor {
             .unwrap()
             .parse::<i32>()
             .unwrap();
-        Self {
-            host,
-            port,
-            subscriptions: Arc::new(Mutex::new(Vec::new())),
-        }
+
+        let client = block_in_place(|| {
+            Handle::current().block_on(async move {
+                let mut client = Client::with_auto_id().unwrap();
+
+                client
+                    .connect(&host, port, std::time::Duration::from_secs(5), None)
+                    .await
+                    .unwrap();
+
+                Arc::new(Mutex::new(client))
+            })
+        });
+
+        Self { client }
     }
 }
 
 // Pub
 impl MosquittoImplementor {
     pub async fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
-        let mut mqtt = Client::with_auto_id().unwrap();
         block_in_place(|| {
             Handle::current().block_on(async move {
-                mqtt.connect(
-                    &self.host,
-                    self.port,
-                    std::time::Duration::from_secs(5),
-                    None,
-                )
-                .await
-                .unwrap();
-
-                mqtt.publish(topic, msg_value, QoS::AtMostOnce, false)
+                self.client
+                    .lock()
+                    .unwrap()
+                    .publish(topic, msg_value, QoS::AtMostOnce, false)
                     .await
                     .unwrap()
             })
@@ -66,32 +67,29 @@ impl MosquittoImplementor {
 
 // Sub
 impl MosquittoImplementor {
-    pub fn subscribe(&self, topic: &str) -> Result<()> {
-        self.subscriptions.lock().unwrap().push(topic.to_string());
+    pub async fn subscribe(&self, topic: &str) -> Result<()> {
+        block_in_place(|| {
+            Handle::current().block_on(async move {
+                self.client
+                    .lock()
+                    .unwrap()
+                    .subscribe(topic, QoS::AtMostOnce)
+                    .await
+                    .unwrap();
+            })
+        });
         Ok(())
     }
 
     pub async fn receive(&self) -> Result<Vec<u8>> {
-        let mut mqtt = Client::with_auto_id().unwrap();
         let mut res: Vec<u8> = vec![];
+
         block_in_place(|| {
             res = Handle::current().block_on(async move {
-                mqtt.connect(
-                    &self.host,
-                    self.port,
-                    std::time::Duration::from_secs(5),
-                    None,
-                )
-                .await
-                .unwrap();
-
-                let subs_lock = self.subscriptions.lock().unwrap();
-
-                for t in subs_lock.iter() {
-                    mqtt.subscribe(t, QoS::AtMostOnce).await.unwrap();
-                }
-
-                mqtt.subscriber()
+                self.client
+                    .lock()
+                    .unwrap()
+                    .subscriber()
                     .as_mut()
                     .unwrap()
                     .recv()

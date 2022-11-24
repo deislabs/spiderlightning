@@ -114,7 +114,7 @@ impl pubsub::Pubsub for Pubsub {
     async fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<(), Error> {
         match &self_.sub_implementor {
             SubImplementor::ConfluentApacheKafka(si) => si.subscribe(topic)?,
-            SubImplementor::Mosquitto(si) => si.subscribe(topic)?,
+            SubImplementor::Mosquitto(si) => si.subscribe(topic).await?,
         }
 
         Ok(())
