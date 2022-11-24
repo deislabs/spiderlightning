@@ -36,10 +36,7 @@ install-deps:
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 	sudo apt install lsb-release
-	curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-	echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
-	sudo apt-get update
-	sudo apt-get install redis
+	sudo snap install redis
 
 .PHONY: install-deps-macos
 install-deps-macos:
