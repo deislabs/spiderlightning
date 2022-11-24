@@ -1,4 +1,5 @@
-# `slightfile` Re-Design
+# `slightfile` v0.2.0 Proposal 
+**Made 2022-09-15 by [danbugs](https://github.com/danbugs)**
 
 `slightfile` is the adopted name for a configuration file for `slight` application. Currently, its design imposes some limitations on applications that a user can develop. The purpose of this document is to highlight these limitations and propose a solution. 
 
