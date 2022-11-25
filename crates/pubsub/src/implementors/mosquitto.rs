@@ -39,6 +39,14 @@ impl MosquittoImplementor {
                     .await
                     .unwrap();
 
+                client
+                    .subscribe(
+                        &get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap(),
+                        QoS::AtLeastOnce,
+                    )
+                    .await
+                    .unwrap();
+
                 Arc::new(Mutex::new(client))
             })
         });

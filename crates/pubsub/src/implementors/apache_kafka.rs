@@ -55,6 +55,12 @@ impl PubsubConfluentApacheKafkaImplementor {
             .with_context(|| "failed to create consumer client")
             .unwrap(); // panic if we fail to create client
 
+        confluent::subscribe(
+            &consumer,
+            vec![&get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap()],
+        )
+        .with_context(|| "failed to subscribe to topic").unwrap();
+
         Self {
             producer: Arc::new(producer),
             consumer: Arc::new(consumer),
