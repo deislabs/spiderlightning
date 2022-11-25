@@ -95,7 +95,7 @@ variant channel {
 
 resource pubsub {
 	// creates a handle to a pubsub object
-	static open: func(name: string) -> expected<pub, error>
+	static open: func(name: string) -> expected<pubsub, error>
 
 	// unsubscribes from a channel
 	unsubscribe: func(location: channel) -> expected<unit, error>
