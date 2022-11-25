@@ -2,21 +2,13 @@
 use { error, payload } from types
 use * from resources
 
-resource pub {
-	// open a pub object
-	static open: func(name: string) -> expected<pub, error>
+resource pubsub {
+	// creates a handle to a pubsub object
+	static open: func(name: string) -> expected<pubsub, error>
 
-	// pub a message
+	// publish a message to a topic
 	publish: func(message: payload, topic: string) -> expected<unit, error> 
-}
 
-resource sub {
-	// open a sub object
-	static open: func(name: string) -> expected<sub, error>
-	
-	// sub to a topic
-	subscribe: func(topic: string) -> expected<unit, error>
-
-	// read messages under subbed topic
+	// pull-based message delivery
 	receive: func() -> expected<payload, error>
 }

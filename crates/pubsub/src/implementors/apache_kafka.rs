@@ -18,31 +18,46 @@ use crate::providers::confluent;
 ///
 /// As per its' usage in `PubImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Clone)]
-pub struct PubConfluentApacheKafkaImplementor {
+pub struct PubsubConfluentApacheKafkaImplementor {
     producer: Arc<BaseProducer>,
+    consumer: Arc<StreamConsumer>,
 }
 
-impl std::fmt::Debug for PubConfluentApacheKafkaImplementor {
+impl std::fmt::Debug for PubsubConfluentApacheKafkaImplementor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "PubConfluentApacheKafkaImplementor")
+        write!(f, "PubsubConfluentApacheKafkaImplementor")
     }
 }
 
-impl PubConfluentApacheKafkaImplementor {
+impl PubsubConfluentApacheKafkaImplementor {
     pub async fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
         let producer: BaseProducer = ClientConfig::new()
-            .set("bootstrap.servers", akc.bootstap_servers)
-            .set("security.protocol", akc.security_protocol)
-            .set("sasl.mechanisms", akc.sasl_mechanisms)
-            .set("sasl.username", akc.sasl_username)
-            .set("sasl.password", akc.sasl_password)
+            .set("bootstrap.servers", &akc.bootstap_servers)
+            .set("security.protocol", &akc.security_protocol)
+            .set("sasl.mechanisms", &akc.sasl_mechanisms)
+            .set("sasl.username", &akc.sasl_username)
+            .set("sasl.password", &akc.sasl_password)
             .create()
             .with_context(|| "failed to create producer client")
             .unwrap(); // panic if we fail to create client
 
+        let group_id = get_from_state("CAK_GROUP_ID", slight_state).await.unwrap();
+
+        let consumer: StreamConsumer = ClientConfig::new()
+            .set("bootstrap.servers", &akc.bootstap_servers)
+            .set("security.protocol", &akc.security_protocol)
+            .set("sasl.mechanisms", &akc.sasl_mechanisms)
+            .set("sasl.username", &akc.sasl_username)
+            .set("sasl.password", &akc.sasl_password)
+            .set("group.id", group_id)
+            .create()
+            .with_context(|| "failed to create consumer client")
+            .unwrap(); // panic if we fail to create client
+
         Self {
             producer: Arc::new(producer),
+            consumer: Arc::new(consumer),
         }
     }
 
@@ -58,51 +73,6 @@ impl PubConfluentApacheKafkaImplementor {
             topic,
         )
         .with_context(|| "failed to send message to a topic")
-    }
-}
-
-/// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `SubImplementor` enum.
-///
-/// It provides a property that pertains solely to Confluent's Apache Kafka's implementation
-/// of this capability:
-///     - `consumer`
-///
-/// As per its' usage in `SubImplementor`, it must `derive` `std::fmt::Debug`, and `Clone`.
-#[derive(Clone)]
-pub struct SubConfluentApacheKafkaImplementor {
-    consumer: Arc<StreamConsumer>,
-}
-
-impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SubConfluentApacheKafkaImplementor")
-    }
-}
-
-impl SubConfluentApacheKafkaImplementor {
-    pub async fn new(slight_state: &BasicState) -> Self {
-        let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
-        let group_id = get_from_state("CAK_GROUP_ID", slight_state).await.unwrap();
-
-        let consumer: StreamConsumer = ClientConfig::new()
-            .set("bootstrap.servers", akc.bootstap_servers)
-            .set("security.protocol", akc.security_protocol)
-            .set("sasl.mechanisms", akc.sasl_mechanisms)
-            .set("sasl.username", akc.sasl_username)
-            .set("sasl.password", akc.sasl_password)
-            .set("group.id", group_id)
-            .create()
-            .with_context(|| "failed to create consumer client")
-            .unwrap(); // panic if we fail to create client
-
-        Self {
-            consumer: Arc::new(consumer),
-        }
-    }
-
-    pub fn subscribe(&self, topic: &str) -> Result<()> {
-        confluent::subscribe(&self.consumer, vec![topic])
-            .with_context(|| "failed to subscribe to topic")
     }
 
     pub async fn receive(&self) -> Result<Vec<u8>> {
