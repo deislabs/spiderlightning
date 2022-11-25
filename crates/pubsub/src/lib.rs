@@ -8,10 +8,7 @@ use async_trait::async_trait;
 use implementors::{
     apache_kafka::PubsubConfluentApacheKafkaImplementor, mosquitto::MosquittoImplementor,
 };
-use slight_common::{
-    impl_resource,
-    BasicState
-};
+use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s

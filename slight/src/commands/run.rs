@@ -169,8 +169,7 @@ async fn build_store_instance(
                     linked_capabilities.insert("pubsub".to_string());
                 }
 
-                let resource =
-                    slight_pubsub::Pubsub::new(&c.name, capability_store.clone()).await;
+                let resource = slight_pubsub::Pubsub::new(&c.name, capability_store.clone()).await;
                 builder.add_to_builder("pubsub".to_string(), resource);
             }
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {

@@ -59,7 +59,8 @@ impl PubsubConfluentApacheKafkaImplementor {
             &consumer,
             vec![&get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap()],
         )
-        .with_context(|| "failed to subscribe to topic").unwrap();
+        .with_context(|| "failed to subscribe to topic")
+        .unwrap();
 
         Self {
             producer: Arc::new(producer),
