@@ -1,8 +1,8 @@
 # Pub/Sub Study
 
-This document describes the design of the Pub/Sub capability.
+This document describes some background research that inspired the design of the Pub/Sub capability.
 
-## Background
+## Definition
 
 The Publisher/Subscriber (Pub/Sub) pattern is a messaging system pattern that allows services to communicate asynchronously with each other.
 
