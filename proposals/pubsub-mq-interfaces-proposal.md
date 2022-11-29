@@ -18,6 +18,7 @@ This document proposes a new interface for the `pubsub`, and `message-queue` cap
 	* 5.2. [`slight` Runtime](#slightRuntime)
 * 6. [Alternatives](#Alternatives)
 	* 6.1. [Alternative 1](#Alternative1)
+	* 6.2. [Alternative 2](#Alternative2)
 * 7. [Additional Details](#AdditionalDetails)
 
 <!-- vscode-markdown-toc-config
@@ -30,7 +31,7 @@ This document proposes a new interface for the `pubsub`, and `message-queue` cap
 
 ###  2.1. <a name='message-queueBackground'></a>`message-queue` Background
 
-`message-queue`s are a messaging mechanism, where message transmitters send messages to a queue construct that can be read by receivers.
+`message-queue`s are a messaging mechanism, where message transmitters send messages to a queue construct that can be consumed by a single receiver.
 
 ![](https://i.imgur.com/Rsa310j.png)
 
@@ -130,6 +131,10 @@ name = "my-pubsub"
 ###  6.1. <a name='Alternative1'></a>Alternative 1
 
 When investigating a way to keep a hold of the client handle (with the purpose of mainting subscriptions) while interoping `pubsub` and `http`, I investigated the possibility utilizing persistent clients in brokers accessible through an ID, but this approach proved to be inconsistent across implementers.
+
+###  6.2. <a name='Alternative2'></a>Alternative 2
+
+Another alternative that was explored was the possibility of sharing variables across HTTP handlers. However, as they are all individually isolated, it was impossible to share any of global variables between them.
 
 ##  7. <a name='AdditionalDetails'></a>Additional Details
 
