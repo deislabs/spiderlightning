@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use rdkafka::{consumer::StreamConsumer, producer::BaseProducer, ClientConfig};
+use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 
@@ -20,7 +20,7 @@ use crate::providers::confluent;
 #[derive(Clone)]
 pub struct PubsubConfluentApacheKafkaImplementor {
     producer: Arc<BaseProducer>,
-    consumer: Arc<StreamConsumer>,
+    consumer: Arc<BaseConsumer>,
 }
 
 impl std::fmt::Debug for PubsubConfluentApacheKafkaImplementor {
@@ -42,9 +42,11 @@ impl PubsubConfluentApacheKafkaImplementor {
             .with_context(|| "failed to create producer client")
             .unwrap(); // panic if we fail to create client
 
+        tracing::info!("created producer client");
+
         let group_id = get_from_state("CAK_GROUP_ID", slight_state).await.unwrap();
 
-        let consumer: StreamConsumer = ClientConfig::new()
+        let consumer: BaseConsumer = ClientConfig::new()
             .set("bootstrap.servers", &akc.bootstap_servers)
             .set("security.protocol", &akc.security_protocol)
             .set("sasl.mechanisms", &akc.sasl_mechanisms)
@@ -55,12 +57,18 @@ impl PubsubConfluentApacheKafkaImplementor {
             .with_context(|| "failed to create consumer client")
             .unwrap(); // panic if we fail to create client
 
+        tracing::info!("created consumer client");
+
+        let subscribe_to = &get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap();
+
         confluent::subscribe(
             &consumer,
-            vec![&get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap()],
+            vec![subscribe_to],
         )
         .with_context(|| "failed to subscribe to topic")
         .unwrap();
+
+        tracing::info!("subscribed to topic {}", subscribe_to);
 
         Self {
             producer: Arc::new(producer),
@@ -69,6 +77,9 @@ impl PubsubConfluentApacheKafkaImplementor {
     }
 
     pub fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
+
+        tracing::info!("publishing to topic {}", topic);
+
         confluent::publish(
             &self.producer,
             format!(

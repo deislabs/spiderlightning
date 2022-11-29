@@ -1,6 +1,8 @@
-use anyhow::{bail, Result};
+use std::time::Duration;
+
+use anyhow::Result;
 use rdkafka::{
-    consumer::{Consumer, StreamConsumer},
+    consumer::{BaseConsumer, Consumer},
     producer::{BaseProducer, BaseRecord},
     Message,
 };
@@ -17,15 +19,22 @@ pub fn publish(
     Ok(())
 }
 
-pub fn subscribe(consumer: &StreamConsumer, topic: Vec<&str>) -> Result<()> {
+pub fn subscribe(consumer: &BaseConsumer, topic: Vec<&str>) -> Result<()> {
     consumer.subscribe(&topic)?;
-
     Ok(())
 }
 
-pub async fn receive(consumer: &StreamConsumer) -> Result<Vec<u8>> {
-    match consumer.recv().await {
-        Err(e) => bail!(e),
-        Ok(m) => Ok(m.payload().unwrap().to_vec()),
+pub async fn receive(consumer: &BaseConsumer) -> Result<Vec<u8>> {
+    let message = consumer
+        .poll(Duration::from_millis(100))
+        .transpose()
+        .expect("failed to read message");
+
+    match message {
+        Some(m) => {
+            consumer.commit_message(&m, rdkafka::consumer::CommitMode::Async).unwrap();
+            Ok(m.payload().map(Vec::from).unwrap())
+        },
+        None => Ok(b"".to_vec()),
     }
 }

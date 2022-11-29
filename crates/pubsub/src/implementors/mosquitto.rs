@@ -1,7 +1,8 @@
 use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
-use mosquitto_rs::{Client, QoS};
+use async_channel::Receiver;
+use mosquitto_rs::{Client, QoS, Message};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 use tokio::{runtime::Handle, task::block_in_place};
@@ -9,6 +10,7 @@ use tokio::{runtime::Handle, task::block_in_place};
 #[derive(Clone)]
 pub struct MosquittoImplementor {
     client: Arc<Mutex<Client>>,
+    subscriptions: Receiver<Message>,
 }
 
 // TODO: We need to improve these Debug implementations
@@ -30,7 +32,9 @@ impl MosquittoImplementor {
             .parse::<i32>()
             .unwrap();
 
-        let client = block_in_place(|| {
+        tracing::info!("Connecting to Mosquitto broker at {}:{}", host, port);
+
+        let ( client, subscriptions ) = block_in_place(|| {
             Handle::current().block_on(async move {
                 let mut client = Client::with_auto_id().unwrap();
 
@@ -39,19 +43,20 @@ impl MosquittoImplementor {
                     .await
                     .unwrap();
 
-                client
-                    .subscribe(
-                        &get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap(),
-                        QoS::AtLeastOnce,
-                    )
-                    .await
-                    .unwrap();
+                let st = &get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap();
 
-                Arc::new(Mutex::new(client))
+                client.subscribe(st, QoS::AtLeastOnce).await.unwrap();
+
+                tracing::info!("Subscribed to topic {}", st);
+
+                let ret0 = Arc::new(Mutex::new(client));
+                let ret1 = ret0.lock().unwrap().subscriber().unwrap();
+
+                (ret0, ret1)
             })
         });
 
-        Self { client }
+        Self { client, subscriptions }
     }
 }
 
@@ -94,12 +99,7 @@ impl MosquittoImplementor {
 
         block_in_place(|| {
             res = Handle::current().block_on(async move {
-                self.client
-                    .lock()
-                    .unwrap()
-                    .subscriber()
-                    .as_mut()
-                    .unwrap()
+                self.subscriptions
                     .recv()
                     .await
                     .unwrap()

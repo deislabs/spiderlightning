@@ -10,4 +10,5 @@ name = "my-pubsub"
     CAK_SASL_USERNAME = "${azapp.CAK_SASL_USERNAME}"
     CAK_SASL_PASSWORD = "${azapp.CAK_SASL_PASSWORD}"
     CAK_GROUP_ID = "${azapp.CAK_GROUP_ID}"
+    SUBSCRIBE_TO = "rust"
     
