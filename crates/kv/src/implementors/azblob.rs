@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use azure_storage::clients::StorageClient;
-use azure_storage_blobs::prelude::{AsContainerClient, ContainerClient};
+use azure_storage::prelude::*;
+use azure_storage_blobs::{container::operations::BlobItem, prelude::*};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 use tracing::log;
@@ -28,9 +28,11 @@ impl AzBlobImplementor {
             .await
             .unwrap();
 
-        let container_client =
-            StorageClient::new_access_key(storage_account_name, storage_account_key)
-                .container_client(name);
+        let storage_credentials =
+            StorageCredentials::Key(storage_account_name.clone(), storage_account_key);
+        let service_client = BlobServiceClient::new(storage_account_name, storage_credentials);
+
+        let container_client = service_client.container_client(name);
         Self { container_client }
     }
 
@@ -58,7 +60,10 @@ impl AzBlobImplementor {
         log::debug!("found blobs: {:?}", blobs);
         let keys = blobs
             .iter()
-            .map(|blob| blob.name.clone())
+            .map(|blob| match blob {
+                BlobItem::Blob(b) => b.name.clone(),
+                BlobItem::BlobPrefix(b) => b.name.clone(),
+            })
             .collect::<Vec<String>>();
         Ok(keys)
     }
