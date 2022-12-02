@@ -37,6 +37,7 @@ install-deps:
 	sudo rm -rf wasi-sdk-*
 	sudo apt install lsb-release
 	sudo snap install redis
+	sudo snap install protobuf --classic
 
 .PHONY: install-deps-macos
 install-deps-macos:
@@ -48,6 +49,7 @@ install-deps-macos:
 	sudo rm -rf wasi-sdk-*
 	chmod +x /opt/wasi-sdk/bin/clang
 	brew install redis
+	brew install protobuf
 
 .PHONY: install-deps-win
 install-deps-win:
@@ -59,6 +61,7 @@ install-deps-win:
 	# mkdir -p /opt/wasi-sdk
 	# mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	choco install openssl
+	choco install protoc
 
 .PHONY: install-slight
 install-slight:
