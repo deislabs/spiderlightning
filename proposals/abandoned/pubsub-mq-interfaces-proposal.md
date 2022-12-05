@@ -59,7 +59,7 @@ However, if we look at services that provide `message-queue` / `pubsub` implemen
 
 That is, today's most used related services provide both `message-queue`, and `pubsub` capabilities. Below, is a visual example from [HiveMQ](https://www.hivemq.com/) displaying an event-driven architecture with both `message-queue`, and `pubsub` capabilities:
 
-![](./images/pubsub-interface-proposal-0.gif)
+![](../images/pubsub-interface-proposal-0.gif)
 Source: [HiveMQ's Shared Subscriptions](https://www.hivemq.com/docs/hivemq/4.9/user-guide/shared-subscriptions.html)
 
 ##  3. <a name='pubsubhttpInteroptability'></a>`pubsub`/`http` Interoptability
