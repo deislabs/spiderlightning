@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use rdkafka::{consumer::BaseConsumer, producer::BaseProducer, ClientConfig};
+use rdkafka::{consumer::StreamConsumer, producer::BaseProducer, ClientConfig};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 
@@ -20,7 +20,7 @@ use crate::providers::confluent;
 #[derive(Clone)]
 pub struct PubsubConfluentApacheKafkaImplementor {
     producer: Arc<BaseProducer>,
-    consumer: Arc<BaseConsumer>,
+    consumer: Arc<StreamConsumer>,
 }
 
 impl std::fmt::Debug for PubsubConfluentApacheKafkaImplementor {
@@ -46,7 +46,7 @@ impl PubsubConfluentApacheKafkaImplementor {
 
         let group_id = get_from_state("CAK_GROUP_ID", slight_state).await.unwrap();
 
-        let consumer: BaseConsumer = ClientConfig::new()
+        let consumer: StreamConsumer = ClientConfig::new()
             .set("bootstrap.servers", &akc.bootstap_servers)
             .set("security.protocol", &akc.security_protocol)
             .set("sasl.mechanisms", &akc.sasl_mechanisms)
