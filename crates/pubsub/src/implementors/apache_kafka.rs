@@ -10,26 +10,18 @@ use slight_runtime_configs::get_from_state;
 
 use crate::providers::confluent;
 
-/// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `PubImplementor` enum.
-///
-/// It provides a property that pertains solely to Confluent's Apache Kafka's implementation
-/// of this capability:
-///     - `producer`
-///
-/// As per its' usage in `PubImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Clone)]
-pub struct PubsubConfluentApacheKafkaImplementor {
+pub struct Pub {
     producer: Arc<BaseProducer>,
-    consumer: Arc<StreamConsumer>,
 }
 
-impl std::fmt::Debug for PubsubConfluentApacheKafkaImplementor {
+impl std::fmt::Debug for Pub {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "PubsubConfluentApacheKafkaImplementor")
+        write!(f, "Apache Kafka's Pub")
     }
 }
 
-impl PubsubConfluentApacheKafkaImplementor {
+impl Pub {
     pub async fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
         let producer: BaseProducer = ClientConfig::new()
@@ -42,8 +34,44 @@ impl PubsubConfluentApacheKafkaImplementor {
             .with_context(|| "failed to create producer client")
             .unwrap(); // panic if we fail to create client
 
-        tracing::info!("created producer client");
+        tracing::debug!("created producer client");
 
+        Self {
+            producer: Arc::new(producer),
+        }
+    }
+
+    pub fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
+        tracing::info!("publishing to topic {}", topic);
+
+        confluent::publish(
+            &self.producer,
+            format!(
+                "{:?}",
+                SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+            )
+            .as_bytes(), // rand key
+            msg_value,
+            topic,
+        )
+        .with_context(|| "failed to send message to a topic")
+    }
+}
+
+#[derive(Clone)]
+pub struct Sub {
+    consumer: Arc<StreamConsumer>,
+}
+
+impl std::fmt::Debug for Sub {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Apache Kafka's Sub")
+    }
+}
+
+impl Sub {
+    pub async fn new(slight_state: &BasicState) -> Self {
+        let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
         let group_id = get_from_state("CAK_GROUP_ID", slight_state).await.unwrap();
 
         let consumer: StreamConsumer = ClientConfig::new()
@@ -60,26 +88,8 @@ impl PubsubConfluentApacheKafkaImplementor {
         tracing::info!("created consumer client");
 
         Self {
-            producer: Arc::new(producer),
             consumer: Arc::new(consumer),
         }
-    }
-
-    pub fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
-
-        tracing::info!("publishing to topic {}", topic);
-
-        confluent::publish(
-            &self.producer,
-            format!(
-                "{:?}",
-                SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
-            )
-            .as_bytes(), // rand key
-            msg_value,
-            topic,
-        )
-        .with_context(|| "failed to send message to a topic")
     }
 
     pub async fn subscribe(&self, topic: &str) -> Result<()> {
