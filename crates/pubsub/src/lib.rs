@@ -104,6 +104,16 @@ impl pubsub::Pubsub for Pubsub {
             _ => panic!("Unknown implementor"),
         })
     }
+
+    async fn pubsub_subscribe(&mut self, self_: &Self::Pubsub, topic: &str) -> Result<(), Error> {
+        match &self_ {
+            PubsubImplementor::ConfluentApacheKafka(pi) => pi.subscribe(topic).await?,
+            PubsubImplementor::Mosquitto(pi) => pi.subscribe(topic).await?,
+            _ => panic!("Unknown implementor"),
+        };
+
+        Ok(())
+    }
 }
 
 /// This defines the available implementor implementations for the `Pubsub` interface.

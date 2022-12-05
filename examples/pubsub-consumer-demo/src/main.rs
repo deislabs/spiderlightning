@@ -5,7 +5,7 @@ wit_error_rs::impl_error!(pubsub::Error);
 
 fn main() -> Result<()> {
     let ps = Pubsub::open("my-pubsub")?;
-    // ps.subscribe("rust")?;
+    ps.subscribe("rust")?;
     for _ in 0..3 {
         loop {
             let msg = ps.receive()?;

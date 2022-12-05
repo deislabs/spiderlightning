@@ -10,7 +10,7 @@ use tokio::{runtime::Handle, task::block_in_place};
 #[derive(Clone)]
 pub struct MosquittoImplementor {
     client: Arc<Mutex<Client>>,
-    subscriptions: Receiver<Message>,
+    subscriptions: Arc<Mutex<Option<Receiver<Message>>>>,
 }
 
 // TODO: We need to improve these Debug implementations
@@ -43,14 +43,8 @@ impl MosquittoImplementor {
                     .await
                     .unwrap();
 
-                let st = &get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap();
-
-                client.subscribe(st, QoS::AtLeastOnce).await.unwrap();
-
-                tracing::info!("Subscribed to topic {}", st);
-
                 let ret0 = Arc::new(Mutex::new(client));
-                let ret1 = ret0.lock().unwrap().subscriber().unwrap();
+                let ret1 = Arc::new(Mutex::new(None));
 
                 (ret0, ret1)
             })
@@ -89,8 +83,13 @@ impl MosquittoImplementor {
                     .subscribe(topic, QoS::AtMostOnce)
                     .await
                     .unwrap();
+
+                tracing::info!("Subscribed to topic {}", topic);
             })
         });
+
+        *self.subscriptions.lock().unwrap() = self.client.lock().unwrap().subscriber();
+
         Ok(())
     }
 
@@ -100,6 +99,10 @@ impl MosquittoImplementor {
         block_in_place(|| {
             res = Handle::current().block_on(async move {
                 self.subscriptions
+                    .lock()
+                    .unwrap()
+                    .as_mut()
+                    .unwrap()
                     .recv()
                     .await
                     .unwrap()

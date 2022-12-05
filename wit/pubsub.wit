@@ -9,6 +9,9 @@ resource pubsub {
 	// publish a message to a topic
 	publish: func(message: payload, topic: string) -> expected<unit, error> 
 
+	// subscribe to a topic
+	subscribe: func(topic: string) -> expected<unit, error> 
+
 	// pull-based message delivery
 	receive: func() -> expected<payload, error>
 }

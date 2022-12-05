@@ -59,17 +59,6 @@ impl PubsubConfluentApacheKafkaImplementor {
 
         tracing::info!("created consumer client");
 
-        let subscribe_to = &get_from_state("SUBSCRIBE_TO", slight_state).await.unwrap();
-
-        confluent::subscribe(
-            &consumer,
-            vec![subscribe_to],
-        )
-        .with_context(|| "failed to subscribe to topic")
-        .unwrap();
-
-        tracing::info!("subscribed to topic {}", subscribe_to);
-
         Self {
             producer: Arc::new(producer),
             consumer: Arc::new(consumer),
@@ -91,6 +80,11 @@ impl PubsubConfluentApacheKafkaImplementor {
             topic,
         )
         .with_context(|| "failed to send message to a topic")
+    }
+
+    pub async fn subscribe(&self, topic: &str) -> Result<()> {
+        confluent::subscribe(&self.consumer, vec![topic])
+            .with_context(|| "failed to subscribe to topic")
     }
 
     pub async fn receive(&self) -> Result<Vec<u8>> {
