@@ -10,13 +10,16 @@ resource pub {
 	publish: func(message: payload, topic: string) -> expected<unit, error> 
 }
 
+// provides a handle to a consumer that owns a specific subscription
+type subscription-token = string
+
 resource sub {
 	// creates a handle to a sub object
 	static open: func(name: string) -> expected<sub, error>
 
 	// subscribe to a topic
-	subscribe: func(topic: string) -> expected<unit, error> 
+	subscribe: func(topic: string) -> expected<subscription-token, error> 
 
 	// pull-based message delivery
-	receive: func() -> expected<payload, error>
+	receive: func(sub-tok: subscription-token) -> expected<payload, error>
 }
