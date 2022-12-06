@@ -40,7 +40,6 @@ struct PubsubState {
     pub_implementor: PubImplementor,
     sub_implementor: SubImplementor,
 }
-
 impl Pubsub {
     pub async fn new(name: &str, capability_store: HashMap<String, BasicState>) -> Self {
         let state = capability_store.get(name).unwrap().clone();

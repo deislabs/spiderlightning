@@ -40,7 +40,6 @@ impl std::fmt::Debug for Sub {
     }
 }
 
-// Pub
 impl Pub {
     pub async fn new(slight_state: &BasicState) -> Self {
         let host = get_from_state("MOSQUITTO_HOST", slight_state)
@@ -98,22 +97,6 @@ impl Sub {
             .unwrap();
 
         tracing::info!("Connecting to Mosquitto broker at {}:{}", host, port);
-
-        // let ( consumer, subscriptions ) = block_in_place(|| {
-        //     Handle::current().block_on(async move {
-        //         let mut client = Client::with_auto_id().unwrap();
-
-        //         client
-        //             .connect(&host, port, std::time::Duration::from_secs(5), None)
-        //             .await
-        //             .unwrap();
-
-        //         let ret0 = Arc::new(Mutex::new(client));
-        //         let ret1 = Arc::new(Mutex::new(None));
-
-        //         (ret0, ret1)
-        //     })
-        // });
 
         Self {
             host,
