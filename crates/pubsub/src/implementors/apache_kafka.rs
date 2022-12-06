@@ -126,7 +126,7 @@ impl Sub {
                     .get(sub_tok)
                     .with_context(|| "failed to get consumer from subscription token")?;
 
-                confluent::receive(&accessed_consumer)
+                confluent::receive(accessed_consumer)
                     .await
                     .with_context(|| "failed to poll for message")
             })

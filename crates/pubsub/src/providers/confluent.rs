@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use rdkafka::{
     consumer::{Consumer, StreamConsumer},
     producer::{BaseProducer, BaseRecord},

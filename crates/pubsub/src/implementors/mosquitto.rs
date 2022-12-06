@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use async_channel::Receiver;
 use mosquitto_rs::{Client, Message, QoS};
 use slight_common::BasicState;
