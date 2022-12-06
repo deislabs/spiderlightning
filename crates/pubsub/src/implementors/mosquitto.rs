@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use async_channel::Receiver;
-use mosquitto_rs::{Client, QoS, Message};
+use mosquitto_rs::{Client, Message, QoS};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 use tokio::{runtime::Handle, task::block_in_place};
@@ -89,7 +89,7 @@ impl Sub {
 
         tracing::info!("Connecting to Mosquitto broker at {}:{}", host, port);
 
-        let ( consumer, subscriptions ) = block_in_place(|| {
+        let (consumer, subscriptions) = block_in_place(|| {
             Handle::current().block_on(async move {
                 let mut client = Client::with_auto_id().unwrap();
 
@@ -105,7 +105,10 @@ impl Sub {
             })
         });
 
-        Self { consumer, subscriptions }
+        Self {
+            consumer,
+            subscriptions,
+        }
     }
 
     pub async fn subscribe(&self, topic: &str) -> Result<()> {
