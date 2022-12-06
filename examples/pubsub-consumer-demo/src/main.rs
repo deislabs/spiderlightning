@@ -7,8 +7,13 @@ fn main() -> Result<()> {
     let ps = Sub::open("my-pubsub")?;
     ps.subscribe("rust")?;
     for _ in 0..3 {
-        let message = ps.receive()?;
-        println!("received message> value: {:?}", String::from_utf8(message));
+        loop {
+            let msg = ps.receive()?;
+            if !msg.is_empty() {
+                println!("received message> value: {:?}", String::from_utf8(msg));
+                break;
+            }
+        }
     }
     Ok(())
 }

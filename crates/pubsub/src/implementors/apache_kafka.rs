@@ -10,36 +10,31 @@ use slight_runtime_configs::get_from_state;
 
 use crate::providers::confluent;
 
-/// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `PubImplementor` enum.
-///
-/// It provides a property that pertains solely to Confluent's Apache Kafka's implementation
-/// of this capability:
-///     - `producer`
-///
-/// As per its' usage in `PubImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Clone)]
-pub struct PubConfluentApacheKafkaImplementor {
+pub struct Pub {
     producer: Arc<BaseProducer>,
 }
 
-impl std::fmt::Debug for PubConfluentApacheKafkaImplementor {
+impl std::fmt::Debug for Pub {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "PubConfluentApacheKafkaImplementor")
+        write!(f, "Apache Kafka's Pub")
     }
 }
 
-impl PubConfluentApacheKafkaImplementor {
+impl Pub {
     pub async fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
         let producer: BaseProducer = ClientConfig::new()
-            .set("bootstrap.servers", akc.bootstap_servers)
-            .set("security.protocol", akc.security_protocol)
-            .set("sasl.mechanisms", akc.sasl_mechanisms)
-            .set("sasl.username", akc.sasl_username)
-            .set("sasl.password", akc.sasl_password)
+            .set("bootstrap.servers", &akc.bootstap_servers)
+            .set("security.protocol", &akc.security_protocol)
+            .set("sasl.mechanisms", &akc.sasl_mechanisms)
+            .set("sasl.username", &akc.sasl_username)
+            .set("sasl.password", &akc.sasl_password)
             .create()
             .with_context(|| "failed to create producer client")
             .unwrap(); // panic if we fail to create client
+
+        tracing::debug!("created producer client");
 
         Self {
             producer: Arc::new(producer),
@@ -47,6 +42,8 @@ impl PubConfluentApacheKafkaImplementor {
     }
 
     pub fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
+        tracing::info!("publishing to topic {}", topic);
+
         confluent::publish(
             &self.producer,
             format!(
@@ -61,46 +58,41 @@ impl PubConfluentApacheKafkaImplementor {
     }
 }
 
-/// This is one of the underlying structs behind the `ConfluentApacheKafka` variant of the `SubImplementor` enum.
-///
-/// It provides a property that pertains solely to Confluent's Apache Kafka's implementation
-/// of this capability:
-///     - `consumer`
-///
-/// As per its' usage in `SubImplementor`, it must `derive` `std::fmt::Debug`, and `Clone`.
 #[derive(Clone)]
-pub struct SubConfluentApacheKafkaImplementor {
+pub struct Sub {
     consumer: Arc<StreamConsumer>,
 }
 
-impl std::fmt::Debug for SubConfluentApacheKafkaImplementor {
+impl std::fmt::Debug for Sub {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SubConfluentApacheKafkaImplementor")
+        write!(f, "Apache Kafka's Sub")
     }
 }
 
-impl SubConfluentApacheKafkaImplementor {
+impl Sub {
     pub async fn new(slight_state: &BasicState) -> Self {
         let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
         let group_id = get_from_state("CAK_GROUP_ID", slight_state).await.unwrap();
 
         let consumer: StreamConsumer = ClientConfig::new()
-            .set("bootstrap.servers", akc.bootstap_servers)
-            .set("security.protocol", akc.security_protocol)
-            .set("sasl.mechanisms", akc.sasl_mechanisms)
-            .set("sasl.username", akc.sasl_username)
-            .set("sasl.password", akc.sasl_password)
+            .set("bootstrap.servers", &akc.bootstap_servers)
+            .set("security.protocol", &akc.security_protocol)
+            .set("sasl.mechanisms", &akc.sasl_mechanisms)
+            .set("sasl.username", &akc.sasl_username)
+            .set("sasl.password", &akc.sasl_password)
             .set("group.id", group_id)
             .create()
             .with_context(|| "failed to create consumer client")
             .unwrap(); // panic if we fail to create client
+
+        tracing::info!("created consumer client");
 
         Self {
             consumer: Arc::new(consumer),
         }
     }
 
-    pub fn subscribe(&self, topic: &str) -> Result<()> {
+    pub async fn subscribe(&self, topic: &str) -> Result<()> {
         confluent::subscribe(&self.consumer, vec![topic])
             .with_context(|| "failed to subscribe to topic")
     }

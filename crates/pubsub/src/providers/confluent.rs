@@ -19,7 +19,6 @@ pub fn publish(
 
 pub fn subscribe(consumer: &StreamConsumer, topic: Vec<&str>) -> Result<()> {
     consumer.subscribe(&topic)?;
-
     Ok(())
 }
 
