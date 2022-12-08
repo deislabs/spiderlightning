@@ -56,7 +56,7 @@ install-deps-win:
 	curl -o wasi-sdk-15.0-mingw.tar.gz -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
 	tar -xvzf wasi-sdk-15.0-mingw.tar.gz
 	mkdir -p wasi-sdk
-	mv wasi-sdk-15.0\* wasi-sdk\
+	mv wasi-sdk-15.0\* wasi-sdk
 	choco install openssl
 	curl -o redis-latest.zip -L https://github.com/MicrosoftArchive/redis/releases/download/win-3.0.504/Redis-x64-3.0.504.zip
 	mkdir C:\redis
