@@ -135,7 +135,6 @@ stages:
           - script: make build-rust
             displayName: Build Rust Examples
           
-          
           - script: make build-c
             displayName: Build C Examples
             condition: and(succeeded(), ne(variables['target_os'], 'windows'))
@@ -146,7 +145,6 @@ stages:
             env:
               WASI_SDK_PATH: C:\wasi-sdk
 
-          
           #
           # Running integration tests
           #

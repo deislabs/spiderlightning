@@ -2,9 +2,8 @@ WASI_VERSION = 15
 WASI_VERSION_FULL = $(WASI_VERSION).0
 
 WASI_SDK ?= /opt/wasi-sdk
-WASI_SDK_WIN ?= ..\wasi-sdk
 WASI_CC = $(WASI_SDK)/bin/clang
-WASI_CC_WIN = $(WASI_SDK_WIN)\bin\clang.exe
+WASI_CC_WIN = $(WASI_SDK)\bin\clang.exe
 DEBUG_OPT = -glldb
 SYSROOT = $(WASI_SDK)/share/wasi-sysroot/
 

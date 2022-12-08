@@ -101,19 +101,6 @@ jobs:
         env:
           OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
           OPENSSL_NO_VENDOR: true
-          
-      - name: "Build Rust Examples"
-        run: make build-rust
-
-      - name: "Build C Examples"
-        run: make build-c
-        if: ${{ fromJSON(matrix.config.os != 'windows-latest') }}
-      
-      - name: "Build C Examples Windows"
-        run: |
-          ls wasi-sdk
-          make build-c-win
-        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
 
       #
       # Run Unit Tests
