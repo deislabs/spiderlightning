@@ -77,7 +77,8 @@ stages:
           - task: Cache@2
             inputs:
               key: 'cargo-cache-$(Agent.OS)'
-              path: '$HOME/.cargo/registry'
+              path: $(HOME)/.cargo/registry
+              
           - task: Cache@2
             inputs:
               key: 'cargo-target-cache-$(Agent.OS)'
