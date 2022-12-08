@@ -78,7 +78,7 @@ stages:
             inputs:
               key: 'cargo-cache-$(Agent.OS)'
               path: $(HOME)/.cargo/registry
-              
+
           - task: Cache@2
             inputs:
               key: 'cargo-target-cache-$(Agent.OS)'
@@ -136,6 +136,7 @@ stages:
           #
           - script: make test-integration
             displayName: Run Integration Tests
+            retryCountOnTaskFailure: 5
             env:
               AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
               AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
