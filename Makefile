@@ -60,6 +60,7 @@ install-deps-win:
 	mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	choco install openssl
 	curl -o redis-latest.zip -L https://github.com/MicrosoftArchive/redis/releases/download/win-3.0.504/Redis-x64-3.0.504.zip
+	mkdir C:\redis
 	tar -xvzf redis-latest.zip -C C:\redis
 
 .PHONY: install-slight
