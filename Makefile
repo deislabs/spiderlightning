@@ -53,8 +53,8 @@ install-deps-macos:
 
 .PHONY: install-deps-win
 install-deps-win:
-	choco install wget
 	choco install make -y
+	choco install wget
 	wget -O wasi-sdk-15.0-mingw.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
 	tar -xvzf wasi-sdk-15.0-mingw.tar.gz
 	mkdir -p /opt/wasi-sdk
