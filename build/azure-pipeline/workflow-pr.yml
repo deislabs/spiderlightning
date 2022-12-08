@@ -138,6 +138,14 @@ stages:
           
           - script: make build-c
             displayName: Build C Examples
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
+
+          - script: make build-c
+            displayName: Build C Examples Windows
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+            env:
+              WASI_SDK_PATH: C:\wasi-sdk
+
           
           #
           # Running integration tests
