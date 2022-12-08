@@ -56,6 +56,10 @@ jobs:
         run: make install-deps-macos
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
 
+      - name: "Install make tool on Windows"
+        run: choco install make -y
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+        
       - name: "Install Dependencies on Windows"
         run: make install-deps-win
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
