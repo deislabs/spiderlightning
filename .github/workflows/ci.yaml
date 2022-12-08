@@ -110,7 +110,9 @@ jobs:
         if: ${{ fromJSON(matrix.config.os != 'windows-latest') }}
       
       - name: "Build C Examples Windows"
-        run: make build-c-win
+        run: |
+          ls wasi-sdk
+          make build-c-win
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
 
       #
