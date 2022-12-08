@@ -36,7 +36,8 @@ install-deps:
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 	sudo apt install lsb-release
-	sudo snap install redis
+	sudo apt-get update
+    sudo apt-get install -y redis-server
 
 .PHONY: install-deps-macos
 install-deps-macos:
@@ -47,18 +48,17 @@ install-deps-macos:
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 	chmod +x /opt/wasi-sdk/bin/clang
+	brew update
 	brew install redis
 
 .PHONY: install-deps-win
 install-deps-win:
-	# TODO: install the wasi-sdk on Windows took more than 10 mins. 
-	#       I'm not sure if it's a bug or if it's just a slow build.
-	#
-	# wget -O wasi-sdk-15.0-mingw.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
-	# tar -xvzf wasi-sdk-15.0-mingw.tar.gz
-	# mkdir -p /opt/wasi-sdk
-	# mv wasi-sdk-15.0/* /opt/wasi-sdk/
+	wget -O wasi-sdk-15.0-mingw.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
+	tar -xvzf wasi-sdk-15.0-mingw.tar.gz
+	mkdir -p /opt/wasi-sdk
+	mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	choco install openssl
+	choco install redis
 
 .PHONY: install-slight
 install-slight:
