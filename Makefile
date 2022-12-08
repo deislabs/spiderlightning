@@ -35,9 +35,9 @@ install-deps:
 	sudo mkdir -p /opt/wasi-sdk
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
-	sudo apt install lsb-release
 	sudo apt-get update
-    sudo apt-get install -y redis-server
+	sudo apt-get install lsb-release
+	sudo apt-get install -y redis-server
 
 .PHONY: install-deps-macos
 install-deps-macos:
