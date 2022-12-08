@@ -104,22 +104,24 @@ impl pubsub::Pubsub for Pubsub {
         Ok(inner.sub_implementor)
     }
 
-    async fn sub_receive(&mut self, self_: &Self::Sub) -> Result<Vec<u8>, Error> {
+    async fn sub_receive(
+        &mut self,
+        self_: &Self::Sub,
+        sub_tok: SubscriptionTokenParam<'_>,
+    ) -> Result<PayloadResult, Error> {
         Ok(match &self_ {
-            SubImplementor::ConfluentApacheKafka(si) => si.receive().await?,
-            SubImplementor::Mosquitto(si) => si.receive().await?,
+            SubImplementor::ConfluentApacheKafka(pi) => pi.receive(sub_tok).await?,
+            SubImplementor::Mosquitto(pi) => pi.receive(sub_tok).await?,
             _ => panic!("Unknown implementor"),
         })
     }
 
-    async fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<(), Error> {
-        match &self_ {
+    async fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<String, Error> {
+        Ok(match &self_ {
             SubImplementor::ConfluentApacheKafka(pi) => pi.subscribe(topic).await?,
             SubImplementor::Mosquitto(pi) => pi.subscribe(topic).await?,
             _ => panic!("Unknown implementor"),
-        };
-
-        Ok(())
+        })
     }
 }
 

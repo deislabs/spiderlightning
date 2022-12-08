@@ -1,5 +1,6 @@
 use std::{
-    sync::Arc,
+    collections::HashMap,
+    sync::{Arc, Mutex},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -7,6 +8,7 @@ use anyhow::{Context, Result};
 use rdkafka::{consumer::StreamConsumer, producer::BaseProducer, ClientConfig};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
+use tokio::{runtime::Handle, task::block_in_place};
 
 use crate::providers::confluent;
 
@@ -60,7 +62,9 @@ impl Pub {
 
 #[derive(Clone)]
 pub struct Sub {
-    consumer: Arc<StreamConsumer>,
+    apache_kafka_config: ApacheKafkaConfigs,
+    group_id: String,
+    consumers: Arc<Mutex<HashMap<String, Arc<StreamConsumer>>>>,
 }
 
 impl std::fmt::Debug for Sub {
@@ -74,38 +78,65 @@ impl Sub {
         let akc = ApacheKafkaConfigs::from_state(slight_state).await.unwrap();
         let group_id = get_from_state("CAK_GROUP_ID", slight_state).await.unwrap();
 
+        Self {
+            apache_kafka_config: akc,
+            group_id,
+            consumers: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    pub async fn subscribe(&self, topic: &str) -> Result<String> {
         let consumer: StreamConsumer = ClientConfig::new()
-            .set("bootstrap.servers", &akc.bootstap_servers)
-            .set("security.protocol", &akc.security_protocol)
-            .set("sasl.mechanisms", &akc.sasl_mechanisms)
-            .set("sasl.username", &akc.sasl_username)
-            .set("sasl.password", &akc.sasl_password)
-            .set("group.id", group_id)
+            .set(
+                "bootstrap.servers",
+                &self.apache_kafka_config.bootstap_servers,
+            )
+            .set(
+                "security.protocol",
+                &self.apache_kafka_config.security_protocol,
+            )
+            .set("sasl.mechanisms", &self.apache_kafka_config.sasl_mechanisms)
+            .set("sasl.username", &self.apache_kafka_config.sasl_username)
+            .set("sasl.password", &self.apache_kafka_config.sasl_password)
+            .set("group.id", &self.group_id)
             .create()
             .with_context(|| "failed to create consumer client")
             .unwrap(); // panic if we fail to create client
 
-        tracing::info!("created consumer client");
+        confluent::subscribe(&consumer, vec![topic])
+            .with_context(|| "failed to subscribe to topic")?;
 
-        Self {
-            consumer: Arc::new(consumer),
-        }
+        // generate uuid for subscription
+        let sub_tok = uuid::Uuid::new_v4().to_string();
+
+        self.consumers
+            .lock()
+            .unwrap()
+            .insert(sub_tok.clone(), Arc::new(consumer));
+
+        Ok(sub_tok)
     }
 
-    pub async fn subscribe(&self, topic: &str) -> Result<()> {
-        confluent::subscribe(&self.consumer, vec![topic])
-            .with_context(|| "failed to subscribe to topic")
-    }
+    pub async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
+        block_in_place(|| {
+            Handle::current().block_on(async move {
+                let consumers_lock = self.consumers.lock().unwrap();
 
-    pub async fn receive(&self) -> Result<Vec<u8>> {
-        confluent::receive(&self.consumer)
-            .await
-            .with_context(|| "failed to poll for message")
+                let accessed_consumer = consumers_lock
+                    .get(sub_tok)
+                    .with_context(|| "failed to get consumer from subscription token")?;
+
+                confluent::receive(accessed_consumer)
+                    .await
+                    .with_context(|| "failed to poll for message")
+            })
+        })
     }
 }
 
 /// `ApacheKafkaConfigs` is a convenience structure to avoid the innate
 /// repetitiveness of code that comes w/ getting `runtime_configs`.
+#[derive(Clone)]
 struct ApacheKafkaConfigs {
     bootstap_servers: String,
     security_protocol: String,
