@@ -15,27 +15,24 @@ stages:
         #
         strategy:
           matrix:
-            # 
-            # TODO: fix windows builds failure from mosquitto-rs, and librdkafka-sys.
-            # 
-            # windows-x86:
-            #   poolName: Azure Pipelines
-            #   imageName: 'windows-latest'
-            #   target_os: windows
-            #   target_arch: x86
-            #   is_cross_compile: true
-            # windows-x64:
-            #   poolName: Azure Pipelines
-            #   imageName: 'windows-latest'
-            #   target_os: windows
-            #   target_arch: x86_64
-            #   is_cross_compile: false
-            # windows-arm64:
-            #   poolName: Azure Pipelines
-            #   imageName: 'windows-latest'
-            #   target_os: windows
-            #   target_arch: aarch64
-            #   is_cross_compile: true
+            windows-x86:
+              poolName: Azure Pipelines
+              imageName: 'windows-latest'
+              target_os: windows
+              target_arch: x86
+              is_cross_compile: true
+            windows-x64:
+              poolName: Azure Pipelines
+              imageName: 'windows-latest'
+              target_os: windows
+              target_arch: x86_64
+              is_cross_compile: false
+            windows-arm64:
+              poolName: Azure Pipelines
+              imageName: 'windows-latest'
+              target_os: windows
+              target_arch: aarch64
+              is_cross_compile: true
             linux-x86:
               poolName: Azure Pipelines
               imageName: 'ubuntu-latest'
@@ -125,7 +122,15 @@ stages:
           # Build
           #
           - script: make build
-            displayName: Build
+            displayName: Build Linux/MacOS
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
+
+          - script: make build
+            displayName: Build Windows   
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+            env:
+              OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+              OPENSSL_NO_VENDOR: true       
           
           - script: make build-rust
             displayName: Build Rust Examples
