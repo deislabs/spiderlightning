@@ -97,7 +97,9 @@ stages:
           #
           # Install build tools
           #
-          - script: make install-deps-win
+          - script: |
+              choco install strawberryperl
+              make install-deps-win
             displayName: Install build tools on windows
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
             env:
@@ -130,18 +132,7 @@ stages:
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
             env:
               OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
-              OPENSSL_NO_VENDOR: true       
-
-          - script: make build-c
-            displayName: Build C Examples
-            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
-
-          - script: make build-c-win
-            displayName: Build C Examples Windows
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-          
-          - script: make build-rust
-            displayName: Build Rust Examples
+              OPENSSL_NO_VENDOR: true
 
           #
           # Running integration tests
@@ -158,5 +149,16 @@ stages:
               AWS_DEFAULT_REGION: us-west-2
               AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
               AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
-              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
+              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)            
+
+          - script: make build-c
+            displayName: Build C Examples
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
+
+          - script: make build-c-win
+            displayName: Build C Examples Windows
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          
+          - script: make build-rust
+            displayName: Build Rust Examples
           
