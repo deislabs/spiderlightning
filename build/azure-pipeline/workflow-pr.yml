@@ -131,19 +131,17 @@ stages:
             env:
               OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
               OPENSSL_NO_VENDOR: true       
-          
-          - script: make build-rust
-            displayName: Build Rust Examples
-          
+
           - script: make build-c
             displayName: Build C Examples
             condition: and(succeeded(), ne(variables['target_os'], 'windows'))
 
-          - script: make build-c
+          - script: make build-c-win
             displayName: Build C Examples Windows
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-            env:
-              WASI_SDK_PATH: C:\wasi-sdk
+          
+          - script: make build-rust
+            displayName: Build Rust Examples
 
           #
           # Running integration tests
