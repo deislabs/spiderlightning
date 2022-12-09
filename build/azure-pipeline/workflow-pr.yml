@@ -141,6 +141,7 @@ stages:
             displayName: Run Integration Tests
             retryCountOnTaskFailure: 5
             env:
+              PERL: C:\Strawberry\perl\bin\perl.exe
               AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
               AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
               AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
