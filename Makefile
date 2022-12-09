@@ -56,11 +56,11 @@ install-deps-win:
 	choco install openssl -y
 	choco install wget -y
 	wget -O wasi-sdk-15.0-mingw.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
-	mkdir -p wasi-sdk
-	tar -xvzf wasi-sdk-15.0-mingw.tar.gz --strip-components=1 -C wasi-sdk
+	mkdir -p C:\wasi-sdk
+	tar -xvzf wasi-sdk-15.0-mingw.tar.gz --strip-components=1 -C C:\wasi-sdk
 	curl -o redis-latest.zip -L https://github.com/MicrosoftArchive/redis/releases/download/win-3.0.504/Redis-x64-3.0.504.zip
-	mkdir \redis
-	tar -xvzf redis-latest.zip -C \redis
+	mkdir C:\redis
+	tar -xvzf redis-latest.zip -C C:\redis
 
 .PHONY: install-slight
 install-slight:
