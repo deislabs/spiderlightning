@@ -82,17 +82,15 @@ stages:
             displayName: Get Home directory (windows)
             condition: eq(variables['Agent.OS'], 'Windows_NT')
 
-          - task: Cache@2
+          - task: Cache@1
             inputs:
-              key: 'cargo-registry-$(Agent.OS)'
+              key: 'cargo-registry-$(Agent.JobName)'
               path: $(homedir)/.cargo/registry
-            continueOnError: true
 
-          - task: Cache@2
+          - task: Cache@1
             inputs:
-              key: 'cargo-target-$(Agent.OS)'
+              key: 'cargo-target-$(Agent.JobName)'
               path: '$(Build.SourcesDirectory)/target' 
-            continueOnError: true
 
           #
           # Update build environment
