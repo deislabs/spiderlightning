@@ -75,12 +75,12 @@ stages:
           #
           - task: Cache@2
             inputs:
-              key: registry | $(Agent.OS) | ${{ env.PROCESSOR_ARCHITECTURE }}
+              key: registry-$(Agent.OS)-$(Agent.MachineName)
               path: $(HOME)/.cargo/registry
 
           - task: Cache@2
             inputs:
-              key: target | $(Agent.OS) | ${{ env.PROCESSOR_ARCHITECTURE }}
+              key: target-$(Agent.OS)-$(Agent.MachineName)
               path: '$(Build.SourcesDirectory)/target' 
 
           #
