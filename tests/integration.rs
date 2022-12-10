@@ -67,9 +67,11 @@ mod integration_tests {
     #[cfg(test)]
     mod kv_tests {
         #[cfg(unix)]
-        use std::{env, process::Command};
-
-        use std::net::{Ipv4Addr, SocketAddrV4, TcpListener};
+        use std::{
+            env,
+            net::{Ipv4Addr, SocketAddrV4, TcpListener},
+            process::Command,
+        };
 
         use crate::{run, SLIGHT};
         use anyhow::Result;
