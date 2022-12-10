@@ -75,12 +75,12 @@ stages:
           #
           - task: Cache@2
             inputs:
-              key: registry-$(Agent.OS)-$(Agent.MachineName)
+              key: registry-$(Agent.JobName)
               path: $(HOME)/.cargo/registry
 
           - task: Cache@2
             inputs:
-              key: target-$(Agent.OS)-$(Agent.MachineName)
+              key: target-$(Agent.JobName)
               path: '$(Build.SourcesDirectory)/target' 
 
           #
