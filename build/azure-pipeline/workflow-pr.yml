@@ -73,10 +73,19 @@ stages:
           #
           # Use Cache
           #
+          - bash: |
+              echo "##vso[task.setvariable variable=homedir]$HOME"
+            displayName: Get Home directory (*nix)
+            condition: ne(variables['Agent.OS'], 'Windows_NT')
+          - powershell: |
+              Write-Host "##vso[task.setvariable variable=homedir]$env:USERPROFILE"
+            displayName: Get Home directory (windows)
+            condition: eq(variables['Agent.OS'], 'Windows_NT')
+
           - task: Cache@2
             inputs:
               key: registry-$(Agent.JobName)
-              path: $(HOME)/.cargo/registry
+              path: $(homedir)/.cargo/registry
 
           - task: Cache@2
             inputs:
