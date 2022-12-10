@@ -6,9 +6,9 @@ pr:
   autoCancel: true # Cancel an outdated build when people push new changes to their PR
 
 stages:
-  - stage: Build
+  - stage:
     jobs:
-      - job: Build
+      - job:
         #
         # Build flavors
         #
@@ -73,6 +73,10 @@ stages:
           #
           # Use Cache
           #
+          - bash: |
+              echo "##vso[task.setvariable variable=homedir]$HOME"
+            displayName: Get Home directory (*nix)
+            condition: ne(variables['Agent.OS'], 'Windows_NT')
           - powershell: |
               Write-Host "##vso[task.setvariable variable=homedir]$env:USERPROFILE"
             displayName: Get Home directory (windows)
@@ -82,13 +86,6 @@ stages:
             inputs:
               key: registry-$(Agent.JobName)
               path: $(homedir)/.cargo/registry
-              condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-          - task: Cache@2
-            inputs:
-              key: registry-$(Agent.JobName)
-              path: $(HOME)/.cargo/registry
-              condition: ne(variables['Agent.OS'], 'Windows_NT')          
 
           - task: Cache@2
             inputs:
@@ -149,7 +146,7 @@ stages:
           # Running integration tests
           #
           - script: make test-integration
-            displayName: Run Integration Tests
+            displayName: Run Integration Tests (Windows)
             retryCountOnTaskFailure: 5
             env:
               PERL: C:\Strawberry\perl\bin\perl.exe
@@ -161,7 +158,23 @@ stages:
               AWS_DEFAULT_REGION: us-west-2
               AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
               AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
-              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)            
+              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))        
+
+          - script: make test-integration
+            displayName: Run Integration Tests (Unix)
+            retryCountOnTaskFailure: 5
+            env:
+              AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
+              AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+              AWS_REGION: $(AWS_REGION)
+              AWS_DEFAULT_REGION: us-west-2
+              AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
+              AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
+              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))      
 
           - script: make build-c
             displayName: Build C Examples
