@@ -1,25 +1,46 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
-use anyhow::Result;
-use mosquitto_rs::{Client, QoS};
+use anyhow::{Context, Result};
+use async_channel::Receiver;
+use mosquitto_rs::{Client, Message, QoS};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 use tokio::{runtime::Handle, task::block_in_place};
 
 #[derive(Clone)]
-pub struct MosquittoImplementor {
-    client: Arc<Mutex<Client>>,
+pub struct Pub {
+    producer: Arc<Mutex<Client>>,
 }
 
-// TODO: We need to improve these Debug implementations
-impl std::fmt::Debug for MosquittoImplementor {
+impl std::fmt::Debug for Pub {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "MosquittoImplementor")
+        write!(f, "Mosquitto's Pub")
     }
 }
 
-// Pub+Sub
-impl MosquittoImplementor {
+#[derive(Clone)]
+pub struct Sub {
+    host: String,
+    port: i32,
+    consumers: Arc<Mutex<HashMap<String, Consumer>>>,
+}
+
+#[derive(Clone)]
+pub struct Consumer {
+    _client: Arc<Mutex<Client>>,
+    subscriptions: Arc<Mutex<Option<Receiver<Message>>>>,
+}
+
+impl std::fmt::Debug for Sub {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Mosquitto's Sub")
+    }
+}
+
+impl Pub {
     pub async fn new(slight_state: &BasicState) -> Self {
         let host = get_from_state("MOSQUITTO_HOST", slight_state)
             .await
@@ -30,7 +51,9 @@ impl MosquittoImplementor {
             .parse::<i32>()
             .unwrap();
 
-        let client = block_in_place(|| {
+        tracing::debug!("Connecting to Mosquitto broker at {}:{}", host, port);
+
+        let producer = block_in_place(|| {
             Handle::current().block_on(async move {
                 let mut client = Client::with_auto_id().unwrap();
 
@@ -43,16 +66,13 @@ impl MosquittoImplementor {
             })
         });
 
-        Self { client }
+        Self { producer }
     }
-}
 
-// Pub
-impl MosquittoImplementor {
     pub async fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
         block_in_place(|| {
             Handle::current().block_on(async move {
-                self.client
+                self.producer
                     .lock()
                     .unwrap()
                     .publish(topic, msg_value, QoS::AtMostOnce, false)
@@ -65,31 +85,77 @@ impl MosquittoImplementor {
     }
 }
 
-// Sub
-impl MosquittoImplementor {
-    pub async fn subscribe(&self, topic: &str) -> Result<()> {
-        block_in_place(|| {
-            Handle::current().block_on(async move {
-                self.client
-                    .lock()
-                    .unwrap()
-                    .subscribe(topic, QoS::AtMostOnce)
-                    .await
-                    .unwrap();
-            })
-        });
-        Ok(())
+impl Sub {
+    pub async fn new(slight_state: &BasicState) -> Self {
+        let host = get_from_state("MOSQUITTO_HOST", slight_state)
+            .await
+            .unwrap();
+        let port = get_from_state("MOSQUITTO_PORT", slight_state)
+            .await
+            .unwrap()
+            .parse::<i32>()
+            .unwrap();
+
+        tracing::info!("Connecting to Mosquitto broker at {}:{}", host, port);
+
+        Self {
+            host,
+            port,
+            consumers: Arc::new(Mutex::new(HashMap::new())),
+        }
     }
 
-    pub async fn receive(&self) -> Result<Vec<u8>> {
+    pub async fn subscribe(&self, topic: &str) -> Result<String> {
+        let new_consumer = block_in_place(|| {
+            Handle::current().block_on(async move {
+                let mut client = Client::with_auto_id().unwrap();
+
+                client
+                    .connect(
+                        &self.host.clone(),
+                        self.port,
+                        std::time::Duration::from_secs(5),
+                        None,
+                    )
+                    .await
+                    .unwrap();
+
+                client.subscribe(topic, QoS::AtLeastOnce).await.unwrap();
+
+                let subscriber = client.subscriber();
+
+                Consumer {
+                    _client: Arc::new(Mutex::new(client)),
+                    subscriptions: Arc::new(Mutex::new(subscriber)),
+                }
+            })
+        });
+
+        // generate uuid
+        let k = uuid::Uuid::new_v4().to_string();
+
+        self.consumers
+            .lock()
+            .unwrap()
+            .insert(k.clone(), new_consumer);
+
+        Ok(k)
+    }
+
+    pub async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
         let mut res: Vec<u8> = vec![];
 
         block_in_place(|| {
             res = Handle::current().block_on(async move {
-                self.client
+                self.consumers
                     .lock()
                     .unwrap()
-                    .subscriber()
+                    .get(sub_tok)
+                    .with_context(|| "failed to get consumer from subscription token")
+                    .unwrap()
+                    .subscriptions
+                    .lock()
+                    .unwrap()
                     .as_mut()
                     .unwrap()
                     .recv()

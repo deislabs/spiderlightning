@@ -3,20 +3,23 @@ use { error, payload } from types
 use * from resources
 
 resource pub {
-	// open a pub object
+	// creates a handle to a pub object
 	static open: func(name: string) -> expected<pub, error>
 
-	// pub a message
+	// publish a message to a topic
 	publish: func(message: payload, topic: string) -> expected<unit, error> 
 }
 
-resource sub {
-	// open a sub object
-	static open: func(name: string) -> expected<sub, error>
-	
-	// sub to a topic
-	subscribe: func(topic: string) -> expected<unit, error>
+// provides a handle to a consumer that owns a specific subscription
+type subscription-token = string
 
-	// read messages under subbed topic
-	receive: func() -> expected<payload, error>
+resource sub {
+	// creates a handle to a sub object
+	static open: func(name: string) -> expected<sub, error>
+
+	// subscribe to a topic
+	subscribe: func(topic: string) -> expected<subscription-token, error> 
+
+	// pull-based message delivery
+	receive: func(sub-tok: subscription-token) -> expected<payload, error>
 }

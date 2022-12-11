@@ -5,10 +5,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use async_trait::async_trait;
 
-use implementors::{
-    apache_kafka::{PubConfluentApacheKafkaImplementor, SubConfluentApacheKafkaImplementor},
-    mosquitto::MosquittoImplementor,
-};
+use implementors::{apache_kafka, mosquitto};
 use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -33,19 +30,39 @@ wit_error_rs::impl_from!(
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `config_type`
 ///     and the `config_toml_file_path`).
-
 #[derive(Clone, Default)]
 pub struct Pubsub {
-    implementor: String,
-    capability_store: HashMap<String, BasicState>,
+    store: HashMap<String, PubsubState>,
 }
 
+#[derive(Clone, Debug)]
+struct PubsubState {
+    pub_implementor: PubImplementor,
+    sub_implementor: SubImplementor,
+}
 impl Pubsub {
-    pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
-        Self {
-            implementor,
-            capability_store,
-        }
+    pub async fn new(name: &str, capability_store: HashMap<String, BasicState>) -> Self {
+        let state = capability_store.get(name).unwrap().clone();
+
+        tracing::log::info!("Opening implementor {}", &state.implementor);
+
+        let p = PubImplementor::new(&state.implementor, &state).await;
+        let s = SubImplementor::new(&state.implementor, &state).await;
+
+        let store = capability_store
+            .iter()
+            .map(|c| {
+                (
+                    c.0.clone(),
+                    PubsubState {
+                        pub_implementor: p.clone(),
+                        sub_implementor: s.clone(),
+                    },
+                )
+            })
+            .collect();
+
+        Self { store }
     }
 }
 
@@ -59,42 +76,12 @@ impl_resource!(
 
 #[async_trait]
 impl pubsub::Pubsub for Pubsub {
-    type Pub = PubInner;
-    type Sub = SubInner;
+    type Pub = PubImplementor;
+    type Sub = SubImplementor;
 
     async fn pub_open(&mut self, name: &str) -> Result<Self::Pub, Error> {
-        // populate our inner pubsub object w/ the state received from `slight`
-        // (i.e., what type of pubsub implementor we are using), and the assigned
-        // name of the object.
-        let state = self.capability_store.get(name).unwrap().clone();
-
-        tracing::log::info!("Opening implementor {}", &state.implementor);
-
-        let inner = Self::Pub::new(&state.implementor, &state).await;
-
-        Ok(inner)
-    }
-
-    async fn sub_open(&mut self, name: &str) -> Result<Self::Sub, Error> {
-        // populate our inner pubsub object w/ the state received from `slight`
-        // (i.e., what type of pubsub implementor we are using), and the assigned
-        // name of the object.
-        let state = if let Some(r) = self.capability_store.get(name) {
-            r.clone()
-        } else if let Some(r) = self.capability_store.get(&self.implementor) {
-            r.clone()
-        } else {
-            panic!(
-                "could not find capability under name '{}' for implementor '{}'",
-                name, &self.implementor
-            );
-        };
-
-        tracing::log::info!("Opening implementor {}", &state.implementor);
-
-        let inner = Self::Sub::new(&state.implementor, &state).await;
-
-        Ok(inner)
+        let inner = self.store.get(name).unwrap().clone();
+        Ok(inner.pub_implementor)
     }
 
     async fn pub_publish(
@@ -103,97 +90,59 @@ impl pubsub::Pubsub for Pubsub {
         message: PayloadParam<'_>,
         topic: &str,
     ) -> Result<(), Error> {
-        match &self_.pub_implementor {
+        match &self_ {
             PubImplementor::ConfluentApacheKafka(pi) => pi.publish(message, topic)?,
             PubImplementor::Mosquitto(pi) => pi.publish(message, topic).await?,
+            _ => panic!("Unknown implementor"),
         };
 
         Ok(())
     }
 
-    async fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<(), Error> {
-        match &self_.sub_implementor {
-            SubImplementor::ConfluentApacheKafka(si) => si.subscribe(topic)?,
-            SubImplementor::Mosquitto(si) => si.subscribe(topic).await?,
-        }
-
-        Ok(())
+    async fn sub_open(&mut self, name: &str) -> Result<Self::Sub, Error> {
+        let inner = self.store.get(name).unwrap().clone();
+        Ok(inner.sub_implementor)
     }
 
-    async fn sub_receive(&mut self, self_: &Self::Sub) -> Result<Vec<u8>, Error> {
-        Ok(match &self_.sub_implementor {
-            SubImplementor::ConfluentApacheKafka(si) => si.receive().await?,
-            SubImplementor::Mosquitto(si) => si.receive().await?,
+    async fn sub_receive(
+        &mut self,
+        self_: &Self::Sub,
+        sub_tok: SubscriptionTokenParam<'_>,
+    ) -> Result<PayloadResult, Error> {
+        Ok(match &self_ {
+            SubImplementor::ConfluentApacheKafka(pi) => pi.receive(sub_tok).await?,
+            SubImplementor::Mosquitto(pi) => pi.receive(sub_tok).await?,
+            _ => panic!("Unknown implementor"),
         })
     }
-}
 
-/// This is the type of the associated type coming from the `pubsub::Pubsub` trait implementation.
-///
-/// It holds:
-///     - a `pub_implementor` (i.e., a variant `PubImplementor` `enum`), and
-///
-/// It must `derive`:
-///     - `Debug` due to a constraint on the associated type.
-///     - `Clone` because the `ResourceMap` it will be added onto,
-///     must own its' data.
-///
-/// It must be public because the implementation of `pubsub::Pubsub` cannot leak
-/// a private type.
-#[derive(Debug, Clone)]
-pub struct PubInner {
-    pub_implementor: PubImplementor,
-}
-
-impl PubInner {
-    async fn new(pub_implementor: &str, slight_state: &BasicState) -> Self {
-        Self {
-            pub_implementor: PubImplementor::new(pub_implementor, slight_state).await,
-        }
-    }
-}
-
-/// This is the type of the associated type coming from the `pubsub::Pubsub` trait implementation.
-///
-/// It holds:
-///     - a `sub_implementor` (i.e., a variant `SubImplementor` `enum`), and
-///
-/// It must `derive`:
-///     - `Debug` due to a constraint on the associated type.
-///     - `Clone` because the `ResourceMap` it will be added onto,
-///     must own its' data.
-///
-/// It must be public because the implementation of `pubsub::Pubsub` cannot leak
-/// a private type.
-#[derive(Debug, Clone)]
-pub struct SubInner {
-    sub_implementor: SubImplementor,
-}
-
-impl SubInner {
-    async fn new(sub_implementor: &str, slight_state: &BasicState) -> Self {
-        Self {
-            sub_implementor: SubImplementor::new(sub_implementor, slight_state).await,
-        }
+    async fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<String, Error> {
+        Ok(match &self_ {
+            SubImplementor::ConfluentApacheKafka(pi) => pi.subscribe(topic).await?,
+            SubImplementor::Mosquitto(pi) => pi.subscribe(topic).await?,
+            _ => panic!("Unknown implementor"),
+        })
     }
 }
 
 /// This defines the available implementor implementations for the `Pubsub` interface.
 ///
 /// As per its' usage in `PubInner`, it must `derive` `Debug`, and `Clone`.
-#[derive(Debug, Clone)]
-enum PubImplementor {
-    ConfluentApacheKafka(PubConfluentApacheKafkaImplementor),
-    Mosquitto(MosquittoImplementor),
+#[derive(Debug, Clone, Default)]
+pub enum PubImplementor {
+    #[default]
+    Empty,
+    ConfluentApacheKafka(apache_kafka::Pub),
+    Mosquitto(mosquitto::Pub),
 }
 
 impl PubImplementor {
     async fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
         match pubsub_implementor {
-            "pubsub.confluent_apache_kafka" => Self::ConfluentApacheKafka(
-                PubConfluentApacheKafkaImplementor::new(slight_state).await,
-            ),
-            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state).await),
+            "pubsub.confluent_apache_kafka" => {
+                Self::ConfluentApacheKafka(apache_kafka::Pub::new(slight_state).await)
+            }
+            "pubsub.mosquitto" => Self::Mosquitto(mosquitto::Pub::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
@@ -204,20 +153,22 @@ impl PubImplementor {
 
 /// This defines the available implementor implementations for the `Pubsub` interface.
 ///
-/// As per its' usage in `SubInner`, it must `derive` `Debug`, and `Clone`.
-#[derive(Debug, Clone)]
-enum SubImplementor {
-    ConfluentApacheKafka(SubConfluentApacheKafkaImplementor),
-    Mosquitto(MosquittoImplementor),
+/// As per its' usage in `PubInner`, it must `derive` `Debug`, and `Clone`.
+#[derive(Debug, Clone, Default)]
+pub enum SubImplementor {
+    #[default]
+    Empty,
+    ConfluentApacheKafka(apache_kafka::Sub),
+    Mosquitto(mosquitto::Sub),
 }
 
 impl SubImplementor {
     async fn new(pubsub_implementor: &str, slight_state: &BasicState) -> Self {
         match pubsub_implementor {
-            "pubsub.confluent_apache_kafka" => Self::ConfluentApacheKafka(
-                SubConfluentApacheKafkaImplementor::new(slight_state).await,
-            ),
-            "pubsub.mosquitto" => Self::Mosquitto(MosquittoImplementor::new(slight_state).await),
+            "pubsub.confluent_apache_kafka" => {
+                Self::ConfluentApacheKafka(apache_kafka::Sub::new(slight_state).await)
+            }
+            "pubsub.mosquitto" => Self::Mosquitto(mosquitto::Sub::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p

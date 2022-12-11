@@ -57,6 +57,7 @@ impl UserSecrets {
             .open(&toml_file_path)?;
         let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
         let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+        toml_file.set_len(0)?;
         create_secret(key, std::str::from_utf8(value)?, &mut toml, &mut toml_file)
     }
 }

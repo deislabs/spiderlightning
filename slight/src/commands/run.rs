@@ -30,7 +30,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
 
     tracing::info!("Starting slight");
 
-    let host_builder = build_store_instance(&toml, &toml_file_path, &module)?;
+    let host_builder = build_store_instance(&toml, &toml_file_path, &module).await?;
     let (mut store, instance) = host_builder.build().await;
 
     let caps = toml.capability.as_ref().unwrap();
@@ -50,7 +50,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
 
     if http_enabled {
         log::debug!("Http capability enabled");
-        let guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module)?;
+        let guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module).await?;
         let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
         http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
@@ -99,7 +99,7 @@ async fn shutdown_signal() {
         .expect("failed to install CTRL+C signal handler");
 }
 
-fn build_store_instance(
+async fn build_store_instance(
     toml: &TomlFile,
     toml_file_path: impl AsRef<Path>,
     module: impl AsRef<Path>,
@@ -169,8 +169,7 @@ fn build_store_instance(
                     linked_capabilities.insert("pubsub".to_string());
                 }
 
-                let resource =
-                    slight_pubsub::Pubsub::new(resource_type.to_string(), capability_store.clone());
+                let resource = slight_pubsub::Pubsub::new(&c.name, capability_store.clone()).await;
                 builder.add_to_builder("pubsub".to_string(), resource);
             }
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
