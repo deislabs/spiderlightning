@@ -1,47 +1,37 @@
-# Run integration tests
-# the pipeline definition is mostly copied over from https://github.com/r12f/divoom/blob/main/build/azure-pipeline/workflow-common.yml
-
 # /azp run slight-integration
 
-# This is just for running integration tests manually for pull requests.
 trigger: none
 
-# Only test a PR when requested with a Github comment, /azp run slight-integration
 pr:
   autoCancel: true # Cancel an outdated build when people push new changes to their PR
 
-variables:
-  # for more info, see this: https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci
-  RUSTCACHE_ROOT: $(Build.SourcesDirectory)/target
-
 stages:
-  - stage: Build
+  - stage:
     jobs:
-      - job: Build
-        timeoutInMinutes: 180
+      - job:
         #
         # Build flavors
         #
         strategy:
           matrix:
-            # windows-x86:
-            #   poolName: Azure Pipelines
-            #   imageName: 'windows-latest'
-            #   target_os: windows
-            #   target_arch: x86
-            #   is_cross_compile: true
-            # windows-x64:
-            #   poolName: Azure Pipelines
-            #   imageName: 'windows-latest'
-            #   target_os: windows
-            #   target_arch: x86_64
-            #   is_cross_compile: false
-            # windows-arm64:
-            #   poolName: Azure Pipelines
-            #   imageName: 'windows-latest'
-            #   target_os: windows
-            #   target_arch: aarch64
-            #   is_cross_compile: true
+            windows-x86:
+              poolName: Azure Pipelines
+              imageName: 'windows-latest'
+              target_os: windows
+              target_arch: x86
+              is_cross_compile: true
+            windows-x64:
+              poolName: Azure Pipelines
+              imageName: 'windows-latest'
+              target_os: windows
+              target_arch: x86_64
+              is_cross_compile: false
+            windows-arm64:
+              poolName: Azure Pipelines
+              imageName: 'windows-latest'
+              target_os: windows
+              target_arch: aarch64
+              is_cross_compile: true
             linux-x86:
               poolName: Azure Pipelines
               imageName: 'ubuntu-latest'
@@ -76,42 +66,31 @@ stages:
         pool:
           name: $(poolName)
           vmImage: $(imageName)
-        
-        workspace:
-          clean: all
 
         steps:
-          #
-          # Force cleanup.
-          # Self-hosted agents must be cleaned up, otherwise it might carry the previous result to the latest build.
-          # https://docs.microsoft.com/en-us/azure/devops/pipelines/repos/pipeline-options-for-git?view=azure-devops&tabs=yaml#clean-the-local-repo-on-the-agent
-          #
           - checkout: self
-            clean: true
           
           #
           # Use Cache
           #
-          - task: Cache@2
+          - bash: |
+              echo "##vso[task.setvariable variable=homedir]$HOME"
+            displayName: Get Home directory (*nix)
+            condition: ne(variables['Agent.OS'], 'Windows_NT')
+          - powershell: |
+              Write-Host "##vso[task.setvariable variable=homedir]$env:USERPROFILE"
+            displayName: Get Home directory (windows)
+            condition: eq(variables['Agent.OS'], 'Windows_NT')
+
+          - task: Cache@1
             inputs:
-              key: '"cargo" | "$(Agent.OS)" | Cargo.lock'
-              path: $(Build.SourcesDirectory)/target
-            displayName: cache cargo build
+              key: 'cargo-registry-$(Agent.JobName)'
+              path: $(homedir)/.cargo/registry
 
-          # - task: Cache@2
-          #   inputs:
-          #     key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
-          #     path: $(UserProfile)/.cargo/registry
-          #   displayName: cache cargo registry 
-          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))     
-
-          - task: Cache@2
+          - task: Cache@1
             inputs:
-              key: '"cargo-registry" | "$(Agent.OS)" | Cargo.lock'
-              path: $(HOME)/.cargo/registry
-            displayName: cache cargo registry 
-            # condition: and(succeeded(), ne(variables['target_os'], 'windows'))   
-
+              key: 'cargo-target-$(Agent.JobName)'
+              path: '$(Build.SourcesDirectory)/target' 
 
           #
           # Update build environment
@@ -122,31 +101,20 @@ stages:
               rustup target add wasm32-wasi
               rustup target add wasm32-unknown-unknown
             displayName: rustup update default toolchain
-          
-          # - script: choco install make -y
-          #   displayName: Install make tool on Windows
-          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
           #
           # Install build tools
           #
-          # - script: make install-deps-win
-          #   displayName: Install build tools on windows
-          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-          #   env:
-          #     BUILD_ARCH: $(target_arch)
-
-          # https://github.com/actions/runner-images/blob/main/images/linux/Ubuntu2004-Readme.md#notes
           - script: |
-              eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-              make install-deps
-            displayName: Install build tools on linux
-            condition: and(succeeded(), eq(variables['target_os'], 'linux'))
+              choco install strawberryperl
+              make install-deps-win
+            displayName: Install build tools on windows
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
             env:
               BUILD_ARCH: $(target_arch)
-          
-          - script: which /home/linuxbrew/.linuxbrew/opt/redis/bin/redis-server
-            displayName: Check redis-server exists
+
+          - script: make install-deps
+            displayName: Install build tools on linux
             condition: and(succeeded(), eq(variables['target_os'], 'linux'))
             env:
               BUILD_ARCH: $(target_arch)
@@ -162,28 +130,40 @@ stages:
           
           #
           # Build
-          
+          #
+          - script: make build
+            displayName: Build Linux/MacOS
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
 
           - script: make build
-            displayName: Build
-            condition: and(succeeded(), eq(variables['target_os'], 'linux'))
+            displayName: Build Windows   
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+            env:
+              OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+              OPENSSL_NO_VENDOR: true
 
-          - script: make build
-            displayName: Build
-            condition: and(succeeded(), eq(variables['target_os'], 'macos'))
-          
-          - script: make build-rust
-            displayName: Build Rust Examples
-          
-          # TODO: fix c examples in macos and windows
-          # - script: make build-c
-          #   displayName: Build C Examples
-          
           #
           # Running integration tests
           #
           - script: make test-integration
-            displayName: Run Integration Tests
+            displayName: Run Integration Tests (Windows)
+            retryCountOnTaskFailure: 5
+            env:
+              PERL: C:\Strawberry\perl\bin\perl.exe
+              AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
+              AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
+              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+              AWS_REGION: $(AWS_REGION)
+              AWS_DEFAULT_REGION: us-west-2
+              AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
+              AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
+              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))        
+
+          - script: make test-integration
+            displayName: Run Integration Tests (Unix)
+            retryCountOnTaskFailure: 5
             env:
               AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
               AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
@@ -194,4 +174,16 @@ stages:
               AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
               AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
               AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))      
+
+          - script: make build-c
+            displayName: Build C Examples
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
+
+          - script: make build-c-win
+            displayName: Build C Examples Windows
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          
+          - script: make build-rust
+            displayName: Build Rust Examples
           

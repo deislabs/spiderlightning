@@ -45,7 +45,7 @@ mod integration_tests {
 
         #[test]
         fn usersecrets_test() -> Result<()> {
-            let file_config = "./tests/configs-test/usersecrets_slightfile.toml";
+            let file_config = "./tests/configs-test/us_slightfile.toml";
             run(
                 SLIGHT,
                 vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
@@ -66,6 +66,7 @@ mod integration_tests {
 
     #[cfg(test)]
     mod kv_tests {
+        #[cfg(unix)]
         use std::{
             env,
             net::{Ipv4Addr, SocketAddrV4, TcpListener},
@@ -99,7 +100,7 @@ mod integration_tests {
         }
 
         #[test]
-        #[cfg(unix)] // Redis is not available on Windows: https://redis.io/docs/getting-started/installation/install-redis-on-windows/
+        #[cfg(unix)] // TODO: Add Windows support
         fn redis_test() -> Result<()> {
             // make sure redis server is running
             let port = get_random_port();
@@ -138,6 +139,7 @@ mod integration_tests {
             Ok(())
         }
 
+        #[cfg(unix)]
         fn get_random_port() -> u16 {
             TcpListener::bind(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0))
                 .expect("Unable to bind to check for port")
