@@ -1,0 +1,53 @@
+/// a messaging interface
+
+/// an event type that follows the CloudEvents specification (https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md). We
+/// assume the type of the data is a byte sequence. It is up to the data schema to determine what type of the data payload the event 
+/// contains.
+record event {
+	specversion: string,
+	ty: string,
+	source: string,
+	id: string,
+	data: option<payload>,
+	datacontenttype: option<string>,
+	dataschema: option<string>,
+	subject: option<string>,
+	time: option<string>,
+	extensions: option<list<tuple<string, string>>>
+}
+
+/// common messaging errors
+variant messaging-error {
+    payload-too-large(string),
+    queue-or-topic-not-found(string),
+    insufficient-permissions(string),
+    service-unavailable(string),
+    delivery-failed(string),
+    connection-lost(string),
+    unsupported-message-format(string),
+    unexpected-error(string),
+}
+
+// producer interface
+resource pub {
+	/// creates a handle to a pub object
+	static open: func(name: string) -> expected<pub, error>
+
+	/// publish a message to a topic
+	publish: func(msg: event, topic: string) -> expected<unit, error> 
+}
+
+/// provides a handle to a consumer that owns a specific subscription
+type subscription-token = string
+
+/// consumer interface
+resource sub {
+	/// creates a handle to a sub object
+	static open: func(name: string) -> expected<sub, error>
+
+	/// subscribe to a topic
+	subscribe: func(topic: string) -> expected<subscription-token, error> 
+
+	/// pull-based message delivery
+	receive: func(sub-tok: subscription-token) -> expected<event, error>
+}
