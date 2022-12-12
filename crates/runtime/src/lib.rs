@@ -150,7 +150,8 @@ mod unittest {
         let module = "./test/keyvalue-test.wasm";
         assert!(std::path::Path::new(module).exists());
         let mut builder = Builder::from_module(module)?;
-        let keyvalue = slight_keyvalue::Keyvalue::new("keyvalue.filesystem".to_string(), HashMap::default());
+        let keyvalue =
+            slight_keyvalue::Keyvalue::new("keyvalue.filesystem".to_string(), HashMap::default());
 
         builder
             .link_wasi()?

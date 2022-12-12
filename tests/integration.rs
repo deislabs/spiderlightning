@@ -76,26 +76,36 @@ mod integration_tests {
         use crate::{run, SLIGHT};
         use anyhow::Result;
 
-        const KEYVALUE_TEST_MODULE: &str = "./tests/keyvalue-test/target/wasm32-wasi/debug/keyvalue-test.wasm";
+        const KEYVALUE_TEST_MODULE: &str =
+            "./tests/keyvalue-test/target/wasm32-wasi/debug/keyvalue-test.wasm";
 
         #[test]
         fn filesystem_test() -> Result<()> {
             let file_config = "./tests/keyvalue-test/keyvalue_filesystem_slightfile.toml";
-            run(SLIGHT, vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE]);
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+            );
             Ok(())
         }
 
         #[test]
         fn azblob_test() -> Result<()> {
             let file_config = "./tests/keyvalue-test/keyvalue_azblob_slightfile.toml";
-            run(SLIGHT, vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE]);
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+            );
             Ok(())
         }
 
         #[test]
         fn aws_dynamodb_test() -> Result<()> {
             let file_config = "./tests/keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
-            run(SLIGHT, vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE]);
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+            );
             Ok(())
         }
 
@@ -132,7 +142,10 @@ mod integration_tests {
 
             let file_config = "./tests/keyvalue-test/keyvalue_redis_slightfile.toml";
             env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{}", port));
-            run(SLIGHT, vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE]);
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+            );
 
             // kill the server
             cmd.kill()?;

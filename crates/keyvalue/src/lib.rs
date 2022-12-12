@@ -68,7 +68,12 @@ pub struct KeyvalueInner {
 impl KeyvalueInner {
     async fn new(keyvalue_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         Self {
-            keyvalue_implementor: KeyvalueImplementors::new(keyvalue_implementor, slight_state, name).await,
+            keyvalue_implementor: KeyvalueImplementors::new(
+                keyvalue_implementor,
+                slight_state,
+                name,
+            )
+            .await,
         }
     }
 }
@@ -88,10 +93,18 @@ enum KeyvalueImplementors {
 impl KeyvalueImplementors {
     async fn new(keyvalue_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         match keyvalue_implementor {
-            "keyvalue.filesystem" | "kv.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
-            "keyvalue.azblob" | "kv.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name).await),
-            "keyvalue.awsdynamodb" | "kv.awsdynamodb"  => Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name).await),
-            "keyvalue.redis" | "kv.redis" => Self::Redis(RedisImplementor::new(slight_state, name).await),
+            "keyvalue.filesystem" | "kv.filesystem" => {
+                Self::Filesystem(FilesystemImplementor::new(name))
+            }
+            "keyvalue.azblob" | "kv.azblob" => {
+                Self::AzBlob(AzBlobImplementor::new(slight_state, name).await)
+            }
+            "keyvalue.awsdynamodb" | "kv.awsdynamodb" => {
+                Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name).await)
+            }
+            "keyvalue.redis" | "kv.redis" => {
+                Self::Redis(RedisImplementor::new(slight_state, name).await)
+            }
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
@@ -145,7 +158,11 @@ impl keyvalue::Keyvalue for Keyvalue {
         Ok(inner)
     }
 
-    async fn keyvalue_get(&mut self, self_: &Self::Keyvalue, key: &str) -> Result<Vec<u8>, KeyvalueError> {
+    async fn keyvalue_get(
+        &mut self,
+        self_: &Self::Keyvalue,
+        key: &str,
+    ) -> Result<Vec<u8>, KeyvalueError> {
         Ok(match &self_.keyvalue_implementor {
             KeyvalueImplementors::Filesystem(fi) => fi.get(key)?,
             KeyvalueImplementors::AzBlob(ai) => ai.get(key).await?,
@@ -169,7 +186,10 @@ impl keyvalue::Keyvalue for Keyvalue {
         Ok(())
     }
 
-    async fn keyvalue_keys(&mut self, self_: &Self::Keyvalue) -> Result<Vec<String>, KeyvalueError> {
+    async fn keyvalue_keys(
+        &mut self,
+        self_: &Self::Keyvalue,
+    ) -> Result<Vec<String>, KeyvalueError> {
         Ok(match &self_.keyvalue_implementor {
             KeyvalueImplementors::Filesystem(fi) => fi.keys()?,
             KeyvalueImplementors::AzBlob(ai) => ai.keys().await?,
@@ -178,7 +198,11 @@ impl keyvalue::Keyvalue for Keyvalue {
         })
     }
 
-    async fn keyvalue_delete(&mut self, self_: &Self::Keyvalue, key: &str) -> Result<(), KeyvalueError> {
+    async fn keyvalue_delete(
+        &mut self,
+        self_: &Self::Keyvalue,
+        key: &str,
+    ) -> Result<(), KeyvalueError> {
         match &self_.keyvalue_implementor {
             KeyvalueImplementors::Filesystem(fi) => fi.delete(key)?,
             KeyvalueImplementors::AzBlob(ai) => ai.delete(key).await?,

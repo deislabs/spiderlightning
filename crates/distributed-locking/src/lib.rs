@@ -15,7 +15,10 @@ use slight_common::{impl_resource, BasicState};
 use distributed_locking::*;
 wit_bindgen_wasmtime::export!({paths: ["../../wit/distributed-locking.wit"], async: *});
 wit_error_rs::impl_error!(distributed_locking::DistributedLockingError);
-wit_error_rs::impl_from!(anyhow::Error, distributed_locking::DistributedLockingError::UnexpectedError);
+wit_error_rs::impl_from!(
+    anyhow::Error,
+    distributed_locking::DistributedLockingError::UnexpectedError
+);
 wit_error_rs::impl_from!(
     std::string::FromUtf8Error,
     distributed_locking::DistributedLockingError::UnexpectedError
@@ -58,7 +61,10 @@ impl_resource!(
 impl distributed_locking::DistributedLocking for DistributedLocking {
     type DistributedLocking = DistributedLockingInner;
 
-    async fn distributed_locking_open(&mut self, name: &str) -> Result<Self::DistributedLocking, distributed_locking::DistributedLockingError> {
+    async fn distributed_locking_open(
+        &mut self,
+        name: &str,
+    ) -> Result<Self::DistributedLocking, distributed_locking::DistributedLockingError> {
         // populate our inner distributed_locking object w/ the state received from `slight`
         // (i.e., what type of distributed_locking implementor we are using), and the assigned
         // name of the object.
@@ -137,7 +143,11 @@ pub struct DistributedLockingInner {
 impl DistributedLockingInner {
     async fn new(distributed_locking_implementor: &str, slight_state: &BasicState) -> Self {
         Self {
-            distributed_locking_implementor: DistributedLockingImplementor::new(distributed_locking_implementor, slight_state).await,
+            distributed_locking_implementor: DistributedLockingImplementor::new(
+                distributed_locking_implementor,
+                slight_state,
+            )
+            .await,
         }
     }
 }
@@ -153,7 +163,9 @@ enum DistributedLockingImplementor {
 impl DistributedLockingImplementor {
     async fn new(distributed_locking_implementor: &str, slight_state: &BasicState) -> Self {
         match distributed_locking_implementor {
-            "distributed_locking.etcd" | "lockd.etcd" => Self::Etcd(EtcdImplementor::new(slight_state).await),
+            "distributed_locking.etcd" | "lockd.etcd" => {
+                Self::Etcd(EtcdImplementor::new(slight_state).await)
+            }
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p

@@ -77,7 +77,12 @@ impl RouterInner {
     }
 
     /// Adds a new route with the given method and the handler's name.
-    fn add(&mut self, route: String, handler: String, method: Methods) -> Result<Self, http::HttpError> {
+    fn add(
+        &mut self,
+        route: String,
+        handler: String,
+        method: Methods,
+    ) -> Result<Self, http::HttpError> {
         let route = Route {
             method,
             route,

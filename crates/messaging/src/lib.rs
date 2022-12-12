@@ -116,7 +116,11 @@ impl messaging::Messaging for Messaging {
         })
     }
 
-    async fn sub_subscribe(&mut self, self_: &Self::Sub, topic: &str) -> Result<String, MessagingError> {
+    async fn sub_subscribe(
+        &mut self,
+        self_: &Self::Sub,
+        topic: &str,
+    ) -> Result<String, MessagingError> {
         Ok(match &self_ {
             SubImplementor::ConfluentApacheKafka(pi) => pi.subscribe(topic).await?,
             SubImplementor::Mosquitto(pi) => pi.subscribe(topic).await?,
@@ -165,10 +169,12 @@ pub enum SubImplementor {
 impl SubImplementor {
     async fn new(messaging_implementor: &str, slight_state: &BasicState) -> Self {
         match messaging_implementor {
-            "messaging.confluent_apache_kafka" |  "pubsub.confluent_apache_kafka" => {
+            "messaging.confluent_apache_kafka" | "pubsub.confluent_apache_kafka" => {
                 Self::ConfluentApacheKafka(apache_kafka::Sub::new(slight_state).await)
             }
-            "messaging.mosquitto" |  "pubsub.mosquitto" => Self::Mosquitto(mosquitto::Sub::new(slight_state).await),
+            "messaging.mosquitto" | "pubsub.mosquitto" => {
+                Self::Mosquitto(mosquitto::Sub::new(slight_state).await)
+            }
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p

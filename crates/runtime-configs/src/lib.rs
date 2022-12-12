@@ -89,7 +89,7 @@ impl configs::Configs for Configs {
         &mut self,
         self_: &Self::Configs,
         key: &str,
-        value: &[u8]
+        value: &[u8],
     ) -> Result<(), configs::ConfigsError> {
         set(
             &String::from(&self_.configs_implementor),
