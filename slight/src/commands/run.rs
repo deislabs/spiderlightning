@@ -9,7 +9,6 @@ use slight_common::{BasicState, Capability, WasmtimeBuildable};
 use slight_http::Http;
 use slight_kv::Kv;
 use slight_lockd::Lockd;
-use slight_mq::Mq;
 use slight_pubsub::Pubsub;
 use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
@@ -18,7 +17,6 @@ use wit_bindgen_wasmtime::wasmtime::Store;
 
 const KV_HOST_IMPLEMENTORS: [&str; 4] =
     ["kv.filesystem", "kv.azblob", "kv.awsdynamodb", "kv.redis"];
-const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
 const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
 const PUBSUB_HOST_IMPLEMENTORS: [&str; 2] = ["pubsub.confluent_apache_kafka", "pubsub.mosquitto"];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
@@ -142,16 +140,6 @@ async fn build_store_instance(
                 let resource =
                     slight_kv::Kv::new(resource_type.to_string(), capability_store.clone());
                 builder.add_to_builder("kv".to_string(), resource);
-            }
-            _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                if !linked_capabilities.contains("mq") {
-                    builder.link_capability::<Mq>()?;
-                    linked_capabilities.insert("mq".to_string());
-                }
-
-                let resource =
-                    slight_mq::Mq::new(resource_type.to_string(), capability_store.clone());
-                builder.add_to_builder("mq".to_string(), resource);
             }
             _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("lockd") {

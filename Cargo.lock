@@ -645,49 +645,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "azure_core"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6424becb946de1b1eff7bf5fbc86fabf7457637c88b63dd967b219a712c322c"
-dependencies = [
- "async-trait",
- "base64",
- "bytes 1.2.1",
- "dyn-clone",
- "futures",
- "getrandom 0.2.7",
- "http-types",
- "log",
- "paste",
- "pin-project",
- "rand 0.8.5",
- "reqwest",
- "rustc_version 0.4.0",
- "serde",
- "serde_json",
- "time 0.3.15",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "azure_messaging_servicebus"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbeb6a8f76a4040739147e91fa412ba67e15600635ff97a83bfa85a0aa670b71"
-dependencies = [
- "azure_core 0.5.0",
- "base64",
- "bytes 1.2.1",
- "hmac 0.12.1",
- "log",
- "ring",
- "sha2 0.10.6",
- "time 0.3.15",
- "url",
-]
-
-[[package]]
 name = "azure_storage"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -695,7 +652,7 @@ checksum = "55aa63fb0426c76b9cc909234e94e69764f5e777a62b7ed6411f3cc04aa94a16"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core 0.4.0",
+ "azure_core",
  "base64",
  "bytes 1.2.1",
  "futures",
@@ -719,7 +676,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33f953cedd7c240347ed0f6ed8a0bd7472b32579c38341ab9e117eaa6173e9ba"
 dependencies = [
  "RustyXML",
- "azure_core 0.4.0",
+ "azure_core",
  "azure_storage",
  "base64",
  "bytes 1.2.1",
@@ -3469,7 +3426,6 @@ dependencies = [
  "slight-http",
  "slight-keyvalue",
  "slight-messaging",
- "slight-mq",
  "slight-runtime",
  "slight-runtime-configs",
  "spiderlightning",
@@ -3562,7 +3518,7 @@ dependencies = [
  "async-trait",
  "aws-config",
  "aws-sdk-dynamodb",
- "azure_core 0.4.0",
+ "azure_core",
  "azure_storage",
  "azure_storage_blobs",
  "bytes 1.2.1",
@@ -3593,24 +3549,6 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "slight-mq"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "azure_core 0.5.0",
- "azure_messaging_servicebus",
- "http",
- "slight-common",
- "slight-runtime-configs",
- "tokio",
- "tracing",
- "url",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
  "wit-error-rs",
 ]

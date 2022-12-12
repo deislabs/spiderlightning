@@ -45,7 +45,6 @@ signal-child = "1"
 members = [
     "slight",
     "crates/keyvalue",
-    "crates/mq",
     "crates/distributed-locking",
     "crates/http",
     "crates/http-api",
