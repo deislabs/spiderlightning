@@ -1,20 +1,20 @@
 /// a distruted locking interface
-resource lockd {
-	/// open a lockd object
-	static open: func(name: string) -> expected<lockd, error>
+resource distributed-locking {
+	/// open a distributed-locking object
+	static open: func(name: string) -> expected<distributed-locking, distributed-locking-error>
 
 	/// creates a lock with a name, returns the lock key
-	lock: func(lock-name: list<u8>) -> expected<list<u8>, error>
+	lock: func(lock-name: list<u8>) -> expected<list<u8>, distributed-locking-error>
 
 	/// creates a lock with a lease id, hence giving the lock a TTL
-	lock-with-time-to-live: func(lock-name: list<u8>, time-to-live-in-secs: s64) -> expected<list<u8>, error>
+	lock-with-time-to-live: func(lock-name: list<u8>, time-to-live-in-secs: s64) -> expected<list<u8>, distributed-locking-error>
 
 	/// unlock a lock given a lock key
-	unlock: func(lock-key: list<u8>) -> expected<unit, error>
+	unlock: func(lock-key: list<u8>) -> expected<unit, distributed-locking-error>
 }
 
 // common lockd errors
-variant lockd-error {
+variant distributed-locking-error {
 	lock-acquire-error(string),
 	lock-release-error(string),
 	lock-timeout-error(string),
