@@ -3465,9 +3465,9 @@ dependencies = [
  "log",
  "reqwest",
  "slight-common",
+ "slight-distributed-locking",
  "slight-http",
- "slight-kv",
- "slight-lockd",
+ "slight-keyvalue",
  "slight-mq",
  "slight-pubsub",
  "slight-runtime",
@@ -3491,6 +3491,22 @@ dependencies = [
  "async-trait",
  "slight-http-api",
  "wasmtime",
+]
+
+[[package]]
+name = "slight-distributed-locking"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "etcd-client",
+ "slight-common",
+ "slight-runtime-configs",
+ "tokio",
+ "tracing",
+ "url",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
+ "wit-error-rs",
 ]
 
 [[package]]
@@ -3539,7 +3555,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "slight-kv"
+name = "slight-keyvalue"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3557,22 +3573,6 @@ dependencies = [
  "slight-runtime-configs",
  "tokio",
  "tracing",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "slight-lockd"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "etcd-client",
- "slight-common",
- "slight-runtime-configs",
- "tokio",
- "tracing",
- "url",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
  "wit-error-rs",
 ]
@@ -3626,7 +3626,7 @@ dependencies = [
  "dyn-clone",
  "slight-common",
  "slight-http-api",
- "slight-kv",
+ "slight-keyvalue",
  "tokio",
  "tracing",
  "wasi-cap-std-sync",

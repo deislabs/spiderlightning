@@ -44,9 +44,9 @@ signal-child = "1"
 [workspace]
 members = [
     "slight",
-    "crates/kv",
+    "crates/keyvalue",
     "crates/mq",
-    "crates/lockd",
+    "crates/distributed-locking",
     "crates/http",
     "crates/http-api",
     "crates/http-handler-macro",

@@ -17,9 +17,9 @@ path = "src/lib.rs"
 [dependencies]
 spiderlightning = { path = "../" }
 slight-runtime = { path = "../crates/runtime" }
-slight-kv = { path = "../crates/kv" }
+slight-keyvalue = { path = "../crates/keyvalue" }
 slight-mq = { path = "../crates/mq" }
-slight-lockd = { path = "../crates/lockd" }
+slight-distributed-locking = { path = "../crates/distributed-locking" }
 slight-pubsub = { path = "../crates/pubsub" }
 slight-runtime-configs = { path = "../crates/runtime-configs" }
 slight-common = { path = "../crates/common" }
