@@ -7,3 +7,4 @@ $ make build-c # clean old bindings, generate new bindings, and build
 $ make run-c # run example
 ```
 
+> This example is currently non-functional.

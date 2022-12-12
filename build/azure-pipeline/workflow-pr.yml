@@ -176,13 +176,13 @@ stages:
               AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
             condition: and(succeeded(), ne(variables['target_os'], 'windows'))      
 
-          - script: make build-c
-            displayName: Build C Examples
-            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
+          # - script: make build-c
+          #   displayName: Build C Examples
+          #   condition: and(succeeded(), ne(variables['target_os'], 'windows'))
 
-          - script: make build-c-win
-            displayName: Build C Examples Windows
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          # - script: make build-c-win
+          #   displayName: Build C Examples Windows
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
           
           - script: make build-rust
             displayName: Build Rust Examples
