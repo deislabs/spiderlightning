@@ -1,3 +1,0 @@
-use { event } from types
-
-handle-event: func(ev: event) -> expected<option<event>, string> 
