@@ -1,13 +1,13 @@
 #![allow(clippy::enum_variant_names)]
 use anyhow::Result;
 
-use kv::*;
-wit_bindgen_rust::import!("../../wit/kv.wit");
-wit_error_rs::impl_error!(Error);
+use keyvalue::*;
+wit_bindgen_rust::import!("../../wit/keyvalue.wit");
+wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
 fn main() -> Result<()> {
     // test get, set, delete
-    let kv = Kv::open("rand")?;
+    let kv = Keyvalue::open("rand")?;
     let value = "spiderlightning".as_bytes();
     kv.set("key", value)?;
     println!(
@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     assert!(value.is_err());
 
     // test keys
-    let kv = Kv::open("rand")?;
+    let kv = Keyvalue::open("rand")?;
     let value = "spiderlightning".as_bytes();
     kv.set("key", value)?;
     kv.set("key2", value)?;
@@ -31,8 +31,8 @@ fn main() -> Result<()> {
 
     // test get_kv() will have a unique allocation in the resource table.
     // so two `get_kv()` with different names will return different allocations.
-    let kv1 = Kv::open("random1")?;
-    let kv2 = Kv::open("random2")?;
+    let kv1 = Keyvalue::open("random1")?;
+    let kv2 = Keyvalue::open("random2")?;
     kv1.set("key1", "value1".as_bytes())?;
     kv2.set("key2", "value2".as_bytes())?;
 
@@ -42,8 +42,8 @@ fn main() -> Result<()> {
 
     // test two get_kv() with the same name will return the same allocation.
     // but the resource descriptors are not the same.
-    let kv1 = Kv::open("random1")?;
-    let kv2 = Kv::open("random1")?;
+    let kv1 = Keyvalue::open("random1")?;
+    let kv2 = Keyvalue::open("random1")?;
     kv1.set("key1", "value1".as_bytes())?;
     kv2.set("key2", "value2".as_bytes())?;
     assert!(kv1.get("key2")? == "value2".as_bytes());
@@ -51,7 +51,7 @@ fn main() -> Result<()> {
     kv2.delete("key2")?;
 
     // test get empty key
-    let kv3 = Kv::open("random3")?;
+    let kv3 = Keyvalue::open("random3")?;
     let value = kv3.get("");
     assert!(value.is_err());
 
