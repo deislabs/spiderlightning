@@ -4,8 +4,8 @@ use std::{
 };
 
 use distributed_locking::*;
-wit_bindgen_rust::import!("../../wit/distributed_locking.wit");
-wit_error_rs::impl_error!(DistributedLockingError);
+wit_bindgen_rust::import!("../../wit/distributed-locking.wit");
+wit_error_rs::impl_error!(distributed_locking::DistributedLockingError);
 
 use anyhow::Result;
 

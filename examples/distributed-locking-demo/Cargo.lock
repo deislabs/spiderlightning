@@ -26,6 +26,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "distributed-locking-demo"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "wit-bindgen-rust",
+ "wit-error-rs",
+]
+
+[[package]]
 name = "heck"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -39,15 +48,6 @@ name = "id-arena"
 version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25a2bc672d1148e28034f176e01fffebb08b35768468cc954630da77a1449005"
-
-[[package]]
-name = "lockd-demo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "wit-bindgen-rust",
- "wit-error-rs",
-]
 
 [[package]]
 name = "memchr"

@@ -11,11 +11,10 @@ fn main() -> Result<()> {
     keyvalue1.set("key", value)?;
     keyvalue2.set("key", value)?;
 
-    let keys = keyvalue1.keys()?;
-    assert_eq!(keys.len(), 1);
+    let _keys = keyvalue1.keys()?;
     
     println!(
-        "Hello, world! the value for keyvalue1 is: {}, keyvalue2 is {}",
+        "The value for keyvalue1 is: {}, keyvalue2 is {}",
         std::str::from_utf8(&keyvalue1.get("key")?)?,
         std::str::from_utf8(&keyvalue2.get("key")?)?,
     );

@@ -71,16 +71,16 @@ install-slight:
 .PHONY: build-rust
 build-rust:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/configs-demo/Cargo.toml & \
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/keyvalue-demo/Cargo.toml & \
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml & \
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-receiver-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/distributed-locking-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/messaging-producer-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/messaging-consumer-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-demo/Cargo.toml & \
 	wait; \
 	/bin/sh -c 'echo "DONE"'
+	# cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
+	# cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml & \
+	# cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-receiver-demo/Cargo.toml & \
 
 # The dependencies to run this rule include:
 # - etcd,
