@@ -165,10 +165,10 @@ pub enum SubImplementor {
 impl SubImplementor {
     async fn new(messaging_implementor: &str, slight_state: &BasicState) -> Self {
         match messaging_implementor {
-            "messaging.confluent_apache_kafka" => {
+            "messaging.confluent_apache_kafka" |  "pubsub.confluent_apache_kafka" => {
                 Self::ConfluentApacheKafka(apache_kafka::Sub::new(slight_state).await)
             }
-            "messaging.mosquitto" => Self::Mosquitto(mosquitto::Sub::new(slight_state).await),
+            "messaging.mosquitto" |  "pubsub.mosquitto" => Self::Mosquitto(mosquitto::Sub::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p

@@ -88,10 +88,10 @@ enum KeyvalueImplementors {
 impl KeyvalueImplementors {
     async fn new(keyvalue_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         match keyvalue_implementor {
-            "keyvalue.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
-            "keyvalue.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name).await),
-            "keyvalue.awsdynamodb" => Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name).await),
-            "keyvalue.redis" => Self::Redis(RedisImplementor::new(slight_state, name).await),
+            "keyvalue.filesystem" | "kv.filesystem" => Self::Filesystem(FilesystemImplementor::new(name)),
+            "keyvalue.azblob" | "kv.azblob" => Self::AzBlob(AzBlobImplementor::new(slight_state, name).await),
+            "keyvalue.awsdynamodb" | "kv.awsdynamodb"  => Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name).await),
+            "keyvalue.redis" | "kv.redis" => Self::Redis(RedisImplementor::new(slight_state, name).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p

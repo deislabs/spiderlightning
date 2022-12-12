@@ -153,7 +153,7 @@ enum DistributedLockingImplementor {
 impl DistributedLockingImplementor {
     async fn new(distributed_locking_implementor: &str, slight_state: &BasicState) -> Self {
         match distributed_locking_implementor {
-            "distributed_locking.etcd" => Self::Etcd(EtcdImplementor::new(slight_state).await),
+            "distributed_locking.etcd" | "lockd.etcd" => Self::Etcd(EtcdImplementor::new(slight_state).await),
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
