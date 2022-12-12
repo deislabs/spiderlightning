@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-pub use http_handler::{Error, HttpHandlerData, Method, Request, Response};
+pub use http_handler::{HttpError, HttpHandlerData, Method, Request, Response};
 use hyper::{
     body::HttpBody as HyperHttpBody,
     header::{HeaderName, HeaderValue},
@@ -7,7 +7,7 @@ use hyper::{
 };
 
 wit_bindgen_wasmtime::import!({paths: ["../../wit/http-handler.wit"], async: *});
-wit_error_rs::impl_error!(Error);
+wit_error_rs::impl_error!(http_handler::HttpError);
 
 /// A HTTP Handler that finds the handler function from the wasm module
 /// and calls it with the HTTP request.
@@ -76,7 +76,7 @@ impl<T: Send> HttpHandler<T> {
         &self,
         caller: impl wasmtime::AsContextMut<Data = T>,
         req: Request<'_>,
-    ) -> Result<Result<Response, Error>, wasmtime::Trap> {
+    ) -> Result<Result<Response, http_handler::HttpError>, wasmtime::Trap> {
         self.inner.handle_http(caller, req).await
     }
 }
