@@ -3,13 +3,13 @@ use redis::{Client, Commands};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 
-/// This is the underlying struct behind the `AzBlob` variant of the `KvImplementor` enum.
+/// This is the underlying struct behind the `AzBlob` variant of the `KeyvalueImplementor` enum.
 ///
 /// It provides a property that pertains solely to the azblob implementation
 /// of this capability:
 ///     - `container_client`
 ///
-/// As per its' usage in `KvImplementor`, it must `derive` `Debug`, and `Clone`.
+/// As per its' usage in `KeyvalueImplementor`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
 pub struct RedisImplementor {
     client: Client,

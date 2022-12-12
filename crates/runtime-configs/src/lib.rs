@@ -262,7 +262,7 @@ mod unittests {
         let toml_file_contents = r#"
         specversion = "0.1"
         [[capability]]
-        resource = "kv.azblob"
+        resource = "keyvalue.azblob"
         name = "customers"
             [capability.configs]
             a = "${azapp.hello}"
@@ -289,7 +289,7 @@ mod unittests {
         let toml_file_contents = r#"
         specversion = "0.1"
         [[capability]]
-        resource = "kv.azblob"
+        resource = "keyvalue.azblob"
         name = "customers"
             [capability.configs]
             b = "${cruel}"
@@ -311,7 +311,7 @@ mod unittests {
         let toml_file_contents = r#"
         specversion = "0.1"
         [[capability]]
-        resource = "kv.azblob"
+        resource = "keyvalue.azblob"
         name = "customers"
             [capability.configs]
             c = "world"

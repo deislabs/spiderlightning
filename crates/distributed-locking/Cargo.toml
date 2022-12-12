@@ -20,5 +20,5 @@ tracing = { version = "0.1", features = ["log"] }
 url = "2.2"
 async-trait = { workspace = true }
 tokio = { version = "1", features = ["full"] }
-# lockd.etcd deps
+# distributed_locking.etcd deps
 etcd-client = "0.9"

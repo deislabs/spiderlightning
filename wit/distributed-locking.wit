@@ -13,7 +13,7 @@ resource distributed-locking {
 	unlock: func(lock-key: list<u8>) -> expected<unit, distributed-locking-error>
 }
 
-// common lockd errors
+// common distributed errors
 variant distributed-locking-error {
 	lock-acquire-error(string),
 	lock-release-error(string),

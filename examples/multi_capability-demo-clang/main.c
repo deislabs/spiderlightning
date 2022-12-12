@@ -2,27 +2,27 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bindings/kv.h"
+#include "bindings/keyvalue.h"
 #include "bindings/mq.h"
 
 __attribute__((export_name("main"))) int main(int argc, char *argv[])
 {
-  kv_expected_kv_error_t kv_result;
-  kv_kv_t kv;
+  keyvalue_expected_keyvalue_error_t keyvalue_result;
+  keyvalue_keyvalue_t keyvalue;
   mq_expected_mq_error_t mq_result;
   mq_mq_t mq;
-  kv_string_t kv_name;
-  kv_string_set(&kv_name, "my-container");
-  kv_kv_open(&kv_name, &kv_result);
+  keyvalue_string_t keyvalue_name;
+  keyvalue_string_set(&keyvalue_name, "my-container");
+  keyvalue_keyvalue_open(&keyvalue_name, &keyvalue_result);
 
-  if (kv_result.is_err)
+  if (keyvalue_result.is_err)
   {
-    kv_error_t kv_error = kv_result.val.err;
-    printf("kv_kv_open failed:  %.*s\n", (int)kv_error.val.error_with_description.len, kv_error.val.error_with_description.ptr);
-    kv_error_free(&kv_error);
+    keyvalue_error_t keyvalue_error = keyvalue_result.val.err;
+    printf("keyvalue_keyvalue_open failed:  %.*s\n", (int)keyvalue_error.val.error_with_description.len, keyvalue_error.val.error_with_description.ptr);
+    keyvalue_error_free(&keyvalue_error);
     exit(1);
   }
-  kv = kv_result.val.ok;
+  keyvalue = keyvalue_result.val.ok;
 
   mq_string_t mq_name;
   mq_string_set(&mq_name, "wasi-cloud-queue");
@@ -31,7 +31,7 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
   if (mq_result.is_err)
   {
     mq_error_t mq_error = mq_result.val.err;
-    printf("kv_kv_open failed:  %.*s\n", (int)mq_error.val.error_with_description.len, mq_error.val.error_with_description.ptr);
+    printf("keyvalue_keyvalue_open failed:  %.*s\n", (int)mq_error.val.error_with_description.len, mq_error.val.error_with_description.ptr);
     mq_error_free(&mq_error);
     exit(1);
   }
@@ -50,22 +50,22 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
     }
     mq_payload_t msg = mq_ret.val.ok;
     printf("received message: %.*s\n", (int)msg.len, msg.ptr);
-    // save msg to kv
+    // save msg to keyvalue
     char buf[12];
     snprintf(buf, 12, "mykey_%d", i);
-    kv_string_t key;
-    kv_string_set(&key, buf);
-    kv_expected_unit_error_t ret;
-    kv_payload_t payload = {
+    keyvalue_string_t key;
+    keyvalue_string_set(&key, buf);
+    keyvalue_expected_unit_error_t ret;
+    keyvalue_payload_t payload = {
       .ptr = msg.ptr,
       .len = msg.len
     };
-    kv_kv_set(kv, &key, &payload, &ret);
+    keyvalue_keyvalue_set(keyvalue, &key, &payload, &ret);
     if (ret.is_err)
     {
-      kv_error_t kv_error = ret.val.err;
-      printf("kv_kv_set failed:  %.*s\n", (int)kv_error.val.error_with_description.len, kv_error.val.error_with_description.ptr);
-      kv_error_free(&kv_error);
+      keyvalue_error_t keyvalue_error = ret.val.err;
+      printf("keyvalue_keyvalue_set failed:  %.*s\n", (int)keyvalue_error.val.error_with_description.len, keyvalue_error.val.error_with_description.ptr);
+      keyvalue_error_free(&keyvalue_error);
       exit(1);
     }
     mq_payload_free(&msg);
@@ -74,24 +74,24 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
   {
     char buf[12];
     snprintf(buf, 12, "mykey_%d", i);
-    kv_string_t key;
-    kv_string_set(&key, buf);
-    // call kv.get
-    kv_payload_t hostvalue;
-    kv_expected_payload_error_t ret;
-    kv_kv_get(kv, &key, &ret);
+    keyvalue_string_t key;
+    keyvalue_string_set(&key, buf);
+    // call keyvalue.get
+    keyvalue_payload_t hostvalue;
+    keyvalue_expected_payload_error_t ret;
+    keyvalue_keyvalue_get(keyvalue, &key, &ret);
     if (ret.is_err)
     {
-      kv_error_t kv_error = ret.val.err;
-      printf("kv_kv_get failed:  %.*s\n", (int)kv_error.val.error_with_description.len, kv_error.val.error_with_description.ptr);
-      kv_error_free(&kv_error);
+      keyvalue_error_t keyvalue_error = ret.val.err;
+      printf("keyvalue_keyvalue_get failed:  %.*s\n", (int)keyvalue_error.val.error_with_description.len, keyvalue_error.val.error_with_description.ptr);
+      keyvalue_error_free(&keyvalue_error);
       exit(1);
     }
     hostvalue = ret.val.ok;
 
     printf("value from host is: %.*s\n", (int)hostvalue.len, hostvalue.ptr);
   }
-  kv_kv_free(&kv);
+  keyvalue_keyvalue_free(&keyvalue);
   mq_mq_free(&mq);
   return 0;
 }

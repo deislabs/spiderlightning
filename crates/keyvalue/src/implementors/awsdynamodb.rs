@@ -4,7 +4,7 @@ use aws_sdk_dynamodb::Client;
 
 use tracing::log;
 
-/// This is the underlying struct behind the "AWS DynamoDB" variant of the `KvImplementor` enum.
+/// This is the underlying struct behind the "AWS DynamoDB" variant of the `KeyvalueImplementor` enum.
 ///
 /// It provides a properties that pertains solely to the AWS DynamoDB implementation
 /// of this capability:

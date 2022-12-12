@@ -1,8 +1,0 @@
-specversion = "0.2"
-
-[[capability]]
-resource = "pubsub.mosquitto"
-name = "my-pubsub"
-    [capability.configs]
-    MOSQUITTO_HOST = "localhost"
-    MOSQUITTO_PORT = "1884"

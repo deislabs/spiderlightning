@@ -6,6 +6,6 @@ name = "my-container"
     # This capability does not require any configs
 
 [[capability]]
-resource = "mq.filesystem"
-name = "wasi-cloud-queue"
+resource = "keyvalue.filesystem"
+name = "my-container2"
     # This capability does not require any configs

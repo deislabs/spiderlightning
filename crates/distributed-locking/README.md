@@ -1,6 +1,6 @@
-# lockd-etcd
+# distributed-locking-etcd
 
-Just like in `etcd`, the `d` in `lockd` stands for "distributed" — This is a service implementation for SpiderLightning that leverages `etcd` to provide distributed locking.
+This is a service implementation for SpiderLightning that leverages `etcd` to provide distributed locking.
 
 ## How to Run the Examples
 

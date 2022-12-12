@@ -1,7 +1,7 @@
 # Service Implementation 101
 > valid for: 2022-09-02
 
-Are you hoping to learn how to implement a new service for our existing capabilities (i.e., kv, lockd, mq, or pubsub)? You have come to the right place!
+Are you hoping to learn how to implement a new service for our existing capabilities (i.e., keyvalue, distributed_locking, or pubsub)? You have come to the right place!
 
 > Note: If you would like to develop a new capability outside of our provided interfaces, you will first have to create its WIT (WebAssembly Interface Types) file. Please, create an issue to start a design discussion, and make a PR with the `.wit` file itself prior to its' `slight` implementation.
 

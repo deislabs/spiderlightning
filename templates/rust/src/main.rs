@@ -1,15 +1,15 @@
 use anyhow::Result;
 
-use kv::*;
-wit_bindgen_rust::import!("wit/kv_{{release}}/kv.wit");
-wit_error_rs::impl_error!(kv::Error);
+use keyvalue::*;
+wit_bindgen_rust::import!("wit/keyvalue_{{release}}/keyvalue.wit");
+wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
 fn main() -> Result<()> {
-    let my_kv = Kv::open("placeholder-name")?;
-    my_kv.set("hello-spiderlightning", b"Hello, SpiderLightning!")?;
+    let my_keyvalue = Keyvalue::open("placeholder-name")?;
+    my_keyvalue.set("hello-spiderlightning", b"Hello, SpiderLightning!")?;
     println!(
         "{}",
-        std::str::from_utf8(&my_kv.get("hello-spiderlightning")?)?,
+        std::str::from_utf8(&my_keyvalue.get("hello-spiderlightning")?)?,
     );
 
     Ok(())
