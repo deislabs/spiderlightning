@@ -1,7 +1,7 @@
 /// a keyvalue interface
-resource kv {
+resource keyvalue {
 	/// open a key-value store
-	static open: func(name: string) -> expected<kv, keyvalue-error>
+	static open: func(name: string) -> expected<keyvalue, keyvalue-error>
 
 	/// get the payload for a given key
 	get: func(key: string) -> expected<list<u8>, keyvalue-error> 
