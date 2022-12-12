@@ -1,5 +1,5 @@
 [package]
-name = "slight-pubsub"
+name = "slight-messaging"
 version = "0.1.0"
 edition = { workspace = true }
 authors = { workspace = true }
@@ -22,8 +22,8 @@ crossbeam-channel = "0.5"
 url = "2"
 async-trait = { workspace = true }
 tokio = { version = "1", features = ["full"] }
-# pubsub.confluent_apache_kafka deps
+# messaging.confluent_apache_kafka deps
 rdkafka = { version = "0.28", features = ["cmake-build", "ssl"] }
-# pubsub.mosquitto
+# messaging.mosquitto
 mosquitto-rs = { version = "0.4.0", features = ["default"] }
 async-channel = "1.5"
