@@ -9,19 +9,15 @@ use regex::Regex;
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
 use slight_common::{impl_resource, BasicState};
 
-/// It is mandatory to `use <interface>::*` due to `impl_resource!`.
-/// That is because `impl_resource!` accesses the `crate`'s
-/// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
-use configs::*;
 wit_bindgen_wasmtime::export!({paths: ["../../wit/configs.wit"], async: *});
-wit_error_rs::impl_error!(configs::Error);
-wit_error_rs::impl_from!(anyhow::Error, configs::Error::ErrorWithDescription);
+wit_error_rs::impl_error!(configs::ConfigsError);
+wit_error_rs::impl_from!(anyhow::Error, configs::ConfigsError::UnexpectedError);
 
 /// The `Configs` structure is what will implement the `configs::Configs` trait
 /// coming from the generated code of off `configs.wit`.
 ///
 /// It holds:
-///     - a `lockd_implementor` `String` — this comes directly from a
+///     - an `implementor` `String` — this comes directly from a
 ///     user's `slightfile` and it is what allows us to dynamically
 ///     dispatch to a specific implementor's implentation, and
 ///     - the `slight_state` (of type `BasicState`) that contains common
@@ -54,7 +50,7 @@ impl_resource!(
 impl configs::Configs for Configs {
     type Configs = ConfigsInner;
 
-    async fn configs_open(&mut self, name: &str) -> Result<Self::Configs, configs::Error> {
+    async fn configs_open(&mut self, name: &str) -> Result<Self::Configs, configs::ConfigsError> {
         // populate our inner configs object w/ the state received from `slight`
         // (i.e., what type of configs implementor we are using), and the assigned
         // name of the object.
@@ -80,7 +76,7 @@ impl configs::Configs for Configs {
         &mut self,
         self_: &Self::Configs,
         key: &str,
-    ) -> Result<Vec<u8>, configs::Error> {
+    ) -> Result<Vec<u8>, configs::ConfigsError> {
         Ok(get(
             &String::from(&self_.configs_implementor),
             key,
@@ -93,8 +89,8 @@ impl configs::Configs for Configs {
         &mut self,
         self_: &Self::Configs,
         key: &str,
-        value: PayloadParam<'_>,
-    ) -> Result<(), configs::Error> {
+        value: &[u8]
+    ) -> Result<(), configs::ConfigsError> {
         set(
             &String::from(&self_.configs_implementor),
             key,
