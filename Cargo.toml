@@ -50,7 +50,7 @@ members = [
     "crates/http",
     "crates/http-api",
     "crates/http-handler-macro",
-    "crates/pubsub",
+    "crates/messaging",
     "crates/runtime",
     "crates/runtime-configs",
     "crates/common",

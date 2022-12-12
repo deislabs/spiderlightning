@@ -3468,8 +3468,8 @@ dependencies = [
  "slight-distributed-locking",
  "slight-http",
  "slight-keyvalue",
+ "slight-messaging",
  "slight-mq",
- "slight-pubsub",
  "slight-runtime",
  "slight-runtime-configs",
  "spiderlightning",
@@ -3578,25 +3578,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "slight-mq"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "azure_core 0.5.0",
- "azure_messaging_servicebus",
- "http",
- "slight-common",
- "slight-runtime-configs",
- "tokio",
- "tracing",
- "url",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "slight-pubsub"
+name = "slight-messaging"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3611,6 +3593,24 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-mq"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "azure_core 0.5.0",
+ "azure_messaging_servicebus",
+ "http",
+ "slight-common",
+ "slight-runtime-configs",
+ "tokio",
+ "tracing",
+ "url",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
  "wit-error-rs",
 ]

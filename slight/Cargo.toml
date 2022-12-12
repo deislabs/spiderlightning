@@ -20,7 +20,7 @@ slight-runtime = { path = "../crates/runtime" }
 slight-keyvalue = { path = "../crates/keyvalue" }
 slight-mq = { path = "../crates/mq" }
 slight-distributed-locking = { path = "../crates/distributed-locking" }
-slight-pubsub = { path = "../crates/pubsub" }
+slight-messaging = { path = "../crates/messaging" }
 slight-runtime-configs = { path = "../crates/runtime-configs" }
 slight-common = { path = "../crates/common" }
 slight-http = { path = "../crates/http" }
