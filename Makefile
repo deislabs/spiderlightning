@@ -36,8 +36,9 @@ install-deps:
 	sudo mv wasi-sdk-15.0/* /opt/wasi-sdk/
 	sudo rm -rf wasi-sdk-*
 	sudo apt-get update
-	sudo apt-get install lsb-release
-	sudo apt-get install -y redis-server
+	sudo apt-get install lsb-release -y
+	sudo apt-get install redis-server -y
+	sudo apt-get install protobuf-compiler -y
 
 .PHONY: install-deps-macos
 install-deps-macos:
@@ -56,6 +57,7 @@ install-deps-macos:
 install-deps-win:
 	choco install openssl -y
 	choco install wget -y
+	choco install protoc -y
 	wget -O wasi-sdk-15.0-mingw.tar.gz https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-15/wasi-sdk-15.0-mingw.tar.gz
 	mkdir -p C:\wasi-sdk
 	tar -xvzf wasi-sdk-15.0-mingw.tar.gz --strip-components=1 -C C:\wasi-sdk
