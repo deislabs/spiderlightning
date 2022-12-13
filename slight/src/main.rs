@@ -15,8 +15,8 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     match &args.command {
-        Commands::Run { module } => handle_run(module, &args.config.unwrap()).await,
-        Commands::Secret { key, value } => handle_secret(key, value, &args.config.unwrap()),
+        Commands::Run { module } => handle_run(module, args.config.unwrap()).await,
+        Commands::Secret { key, value } => handle_secret(key, value, args.config.unwrap()),
         Commands::Add {
             interface_at_release,
         } => handle_add(interface_at_release, None).await,

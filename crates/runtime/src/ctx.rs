@@ -88,12 +88,10 @@ mod unittest {
         });
 
         builder.add_to_builder(|slight_ctx: &mut SlightCtx| {
+            let table = Dummy2Table::<Dummy2>::default();
             slight_ctx.insert(
                 "dummy2".to_string(),
-                (
-                    Box::new(Dummy {}),
-                    Some(Box::new(Dummy2Table::<Dummy2>::default())),
-                ),
+                (Box::new(Dummy {}), Some(Box::new(table))),
             );
         });
 
