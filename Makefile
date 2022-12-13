@@ -153,7 +153,7 @@ build-c-win:
 
 .PHONY: run-c
 run-c:
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/azsbus_slightfile.toml' run -m ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/filesystem_slightfile.toml' run -m ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
 ### END OF C EXAMPLES
 
 ### APP DEMO
