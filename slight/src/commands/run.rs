@@ -26,11 +26,15 @@ const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
     "keyvalue.redis",
 ];
 const DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS: [&str; 2] = ["lockd.etcd", "distributed_locking.etcd"];
-const MESSAGING_HOST_IMPLEMENTORS: [&str; 4] = [
+const MESSAGING_HOST_IMPLEMENTORS: [&str; 8] = [
     "pubsub.confluent_apache_kafka",
     "pubsub.mosquitto",
     "messaging.confluent_apache_kafka",
     "messaging.mosquitto",
+    "mq.azsbus",
+    "mq.filesystem",
+    "messaging.azsbus",
+    "messaging.filesystem",
 ];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
     ["configs.usersecrets", "configs.envvars", "configs.azapp"];

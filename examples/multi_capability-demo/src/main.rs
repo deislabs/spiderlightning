@@ -4,24 +4,23 @@ use keyvalue::*;
 wit_bindgen_rust::import!("../../wit/keyvalue.wit");
 wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
-use mq::*;
-wit_bindgen_rust::import!("../../wit/mq.wit");
-wit_error_rs::impl_error!(mq::Error);
+use messaging::*;
+wit_bindgen_rust::import!("../../wit/messaging.wit");
+wit_error_rs::impl_error!(messaging::MessagingError);
 
 fn main() -> Result<()> {
-    // application developer does not need to know the host implementation details.
-
     let keyvalue = Keyvalue::open("my-container")?;
-    let mq = Mq::open("wasi-cloud-queue")?;
+    let p = Pub::open("wasi-cloud-queue")?;
+    let s = Sub::open("wasi-cloud-queue")?;
 
     for _ in 0..3 {
         println!("sending \"hello, world!\" to the queue");
-        mq.send("hello, world!".as_bytes())?;
+        p.publish("hello, world!".as_bytes(), "")?;
     }
 
     let mut messages_vec: Vec<String> = vec![];
     for _ in 0..3 {
-        let top_message = mq.receive()?;
+        let top_message = s.receive("")?;
         messages_vec.push(String::from_utf8(top_message)?);
         println!("top message in the queue: {:#?}", messages_vec.last());
     }

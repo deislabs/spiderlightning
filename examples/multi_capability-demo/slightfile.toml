@@ -8,7 +8,7 @@ name = "my-container"
     AZURE_STORAGE_KEY =  "${azapp.AZURE_STORAGE_KEY}"
 
 [[capability]]
-resource = "mq.azsbus"
+resource = "messaging.azsbus"
 name = "wasi-cloud-queue"
     [capability.configs]
     AZURE_SERVICE_BUS_NAMESPACE = "${azapp.AZURE_SERVICE_BUS_NAMESPACE}"

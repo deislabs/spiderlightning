@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use async_trait::async_trait;
 
-use implementors::{apache_kafka, mosquitto};
+use implementors::{apache_kafka, mosquitto, filesystem::{self, FilesystemImplementor}, azsbus::{self, AzSbusImplementor}};
 use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -46,8 +46,8 @@ impl Messaging {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let p = PubImplementor::new(&state.implementor, &state).await;
-        let s = SubImplementor::new(&state.implementor, &state).await;
+        let p = PubImplementor::new(&state.implementor, &state, &name).await;
+        let s = SubImplementor::new(&state.implementor, &state, &name).await;
 
         let store = capability_store
             .iter()
@@ -93,6 +93,8 @@ impl messaging::Messaging for Messaging {
         match &self_ {
             PubImplementor::ConfluentApacheKafka(pi) => pi.publish(message, topic)?,
             PubImplementor::Mosquitto(pi) => pi.publish(message, topic).await?,
+            PubImplementor::AzSbus(pi) => pi.send(message).await?,
+            PubImplementor::Filesystem(pi) => pi.send(message)?,
             _ => panic!("Unknown implementor"),
         };
 
@@ -112,6 +114,8 @@ impl messaging::Messaging for Messaging {
         Ok(match &self_ {
             SubImplementor::ConfluentApacheKafka(pi) => pi.receive(sub_tok).await?,
             SubImplementor::Mosquitto(pi) => pi.receive(sub_tok).await?,
+            SubImplementor::AzSbus(pi) => pi.receive().await?,
+            SubImplementor::Filesystem(pi) => pi.receive()?,
             _ => panic!("Unknown implementor"),
         })
     }
@@ -124,6 +128,8 @@ impl messaging::Messaging for Messaging {
         Ok(match &self_ {
             SubImplementor::ConfluentApacheKafka(pi) => pi.subscribe(topic).await?,
             SubImplementor::Mosquitto(pi) => pi.subscribe(topic).await?,
+            SubImplementor::AzSbus(_) => todo!("azsbus does not support subscriptions yet"),
+            SubImplementor::Filesystem(_) => todo!("filesystem does not support subscriptions yet"),
             _ => panic!("Unknown implementor"),
         })
     }
@@ -138,15 +144,23 @@ pub enum PubImplementor {
     Empty,
     ConfluentApacheKafka(apache_kafka::Pub),
     Mosquitto(mosquitto::Pub),
+    Filesystem(filesystem::FilesystemImplementor),
+    AzSbus(azsbus::AzSbusImplementor),
 }
 
 impl PubImplementor {
-    async fn new(messaging_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(messaging_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         match messaging_implementor {
             "messaging.confluent_apache_kafka" => {
                 Self::ConfluentApacheKafka(apache_kafka::Pub::new(slight_state).await)
             }
             "messaging.mosquitto" => Self::Mosquitto(mosquitto::Pub::new(slight_state).await),
+            "messaging.filesystem" | "mq.filesystem" => {
+                Self::Filesystem(FilesystemImplementor::new(name))
+            }
+            "messaging.azsbus" | "mq.azsbus" => {
+                Self::AzSbus(AzSbusImplementor::new(slight_state, name).await)
+            }
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
                 p
@@ -164,16 +178,24 @@ pub enum SubImplementor {
     Empty,
     ConfluentApacheKafka(apache_kafka::Sub),
     Mosquitto(mosquitto::Sub),
+    Filesystem(filesystem::FilesystemImplementor),
+    AzSbus(azsbus::AzSbusImplementor),
 }
 
 impl SubImplementor {
-    async fn new(messaging_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(messaging_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
         match messaging_implementor {
             "messaging.confluent_apache_kafka" | "pubsub.confluent_apache_kafka" => {
                 Self::ConfluentApacheKafka(apache_kafka::Sub::new(slight_state).await)
             }
             "messaging.mosquitto" | "pubsub.mosquitto" => {
                 Self::Mosquitto(mosquitto::Sub::new(slight_state).await)
+            }
+            "messaging.filesystem" | "mq.filesystem" => {
+                Self::Filesystem(FilesystemImplementor::new(name))
+            }
+            "messaging.azsbus" | "mq.azsbus" => {
+                Self::AzSbus(AzSbusImplementor::new(slight_state, name).await)
             }
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",

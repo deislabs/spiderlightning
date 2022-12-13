@@ -4,7 +4,7 @@ wit_bindgen_rust::import!("../../wit/messaging.wit");
 wit_error_rs::impl_error!(messaging::MessagingError);
 
 fn main() -> Result<()> {
-    let ps = Sub::open("my-messaging")?;
+    let ps = Sub::open("wasi-cloud-queue")?;
     let sub_tok = ps.subscribe("rust")?;
     let sub_tok1 = ps.subscribe("global-chat")?;
 

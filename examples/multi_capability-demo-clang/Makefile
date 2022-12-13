@@ -19,21 +19,18 @@ clean:
 .PHONY: bindings
 bindings:
 	wit-bindgen c --import ../../wit/keyvalue.wit --out-dir bindings/
-	# wit-bindgen c --import ../../wit/mq.wit --out-dir bindings/
-	# chmod +x bindings/keyvalye.c bindings/mq.c
-	chmod +x bindings/keyvalye.c
+	wit-bindgen c --import ../../wit/messaging.wit --out-dir bindings/
+	chmod +x bindings/keyvalue.c bindings/messaging.c
 
 .PHONY: build
 build:
 	sudo $(WASI_CC) -I . -I ./bindings -c -o keyvalue.o bindings/keyvalue.c
-	# sudo $(WASI_CC) -I . -I ./bindings -c -o mq.o bindings/mq.c
-	# sudo $(WASI_CC) -Wall main.c keyvalue.o mq.o -o $(TARGET) --sysroot $(SYSROOT)
-	sudo $(WASI_CC) -Wall main.c keyvalue.o $(TARGET) --sysroot $(SYSROOT)
+	sudo $(WASI_CC) -I . -I ./bindings -c -o messaging.o bindings/messaging.c
+	sudo $(WASI_CC) -Wall main.c keyvalue.o messaging.o -o $(TARGET) --sysroot $(SYSROOT)
 # ^^^ note: added sudo to make sure that `clang` sees keyvalue.c, etc as executable files
 
 .PHONY: build-win
 build-win:
 	$(WASI_CC_WIN) -I . -I ./bindings -c -o keyvalue.o bindings/keyvalue.c
-	# $(WASI_CC_WIN) -I . -I ./bindings -c -o mq.o bindings/mq.c
-	# $(WASI_CC_WIN) -Wall main.c keyvalue.o mq.o -o $(TARGET) --sysroot $(SYSROOT_WIN)
-	$(WASI_CC_WIN) -Wall main.c keyvalue.o -o $(TARGET) --sysroot $(SYSROOT_WIN)
+	$(WASI_CC_WIN) -I . -I ./bindings -c -o messaging.o bindings/messaging.c
+	$(WASI_CC_WIN) -Wall main.c keyvalue.o messaging.o -o $(TARGET) --sysroot $(SYSROOT_WIN)
