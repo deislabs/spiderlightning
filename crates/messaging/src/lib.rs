@@ -5,7 +5,12 @@ use std::collections::HashMap;
 use anyhow::Result;
 use async_trait::async_trait;
 
-use implementors::{apache_kafka, mosquitto, filesystem::{self, FilesystemImplementor}, azsbus::{self, AzSbusImplementor}};
+use implementors::{
+    apache_kafka,
+    azsbus::{self, AzSbusImplementor},
+    filesystem::{self, FilesystemImplementor},
+    mosquitto,
+};
 use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -46,8 +51,8 @@ impl Messaging {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let p = PubImplementor::new(&state.implementor, &state, &name).await;
-        let s = SubImplementor::new(&state.implementor, &state, &name).await;
+        let p = PubImplementor::new(&state.implementor, &state, name).await;
+        let s = SubImplementor::new(&state.implementor, &state, name).await;
 
         let store = capability_store
             .iter()

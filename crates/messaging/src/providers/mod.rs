@@ -1,2 +1,2 @@
-pub mod confluent;
 pub mod azure;
+pub mod confluent;
