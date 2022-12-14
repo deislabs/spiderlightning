@@ -18,11 +18,15 @@ In simple terms, SpiderLightning allows you to go:
 
 ## Repository Structure
 
-- `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
-- `/src`: the SpiderLightning host cli (i.e., Slight)
 - `/crates`: service implementations
+- `/docs`: useful documentation to help you understand design decisions, and how to contribute
 - `/examples`: guest examples
+- `/proposals`: design documents
+- `/slight`: the SpiderLightning host cli (i.e., Slight)
+- `/src`: core functionalities from SpiderLightning
+- `/templates`: templates used by `slight add` to create a new Rust or C project
 - `/tests`: guest tests
+- `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
 
 ## Looking for Contributors
 Do you want to contribute to SpiderLightning's growth? 
