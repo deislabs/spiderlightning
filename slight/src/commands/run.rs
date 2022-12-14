@@ -25,8 +25,10 @@ const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
     ["configs.usersecrets", "configs.envvars", "configs.azapp"];
 
 pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Path>) -> Result<()> {
-    let toml_file_contents = std::fs::read_to_string(&toml_file_path).expect("could not locate slightfile");
-    let toml = toml::from_str::<TomlFile>(&toml_file_contents).expect("provided file is not a slightfile");
+    let toml_file_contents =
+        std::fs::read_to_string(&toml_file_path).expect("could not locate slightfile");
+    let toml =
+        toml::from_str::<TomlFile>(&toml_file_contents).expect("provided file is not a slightfile");
 
     tracing::info!("Starting slight");
 
