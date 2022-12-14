@@ -1,8 +1,8 @@
 use anyhow::Result;
 
-use kv::*;
-wit_bindgen_rust::import!("../../wit/kv.wit");
-wit_error_rs::impl_error!(kv::Error);
+use keyvalue::*;
+wit_bindgen_rust::import!("../../wit/keyvalue.wit");
+wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
 use mq::*;
 wit_bindgen_rust::import!("../../wit/mq.wit");
@@ -11,7 +11,7 @@ wit_error_rs::impl_error!(mq::Error);
 fn main() -> Result<()> {
     // application developer does not need to know the host implementation details.
 
-    let kv = Kv::open("my-container")?;
+    let keyvalue = Keyvalue::open("my-container")?;
     let mq = Mq::open("wasi-cloud-queue")?;
 
     for _ in 0..3 {
@@ -27,16 +27,16 @@ fn main() -> Result<()> {
     }
 
     let all_messages = messages_vec.join("\n");
-    kv.set("messages", all_messages.as_bytes())?;
-    println!("Adding all messages ever sent to the queue to the kv store...");
+    keyvalue.set("messages", all_messages.as_bytes())?;
+    println!("Adding all messages ever sent to the queue to the keyvalue...");
 
     println!(
         "Retrieving all messages ever sent to the queue:\n{}",
-        std::str::from_utf8(&kv.get("messages")?)?
+        std::str::from_utf8(&keyvalue.get("messages")?)?
     );
 
-    kv.delete("messages")?;
-    println!("Deleting all messages ever sent to a queue from the kv store...");
+    keyvalue.delete("messages")?;
+    println!("Deleting all messages ever sent to a queue from the keyvalue...");
 
     Ok(())
 }

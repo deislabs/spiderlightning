@@ -47,7 +47,7 @@ pub async fn handle_new(name_at_release: &str, template: &Templates) -> Result<(
     };
 
     handle_add(
-        &format!("kv@{}", release),
+        &format!("keyvalue@{}", release),
         Some(&format!("./{}/wit/", project_name)),
     )
     .await?;

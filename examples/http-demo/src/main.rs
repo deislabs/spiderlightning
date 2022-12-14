@@ -1,13 +1,13 @@
 use anyhow::Result;
 
 use http::*;
-use kv::*;
+use keyvalue::*;
 use slight_http_handler_macro::register_handler;
 
 wit_bindgen_rust::import!("../../wit/http.wit");
-wit_bindgen_rust::import!("../../wit/kv.wit");
-wit_error_rs::impl_error!(http::Error);
-wit_error_rs::impl_error!(kv::Error);
+wit_bindgen_rust::import!("../../wit/keyvalue.wit");
+wit_error_rs::impl_error!(http::HttpError);
+wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
 fn main() -> Result<()> {
     let router = Router::new()?;
@@ -27,7 +27,7 @@ fn main() -> Result<()> {
 }
 
 #[register_handler]
-fn handle_hello(req: Request) -> Result<Response, Error> {
+fn handle_hello(req: Request) -> Result<Response, HttpError> {
     Ok(Response {
         headers: Some(req.headers),
         body: Some("hello".as_bytes().to_vec()),
@@ -36,9 +36,9 @@ fn handle_hello(req: Request) -> Result<Response, Error> {
 }
 
 #[register_handler]
-fn handle_foo(request: Request) -> Result<Response, Error> {
-    let kv = crate::Kv::open("my-container").unwrap();
-    let value = kv.get("key").unwrap();
+fn handle_foo(request: Request) -> Result<Response, HttpError> {
+    let keyvalue = crate::Keyvalue::open("my-container").unwrap();
+    let value = keyvalue.get("key").unwrap();
     Ok(Response {
         headers: Some(request.headers),
         body: Some(value),
@@ -47,13 +47,13 @@ fn handle_foo(request: Request) -> Result<Response, Error> {
 }
 
 #[register_handler]
-fn handle_bar(request: Request) -> Result<Response, Error> {
+fn handle_bar(request: Request) -> Result<Response, HttpError> {
     assert_eq!(request.method, Method::Put);
     println!("request body: {:?}", request.body);
     if let Some(body) = request.body {
-        let kv = crate::Kv::open("my-container").unwrap();
+        let keyvalue = crate::Keyvalue::open("my-container").unwrap();
         println!("here1");
-        kv.set("key", &body).unwrap();
+        keyvalue.set("key", &body).unwrap();
         println!("here2");
     }
     Ok(Response {
@@ -64,7 +64,7 @@ fn handle_bar(request: Request) -> Result<Response, Error> {
 }
 
 #[register_handler]
-fn delete_file_handler(request: Request) -> Result<Response, Error> {
+fn delete_file_handler(request: Request) -> Result<Response, HttpError> {
     assert_eq!(request.method, Method::Delete);
     Ok(Response {
         headers: Some(request.headers),
@@ -75,7 +75,7 @@ fn delete_file_handler(request: Request) -> Result<Response, Error> {
 
 
 #[register_handler]
-fn upload(request: Request) -> Result<Response, Error> {
+fn upload(request: Request) -> Result<Response, HttpError> {
     assert_eq!(request.method, Method::Post);
     Ok(Response {
         headers: Some(request.headers),

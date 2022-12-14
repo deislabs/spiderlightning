@@ -85,6 +85,8 @@ make build-c # builds our c example
 make run-c # runs our c example
 ```
 
+> Note: C Examples are currently non-functional.
+
 # Building Rust Examples
 
 There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, we do not recommend running them because some of these examples have dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.

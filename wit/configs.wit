@@ -1,13 +1,20 @@
-// An App Configuration Interface
-use { error, payload } from types
-
+/// a configs interface
 resource configs {
-    // Obtain an app config store, identifiable through a resource descriptor
-    static open: func(name: string) -> expected<configs, error>
+    /// creates a handle to a configs object
+    static open: func(name: string) -> expected<configs, configs-error>
 
-    // Get an app configuration given a config store, and an identifiable key
-    get: func(key: string) -> expected<payload, error>
+    /// get a config value through a key
+    get: func(key: string) -> expected<list<u8>, configs-error>
 
-    // Set an app configuration given a config store, an identifiable key, and its' value
-    set: func(key: string, value: payload) -> expected<unit, error>
+    /// set a config key and value
+    set: func(key: string, value: list<u8>) -> expected<unit, configs-error>
+}
+
+/// common config errors
+variant configs-error {
+    not-found(string),
+    invalid-value(string),
+    permission-denied(string),
+    io-error(string),
+    unexpected-error(string)
 }

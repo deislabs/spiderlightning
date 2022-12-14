@@ -44,16 +44,16 @@ clean-win:
 # generate new bindings
 .PHONY: bindings
 bindings:
-	wit-bindgen c --import wit/kv_{{release}}/kv.wit --out-dir $(SRC_DIR)/bindings/
+	wit-bindgen c --import wit/keyvalue_{{release}}/keyvalue.wit --out-dir $(SRC_DIR)/bindings/
 
 # build the project on unix
 .PHONY: build
 build:
-	sudo $(WASI_CC) -I . -I $(SRC_DIR)/bindings -c -o kv.o $(SRC_DIR)/bindings/kv.c
-	sudo $(WASI_CC) -Wall $(SRC_DIR)/main.c kv.o -o $(TARGET) --sysroot $(SYSROOT)
+	sudo $(WASI_CC) -I . -I $(SRC_DIR)/bindings -c -o keyvalue.o $(SRC_DIR)/bindings/keyvalue.c
+	sudo $(WASI_CC) -Wall $(SRC_DIR)/main.c keyvalue.o -o $(TARGET) --sysroot $(SYSROOT)
 
 # build the project on windows
 .PHONY: build-win
 build-win:
-	$(WASI_SDK)/bin/clang.exe -I . -I $(SRC_DIR)/bindings -c -o kv.o $(SRC_DIR)/bindings/kv.c
-	$(WASI_SDK)/bin/clang.exe -Wall $(SRC_DIR)/main.c kv.o -o $(TARGET) --sysroot $(SYSROOT)
+	$(WASI_SDK)/bin/clang.exe -I . -I $(SRC_DIR)/bindings -c -o keyvalue.o $(SRC_DIR)/bindings/keyvalue.c
+	$(WASI_SDK)/bin/clang.exe -Wall $(SRC_DIR)/main.c keyvalue.o -o $(TARGET) --sysroot $(SYSROOT)

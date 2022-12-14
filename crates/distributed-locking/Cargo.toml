@@ -1,0 +1,24 @@
+[package]
+name = "slight-distributed-locking"
+version = "0.1.0"
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+wit-bindgen-wasmtime = { workspace = true }
+wit-error-rs = { workspace = true }
+slight-common = { path = "../common" }
+slight-runtime-configs = { path = "../runtime-configs" }
+anyhow = { workspace = true }
+tracing = { version = "0.1", features = ["log"] }
+url = "2.2"
+async-trait = { workspace = true }
+tokio = { version = "1", features = ["full"] }
+# distributed_locking.etcd deps
+etcd-client = "0.9"

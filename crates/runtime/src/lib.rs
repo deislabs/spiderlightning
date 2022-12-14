@@ -141,21 +141,22 @@ mod unittest {
     use std::collections::HashMap;
 
     use slight_common::WasmtimeBuildable;
-    use slight_kv::Kv;
+    use slight_keyvalue::Keyvalue;
 
     use crate::Builder;
 
     #[tokio::test]
     async fn test_builder_build() -> anyhow::Result<()> {
-        let module = "./test/kv-test.wasm";
+        let module = "./test/keyvalue-test.wasm";
         assert!(std::path::Path::new(module).exists());
         let mut builder = Builder::from_module(module)?;
-        let kv = slight_kv::Kv::new("kv.filesystem".to_string(), HashMap::default());
+        let keyvalue =
+            slight_keyvalue::Keyvalue::new("keyvalue.filesystem".to_string(), HashMap::default());
 
         builder
             .link_wasi()?
-            .link_capability::<Kv>()?
-            .add_to_builder("kv".to_string(), kv);
+            .link_capability::<Keyvalue>()?
+            .add_to_builder("keyvalue".to_string(), keyvalue);
 
         let (_, _) = builder.build().await;
         Ok(())

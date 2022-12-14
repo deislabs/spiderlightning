@@ -1,0 +1,37 @@
+/// a messaging interface
+
+/// common messaging errors
+variant messaging-error {
+    payload-too-large(string),
+    queue-or-topic-not-found(string),
+    insufficient-permissions(string),
+    service-unavailable(string),
+    delivery-failed(string),
+    connection-lost(string),
+    unsupported-message-format(string),
+    unexpected-error(string),
+}
+
+// producer interface
+resource pub {
+	/// creates a handle to a pub object
+	static open: func(name: string) -> expected<pub, messaging-error>
+
+	/// publish a message to a topic
+	publish: func(msg: list<u8>, topic: string) -> expected<unit, messaging-error> 
+}
+
+/// provides a handle to a consumer that owns a specific subscription
+type subscription-token = string
+
+/// consumer interface
+resource sub {
+	/// creates a handle to a sub object
+	static open: func(name: string) -> expected<sub, messaging-error>
+
+	/// subscribe to a topic
+	subscribe: func(topic: string) -> expected<subscription-token, messaging-error> 
+
+	/// pull-based message delivery
+	receive: func(sub-tok: subscription-token) -> expected<list<u8>, messaging-error>
+}

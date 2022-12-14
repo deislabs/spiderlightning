@@ -1,0 +1,33 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "keyvalue.awsdynamodb"
+name = "rand"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.
+
+[[capability]]
+resource = "keyvalue.awsdynamodb"
+name = "random1"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.
+
+[[capability]]
+resource = "keyvalue.awsdynamodb"
+name = "random2"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.
+
+[[capability]]
+resource = "keyvalue.awsdynamodb"
+name = "random3"
+    # This capability loads its' config from environment variables. It requires:
+    #   - `AWS_ACCESS_KEY_ID`,
+    #   - `AWS_SECRET_ACCESS_KEY`, and
+    #   - `AWS_REGION`.
