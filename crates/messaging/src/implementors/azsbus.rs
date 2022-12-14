@@ -1,17 +1,21 @@
-use std::borrow::BorrowMut;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use azure_messaging_servicebus::service_bus::SubscriptionReceiver;
+use tokio::runtime::Handle;
+use tokio::task::block_in_place;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
-use azure_messaging_servicebus::prelude::*;
+use azure_messaging_servicebus::prelude::TopicClient;
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 
-use crate::providers::azure;
-
 #[derive(Clone)]
 pub struct AzSbusImplementor {
-    client: Option<Arc<Mutex<QueueClient>>>,
+    service_bus_namespace: String,
+    policy_name: String,
+    policy_key: String,
+    http_client: Arc<dyn azure_core::HttpClient>,
+    subscription_tokens: Arc<Mutex<HashMap<String, SubscriptionReceiver>>>,
 }
 
 impl std::fmt::Debug for AzSbusImplementor {
@@ -21,7 +25,7 @@ impl std::fmt::Debug for AzSbusImplementor {
 }
 
 impl AzSbusImplementor {
-    pub async fn new(slight_state: &BasicState, name: &str) -> Self {
+    pub async fn new(slight_state: &BasicState) -> Self {
         let service_bus_namespace = get_from_state("AZURE_SERVICE_BUS_NAMESPACE", slight_state)
             .await
             .unwrap();
@@ -34,38 +38,65 @@ impl AzSbusImplementor {
 
         let http_client = azure_core::new_http_client();
 
-        let client = Some(Arc::new(Mutex::new(
-            QueueClient::new(
-                http_client,
-                service_bus_namespace,
-                name.to_owned(),
-                policy_name,
-                policy_key,
-            )
-            .with_context(|| "failed to connect to Azure Service Bus")
-            .unwrap(),
-        )));
-        Self { client }
+        Self {
+            service_bus_namespace,
+            policy_name,
+            policy_key,
+            http_client,
+            subscription_tokens: Arc::new(Mutex::new(HashMap::new())),
+        }
     }
 
-    pub async fn send(&self, msg: &[u8]) -> Result<()> {
-        let inner = &self.client.as_ref().unwrap();
-        azure::send(
-            inner.lock().await.borrow_mut(),
-            std::str::from_utf8(msg)
-                .with_context(|| "failed to parse message as UTF-8")?
-                .to_string(),
+    fn make_topic_client(&self, topic: &str) -> TopicClient {
+        TopicClient::new(
+            self.http_client.clone(),
+            &self.service_bus_namespace,
+            topic,
+            &self.policy_name,
+            &self.policy_key,
         )
-        .await
-        .with_context(|| "failed to send message to Azure Service Bus")?;
+        .unwrap()
+    }
+
+    pub async fn publish(&self, msg: &[u8], topic: &str) -> Result<()> {
+        let topic_client = self.make_topic_client(topic);
+
+        topic_client
+            .topic_sender()
+            .send_message(std::str::from_utf8(msg).unwrap())
+            .await?;
+
         Ok(())
     }
 
-    pub async fn receive(&self) -> Result<Vec<u8>> {
-        let inner = &self.client.as_ref().unwrap();
-        let result = azure::receive(inner.lock().await.borrow_mut())
-            .await
-            .with_context(|| "failed to receive message from Azure Service Bus")?;
-        Ok(result)
+    pub async fn subscribe(&self, topic: &str) -> Result<String> {
+        let sub_tok = uuid::Uuid::new_v4().to_string();
+
+        let topic_client = self.make_topic_client(topic);
+
+        let receiver = topic_client.subscription_receiver(topic);
+
+        self.subscription_tokens
+            .lock()
+            .unwrap()
+            .insert(sub_tok.clone(), receiver);
+
+        Ok(sub_tok)
+    }
+
+    pub async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
+        block_in_place(|| {
+            Handle::current().block_on(async move {
+                let sub_toks = self.subscription_tokens.lock().unwrap();
+
+                let accessed_consumer = sub_toks
+                    .get(sub_tok)
+                    .with_context(|| "failed to get consumer from subscription token")?;
+
+                let msg = accessed_consumer.receive_and_delete_message().await?;
+
+                Ok(msg.as_bytes().to_vec())
+            })
+        })
     }
 }

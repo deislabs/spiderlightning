@@ -2,7 +2,7 @@ specversion = "0.2"
 
 [[capability]]
 resource = "messaging.azsbus"
-name = "wasi-cloud-queue"
+name = "my-messaging"
     [capability.configs]
     AZURE_SERVICE_BUS_NAMESPACE = "${azapp.AZURE_SERVICE_BUS_NAMESPACE}"
     AZURE_POLICY_NAME = "${azapp.AZURE_POLICY_NAME}"

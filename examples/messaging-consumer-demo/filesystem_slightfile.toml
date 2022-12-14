@@ -2,5 +2,5 @@ specversion = "0.2"
 
 [[capability]]
 resource = "messaging.filesystem"
-name = "wasi-cloud-queue"
+name = "my-messaging"
     # This capability does not require any configs

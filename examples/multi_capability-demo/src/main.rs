@@ -10,17 +10,18 @@ wit_error_rs::impl_error!(messaging::MessagingError);
 
 fn main() -> Result<()> {
     let keyvalue = Keyvalue::open("my-container")?;
-    let p = Pub::open("wasi-cloud-queue")?;
-    let s = Sub::open("wasi-cloud-queue")?;
+    let p = Pub::open("my-messaging")?;
+    let s = Sub::open("my-messaging")?;
+    let sub_tok = s.subscribe("rust")?;
 
     for _ in 0..3 {
         println!("sending \"hello, world!\" to the queue");
-        p.publish("hello, world!".as_bytes(), "")?;
+        p.publish("hello, world!".as_bytes(), "rust")?;
     }
 
     let mut messages_vec: Vec<String> = vec![];
     for _ in 0..3 {
-        let top_message = s.receive("")?;
+        let top_message = s.receive(&sub_tok)?;
         messages_vec.push(String::from_utf8(top_message)?);
         println!("top message in the queue: {:#?}", messages_vec.last());
     }
