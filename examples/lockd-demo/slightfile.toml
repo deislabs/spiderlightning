@@ -1,8 +1,0 @@
-specversion = "0.2"
-
-[[capability]]
-resource = "lockd.etcd"
-name = "my-etcd-server"
-    [capability.configs]
-    ETCD_ENDPOINT = "localhost:2379"
-

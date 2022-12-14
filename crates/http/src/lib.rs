@@ -21,8 +21,8 @@ use tracing::log;
 use slight_http_api::{HttpBody, HttpHandler, HttpHeader, Method, Request};
 
 wit_bindgen_wasmtime::export!("../../wit/http.wit");
-wit_error_rs::impl_error!(Error);
-wit_error_rs::impl_from!(anyhow::Error, Error::ErrorWithDescription);
+wit_error_rs::impl_error!(http::HttpError);
+wit_error_rs::impl_from!(anyhow::Error, http::HttpError::UnexpectedError);
 
 #[derive(Clone, Debug, Default)]
 enum Methods {
@@ -57,27 +57,32 @@ impl RouterInner {
     }
 
     /// Adds a new route with `GET` method and the handler's name.
-    fn get(&mut self, route: String, handler: String) -> Result<Self, Error> {
+    fn get(&mut self, route: String, handler: String) -> Result<Self, http::HttpError> {
         self.add(route, handler, Methods::GET)
     }
 
     /// Adds a new route with `PUT` method and the handler's name.
-    fn put(&mut self, route: String, handler: String) -> Result<Self, Error> {
+    fn put(&mut self, route: String, handler: String) -> Result<Self, http::HttpError> {
         self.add(route, handler, Methods::PUT)
     }
 
     /// Adds a new route with `POST` method and the handler's name.
-    fn post(&mut self, route: String, handler: String) -> Result<Self, Error> {
+    fn post(&mut self, route: String, handler: String) -> Result<Self, http::HttpError> {
         self.add(route, handler, Methods::POST)
     }
 
     /// Adds a new route with `DELETE` method and the handler's name.
-    fn delete(&mut self, route: String, handler: String) -> Result<Self, Error> {
+    fn delete(&mut self, route: String, handler: String) -> Result<Self, http::HttpError> {
         self.add(route, handler, Methods::DELETE)
     }
 
     /// Adds a new route with the given method and the handler's name.
-    fn add(&mut self, route: String, handler: String, method: Methods) -> Result<Self, Error> {
+    fn add(
+        &mut self,
+        route: String,
+        handler: String,
+        method: Methods,
+    ) -> Result<Self, http::HttpError> {
         let route = Route {
             method,
             route,
@@ -94,7 +99,7 @@ pub struct ServerInner {
 }
 
 impl ServerInner {
-    fn close(self) -> Result<(), Error> {
+    fn close(self) -> Result<(), HttpError> {
         let closer = self.closer.lock().unwrap();
         thread::scope(|s| {
             s.spawn(|_| {
@@ -146,11 +151,11 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
     type Router = RouterInner;
     type Server = ServerInner;
 
-    fn router_new(&mut self) -> Result<Self::Router, Error> {
+    fn router_new(&mut self) -> Result<Self::Router, http::HttpError> {
         Ok(RouterInner::default())
     }
 
-    fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, Error> {
+    fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, http::HttpError> {
         Ok(RouterInner::new(base))
     }
 
@@ -159,7 +164,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
         router: &Self::Router,
         route: &str,
         handler: &str,
-    ) -> Result<Self::Router, Error> {
+    ) -> Result<Self::Router, HttpError> {
         // Router is a reference to the router proxy, so we need to clone it to get a
         // mutable reference to the router.
         let mut rclone = router.clone();
@@ -171,7 +176,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
         router: &Self::Router,
         route: &str,
         handler: &str,
-    ) -> Result<Self::Router, Error> {
+    ) -> Result<Self::Router, HttpError> {
         // Router is a reference to the router proxy, so we need to clone it to get a
         // mutable reference to the router.
         let mut rclone = router.clone();
@@ -183,7 +188,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
         router: &Self::Router,
         route: &str,
         handler: &str,
-    ) -> Result<Self::Router, Error> {
+    ) -> Result<Self::Router, HttpError> {
         // Router is a reference to the router proxy, so we need to clone it to get a
         // mutable reference to the router.
         let mut rclone = router.clone();
@@ -195,7 +200,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
         router: &Self::Router,
         route: &str,
         handler: &str,
-    ) -> Result<Self::Router, Error> {
+    ) -> Result<Self::Router, HttpError> {
         // Router is a reference to the router proxy, so we need to clone it to get a
         // mutable reference to the router.
         let mut rclone = router.clone();
@@ -206,13 +211,13 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
         &mut self,
         address: &str,
         router: &Self::Router,
-    ) -> Result<Self::Server, Error> {
+    ) -> Result<Self::Server, HttpError> {
         // Shared states for all routes
         let instance_builder = self.builder.as_ref().unwrap().clone();
 
         // The outer builder is used to define the route paths, while creating a scope
         // for the inner builder which passes states to the route handler.
-        let mut outer_builder: RouterBuilder<Body, http::Error> = Router::builder()
+        let mut outer_builder: RouterBuilder<Body, http::HttpError> = Router::builder()
             .middleware(enable_cors_all())
             .data(instance_builder);
 
@@ -220,7 +225,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
         let mut inner_routes = vec![];
         for route in router.routes.iter() {
             // per route state
-            let mut inner_builder: RouterBuilder<Body, http::Error> = Router::builder();
+            let mut inner_builder: RouterBuilder<Body, http::HttpError> = Router::builder();
             inner_builder = inner_builder.data(route.clone());
             match route.method {
                 Methods::GET => {
@@ -263,7 +268,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
         Ok(ServerInner { closer: arc_tx })
     }
 
-    fn server_stop(&mut self, server: &Self::Server) -> Result<(), Error> {
+    fn server_stop(&mut self, server: &Self::Server) -> Result<(), HttpError> {
         // clone is needed here because we have a reference to `ServerInner`,
         // but we need ownership of `ServerInner` to stop it.
         let clone = server.clone();
@@ -273,18 +278,18 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
 
 async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     request: hyper::Request<Body>,
-) -> Result<hyper::Response<Body>, http::Error> {
+) -> Result<hyper::Response<Body>, http::HttpError> {
     log::debug!("received request: {:?}", &request);
     let (parts, body) = request.into_parts();
 
     // Fetch states from the request, including the route name and builder.
     let route = parts
         .data::<Route>()
-        .ok_or_else(|| http::Error::ErrorWithDescription("missing route".to_owned()))?;
+        .ok_or_else(|| http::HttpError::InvalidUrl("missing route".to_owned()))?;
 
     let instance_builder = parts
         .data::<Builder<T>>()
-        .ok_or_else(|| http::Error::ErrorWithDescription("missing builder".to_owned()))?;
+        .ok_or_else(|| anyhow::anyhow!("missing builder".to_owned()))?;
     let instance_builder = instance_builder.clone();
     let (mut store, instance) = instance_builder.owned_inner().build().await;
     // Perform conversion from the `hyper::Request` to `handle_http::Request`.

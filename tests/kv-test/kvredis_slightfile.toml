@@ -1,5 +1,0 @@
-specversion = "0.1"
-secret_store = "configs.envvars"
-
-[[capability]]
-name = "kv.redis"

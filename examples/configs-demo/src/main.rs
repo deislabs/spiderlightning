@@ -2,7 +2,7 @@ use anyhow::Result;
 
 use configs::*;
 wit_bindgen_rust::import!("../../wit/configs.wit");
-wit_error_rs::impl_error!(Error);
+wit_error_rs::impl_error!(ConfigsError);
 
 fn main() -> Result<()> {
     let ptr = Box::into_raw(Box::new(123));

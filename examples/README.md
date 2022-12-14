@@ -2,7 +2,7 @@
 
 ## preparing an Azure environment
 
-All samples with `configs.azapp`, `kv.azblob` or `mq.azsbus` capabilities need a defined set of resources. With shell commands below this required resources can be created and configuration values are put into an Azure App Configuration.
+All samples with `configs.azapp`, `keyvalue.azblob` or `mq.azsbus` capabilities need a defined set of resources. With shell commands below this required resources can be created and configuration values are put into an Azure App Configuration.
 
 > This configuration currently only supports the examples on the local filesystem and with **Azure** resources. Configuration of **AWS** resources and **etcd** are not yet covered.
 

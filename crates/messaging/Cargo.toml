@@ -1,0 +1,30 @@
+[package]
+name = "slight-messaging"
+version = "0.1.0"
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[lib]
+test = false
+doctest = false
+
+[dependencies]
+anyhow = { workspace = true }
+wit-bindgen-wasmtime = { workspace = true }
+wit-error-rs = { workspace = true }
+slight-common = { path = "../common" }
+slight-runtime-configs = { path = "../runtime-configs" }
+uuid = { version = "1.1", features = ["v4"] }
+tracing = { version = "0.1", features = ["log"] }
+crossbeam-channel = "0.5"
+url = "2"
+async-trait = { workspace = true }
+tokio = { version = "1", features = ["full"] }
+# pubsub.confluent_apache_kafka deps
+rdkafka = { version = "0.29", features = ["cmake-build", "ssl"] }
+openssl = { version = "0.10", features = ["vendored"] }
+# pubsub.mosquitto
+mosquitto-rs = { version = "0.4.0", features = ["default"] }
+async-channel = "1.5"

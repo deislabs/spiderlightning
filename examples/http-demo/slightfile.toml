@@ -6,7 +6,7 @@ name = "my-rest-api"
     # This capability does not require any configs
 
 [[capability]]
-resource = "kv.awsdynamodb"
+resource = "keyvalue.awsdynamodb"
 name = "my-container"
     # This capability loads its' config from environment variables. It requires:
     #   - `AWS_ACCESS_KEY_ID`,

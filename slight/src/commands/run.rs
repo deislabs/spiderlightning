@@ -6,27 +6,40 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use slight_common::{BasicState, Capability, WasmtimeBuildable};
+use slight_distributed_locking::DistributedLocking;
 use slight_http::Http;
-use slight_kv::Kv;
-use slight_lockd::Lockd;
-use slight_mq::Mq;
-use slight_pubsub::Pubsub;
+use slight_keyvalue::Keyvalue;
+use slight_messaging::Messaging;
 use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
 use spiderlightning::core::slightfile::{Capability as TomlCapability, TomlFile};
 use wit_bindgen_wasmtime::wasmtime::Store;
 
-const KV_HOST_IMPLEMENTORS: [&str; 4] =
-    ["kv.filesystem", "kv.azblob", "kv.awsdynamodb", "kv.redis"];
-const MQ_HOST_IMPLEMENTORS: [&str; 2] = ["mq.filesystem", "mq.azsbus"];
-const LOCKD_HOST_IMPLEMENTORS: [&str; 1] = ["lockd.etcd"];
-const PUBSUB_HOST_IMPLEMENTORS: [&str; 2] = ["pubsub.confluent_apache_kafka", "pubsub.mosquitto"];
+const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
+    "kv.filesystem",
+    "kv.azblob",
+    "kv.awsdynamodb",
+    "kv.redis",
+    "keyvalue.filesystem",
+    "keyvalue.azblob",
+    "keyvalue.awsdynamodb",
+    "keyvalue.redis",
+];
+const DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS: [&str; 2] = ["lockd.etcd", "distributed_locking.etcd"];
+const MESSAGING_HOST_IMPLEMENTORS: [&str; 4] = [
+    "pubsub.confluent_apache_kafka",
+    "pubsub.mosquitto",
+    "messaging.confluent_apache_kafka",
+    "messaging.mosquitto",
+];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
     ["configs.usersecrets", "configs.envvars", "configs.azapp"];
 
 pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Path>) -> Result<()> {
-    let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
-    let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+    let toml_file_contents =
+        std::fs::read_to_string(&toml_file_path).expect("could not locate slightfile");
+    let toml =
+        toml::from_str::<TomlFile>(&toml_file_contents).expect("provided file is not a slightfile");
 
     tracing::info!("Starting slight");
 
@@ -133,44 +146,39 @@ async fn build_store_instance(
         }
 
         match resource_type {
-            _ if KV_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                if !linked_capabilities.contains("kv") {
-                    builder.link_capability::<Kv>()?;
-                    linked_capabilities.insert("kv".to_string());
+            _ if KEYVALUE_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("keyvalue") {
+                    builder.link_capability::<Keyvalue>()?;
+                    linked_capabilities.insert("keyvalue".to_string());
+                }
+
+                let resource = slight_keyvalue::Keyvalue::new(
+                    resource_type.to_string(),
+                    capability_store.clone(),
+                );
+                builder.add_to_builder("keyvalue".to_string(), resource);
+            }
+            _ if DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("distributed_locking") {
+                    builder.link_capability::<DistributedLocking>()?;
+                    linked_capabilities.insert("distributed_locking".to_string());
+                }
+
+                let resource = slight_distributed_locking::DistributedLocking::new(
+                    resource_type.to_string(),
+                    capability_store.clone(),
+                );
+                builder.add_to_builder("distributed_locking".to_string(), resource);
+            }
+            _ if MESSAGING_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("messaging") {
+                    builder.link_capability::<Messaging>()?;
+                    linked_capabilities.insert("messaging".to_string());
                 }
 
                 let resource =
-                    slight_kv::Kv::new(resource_type.to_string(), capability_store.clone());
-                builder.add_to_builder("kv".to_string(), resource);
-            }
-            _ if MQ_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                if !linked_capabilities.contains("mq") {
-                    builder.link_capability::<Mq>()?;
-                    linked_capabilities.insert("mq".to_string());
-                }
-
-                let resource =
-                    slight_mq::Mq::new(resource_type.to_string(), capability_store.clone());
-                builder.add_to_builder("mq".to_string(), resource);
-            }
-            _ if LOCKD_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                if !linked_capabilities.contains("lockd") {
-                    builder.link_capability::<Lockd>()?;
-                    linked_capabilities.insert("lockd".to_string());
-                }
-
-                let resource =
-                    slight_lockd::Lockd::new(resource_type.to_string(), capability_store.clone());
-                builder.add_to_builder("lockd".to_string(), resource);
-            }
-            _ if PUBSUB_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                if !linked_capabilities.contains("pubsub") {
-                    builder.link_capability::<Pubsub>()?;
-                    linked_capabilities.insert("pubsub".to_string());
-                }
-
-                let resource = slight_pubsub::Pubsub::new(&c.name, capability_store.clone()).await;
-                builder.add_to_builder("pubsub".to_string(), resource);
+                    slight_messaging::Messaging::new(&c.name, capability_store.clone()).await;
+                builder.add_to_builder("messaging".to_string(), resource);
             }
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("configs") {
@@ -196,7 +204,7 @@ async fn build_store_instance(
                 }
             }
             _ => {
-                bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'kv.filesystem', 'kv.azblob', 'kv.awsdynamodb', 'mq.filesystem', 'mq.azsbus', 'lockd.etcd', 'pubsub.confluent_apache_kafka', and 'http' schemes")
+                bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'keyvalue.filesystem', 'keyvalue.azblob', 'keyvalue.awsdynamodb', 'distributed_locking.etcd', 'messaging.confluent_apache_kafka', 'messaging.mosquitto', and 'http' schemes")
             }
         }
     }

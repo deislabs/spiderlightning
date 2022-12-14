@@ -7,12 +7,11 @@ use anyhow::Result;
 
 const GITHUB_URL: &str = "https://github.com/deislabs/spiderlightning/releases/download";
 
-const KV_DOWNLOADS: [&str; 3] = ["kv", "types", "resources"];
-const CONFIGS_DOWNLOADS: [&str; 2] = ["configs", "types"];
-const HTTP_DOWNLOADS: [&str; 4] = ["http", "http-handler", "http-types", "types"];
-const LOCKD_DOWNLOADS: [&str; 3] = ["lockd", "types", "resources"];
-const MQ_DOWNLOADS: [&str; 3] = ["mq", "types", "resources"];
-const PUBSUB_DOWNLOADS: [&str; 3] = ["pubsub", "types", "resources"];
+const KEYVALUE_DOWNLOADS: [&str; 1] = ["keyvalue"];
+const CONFIGS_DOWNLOADS: [&str; 1] = ["configs"];
+const HTTP_DOWNLOADS: [&str; 3] = ["http", "http-handler", "http-types"];
+const DISTRIBUTED_LOCKING_DOWNLOADS: [&str; 1] = ["distributed-locking"];
+const MESSAGING_DOWNLOADS: [&str; 1] = ["messaging"];
 
 pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Result<()> {
     let (interface, release, folder_name) = if !what_to_add.contains('@') {
@@ -29,12 +28,11 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
     };
 
     match what_to_add {
-        _ if interface.eq("kv")
+        _ if interface.eq("keyvalue")
             | interface.eq("configs")
             | interface.eq("http")
-            | interface.eq("lockd")
-            | interface.eq("mq")
-            | interface.eq("pubsub") =>
+            | interface.eq("distributed_locking")
+            | interface.eq("messaging") =>
         {
             maybe_recreate_dir(&format!("{}{}", folder_prefix.unwrap_or("./"), folder_name))?;
             for i in get_interface_downloads_by_name(interface) {
@@ -52,7 +50,7 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
             }
         }
         _ => {
-            panic!("invalid interface name (1): currently, slight only supports the download of 'configs', 'kv', 'mq', 'lockd', 'pubsub', and 'http'.")
+            panic!("invalid interface name (1): currently, slight only supports the download of 'configs', 'keyvalue', 'distributed_locking', 'messaging', and 'http'.")
         }
     }
     Ok(())
@@ -73,14 +71,13 @@ fn maybe_recreate_dir(dir_name: &str) -> Result<()> {
 
 fn get_interface_downloads_by_name(name: &str) -> Vec<&str> {
     match name {
-        _ if name.eq("kv") => KV_DOWNLOADS.to_vec(),
+        _ if name.eq("keyvalue") => KEYVALUE_DOWNLOADS.to_vec(),
         _ if name.eq("configs") => CONFIGS_DOWNLOADS.to_vec(),
         _ if name.eq("http") => HTTP_DOWNLOADS.to_vec(),
-        _ if name.eq("lockd") => LOCKD_DOWNLOADS.to_vec(),
-        _ if name.eq("mq") => MQ_DOWNLOADS.to_vec(),
-        _ if name.eq("pubsub") => PUBSUB_DOWNLOADS.to_vec(),
+        _ if name.eq("distributed_locking") => DISTRIBUTED_LOCKING_DOWNLOADS.to_vec(),
+        _ if name.eq("messaging") => MESSAGING_DOWNLOADS.to_vec(),
         _ => {
-            panic!("invalid interface name (2): currently, slight only supports the download of 'configs', 'kv', 'mq', 'lockd', 'pubsub', and 'http'.")
+            panic!("invalid interface name (2): currently, slight only supports the download of 'configs', 'keyvalue', 'distributed_locking', 'messaging', and 'http'.")
         }
     }
 }

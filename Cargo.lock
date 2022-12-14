@@ -651,23 +651,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "azure_messaging_servicebus"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2cd5fd83b70247db4b7cad8c4b56bc09eb2f07c1a24564f5c15933ac26489ed"
-dependencies = [
- "azure_core",
- "base64",
- "bytes 1.3.0",
- "hmac 0.12.1",
- "log",
- "ring",
- "sha2 0.10.6",
- "time 0.3.17",
- "url",
-]
-
-[[package]]
 name = "azure_storage"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3489,11 +3472,10 @@ dependencies = [
  "log",
  "reqwest",
  "slight-common",
+ "slight-distributed-locking",
  "slight-http",
- "slight-kv",
- "slight-lockd",
- "slight-mq",
- "slight-pubsub",
+ "slight-keyvalue",
+ "slight-messaging",
  "slight-runtime",
  "slight-runtime-configs",
  "spiderlightning",
@@ -3515,6 +3497,22 @@ dependencies = [
  "async-trait",
  "slight-http-api",
  "wasmtime",
+]
+
+[[package]]
+name = "slight-distributed-locking"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "etcd-client",
+ "slight-common",
+ "slight-runtime-configs",
+ "tokio",
+ "tracing",
+ "url",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
+ "wit-error-rs",
 ]
 
 [[package]]
@@ -3563,7 +3561,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "slight-kv"
+name = "slight-keyvalue"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3586,41 +3584,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "slight-lockd"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "etcd-client",
- "slight-common",
- "slight-runtime-configs",
- "tokio",
- "tracing",
- "url",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "slight-mq"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "azure_core",
- "azure_messaging_servicebus",
- "http",
- "slight-common",
- "slight-runtime-configs",
- "tokio",
- "tracing",
- "url",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "slight-pubsub"
+name = "slight-messaging"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3651,7 +3615,7 @@ dependencies = [
  "dyn-clone",
  "slight-common",
  "slight-http-api",
- "slight-kv",
+ "slight-keyvalue",
  "tokio",
  "tracing",
  "wasi-cap-std-sync",

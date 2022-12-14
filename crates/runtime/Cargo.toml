@@ -26,5 +26,5 @@ dyn-clone = "1"
 async-trait = { workspace = true }
 
 [dev-dependencies]
-slight-kv = { path = "../kv" }
+slight-keyvalue = { path = "../keyvalue" }
 tokio = { version = "1", features = ["full"] }

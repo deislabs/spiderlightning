@@ -65,7 +65,7 @@ mod integration_tests {
     }
 
     #[cfg(test)]
-    mod kv_tests {
+    mod keyvalue_tests {
         #[cfg(unix)]
         use std::{
             env,
@@ -76,26 +76,36 @@ mod integration_tests {
         use crate::{run, SLIGHT};
         use anyhow::Result;
 
-        const KV_TEST_MODULE: &str = "./tests/kv-test/target/wasm32-wasi/debug/kv-test.wasm";
+        const KEYVALUE_TEST_MODULE: &str =
+            "./tests/keyvalue-test/target/wasm32-wasi/debug/keyvalue-test.wasm";
 
         #[test]
-        fn filekv_test() -> Result<()> {
-            let file_config = "./tests/kv-test/kvfilesystem_slightfile.toml";
-            run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+        fn filesystem_test() -> Result<()> {
+            let file_config = "./tests/keyvalue-test/keyvalue_filesystem_slightfile.toml";
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+            );
             Ok(())
         }
 
         #[test]
-        fn azblobkv_test() -> Result<()> {
-            let file_config = "./tests/kv-test/kvazblob_slightfile.toml";
-            run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+        fn azblob_test() -> Result<()> {
+            let file_config = "./tests/keyvalue-test/keyvalue_azblob_slightfile.toml";
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+            );
             Ok(())
         }
 
         #[test]
         fn aws_dynamodb_test() -> Result<()> {
-            let file_config = "./tests/kv-test/kvawsdynamodb_slightfile.toml";
-            run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+            let file_config = "./tests/keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+            );
             Ok(())
         }
 
@@ -130,9 +140,12 @@ mod integration_tests {
             // sleep 5 seconds waiting for redis server to start
             std::thread::sleep(std::time::Duration::from_secs(5));
 
-            let file_config = "./tests/kv-test/kvredis_slightfile.toml";
+            let file_config = "./tests/keyvalue-test/keyvalue_redis_slightfile.toml";
             env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{}", port));
-            run(SLIGHT, vec!["-c", file_config, "run", "-m", KV_TEST_MODULE]);
+            run(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+            );
 
             // kill the server
             cmd.kill()?;
@@ -280,5 +293,5 @@ mod integration_tests {
             Ok(())
         }
     }
-    // TODO: We need to mq_test, lockd_test, and pubsub_test modules
+    // TODO: We need to add distributed_locking, and messaging_test modules
 }

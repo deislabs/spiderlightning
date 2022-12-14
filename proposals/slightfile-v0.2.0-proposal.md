@@ -34,7 +34,7 @@ specversion = "0.1"
 secret_store = "configs.azapp"
 
 [[capability]]
-name = "kv.azblob"
+name = "keyvalue.azblob"
 
 [[capability]]
 name = "mq.azsbus"
@@ -44,16 +44,16 @@ These capabilities can then be acessed in a user application, like so:
 ```rs
 use anyhow::Result;
 
-use kv::*;
-wit_bindgen_rust::import!("../../wit/kv.wit");
-wit_error_rs::impl_error!(kv::Error);
+use keyvalue::*;
+wit_bindgen_rust::import!("../../wit/keyvalue.wit");
+wit_error_rs::impl_error!(keyvalue::KeyValueError);
 
 use mq::*;
 wit_bindgen_rust::import!("../../wit/mq.wit");
 wit_error_rs::impl_error!(mq::Error);
 
 fn main() -> Result<()> {
-    let kv = Kv::open("the-name-of-your-container")?;
+    let keyvalue = Keyvalue::open("the-name-of-your-container")?;
     let mq = Mq::open("the-name-of-your-queue")?;
 
     // -snip-
@@ -63,7 +63,7 @@ fn main() -> Result<()> {
 ## <a name='ProblemStatement'></a>Problem Statement
 
 The current design has two main restrictions:
-(1) we do not allow for multiple-capabilities of the same namespace but different implementor types (e.g., `kv.azblob`, and `kv.filesystem`), and
+(1) we do not allow for multiple-capabilities of the same namespace but different implementor types (e.g., `keyvalue.azblob`, and `keyvalue.filesystem`), and
 (2) we do not allow for different capabilities to use different secret stores (i.e., we only have one global secret store).
 
 ## <a name='Proposal'></a>Proposal
@@ -78,11 +78,11 @@ The changes involve:
 specversion = "0.1"
 
 [[capability]]
-resource = "kv.filesystem"
+resource = "keyvalue.filesystem"
 name = "orders"
 
 [[capability]]
-resource = "kv.azblob"
+resource = "keyvalue.azblob"
 name = "customers"
     [capability.configs]
     AZURE_STORAGE_ACCOUNT = "{envvars.AZURE_STORAGE_ACCOUNT}"
@@ -93,13 +93,13 @@ The example `slightfile` above can be used in code, like so:
 ```rs
 use anyhow::Result;
 
-use kv::*;
-wit_bindgen_rust::import!("../../wit/kv.wit");
-wit_error_rs::impl_error!(kv::Error);
+use keyvalue::*;
+wit_bindgen_rust::import!("../../wit/keyvalue.wit");
+wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
 fn main() -> Result<()> {
-    let orders = Kv::open("orders"?; 
-    let customers = Kv::open("customers")?;
+    let orders = Keyvalue::open("orders")?; 
+    let customers = Keyvalue::open("customers")?;
 }
 ```
 
@@ -109,7 +109,7 @@ It is important to note that there will be a new field added onto every `open` f
 specversion = "0.1"
 
 [[capability]]
-resource = "pubsub.mosquitto"
+resource = "messaging.mosquitto"
 name = "customer_requests"
     [capability.configs]
     MOSQUITTO_HOST = "{envvars.MOSQUITTO_HOST}"
@@ -121,14 +121,14 @@ In code, this will look like:
 ```rs
 use anyhow::Result;
 
-use kv::*;
-wit_bindgen_rust::import!("../../wit/pubsub.wit");
-wit_error_rs::impl_error!(pubsub::Error);
+use messaging::*;
+wit_bindgen_rust::import!("../../wit/messaging.wit");
+wit_error_rs::impl_error!(messaging::MessagingError);
 
 fn main() -> Result<()> {
     let publisher = Pub::open("customer_requests")?; 
     let subscriber = Sub::open("customer_requests")?; 
-    // both resources exported from the `pubsub.wit` (i.e., `Pub` and `Sub`) 
+    // both resources exported from the `messaging.wit` (i.e., `Pub` and `Sub`) 
     // are identified by `customer_requests`.
 }
 ```
@@ -143,12 +143,12 @@ This section contains all alternatives to the proposal that were explored in the
 specversion = "0.1"
 
 [[capability]]
-resource = "kv.filesystem"
+resource = "keyvalue.filesystem"
 name = "orders"
 configs = "configs.envvars"
 
 [[capability]]
-resource = "kv.azblob"
+resource = "keyvalue.azblob"
 name = "customers"
 configs = "configs.azapp"
 ```
@@ -159,17 +159,17 @@ configs = "configs.azapp"
 specversion = "0.1"
 
 [[capability]]
-resource = "kv.filesystem"
+resource = "keyvalue.filesystem"
 name = "orders"
 configs = "my-configs"
 
 [[capability]]
-resource = "kv.azblob"
+resource = "keyvalue.azblob"
 name = "customers"
 configs = "my-configs"
 
 [[capability]]
-resource = "kv.azblob"
+resource = "keyvalue.azblob"
 name = "inventory"
 configs = "my-configs"
 
@@ -186,7 +186,7 @@ specversion = "0.1"
 
 # CAPABILITIES
 [[capability]]
-resource = "kv.azblob"
+resource = "keyvalue.azblob"
 name = "customers"
 configs = ["AZURE_STORAGE_ACCOUNT", "AZURE_STORAGE_KEY"]
 
@@ -229,7 +229,7 @@ specversion = "0.1"
 secret_store = "configs.envvars"
 
 [[capability]]
-resource = "kv.azblob"
+resource = "keyvalue.azblob"
 name = "customers"
 configs = [{ name = "storage_account", value = "{envvars.AZURE_STORAGE_ACCOUNT}" }, { name = "storage_key", value = "{configs.azapp.storage_pwd}" }]
 ```
@@ -241,7 +241,7 @@ specversion = "0.1"
 secret_store = "configs.envvars"
 
 [[capability]]
-resource = "kv.azblob"
+resource = "keyvalue.azblob"
 name = "customers"
 configs = ["envvars.AZURE_STORAGE_ACCOUNT", "azapp.AZURE_STORAGE_ACCOUNT"]
 ```
@@ -256,11 +256,11 @@ This section will address some edge cases in this re-design.
 
 ```toml
 [[capability]]
-resource = "kv.filesystem"
+resource = "keyvalue.filesystem"
 name = "orders"
 
 [[capability]]
-resource = "kv.azblob"
+resource = "keyvalue.azblob"
 name = "orders"
 ```
 
