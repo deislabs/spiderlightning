@@ -1,8 +1,8 @@
 use azure_messaging_servicebus::service_bus::SubscriptionReceiver;
-use tokio::runtime::Handle;
-use tokio::task::block_in_place;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use tokio::runtime::Handle;
+use tokio::task::block_in_place;
 
 use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::TopicClient;
