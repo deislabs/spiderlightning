@@ -22,10 +22,12 @@ crossbeam-channel = "0.5"
 url = "2"
 async-trait = { workspace = true }
 tokio = { version = "1", features = ["full"] }
-# pubsub.confluent_apache_kafka deps
+# messaging.filesystem deps
+filesystem-pubsub = { git = "https://github.com/danbugs/filesystem-pubsub", rev = "45f369ea58d98a8b1d273a9a1fddbceb773fc607" }
+# messaging.confluent_apache_kafka deps
 rdkafka = { version = "0.29", features = ["cmake-build", "ssl"] }
 openssl = { version = "0.10", features = ["vendored"] }
-# pubsub.mosquitto
+# messaging.mosquitto
 mosquitto-rs = { version = "0.4.0", features = ["default"] }
 async-channel = "1.5"
 # messaging.azsbus deps
