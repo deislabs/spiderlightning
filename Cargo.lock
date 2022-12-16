@@ -625,6 +625,32 @@ dependencies = [
 
 [[package]]
 name = "azure_core"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6424becb946de1b1eff7bf5fbc86fabf7457637c88b63dd967b219a712c322c"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes 1.3.0",
+ "dyn-clone",
+ "futures",
+ "getrandom 0.2.8",
+ "http-types",
+ "log",
+ "paste",
+ "pin-project",
+ "rand 0.8.5",
+ "reqwest",
+ "rustc_version 0.4.0",
+ "serde",
+ "serde_json",
+ "time 0.3.17",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_core"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8a13a7e5f9c8413644579bdee6731f0a7a0f722e318b3a5ea6dba5ecfd8eb64"
@@ -651,32 +677,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "azure_core"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6424becb946de1b1eff7bf5fbc86fabf7457637c88b63dd967b219a712c322c"
-dependencies = [
- "async-trait",
- "base64",
- "bytes 1.2.1",
- "dyn-clone",
- "futures",
- "getrandom 0.2.7",
- "http-types",
- "log",
- "paste",
- "pin-project",
- "rand 0.8.5",
- "reqwest",
- "rustc_version 0.4.0",
- "serde",
- "serde_json",
- "time 0.3.15",
- "url",
- "uuid",
-]
-
-[[package]]
 name = "azure_messaging_servicebus"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -684,12 +684,12 @@ checksum = "fbeb6a8f76a4040739147e91fa412ba67e15600635ff97a83bfa85a0aa670b71"
 dependencies = [
  "azure_core 0.5.0",
  "base64",
- "bytes 1.2.1",
+ "bytes 1.3.0",
  "hmac 0.12.1",
  "log",
  "ring",
  "sha2 0.10.6",
- "time 0.3.15",
+ "time 0.3.17",
  "url",
 ]
 
@@ -701,7 +701,7 @@ checksum = "d7bb2015dd1a37fd054743ef324ae421f62fe4e63e46ca5c2895e76386f4b757"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core 0.4.0",
+ "azure_core 0.7.0",
  "base64",
  "bytes 1.3.0",
  "futures",
@@ -725,7 +725,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d31a99b42ebe8a000c5b98d1bdc0dd9e88934f1b9a6e3536afff601668fe4ea0"
 dependencies = [
  "RustyXML",
- "azure_core 0.4.0",
+ "azure_core 0.7.0",
  "azure_storage",
  "base64",
  "bytes 1.3.0",
@@ -3611,7 +3611,7 @@ dependencies = [
  "async-trait",
  "aws-config",
  "aws-sdk-dynamodb",
- "azure_core 0.4.0",
+ "azure_core 0.7.0",
  "azure_storage",
  "azure_storage_blobs",
  "bytes 1.3.0",
