@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use anyhow::{Context, Result};
-use azure_messaging_servicebus::prelude::Client;
+use azure_messaging_servicebus::prelude::*;
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 
@@ -11,7 +11,7 @@ use crate::providers::azure;
 
 #[derive(Clone)]
 pub struct AzSbusImplementor {
-    client: Option<Arc<Mutex<Client>>>,
+    client: Option<Arc<Mutex<QueueClient>>>,
 }
 
 impl std::fmt::Debug for AzSbusImplementor {
@@ -35,7 +35,7 @@ impl AzSbusImplementor {
         let http_client = azure_core::new_http_client();
 
         let client = Some(Arc::new(Mutex::new(
-            Client::new(
+            QueueClient::new(
                 http_client,
                 service_bus_namespace,
                 name.to_owned(),

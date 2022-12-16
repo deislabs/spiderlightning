@@ -21,8 +21,8 @@ url = "2"
 async-trait = { workspace = true }
 tokio = { version = "1", features = ["full"] }
 # mq.azsbus deps
-azure_core = "0.5.0"
-azure_messaging_servicebus = "0.5.0"
+azure_core = "0.7.0"
+azure_messaging_servicebus = "0.7.0"
 http = "0.2"
 # mq.filesystem has no specific deps
 
