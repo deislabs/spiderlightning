@@ -99,7 +99,7 @@ impl messaging::Messaging for Messaging {
             PubImplementor::ConfluentApacheKafka(pi) => pi.publish(message, topic)?,
             PubImplementor::Mosquitto(pi) => pi.publish(message, topic).await?,
             PubImplementor::AzSbus(pi) => pi.publish(message, topic).await?,
-            PubImplementor::Filesystem(pi) => pi.send(message)?,
+            PubImplementor::Filesystem(pi) => pi.publish(message, topic)?,
             _ => panic!("Unknown implementor"),
         };
 
@@ -120,7 +120,7 @@ impl messaging::Messaging for Messaging {
             SubImplementor::ConfluentApacheKafka(pi) => pi.receive(sub_tok).await?,
             SubImplementor::Mosquitto(pi) => pi.receive(sub_tok).await?,
             SubImplementor::AzSbus(pi) => pi.receive(sub_tok).await?,
-            SubImplementor::Filesystem(pi) => pi.receive()?,
+            SubImplementor::Filesystem(pi) => pi.receive(sub_tok)?,
             _ => panic!("Unknown implementor"),
         })
     }
@@ -134,7 +134,7 @@ impl messaging::Messaging for Messaging {
             SubImplementor::ConfluentApacheKafka(pi) => pi.subscribe(topic).await?,
             SubImplementor::Mosquitto(pi) => pi.subscribe(topic).await?,
             SubImplementor::AzSbus(pi) => pi.subscribe(topic).await?,
-            SubImplementor::Filesystem(_) => todo!("filesystem does not support subscriptions yet"),
+            SubImplementor::Filesystem(pi) => pi.subscribe(topic)?,
             _ => panic!("Unknown implementor"),
         })
     }
