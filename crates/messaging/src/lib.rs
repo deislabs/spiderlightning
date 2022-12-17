@@ -98,7 +98,7 @@ impl messaging::Messaging for Messaging {
         match &self_ {
             PubImplementor::ConfluentApacheKafka(pi) => pi.publish(message, topic)?,
             PubImplementor::Mosquitto(pi) => pi.publish(message, topic).await?,
-            PubImplementor::AzSbus(pi) => pi.send(message).await?,
+            PubImplementor::AzSbus(pi) => pi.publish(message, topic).await?,
             PubImplementor::Filesystem(pi) => pi.send(message)?,
             _ => panic!("Unknown implementor"),
         };
@@ -119,7 +119,7 @@ impl messaging::Messaging for Messaging {
         Ok(match &self_ {
             SubImplementor::ConfluentApacheKafka(pi) => pi.receive(sub_tok).await?,
             SubImplementor::Mosquitto(pi) => pi.receive(sub_tok).await?,
-            SubImplementor::AzSbus(pi) => pi.receive().await?,
+            SubImplementor::AzSbus(pi) => pi.receive(sub_tok).await?,
             SubImplementor::Filesystem(pi) => pi.receive()?,
             _ => panic!("Unknown implementor"),
         })
@@ -133,7 +133,7 @@ impl messaging::Messaging for Messaging {
         Ok(match &self_ {
             SubImplementor::ConfluentApacheKafka(pi) => pi.subscribe(topic).await?,
             SubImplementor::Mosquitto(pi) => pi.subscribe(topic).await?,
-            SubImplementor::AzSbus(_) => todo!("azsbus does not support subscriptions yet"),
+            SubImplementor::AzSbus(pi) => pi.subscribe(topic).await?,
             SubImplementor::Filesystem(_) => todo!("filesystem does not support subscriptions yet"),
             _ => panic!("Unknown implementor"),
         })
@@ -164,7 +164,7 @@ impl PubImplementor {
                 Self::Filesystem(FilesystemImplementor::new(name))
             }
             "messaging.azsbus" | "mq.azsbus" => {
-                Self::AzSbus(AzSbusImplementor::new(slight_state, name).await)
+                Self::AzSbus(AzSbusImplementor::new(slight_state).await)
             }
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",
@@ -200,7 +200,7 @@ impl SubImplementor {
                 Self::Filesystem(FilesystemImplementor::new(name))
             }
             "messaging.azsbus" | "mq.azsbus" => {
-                Self::AzSbus(AzSbusImplementor::new(slight_state, name).await)
+                Self::AzSbus(AzSbusImplementor::new(slight_state).await)
             }
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",

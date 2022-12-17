@@ -6,6 +6,9 @@ name = "my-container"
     # This capability does not require any configs
 
 [[capability]]
-resource = "mq.filesystem"
-name = "wasi-cloud-queue"
-    # This capability does not require any configs
+resource = "messaging.azsbus"
+name = "my-messaging"
+    [capability.configs]
+    AZURE_SERVICE_BUS_NAMESPACE = "${azapp.AZURE_SERVICE_BUS_NAMESPACE}"
+    AZURE_POLICY_NAME = "${azapp.AZURE_POLICY_NAME}"
+    AZURE_POLICY_KEY = "${azapp.AZURE_POLICY_KEY}"

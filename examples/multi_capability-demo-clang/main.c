@@ -7,14 +7,12 @@
 
 __attribute__((export_name("main"))) int main(int argc, char *argv[])
 {
+  // <opening keyvalue capability>
   keyvalue_expected_keyvalue_keyvalue_error_t keyvalue_result;
   keyvalue_keyvalue_t keyvalue;
   keyvalue_string_t keyvalue_name;
   keyvalue_string_set(&keyvalue_name, "my-container");
   keyvalue_keyvalue_open(&keyvalue_name, &keyvalue_result);
-
-  messaging_expected_sub_messaging_error_t messaging_result;
-  messaging_sub_t messaging;
 
   if (keyvalue_result.is_err)
   {
@@ -24,13 +22,14 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
     exit(1);
   }
   keyvalue = keyvalue_result.val.ok;
+  // </>
 
+  // <opening messaging capability>
+  messaging_expected_sub_messaging_error_t messaging_result;
+  messaging_sub_t messaging;
   messaging_string_t messaging_name;
-  messaging_string_set(&messaging_name, "wasi-cloud-queue");
+  messaging_string_set(&messaging_name, "my-messaging");
   messaging_sub_open(&messaging_name, &messaging_result);
-
-  messaging_subscription_token_t sub_tok;
-  messaging_string_set(&sub_tok, "");
 
   if (messaging_result.is_err)
   {
@@ -40,9 +39,28 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
     exit(1);
   }
   messaging = messaging_result.val.ok;
+  // </>
+
+  // <make a messaging subscription>
+  messaging_expected_subscription_token_messaging_error_t sub_tok_result;
+  messaging_subscription_token_t sub_tok;
+  messaging_string_t topic;
+  messaging_string_set(&topic, "rust");
+  messaging_sub_subscribe(messaging, &topic, &sub_tok_result);
+
+  if (sub_tok_result.is_err)
+  {
+    messaging_messaging_error_t sub_messaging_error = sub_tok_result.val.err;
+    printf("keyvalue_keyvalue_open failed:  %.*s\n", (int)sub_messaging_error.val.unexpected_error.len, sub_messaging_error.val.unexpected_error.ptr);
+    messaging_messaging_error_free(&sub_messaging_error);
+    exit(1);
+  }
+  sub_tok = sub_tok_result.val.ok;
+  // </>
 
   for (int i = 0; i < 3; i++)
   {
+    // <receive a message>
     messaging_expected_list_u8_messaging_error_t messaging_ret;
     messaging_sub_receive(messaging, &sub_tok, &messaging_ret);
     if (messaging_ret.is_err)
@@ -54,7 +72,9 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
     }
     messaging_list_u8_t msg = messaging_ret.val.ok;
     printf("received message: %.*s\n", (int)msg.len, msg.ptr);
-    // save msg to keyvalue
+    // </>
+
+    // <save msg to keyvalue>
     char buf[12];
     snprintf(buf, 12, "mykey_%d", i);
     keyvalue_string_t key;
@@ -72,15 +92,18 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
       keyvalue_keyvalue_error_free(&keyvalue_error);
       exit(1);
     }
+    // </>
+
     messaging_list_u8_free(&msg);
   }
+
   for (int i = 0; i < 3; i++)
   {
     char buf[12];
     snprintf(buf, 12, "mykey_%d", i);
     keyvalue_string_t key;
     keyvalue_string_set(&key, buf);
-    // call keyvalue.get
+    // <get msg from keyvalue>
     keyvalue_list_u8_t hostvalue;
     keyvalue_expected_list_u8_keyvalue_error_t ret;
     keyvalue_keyvalue_get(keyvalue, &key, &ret);
@@ -92,9 +115,10 @@ __attribute__((export_name("main"))) int main(int argc, char *argv[])
       exit(1);
     }
     hostvalue = ret.val.ok;
-
     printf("value from host is: %.*s\n", (int)hostvalue.len, hostvalue.ptr);
+    // </>
   }
+  
   keyvalue_keyvalue_free(&keyvalue);
   messaging_sub_free(&messaging);
   return 0;

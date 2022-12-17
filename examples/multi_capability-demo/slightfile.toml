@@ -5,11 +5,11 @@ resource = "keyvalue.azblob"
 name = "my-container"
     [capability.configs]
     AZURE_STORAGE_ACCOUNT = "${azapp.AZURE_STORAGE_ACCOUNT}"
-    AZURE_STORAGE_KEY =  "${azapp.AZURE_STORAGE_KEY}"
+    AZURE_STORAGE_KEY =  "${azapp.AZURE_STORAGE_KEY}"  
 
 [[capability]]
 resource = "messaging.azsbus"
-name = "wasi-cloud-queue"
+name = "my-messaging"
     [capability.configs]
     AZURE_SERVICE_BUS_NAMESPACE = "${azapp.AZURE_SERVICE_BUS_NAMESPACE}"
     AZURE_POLICY_NAME = "${azapp.AZURE_POLICY_NAME}"
