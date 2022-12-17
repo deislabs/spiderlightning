@@ -13,13 +13,13 @@ SpiderLightning is a set of consistent, modular, and portable interfaces that pr
 | Capability | Implemented Capability Examples | Future Capability Examples | Description | Work Status |
 | - | - | - | - | - |
 | distributed lock service | [etcd](https://etcd.io/) | [Apache Zookeeper](https://zookeeper.apache.org/) | / | ✅ `distributed_locking.wit` |
-| key-value store | Local Filesystem, [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs), [AWS DynamoDB](https://aws.amazon.com/dynamodb/), | [Redis](https://redis.io/), [Azure CosmosDB](https://azure.microsoft.com/en-us/services/cosmos-db/) | / | ✅ `keyvalue.wit` |
-| sql database | / | [MySQL](https://www.mysql.com/), [PostgresSQL](https://www.postgresql.org/) | / | ❌ TBD |
-| messaging | [Confluent Kafka](https://kafka.apache.org/) | [Amazon SNS](https://aws.amazon.com/sns/), [Azure Event Hubs](https://azure.microsoft.com/services/event-hubs/) | / | ✅ `messaging.wit` |
+| key-value store | Local Filesystem, [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs) (pending move to blob-store interface), [AWS DynamoDB](https://aws.amazon.com/dynamodb/), [Redis](https://redis.io/) | [Azure CosmosDB](https://azure.microsoft.com/en-us/services/cosmos-db/), [Memcached](https://memcached.org/) | / | ✅ `keyvalue.wit` |
+| sql database | / | [MySQL](https://www.mysql.com/), [PostgresSQL](https://www.postgresql.org/), [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server), [Oracle](https://docs.oracle.com/cd/B19306_01/server.102/b14200/intro.htm), [SQLite](https://www.sqlite.org/index.html)  | / | ❌ TBD |
+| messaging | Local Filesystem, [Confluent Kafka](https://kafka.apache.org/), [Azure Service Bus](https://azure.microsoft.com/en-us/products/service-bus/), [Mosquitto](https://mosquitto.org/) | [Amazon SQS](https://aws.amazon.com/sqs/)/[Amazon SNS](https://aws.amazon.com/sns/), [NATS](https://nats.io/) | / | ✅ `messaging.wit` |
 | blob store | / | [Amazon S3](https://aws.amazon.com/s3/), [Azure Blob Storage](https://azure.microsoft.com/services/storage/blobs)| / | ❌ TBD |
-| runtime config | Environment variables, [User secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows) | [Azure App Configuration](https://docs.microsoft.com/en-us/azure/azure-app-configuration/), [AWS Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) | / | ✅ `configs.wit` |
-| HTTP Server | TBD | TBD | / | `http.wit` and `http-handler.wit` |
-| gRPC Server | TBD | TBD | / | ❌ TBD |
+| runtime config | Environment variables, [User secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows), [Azure App Configuration](https://docs.microsoft.com/en-us/azure/azure-app-configuration/) | [AWS Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) | / | ✅ `configs.wit` |
+| HTTP Server | / | / | / | ✅ `http.wit` and `http-handler.wit` |
+| gRPC Server | / | / | / | ❌ TBD |
 
 ### Capability Principles
 As Spiderlightning is a set of interfaces, it is critical to have a certain criteria for including the right capabilities. We have selected the above capabilities based on the following criteria:
@@ -68,8 +68,7 @@ This project consists of three independent components.
 
 #### Configuration
 
-SpiderLightning applications can provide dynamic configuration manifest to configure the host what resources to provide. See [here](https://github.com/deislabs/spiderlightning/issues/23) for more details.
-
+SpiderLightning applications can provide dynamic configuration manifest to configure the host what resources to provide. See [here](https://github.com/deislabs/spiderlightning/blob/main/proposals/slightfile-v0.2.0-proposal.md) for more details.
 
 ## Similar Projects
 1. https://github.com/fermyon/wasi-experimental-toolkit
