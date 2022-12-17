@@ -73,6 +73,7 @@ install-slight:
 ### RUST EXAMPLES
 .PHONY: build-rust
 build-rust:
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/configs-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/keyvalue-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/distributed-locking-demo/Cargo.toml & \
@@ -81,9 +82,7 @@ build-rust:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-demo/Cargo.toml & \
 	wait; \
 	/bin/sh -c 'echo "DONE"'
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-sender-demo/Cargo.toml & \
-	# cargo build --target wasm32-wasi --release --manifest-path ./examples/mq-receiver-demo/Cargo.toml & \
+
 
 # The dependencies to run this rule include:
 # - etcd,
@@ -92,22 +91,35 @@ build-rust:
 # - python.
 .PHONY: run-rust
 run-rust:
-	# RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./examples/multi_capability-demo/target/wasm32-wasi/release/multi_capability-demo.wasm
+	# multi_capability
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/multi_capability-demo/slightfile.toml' run -m ./examples/multi_capability-demo/target/wasm32-wasi/release/multi_capability-demo.wasm
+	# keyvalue.filesystem
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/keyvalue-demo/keyvalue_filesystem_slightfile.toml' run -m ./examples/keyvalue-demo/target/wasm32-wasi/release/keyvalue-demo.wasm
+	# keyvalue.awsdynamodb
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/keyvalue-demo/keyvalue_awsdynamodb_slightfile.toml' run -m ./examples/keyvalue-demo/target/wasm32-wasi/release/keyvalue-demo.wasm
+	# keyvalue.azblob
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/keyvalue-demo/keyvalue_azblob_slightfile.toml' run -m ./examples/keyvalue-demo/target/wasm32-wasi/release/keyvalue-demo.wasm
+	# keyvalue.redis
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/keyvalue-demo/keyvalue_redis_slightfile.toml' run -m ./examples/keyvalue-demo/target/wasm32-wasi/release/keyvalue-demo.wasm
+	# configs.usersecrets
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/usersecrets_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
+	# configs.envvars
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/envvars_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
+	# configs.azapp
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/configs-demo/azapp_slightfile.toml' run -m ./examples/configs-demo/target/wasm32-wasi/release/configs-demo.wasm
-	# RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./examples/mq-sender-demo/target/wasm32-wasi/release/mq-sender-demo.wasm &
-	# RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/mqfilesystem_slightfile.toml' run -m ./examples/mq-receiver-demo/target/wasm32-wasi/release/mq-receiver-demo.wasm
-	# RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqazsbus_slightfile.toml' run -m ./examples/mq-sender-demo/target/wasm32-wasi/release/mq-sender-demo.wasm &
-	# RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-receiver-demo/mqazsbus_slightfile.toml' run -m ./examples/mq-receiver-demo/target/wasm32-wasi/release/mq-receiver-demo.wasm
+	# distributed_locking.etcd
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/distributed-locking-demo/slightfile.toml' run -m ./examples/distributed-locking-demo/target/wasm32-wasi/release/distributed-locking-demo.wasm &
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/distributed-locking-demo/slightfile.toml' run -m ./examples/distributed-locking-demo/target/wasm32-wasi/release/distributed-locking-demo.wasm
+	# messaging.filesystem
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-consumer-demo/filesystem_slightfile.toml' run -m ./examples/messaging-consumer-demo/target/wasm32-wasi/release/messaging-consumer-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/filesystem_slightfile.toml' run -m ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm
+	# messaging.azsbus
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-consumer-demo/azsbus_slightfile.toml' run -m ./examples/messaging-consumer-demo/target/wasm32-wasi/release/messaging-consumer-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/azsbus_slightfile.toml' run -m ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm
+	# messaging.mosquitto
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-consumer-demo/mosquitto_slightfile.toml' run -m ./examples/messaging-consumer-demo/target/wasm32-wasi/release/messaging-consumer-demo.wasm &
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/mosquitto_slightfile.toml' run -m ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm
+	# messaging.confluent_apache_kafka
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-consumer-demo/caf_slightfile.toml' run -m ./examples/messaging-consumer-demo/target/wasm32-wasi/release/messaging-consumer-demo.wasm &
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/caf_slightfile.toml' run -m ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm
 
@@ -130,21 +142,21 @@ clean-rust:
 
 # To run this rule, you'll need wit-bindgen v0.2.0 installed (cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0)
 # .PHONY: build-c
-# build-c:
-# 	$(MAKE) -C examples/multi_capability-demo-clang/ clean
-# 	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
-# 	$(MAKE) -C examples/multi_capability-demo-clang/ build
+build-c:
+	$(MAKE) -C examples/multi_capability-demo-clang/ clean
+	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
+	$(MAKE) -C examples/multi_capability-demo-clang/ build
 
-# .PHONY: build-c-win
-# build-c-win:
-# 	$(MAKE) -C examples/multi_capability-demo-clang/ clean
-# 	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
-# 	$(MAKE) -C examples/multi_capability-demo-clang/ build-win
+.PHONY: build-c-win
+build-c-win:
+	$(MAKE) -C examples/multi_capability-demo-clang/ clean
+	$(MAKE) -C examples/multi_capability-demo-clang/ bindings
+	$(MAKE) -C examples/multi_capability-demo-clang/ build-win
 
 
 .PHONY: run-c
 run-c:
-	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/mq-sender-demo/mqfilesystem_slightfile.toml' run -m ./examples/mq-sender-demo/target/wasm32-wasi/release/mq-sender-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/filesystem_slightfile.toml' run -m ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm && $(SLIGHT) -c './examples/multi_capability-demo-clang/slightfile.toml' run -m ./examples/multi_capability-demo-clang/multi_capability-demo-clang.wasm
 ### END OF C EXAMPLES
 
 ### APP DEMO

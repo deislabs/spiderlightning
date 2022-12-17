@@ -246,7 +246,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
 
         // Create a scope for each inner route.
         for (route, built) in zip(router.routes.clone(), inner_routes) {
-            outer_builder = outer_builder.scope(&route.route, built);
+            outer_builder = outer_builder.scope(route.route, built);
         }
         let built = outer_builder.build().map_err(|e| anyhow::anyhow!(e))?;
 

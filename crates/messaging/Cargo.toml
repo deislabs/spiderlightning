@@ -28,3 +28,7 @@ openssl = { version = "0.10", features = ["vendored"] }
 # pubsub.mosquitto
 mosquitto-rs = { version = "0.4.0", features = ["default"] }
 async-channel = "1.5"
+# messaging.azsbus deps
+azure_core = "0.8.0"
+azure_messaging_servicebus = "0.8.0"
+http = "0.2"

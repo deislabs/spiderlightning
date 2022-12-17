@@ -651,6 +651,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "azure_core"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca6dd496e30132b9403c478ea87121834669fa1a307ee2d0b6721c3aca47cccd"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes 1.3.0",
+ "dyn-clone",
+ "futures",
+ "getrandom 0.2.8",
+ "http-types",
+ "log",
+ "paste",
+ "pin-project",
+ "rand 0.8.5",
+ "reqwest",
+ "rustc_version 0.4.0",
+ "serde",
+ "serde_json",
+ "time 0.3.17",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_messaging_servicebus"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "368c2b633128ccc5e2e7c74452e362426a6ae98894d9e563f3ef0fc8f3aa8502"
+dependencies = [
+ "azure_core 0.8.0",
+ "base64",
+ "bytes 1.3.0",
+ "hmac 0.12.1",
+ "log",
+ "ring",
+ "sha2 0.10.6",
+ "time 0.3.17",
+ "url",
+]
+
+[[package]]
 name = "azure_storage"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -658,7 +701,7 @@ checksum = "d7bb2015dd1a37fd054743ef324ae421f62fe4e63e46ca5c2895e76386f4b757"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core",
+ "azure_core 0.7.0",
  "base64",
  "bytes 1.3.0",
  "futures",
@@ -682,7 +725,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d31a99b42ebe8a000c5b98d1bdc0dd9e88934f1b9a6e3536afff601668fe4ea0"
 dependencies = [
  "RustyXML",
- "azure_core",
+ "azure_core 0.7.0",
  "azure_storage",
  "base64",
  "bytes 1.3.0",
@@ -3568,7 +3611,7 @@ dependencies = [
  "async-trait",
  "aws-config",
  "aws-sdk-dynamodb",
- "azure_core",
+ "azure_core 0.7.0",
  "azure_storage",
  "azure_storage_blobs",
  "bytes 1.3.0",
@@ -3590,7 +3633,10 @@ dependencies = [
  "anyhow",
  "async-channel",
  "async-trait",
+ "azure_core 0.8.0",
+ "azure_messaging_servicebus",
  "crossbeam-channel",
+ "http",
  "mosquitto-rs",
  "openssl",
  "rdkafka",
