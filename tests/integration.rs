@@ -1,4 +1,3 @@
-use signal_child::{signal, Signalable};
 use std::{
     io::{stderr, stdout, Write},
     process::Command,
@@ -25,7 +24,7 @@ pub fn run(executable: &str, args: Vec<&str>) {
     }
 }
 
-pub fn spawn(executable: &str, args: Vec<&str>) -> anyhow::Result<Box<dyn FnOnce() -> ()>> {
+pub fn spawn(executable: &str, args: Vec<&str>) -> anyhow::Result<Box<dyn FnOnce()>> {
     let mut cmd = Command::new(executable);
     for arg in args {
         cmd.arg(arg);
