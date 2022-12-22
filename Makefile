@@ -39,6 +39,9 @@ install-deps:
 	sudo apt-get install lsb-release -y
 	sudo apt-get install redis-server -y
 	sudo apt-get install protobuf-compiler -y
+	sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
+	sudo apt-get update
+	sudo apt-get install mosquitto -y
 
 .PHONY: install-deps-macos
 install-deps-macos:
@@ -52,6 +55,7 @@ install-deps-macos:
 	brew update
 	brew install redis
 	brew install protobuf
+	brew install mosquitto
 
 .PHONY: install-deps-win
 install-deps-win:

@@ -311,7 +311,7 @@ mod integration_tests {
         use anyhow::Result;
         use hyper::{Body, Method, Request};
         use mosquitto_rs::{Client, QoS};
-        use tokio::time::sleep;
+        use tokio::{process::Command, time::sleep};
 
         const MESSAGING_HTTP_SERVICE_MODULE: &str =
             "./tests/messaging-test/target/wasm32-wasi/debug/messaging-test.wasm";
@@ -322,7 +322,17 @@ mod integration_tests {
 
         #[tokio::test]
         async fn messaging_test() -> Result<()> {
-            let mosquitto_child = spawn("/usr/local/sbin/mosquitto", vec![])?;
+            let mut mosquitto_binary_path = "mosquitto";
+            let output = Command::new("which")
+                .arg(mosquitto_binary_path)
+                .output()
+                .await
+                .expect("failed to execute process");
+
+            if !output.status.success() {
+                mosquitto_binary_path = "/usr/local/sbin/mosquitto";
+            }
+            let mosquitto_child = spawn(mosquitto_binary_path, vec![])?;
 
             let file_config = "./tests/messaging-test/messaging.slightfile.toml";
             let http_child = spawn(
