@@ -28,7 +28,7 @@ filesystem-pubsub = { git = "https://github.com/danbugs/filesystem-pubsub", rev 
 rdkafka = { version = "0.29", features = ["cmake-build", "ssl"] }
 openssl = { version = "0.10", features = ["vendored"] }
 # messaging.mosquitto
-mosquitto-rs = { version = "0.4.0", features = ["default"] }
+mosquitto-rs = { workspace = true }
 async-channel = "1.5"
 # messaging.azsbus deps
 azure_core = "0.8.0"

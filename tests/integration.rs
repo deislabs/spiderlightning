@@ -1,3 +1,4 @@
+use signal_child::{signal, Signalable};
 use std::{
     io::{stderr, stdout, Write},
     process::Command,
@@ -22,6 +23,20 @@ pub fn run(executable: &str, args: Vec<&str>) {
         stderr().write_all(&output.stderr).unwrap();
         panic!("failed to run spiderlightning");
     }
+}
+
+pub fn spawn(executable: &str, args: Vec<&str>) -> anyhow::Result<Box<dyn FnOnce() -> ()>> {
+    let mut cmd = Command::new(executable);
+    for arg in args {
+        cmd.arg(arg);
+    }
+    let mut child = cmd.spawn().expect("Error spawning the process");
+
+    let f = move || {
+        child.kill().expect("command wasn't running");
+        child.wait().ok();
+    };
+    Ok(Box::new(f))
 }
 
 mod integration_tests {
@@ -164,13 +179,9 @@ mod integration_tests {
 
     #[cfg(unix)]
     mod http_tests_unix {
-
-        use std::process::Command;
-
-        use crate::SLIGHT;
+        use crate::{spawn, SLIGHT};
         use anyhow::Result;
         use hyper::{body, client::HttpConnector, Body, Client, Method, Request, StatusCode};
-        use signal_child::Signalable;
 
         use tokio::{
             join,
@@ -183,9 +194,7 @@ mod integration_tests {
         #[tokio::test]
         async fn http_test() -> Result<()> {
             let config = "./tests/http-test/slightfile.toml";
-            let mut child = Command::new(SLIGHT)
-                .args(["-c", config, "run", "-m", HTTP_TEST_MODULE])
-                .spawn()?;
+            let child = spawn(SLIGHT, vec!["-c", config, "run", "-m", HTTP_TEST_MODULE])?;
             sleep(Duration::from_secs(2)).await;
 
             let client = hyper::Client::new();
@@ -198,8 +207,7 @@ mod integration_tests {
                 handle_delete_request(&client),
             );
 
-            child.interrupt().expect("Error interrupting child");
-            child.wait().ok();
+            child();
 
             assert!(res1.is_ok());
             assert!(res2.is_ok());
@@ -293,5 +301,92 @@ mod integration_tests {
             Ok(())
         }
     }
-    // TODO: We need to add distributed_locking, and messaging_test modules
+
+    #[cfg(test)]
+    #[cfg(unix)]
+    mod messaging_tests {
+        use std::time::Duration;
+
+        use crate::{spawn, SLIGHT};
+        use anyhow::Result;
+        use hyper::{Body, Method, Request};
+        use mosquitto_rs::{Client, QoS};
+        use tokio::time::sleep;
+
+        const MESSAGING_HTTP_SERVICE_MODULE: &str =
+            "./tests/messaging-test/target/wasm32-wasi/debug/messaging-test.wasm";
+        const MESSAGING_SERVICE_A_MODULE: &str =
+            "./tests/messaging-test/target/wasm32-wasi/debug/consumer_a.wasm";
+        const MESSAGING_SERVICE_B_MODULE: &str =
+            "./tests/messaging-test/target/wasm32-wasi/debug/consumer_b.wasm";
+
+        #[tokio::test]
+        async fn messaging_test() -> Result<()> {
+            let mosquitto_child = spawn("/usr/local/sbin/mosquitto", vec![])?;
+
+            let file_config = "./tests/messaging-test/messaging.slightfile.toml";
+            let http_child = spawn(
+                SLIGHT,
+                vec![
+                    "-c",
+                    file_config,
+                    "run",
+                    "-m",
+                    MESSAGING_HTTP_SERVICE_MODULE,
+                ],
+            )?;
+            let service_a_child = spawn(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", MESSAGING_SERVICE_A_MODULE],
+            )?;
+            let service_b_child = spawn(
+                SLIGHT,
+                vec!["-c", file_config, "run", "-m", MESSAGING_SERVICE_B_MODULE],
+            )?;
+
+            sleep(Duration::from_secs(2)).await;
+            // read streams "service-a-channel-out" and "service-b-channel-out"
+            let mut client = Client::with_auto_id().unwrap();
+
+            client
+                .connect("localhost", 1883, std::time::Duration::from_secs(5), None)
+                .await
+                .unwrap();
+
+            client
+                .subscribe("service-a-channel-out", QoS::AtLeastOnce)
+                .await
+                .unwrap();
+            client
+                .subscribe("service-b-channel-out", QoS::AtLeastOnce)
+                .await
+                .unwrap();
+
+            let http_client = hyper::Client::new();
+            let req = Request::builder()
+                .method(Method::PUT)
+                .uri("http://0.0.0.0:3001/send")
+                .body(Body::from("a message!"))
+                .expect("request builder");
+
+            // curl -X PUT http://0.0.0.0:3001/send -d "a message!"
+            let res = http_client.request(req).await?;
+            assert!(res.status().is_success());
+
+            sleep(Duration::from_secs(2)).await;
+            let subscriber = client.subscriber().unwrap();
+            let msg1 = subscriber.try_recv()?;
+            let msg2 = subscriber.try_recv()?;
+
+            http_child();
+            service_a_child();
+            service_b_child();
+            mosquitto_child();
+
+            assert!(msg1.payload == "a message!".as_bytes());
+            assert!(msg2.payload == "a message!".as_bytes());
+            Ok(())
+        }
+    }
+    // TODO: We need to add distributed_locking modules
 }
