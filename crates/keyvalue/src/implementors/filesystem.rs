@@ -6,6 +6,10 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use async_trait::async_trait;
+use slight_common::BasicState;
+
+use super::KeyvalueImplementor;
 
 /// This is the underlying struct behind the `Filesystem` variant of the `KeyvalueImplementor` enum.
 ///
@@ -21,13 +25,16 @@ pub struct FilesystemImplementor {
 }
 
 impl FilesystemImplementor {
-    pub fn new(name: &str) -> Self {
+    pub async fn new(_slight_state: &BasicState, name: &str) -> Self {
         Self {
             base: env::temp_dir().join(name).to_str().unwrap().to_owned(),
         }
     }
+}
 
-    pub fn get(&self, key: &str) -> Result<Vec<u8>> {
+#[async_trait]
+impl KeyvalueImplementor for FilesystemImplementor {
+    async fn get(&self, key: &str) -> Result<Vec<u8>> {
         fs::create_dir_all(&self.base)
             .with_context(|| "failed to create base directory for keyvalue instance")?;
         let mut file =
@@ -39,7 +46,7 @@ impl FilesystemImplementor {
         Ok(buf)
     }
 
-    pub fn set(&self, key: &str, value: &[u8]) -> Result<()> {
+    async fn set(&self, key: &str, value: &[u8]) -> Result<()> {
         fs::create_dir_all(&self.base)
             .with_context(|| "failed to create base directory for keyvalue instance")?;
 
@@ -51,7 +58,7 @@ impl FilesystemImplementor {
         Ok(())
     }
 
-    pub fn keys(&self) -> Result<Vec<String>> {
+    async fn keys(&self) -> Result<Vec<String>> {
         fs::create_dir_all(&self.base)
             .with_context(|| "failed to create base directory for keyvalue instance")?;
 
@@ -63,7 +70,7 @@ impl FilesystemImplementor {
         Ok(keys)
     }
 
-    pub fn delete(&self, key: &str) -> Result<()> {
+    async fn delete(&self, key: &str) -> Result<()> {
         fs::create_dir_all(&self.base)
             .with_context(|| "failed to create base directory for keyvalue instance")?;
         fs::remove_file(PathBuf::from(&self.base).join(key))

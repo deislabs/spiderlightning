@@ -1,8 +1,12 @@
 use anyhow::{bail, Result};
+use async_trait::async_trait;
 use aws_sdk_dynamodb::model::{AttributeValue, Select};
 use aws_sdk_dynamodb::Client;
 
+use slight_common::BasicState;
 use tracing::log;
+
+use super::KeyvalueImplementor;
 
 /// This is the underlying struct behind the "AWS DynamoDB" variant of the `KeyvalueImplementor` enum.
 ///
@@ -39,7 +43,7 @@ impl AwsDynamoDbImplementor {
     ///   }
     /// }
     /// ```
-    pub async fn new(name: &str) -> Self {
+    pub async fn new(_slight_state: &BasicState, name: &str) -> Self {
         let shared_config = aws_config::load_from_env().await;
         let client = Client::new(&shared_config);
         let table_name = name.into();
@@ -49,8 +53,11 @@ impl AwsDynamoDbImplementor {
         );
         Self { client, table_name }
     }
+}
 
-    pub async fn get(&self, key: &str) -> Result<Vec<u8>> {
+#[async_trait]
+impl KeyvalueImplementor for AwsDynamoDbImplementor {
+    async fn get(&self, key: &str) -> Result<Vec<u8>> {
         let key_attribute = AttributeValue::S(key.into());
         log::info!("Getting value from key: {}", key);
         let res = self
@@ -73,7 +80,7 @@ impl AwsDynamoDbImplementor {
         }
     }
 
-    pub async fn set(&self, key: &str, value: &[u8]) -> Result<()> {
+    async fn set(&self, key: &str, value: &[u8]) -> Result<()> {
         let key_attribute = AttributeValue::S(key.into());
         let value = AttributeValue::S(
             String::from_utf8(value.to_vec()).expect("failed to convert value to String"),
@@ -90,7 +97,7 @@ impl AwsDynamoDbImplementor {
         Ok(())
     }
 
-    pub async fn keys(&self) -> Result<Vec<String>> {
+    async fn keys(&self) -> Result<Vec<String>> {
         let res = self
             .client
             .scan()
@@ -108,7 +115,7 @@ impl AwsDynamoDbImplementor {
 
     /// FIXME: should delete return a success if it is a noop
     /// or should it return an error if the key is not found?
-    pub async fn delete(&self, key: &str) -> Result<()> {
+    async fn delete(&self, key: &str) -> Result<()> {
         let key_attribute = AttributeValue::S(key.into());
         log::info!("Deleting key: {}", key);
         self.client
