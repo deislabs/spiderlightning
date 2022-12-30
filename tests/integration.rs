@@ -141,7 +141,7 @@ mod integration_tests {
             std::thread::sleep(std::time::Duration::from_secs(5));
 
             let file_config = "./tests/keyvalue-test/keyvalue_redis_slightfile.toml";
-            env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{}", port));
+            env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{port}"));
             run(
                 SLIGHT,
                 vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],

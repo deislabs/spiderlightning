@@ -36,7 +36,7 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
         {
             maybe_recreate_dir(&format!("{}{}", folder_prefix.unwrap_or("./"), folder_name))?;
             for i in get_interface_downloads_by_name(interface) {
-                let resp = reqwest::get(format!("{}/{}/{}.wit", GITHUB_URL, release, i))
+                let resp = reqwest::get(format!("{GITHUB_URL}/{release}/{i}.wit"))
                     .await?
                     .text()
                     .await?;
