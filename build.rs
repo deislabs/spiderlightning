@@ -26,14 +26,13 @@ fn main() {
         if !output.lines().any(|line| line == target) {
             eprintln!("Error: {target} target is not installed. Run `rustup target add {target}`");
             std::process::exit(1);
-        }   
+        }
 
         // Build test wasm modules
         cargo_wasi_build(KEYVALUE_TEST_PATH);
         cargo_wasi_build(HTTP_TEST_PATH);
         cargo_wasi_build(CONFIGS_TEST_PATH);
     }
-
 }
 
 fn cargo_wasi_build(path: &str) {
