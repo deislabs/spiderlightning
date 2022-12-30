@@ -6,7 +6,10 @@ use std::borrow::BorrowMut;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+#[cfg(feature = "etcd")]
 use crate::providers::etcd;
+
+use super::DistributedLockingImplementor;
 
 /// This is the underlying struct behind the `Etcd` variant of the `EtcdImplementor` enum.
 ///
@@ -39,8 +42,11 @@ impl EtcdImplementor {
             client: Arc::new(Mutex::new(client)),
         }
     }
+}
 
-    pub async fn lock(&self, lock_name: &[u8]) -> Result<Vec<u8>> {
+#[async_trait::async_trait]
+impl DistributedLockingImplementor for EtcdImplementor {
+    async fn lock(&self, lock_name: &[u8]) -> Result<Vec<u8>> {
         let mut inner = self.client.lock().await;
         let pr = etcd::lock(inner.borrow_mut(), lock_name)
             .await
@@ -48,7 +54,7 @@ impl EtcdImplementor {
         Ok(pr)
     }
 
-    pub async fn lock_with_time_to_live(
+    async fn lock_with_time_to_live(
         &self,
         lock_name: &[u8],
         time_to_live_in_secs: i64,
@@ -63,7 +69,7 @@ impl EtcdImplementor {
         Ok(pr)
     }
 
-    pub async fn unlock(&self, lock_key: &[u8]) -> Result<()> {
+    async fn unlock(&self, lock_key: &[u8]) -> Result<()> {
         etcd::unlock(self.client.lock().await.borrow_mut(), lock_key)
             .await
             .with_context(|| "failed to unlock")?;

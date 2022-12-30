@@ -1,12 +1,12 @@
 mod implementors;
 pub mod providers;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Result;
 use async_trait::async_trait;
 
-use implementors::etcd::EtcdImplementor;
+use implementors::*;
 use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -81,7 +81,7 @@ impl distributed_locking::DistributedLocking for DistributedLocking {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::DistributedLocking::new(&state.implementor, &state).await;
+        let inner = Self::DistributedLocking::new(state.implementor.as_str().into(), &state).await;
 
         Ok(inner)
     }
@@ -91,9 +91,10 @@ impl distributed_locking::DistributedLocking for DistributedLocking {
         self_: &Self::DistributedLocking,
         lock_name: &[u8],
     ) -> Result<Vec<u8>, distributed_locking::DistributedLockingError> {
-        Ok(match &self_.distributed_locking_implementor {
-            DistributedLockingImplementor::Etcd(ei) => ei.lock(lock_name).await?,
-        })
+        Ok(self_
+            .distributed_locking_implementor
+            .lock(lock_name)
+            .await?)
     }
 
     async fn distributed_locking_lock_with_time_to_live(
@@ -102,12 +103,10 @@ impl distributed_locking::DistributedLocking for DistributedLocking {
         lock_name: &[u8],
         time_to_live_in_secs: i64,
     ) -> Result<Vec<u8>, distributed_locking::DistributedLockingError> {
-        Ok(match &self_.distributed_locking_implementor {
-            DistributedLockingImplementor::Etcd(ei) => {
-                ei.lock_with_time_to_live(lock_name, time_to_live_in_secs)
-                    .await?
-            }
-        })
+        Ok(self_
+            .distributed_locking_implementor
+            .lock_with_time_to_live(lock_name, time_to_live_in_secs)
+            .await?)
     }
 
     async fn distributed_locking_unlock(
@@ -115,9 +114,10 @@ impl distributed_locking::DistributedLocking for DistributedLocking {
         self_: &Self::DistributedLocking,
         lock_key: &[u8],
     ) -> Result<(), DistributedLockingError> {
-        match &self_.distributed_locking_implementor {
-            DistributedLockingImplementor::Etcd(ei) => ei.unlock(lock_key).await?,
-        };
+        self_
+            .distributed_locking_implementor
+            .unlock(lock_key)
+            .await?;
         Ok(())
     }
 }
@@ -137,35 +137,34 @@ impl distributed_locking::DistributedLocking for DistributedLocking {
 /// a private type.
 #[derive(Debug, Clone)]
 pub struct DistributedLockingInner {
-    distributed_locking_implementor: DistributedLockingImplementor,
+    distributed_locking_implementor: Arc<dyn DistributedLockingImplementor + Send + Sync>,
 }
 
 impl DistributedLockingInner {
-    async fn new(distributed_locking_implementor: &str, slight_state: &BasicState) -> Self {
+    async fn new(
+        distributed_locking_implementors: DistributedLockingImplementors,
+        slight_state: &BasicState,
+    ) -> Self {
         Self {
-            distributed_locking_implementor: DistributedLockingImplementor::new(
-                distributed_locking_implementor,
-                slight_state,
-            )
-            .await,
+            distributed_locking_implementor: match distributed_locking_implementors {
+                DistributedLockingImplementors::Etcd => {
+                    Arc::new(etcd::EtcdImplementor::new(slight_state).await)
+                }
+            },
         }
     }
 }
 
 /// This defines the available implementor implementations for the `DistributedLocking` interface.
-///
-/// As per its' usage in `DistributedLockingInner`, it must `derive` `Debug`, and `Clone`.
 #[derive(Debug, Clone)]
-enum DistributedLockingImplementor {
-    Etcd(EtcdImplementor),
+enum DistributedLockingImplementors {
+    Etcd,
 }
 
-impl DistributedLockingImplementor {
-    async fn new(distributed_locking_implementor: &str, slight_state: &BasicState) -> Self {
-        match distributed_locking_implementor {
-            "distributed_locking.etcd" | "lockd.etcd" => {
-                Self::Etcd(EtcdImplementor::new(slight_state).await)
-            }
+impl From<&str> for DistributedLockingImplementors {
+    fn from(s: &str) -> Self {
+        match s {
+            "distributed_locking.etcd" | "lockd.etcd" => Self::Etcd,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

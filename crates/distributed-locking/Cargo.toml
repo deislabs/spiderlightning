@@ -21,4 +21,8 @@ url = "2.2"
 async-trait = { workspace = true }
 tokio = { version = "1", features = ["full"] }
 # lockd.etcd deps
-etcd-client = "0.10"
+etcd-client = { version = "0.10", optional = true }
+
+[features]
+default = ["etcd"]
+etcd = ["etcd-client"]
