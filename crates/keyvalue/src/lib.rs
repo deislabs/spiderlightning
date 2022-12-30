@@ -5,10 +5,7 @@ use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use anyhow::Result;
 use async_trait::async_trait;
-use implementors::{
-    awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
-    filesystem::FilesystemImplementor, redis::RedisImplementor, KeyvalueImplementor,
-};
+use implementors::*;
 
 use slight_common::{impl_resource, BasicState};
 
@@ -73,17 +70,21 @@ impl KeyvalueInner {
     ) -> Self {
         Self {
             keyvalue_implementor: match keyvalue_implementor {
+                #[cfg(feature = "filesystem")]
                 KeyvalueImplementors::Filesystem => {
-                    Arc::new(FilesystemImplementor::new(slight_state, name).await)
+                    Arc::new(filesystem::FilesystemImplementor::new(slight_state, name).await)
                 }
+                #[cfg(feature = "azblob")]
                 KeyvalueImplementors::AzBlob => {
-                    Arc::new(AzBlobImplementor::new(slight_state, name).await)
+                    Arc::new(azblob::AzBlobImplementor::new(slight_state, name).await)
                 }
+                #[cfg(feature = "awsdynamodb")]
                 KeyvalueImplementors::AwsDynamoDb => {
-                    Arc::new(AwsDynamoDbImplementor::new(slight_state, name).await)
+                    Arc::new(awsdynamodb::AwsDynamoDbImplementor::new(slight_state, name).await)
                 }
+                #[cfg(feature = "redis")]
                 KeyvalueImplementors::Redis => {
-                    Arc::new(RedisImplementor::new(slight_state, name).await)
+                    Arc::new(redis::RedisImplementor::new(slight_state, name).await)
                 }
             },
         }
@@ -96,18 +97,26 @@ impl KeyvalueInner {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
 pub enum KeyvalueImplementors {
+    #[cfg(feature = "filesystem")]
     Filesystem,
+    #[cfg(feature = "azblob")]
     AzBlob,
+    #[cfg(feature = "awsdynamodb")]
     AwsDynamoDb,
+    #[cfg(feature = "redis")]
     Redis,
 }
 
 impl From<&str> for KeyvalueImplementors {
     fn from(s: &str) -> Self {
         match s {
+            #[cfg(feature = "filesystem")]
             "keyvalue.filesystem" | "kv.filesystem" => Self::Filesystem,
+            #[cfg(feature = "azblob")]
             "keyvalue.azblob" | "kv.azblob" => Self::AzBlob,
+            #[cfg(feature = "awsdynamodb")]
             "keyvalue.awsdynamodb" | "kv.awsdynamodb" => Self::AwsDynamoDb,
+            #[cfg(feature = "redis")]
             "keyvalue.redis" | "kv.redis" => Self::Redis,
             p => panic!(
                 "failed to match provided name (i.e., '{}') to any known host implementations",

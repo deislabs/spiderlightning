@@ -181,7 +181,7 @@ async fn build_store_instance(
                 }
 
                 let resource =
-                    slight_messaging::Messaging::new(&c.name, capability_store.clone()).await;
+                    slight_messaging::Messaging::new(&c.name, capability_store.clone()).await?;
                 builder.add_to_builder("messaging".to_string(), resource);
             }
             _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {

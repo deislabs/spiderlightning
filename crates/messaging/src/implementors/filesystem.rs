@@ -1,5 +1,10 @@
 use anyhow::Result;
+use async_trait::async_trait;
 use filesystem_pubsub::Pubsub;
+
+use crate::PubImplementor;
+
+use super::SubImplementor;
 
 /// This is the underlying struct behind the `Filesystem` variant of the implementors enum.
 #[derive(Debug, Clone)]
@@ -13,16 +18,22 @@ impl FilesystemImplementor {
             pubsub: Pubsub::open(name).unwrap(),
         }
     }
+}
 
-    pub fn subscribe(&self, topic: &str) -> Result<String> {
+#[async_trait]
+impl PubImplementor for FilesystemImplementor {
+    async fn publish(&self, msg: &[u8], topic: &str) -> Result<()> {
+        self.pubsub.publish(msg, topic)
+    }
+}
+
+#[async_trait]
+impl SubImplementor for FilesystemImplementor {
+    async fn subscribe(&self, topic: &str) -> Result<String> {
         self.pubsub.subscribe(topic)
     }
 
-    pub fn publish(&self, msg: &[u8], topic: &str) -> Result<()> {
-        self.pubsub.publish(msg, topic)
-    }
-
-    pub fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
+    async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
         self.pubsub.receive(sub_tok)
     }
 }

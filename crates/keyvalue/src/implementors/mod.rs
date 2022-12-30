@@ -1,9 +1,13 @@
 use anyhow::Result;
 use async_trait::async_trait;
 
+#[cfg(feature = "awsdynamodb")]
 pub mod awsdynamodb;
+#[cfg(feature = "azblob")]
 pub mod azblob;
+#[cfg(feature = "filesystem")]
 pub mod filesystem;
+#[cfg(feature = "redis")]
 pub mod redis;
 
 #[async_trait]

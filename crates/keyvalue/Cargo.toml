@@ -20,15 +20,22 @@ tracing = { version = "0.1", features = ["log"] }
 tokio = { version = "1", features = ["full"] }
 async-trait = { workspace = true }
 # kv.azblob deps
-azure_storage_blobs = "0.8"
-azure_storage = "0.8"
-azure_core = "0.7"
-bytes = "1"
-futures = "0.3"
+azure_storage_blobs = { version = "0.8", optional = true }
+azure_storage = { version = "0.8", optional = true }
+azure_core = { version = "0.7", optional = true }
+bytes = { version = "1", optional = true }
+futures = { version = "0.3", optional = true }
 # keyvalue.filesystem deps
-serde_json = "1"
+serde_json = { version = "1", optional = true }
 # kv.awsdynamodb deps
-aws-config = "0.51"
-aws-sdk-dynamodb = "0.21"
+aws-config = { version = "0.51", optional = true }
+aws-sdk-dynamodb = { version = "0.21", optional = true }
 # kv.redis deps
-redis = "0.22"
+redis = { version = "0.22", optional = true }
+
+[features]
+default = ["filesystem"]
+filesystem = ["serde_json"]
+azblob = ["azure_storage_blobs", "azure_storage", "azure_core", "bytes", "futures"]
+awsdynamodb = ["aws-config", "aws-sdk-dynamodb"]
+redis = ["dep:redis"]
