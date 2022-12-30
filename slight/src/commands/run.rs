@@ -8,6 +8,7 @@ use as_any::Downcast;
 use slight_common::{BasicState, Capability, WasmtimeBuildable};
 use slight_distributed_locking::DistributedLocking;
 use slight_http::Http;
+use slight_http_outbound::HttpOutbound;
 use slight_keyvalue::Keyvalue;
 use slight_messaging::Messaging;
 use slight_runtime::{Builder, Ctx};
@@ -205,6 +206,17 @@ async fn build_store_instance(
                     linked_capabilities.insert("http".to_string());
                 } else {
                     bail!("the http capability was already linked");
+                }
+            }
+            "http-outbound" => {
+                if !linked_capabilities.contains("http-outbound") {
+                    let http_outbound = HttpOutbound::new();
+                    builder
+                        .link_capability::<HttpOutbound>()?
+                        .add_to_builder("http-outbound".to_string(), http_outbound);
+                    linked_capabilities.insert("http-outbound".to_string());
+                } else {
+                    bail!("the http-outbound capability was already linked");
                 }
             }
             _ => {

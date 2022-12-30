@@ -17,6 +17,8 @@ pub trait Capability: AsAny {}
 /// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait CapabilityIndexTable: AsAny {}
 
+impl CapabilityIndexTable for () {}
+
 pub trait CapabilityBuilder {
     fn build(self) -> Result<HostState>;
 }
@@ -33,7 +35,7 @@ pub type HostState = (
 #[allow(unknown_lints)]
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
-    ($resource:ident, $resource_table:ty, $state:ident, $add_to_linker:path, $scheme_name:expr) => {
+    ($resource:ident, $resource_table:ty, $add_to_linker:path, $scheme_name:expr) => {
         impl slight_common::Capability for $resource {}
         impl slight_common::CapabilityIndexTable for $resource_table {}
         impl slight_common::CapabilityBuilder for $resource {

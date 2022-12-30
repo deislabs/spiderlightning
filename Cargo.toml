@@ -46,6 +46,7 @@ members = [
     "crates/keyvalue",
     "crates/distributed-locking",
     "crates/http",
+    "crates/http-outbound",
     "crates/http-api",
     "crates/http-handler-macro",
     "crates/messaging",

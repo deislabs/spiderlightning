@@ -125,7 +125,6 @@ impl KeyvalueImplementors {
 impl_resource!(
     Keyvalue,
     keyvalue::KeyvalueTables<Keyvalue>,
-    KeyvalueState,
     keyvalue::add_to_linker,
     "keyvalue".to_string()
 );

@@ -52,7 +52,6 @@ impl DistributedLocking {
 impl_resource!(
     DistributedLocking,
     distributed_locking::DistributedLockingTables<DistributedLocking>,
-    DistributedLockingState,
     distributed_locking::add_to_linker,
     "distributed_locking".to_string()
 );
