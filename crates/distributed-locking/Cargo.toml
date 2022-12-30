@@ -16,10 +16,10 @@ wit-error-rs = { workspace = true }
 slight-common = { path = "../common" }
 slight-runtime-configs = { path = "../runtime-configs" }
 anyhow = { workspace = true }
-tracing = { version = "0.1", features = ["log"] }
+tracing = { workspace = true }
 url = "2.2"
 async-trait = { workspace = true }
-tokio = { version = "1", features = ["full"] }
+tokio = { workspace = true }
 # lockd.etcd deps
 etcd-client = { version = "0.10", optional = true }
 

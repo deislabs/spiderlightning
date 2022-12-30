@@ -13,11 +13,11 @@ doctest = false
 [dependencies]
 wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
-slight-common ={ path = "../common" }
+slight-common = { path = "../common" }
 slight-runtime-configs = { path = "../runtime-configs" }
 anyhow = { workspace = true }
-tracing = { version = "0.1", features = ["log"] }
-tokio = { version = "1", features = ["full"] }
+tracing = { workspace = true }
+tokio = { workspace = true }
 async-trait = { workspace = true }
 # kv.azblob deps
 azure_storage_blobs = { version = "0.8", optional = true }
