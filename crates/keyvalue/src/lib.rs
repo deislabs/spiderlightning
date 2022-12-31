@@ -106,8 +106,7 @@ impl KeyvalueImplementors {
                 Self::Redis(RedisImplementor::new(slight_state, name).await)
             }
             p => panic!(
-                "failed to match provided name (i.e., '{}') to any known host implementations",
-                p
+                "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
         }
     }

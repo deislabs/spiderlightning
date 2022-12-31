@@ -40,7 +40,7 @@ impl AzBlobImplementor {
         let blob_client = self.container_client.blob_client(key);
         let res = azure::get(blob_client)
             .await
-            .with_context(|| format!("failed to get value for key {}", key))?;
+            .with_context(|| format!("failed to get value for key {key}"))?;
         Ok(res)
     }
 
@@ -49,7 +49,7 @@ impl AzBlobImplementor {
         let value = Vec::from(value);
         azure::set(blob_client, value)
             .await
-            .with_context(|| format!("failed to set value for key '{}'", key))?;
+            .with_context(|| format!("failed to set value for key '{key}'"))?;
         Ok(())
     }
 

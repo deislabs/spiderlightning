@@ -92,12 +92,10 @@ where
     T: Capability,
 {
     let err_msg = format!(
-        "internal error: slight context does not contain key: {}",
-        scheme_name
+        "internal error: slight context does not contain key: {scheme_name}"
     );
     let err_msg2 = format!(
-        "internal error: slight context contains key {} but can't downcast",
-        scheme_name
+        "internal error: slight context contains key {scheme_name} but can't downcast"
     );
     store
         .data_mut()

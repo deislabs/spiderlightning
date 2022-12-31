@@ -166,8 +166,7 @@ impl PubImplementor {
                 Self::AzSbus(AzSbusImplementor::new(slight_state).await)
             }
             p => panic!(
-                "failed to match provided name (i.e., '{}') to any known host implementations",
-                p
+                "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
         }
     }
@@ -202,8 +201,7 @@ impl SubImplementor {
                 Self::AzSbus(AzSbusImplementor::new(slight_state).await)
             }
             p => panic!(
-                "failed to match provided name (i.e., '{}') to any known host implementations",
-                p
+                "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
         }
     }

@@ -10,10 +10,10 @@ const CONFIGS_TEST_PATH: &str = "tests/configs-test";
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed={}", WIT_DIRECTORY);
-    println!("cargo:rerun-if-changed={}/src/main.rs", KEYVALUE_TEST_PATH);
-    println!("cargo:rerun-if-changed={}/src/main.rs", HTTP_TEST_PATH);
-    println!("cargo:rerun-if-changed={}/src/main.rs", CONFIGS_TEST_PATH);
+    println!("cargo:rerun-if-changed={WIT_DIRECTORY}");
+    println!("cargo:rerun-if-changed={KEYVALUE_TEST_PATH}/src/main.rs");
+    println!("cargo:rerun-if-changed={HTTP_TEST_PATH}/src/main.rs");
+    println!("cargo:rerun-if-changed={CONFIGS_TEST_PATH}/src/main.rs");
 
     // Check if wasm32-wasi target is installed
     let target = "wasm32-wasi";
@@ -24,8 +24,7 @@ fn main() {
     let output = std::str::from_utf8(&output.stdout).unwrap();
     if !output.lines().any(|line| line == target) {
         eprintln!(
-            "Error: {} target is not installed. Run `rustup target add {}`",
-            target, target
+            "Error: {target} target is not installed. Run `rustup target add {target}`"
         );
         std::process::exit(1);
     }

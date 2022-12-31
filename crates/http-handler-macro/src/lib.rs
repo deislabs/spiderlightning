@@ -59,7 +59,7 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // parse the item as rust Fn
     let func = syn::parse_macro_input!(item as syn::ItemFn);
     let func_name = &func.sig.ident;
-    let handle_func = format!("{}", func_name);
+    let handle_func = format!("{func_name}");
 
     // builds struct name from function name
     let struct_name = handle_func
@@ -69,7 +69,7 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
         .collect::<String>();
 
     // builds mod name from function name
-    let mod_name = format!("{}_mod", handle_func);
+    let mod_name = format!("{handle_func}_mod");
 
     // builds trait name from mod name
     let trait_name = mod_name
@@ -96,8 +96,8 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let replaced_contents =
         replaced_contents.replace("handle-http", &handle_func.replace('_', "-"));
     let replaced_contents = replaced_contents.replace(
-        format!("super::{}", trait_name).as_str(),
-        format!("super::{}::{}", internal_mod, struct_name).as_str(),
+        format!("super::{trait_name}").as_str(),
+        format!("super::{internal_mod}::{struct_name}").as_str(),
     );
     let iface_tokens: TokenStream = replaced_contents
         .parse()
@@ -139,7 +139,7 @@ mod unittests {
             .collect::<String>();
         assert_eq!(struct_name, "HandleHello".to_string());
 
-        let mod_name = format!("{}_mod", func_name);
+        let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
             .into_iter()
@@ -156,7 +156,7 @@ mod unittests {
             .collect::<String>();
         assert_eq!(struct_name, "Handle".to_string());
 
-        let mod_name = format!("{}_mod", func_name);
+        let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
             .into_iter()
@@ -173,7 +173,7 @@ mod unittests {
             .collect::<String>();
         assert_eq!(struct_name, "HandleFuncA".to_string());
 
-        let mod_name = format!("{}_mod", func_name);
+        let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
             .into_iter()
