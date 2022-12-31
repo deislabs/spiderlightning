@@ -9,7 +9,8 @@ const GITHUB_URL: &str = "https://github.com/deislabs/spiderlightning/releases/d
 
 const KEYVALUE_DOWNLOADS: [&str; 1] = ["keyvalue"];
 const CONFIGS_DOWNLOADS: [&str; 1] = ["configs"];
-const HTTP_DOWNLOADS: [&str; 3] = ["http", "http-handler", "http-types"];
+const HTTP_DOWNLOADS: [&str; 3] = ["http-server", "http-handler", "http-types"];
+const HTTP_CLIENT_DOWNLOADS: [&str; 2] = ["http-types", "http-client"];
 const DISTRIBUTED_LOCKING_DOWNLOADS: [&str; 1] = ["distributed-locking"];
 const MESSAGING_DOWNLOADS: [&str; 1] = ["messaging"];
 
@@ -30,7 +31,8 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
     match what_to_add {
         _ if interface.eq("keyvalue")
             | interface.eq("configs")
-            | interface.eq("http")
+            | interface.eq("http-server")
+            | interface.eq("http-client")
             | interface.eq("distributed_locking")
             | interface.eq("messaging") =>
         {
@@ -73,7 +75,8 @@ fn get_interface_downloads_by_name(name: &str) -> Vec<&str> {
     match name {
         _ if name.eq("keyvalue") => KEYVALUE_DOWNLOADS.to_vec(),
         _ if name.eq("configs") => CONFIGS_DOWNLOADS.to_vec(),
-        _ if name.eq("http") => HTTP_DOWNLOADS.to_vec(),
+        _ if name.eq("http_server") => HTTP_DOWNLOADS.to_vec(),
+        _ if name.eq("http_client") => HTTP_CLIENT_DOWNLOADS.to_vec(),
         _ if name.eq("distributed_locking") => DISTRIBUTED_LOCKING_DOWNLOADS.to_vec(),
         _ if name.eq("messaging") => MESSAGING_DOWNLOADS.to_vec(),
         _ => {

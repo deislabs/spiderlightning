@@ -1,11 +1,11 @@
 [package]
-name = "http-demo"
+name = "http-server-demo"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
 
 [[bin]]
-name = "http-demo"
+name = "http-server-demo"
 test = false
 
 [dependencies]
