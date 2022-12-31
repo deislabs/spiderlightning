@@ -79,7 +79,7 @@ macro_rules! impl_resource {
     };
 
     ($resource:ty, $resource_table:ty, $state:ty, $lt:tt, $add_to_linker:path, $scheme_name:expr) => {
-        // This macro is used to the implement a new Capability. It requires 
+        // This macro is used to the implement a new Capability. It requires
         // a resource table and is generic to builder type.
         impl<$lt> slight_common::Capability for $resource where
             $lt: slight_common::WasmtimeBuildable + 'static
