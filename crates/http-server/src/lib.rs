@@ -8,8 +8,8 @@ use std::sync::{Arc, Mutex};
 use anyhow::{bail, Result};
 use crossbeam_utils::thread;
 use futures::executor::block_on;
-pub use http::add_to_linker;
-use http::*;
+pub use http_server::add_to_linker;
+use http_server::*;
 use hyper::{Body, Server};
 use routerify::ext::RequestExt;
 use routerify::{Router, RouterBuilder, RouterService};
@@ -20,9 +20,9 @@ use tracing::log;
 
 use slight_http_api::{HttpBody, HttpHandler, HttpHeader, Method, Request};
 
-wit_bindgen_wasmtime::export!("../../wit/http.wit");
-wit_error_rs::impl_error!(http::HttpError);
-wit_error_rs::impl_from!(anyhow::Error, http::HttpError::UnexpectedError);
+wit_bindgen_wasmtime::export!("../../wit/http-server.wit");
+wit_error_rs::impl_error!(http_server::HttpError);
+wit_error_rs::impl_from!(anyhow::Error, http_server::HttpError::UnexpectedError);
 
 #[derive(Clone, Debug, Default)]
 enum Methods {
@@ -57,22 +57,22 @@ impl RouterInner {
     }
 
     /// Adds a new route with `GET` method and the handler's name.
-    fn get(&mut self, route: String, handler: String) -> Result<Self, http::HttpError> {
+    fn get(&mut self, route: String, handler: String) -> Result<Self, http_server::HttpError> {
         self.add(route, handler, Methods::GET)
     }
 
     /// Adds a new route with `PUT` method and the handler's name.
-    fn put(&mut self, route: String, handler: String) -> Result<Self, http::HttpError> {
+    fn put(&mut self, route: String, handler: String) -> Result<Self, http_server::HttpError> {
         self.add(route, handler, Methods::PUT)
     }
 
     /// Adds a new route with `POST` method and the handler's name.
-    fn post(&mut self, route: String, handler: String) -> Result<Self, http::HttpError> {
+    fn post(&mut self, route: String, handler: String) -> Result<Self, http_server::HttpError> {
         self.add(route, handler, Methods::POST)
     }
 
     /// Adds a new route with `DELETE` method and the handler's name.
-    fn delete(&mut self, route: String, handler: String) -> Result<Self, http::HttpError> {
+    fn delete(&mut self, route: String, handler: String) -> Result<Self, http_server::HttpError> {
         self.add(route, handler, Methods::DELETE)
     }
 
@@ -82,7 +82,7 @@ impl RouterInner {
         route: String,
         handler: String,
         method: Methods,
-    ) -> Result<Self, http::HttpError> {
+    ) -> Result<Self, http_server::HttpError> {
         let route = Route {
             method,
             route,
@@ -114,14 +114,14 @@ impl ServerInner {
     }
 }
 
-/// Http capability
+/// HttpServer capability
 #[derive(Clone)]
-pub struct Http<T: WasmtimeBuildable> {
+pub struct HttpServer<T: WasmtimeBuildable> {
     builder: Option<Builder<T>>,
     closer: Option<Arc<Mutex<UnboundedSender<()>>>>,
 }
 
-impl<T> Default for Http<T>
+impl<T> Default for HttpServer<T>
 where
     T: WasmtimeBuildable,
 {
@@ -133,7 +133,7 @@ where
     }
 }
 
-impl<T: WasmtimeBuildable + Send + Sync + 'static> Http<T> {
+impl<T: WasmtimeBuildable + Send + Sync + 'static> HttpServer<T> {
     pub fn update_state(&mut self, builder: Builder<T>) -> Result<()> {
         self.builder = Some(builder);
         Ok(())
@@ -147,15 +147,15 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> Http<T> {
     }
 }
 
-impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
+impl<T: WasmtimeBuildable + Send + Sync + 'static> http_server::HttpServer for HttpServer<T> {
     type Router = RouterInner;
     type Server = ServerInner;
 
-    fn router_new(&mut self) -> Result<Self::Router, http::HttpError> {
+    fn router_new(&mut self) -> Result<Self::Router, http_server::HttpError> {
         Ok(RouterInner::default())
     }
 
-    fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, http::HttpError> {
+    fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, http_server::HttpError> {
         Ok(RouterInner::new(base))
     }
 
@@ -217,7 +217,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
 
         // The outer builder is used to define the route paths, while creating a scope
         // for the inner builder which passes states to the route handler.
-        let mut outer_builder: RouterBuilder<Body, http::HttpError> = Router::builder()
+        let mut outer_builder: RouterBuilder<Body, http_server::HttpError> = Router::builder()
             .middleware(enable_cors_all())
             .data(instance_builder);
 
@@ -225,7 +225,7 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
         let mut inner_routes = vec![];
         for route in router.routes.iter() {
             // per route state
-            let mut inner_builder: RouterBuilder<Body, http::HttpError> = Router::builder();
+            let mut inner_builder: RouterBuilder<Body, http_server::HttpError> = Router::builder();
             inner_builder = inner_builder.data(route.clone());
             match route.method {
                 Methods::GET => {
@@ -278,21 +278,21 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http::Http for Http<T> {
 
 async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     request: hyper::Request<Body>,
-) -> Result<hyper::Response<Body>, http::HttpError> {
+) -> Result<hyper::Response<Body>, http_server::HttpError> {
     log::debug!("received request: {:?}", &request);
     let (parts, body) = request.into_parts();
 
     // Fetch states from the request, including the route name and builder.
     let route = parts
         .data::<Route>()
-        .ok_or_else(|| http::HttpError::InvalidUrl("missing route".to_owned()))?;
+        .ok_or_else(|| http_server::HttpError::InvalidUrl("missing route".to_owned()))?;
 
     let instance_builder = parts
         .data::<Builder<T>>()
         .ok_or_else(|| anyhow::anyhow!("missing builder".to_owned()))?;
     let instance_builder = instance_builder.clone();
     let (mut store, instance) = instance_builder.owned_inner().build().await;
-    // Perform conversion from the `hyper::Request` to `handle_http::Request`.
+    // Perform conversion from the `hyper::Request` to `handle_http_server::Request`.
     let params = parts.params();
     let params: Vec<(&str, &str)> = params
         .iter()
@@ -347,11 +347,11 @@ fn str_to_socket_address(s: &str) -> Result<SocketAddr> {
 }
 
 impl_resource!(
-    Http<T>,
-    HttpTables<Http<T>>,
+    HttpServer<T>,
+    HttpServerTables<HttpServer<T>>,
     HttpState<T>,
     T,
-    http::add_to_linker,
+    http_server::add_to_linker,
     "http".to_string()
 );
 

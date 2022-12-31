@@ -1,5 +1,5 @@
 [package]
-name = "slight-http"
+name = "slight-http-server"
 version = "0.1.0"
 edition = { workspace = true }
 authors = { workspace = true }

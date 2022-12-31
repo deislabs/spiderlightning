@@ -1,11 +1,11 @@
 use anyhow::Result;
 
-use http::*;
+use http_server::*;
 use slight_http_handler_macro::register_handler;
 
-wit_bindgen_rust::import!("../../wit/http.wit");
+wit_bindgen_rust::import!("../../wit/http-server.wit");
 wit_bindgen_rust::import!("../../wit/http-outbound.wit");
-wit_error_rs::impl_error!(http::HttpError);
+wit_error_rs::impl_error!(http_server::HttpError);
 wit_error_rs::impl_error!(http_outbound::HttpError);
 
 fn main() -> Result<()> {

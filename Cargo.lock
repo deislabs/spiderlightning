@@ -3526,8 +3526,8 @@ dependencies = [
  "reqwest",
  "slight-common",
  "slight-distributed-locking",
- "slight-http",
  "slight-http-outbound",
+ "slight-http-server",
  "slight-keyvalue",
  "slight-messaging",
  "slight-runtime",
@@ -3570,26 +3570,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "slight-http"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossbeam-channel",
- "crossbeam-utils",
- "futures",
- "hyper",
- "routerify",
- "routerify-cors",
- "slight-common",
- "slight-http-api",
- "tokio",
- "tracing",
- "url",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
- "wit-error-rs",
-]
-
-[[package]]
 name = "slight-http-api"
 version = "0.1.0"
 dependencies = [
@@ -3623,6 +3603,26 @@ dependencies = [
  "reqwest",
  "slight-common",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-http-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossbeam-channel",
+ "crossbeam-utils",
+ "futures",
+ "hyper",
+ "routerify",
+ "routerify-cors",
+ "slight-common",
+ "slight-http-api",
+ "tokio",
+ "tracing",
+ "url",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
  "wit-error-rs",
 ]
 
