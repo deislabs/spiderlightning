@@ -7,8 +7,8 @@ use anyhow::{bail, Result};
 use as_any::Downcast;
 use slight_common::{BasicState, Capability, WasmtimeBuildable};
 use slight_distributed_locking::DistributedLocking;
+use slight_http_client::HttpClient;
 use slight_http_server::HttpServer;
-use slight_http_outbound::HttpOutbound;
 use slight_keyvalue::Keyvalue;
 use slight_messaging::Messaging;
 use slight_runtime::{Builder, Ctx};
@@ -91,12 +91,9 @@ fn get_resource<'a, T>(store: &'a mut Store<Ctx>, scheme_name: &'a str) -> &'a m
 where
     T: Capability,
 {
-    let err_msg = format!(
-        "internal error: slight context does not contain key: {scheme_name}"
-    );
-    let err_msg2 = format!(
-        "internal error: slight context contains key {scheme_name} but can't downcast"
-    );
+    let err_msg = format!("internal error: slight context does not contain key: {scheme_name}");
+    let err_msg2 =
+        format!("internal error: slight context contains key {scheme_name} but can't downcast");
     store
         .data_mut()
         .slight
@@ -206,15 +203,15 @@ async fn build_store_instance(
                     bail!("the http capability was already linked");
                 }
             }
-            "http-outbound" => {
-                if !linked_capabilities.contains("http-outbound") {
-                    let http_outbound = HttpOutbound::new();
+            "http-client" => {
+                if !linked_capabilities.contains("http-client") {
+                    let http_client = HttpClient::new();
                     builder
-                        .link_capability::<HttpOutbound>()?
-                        .add_to_builder("http-outbound".to_string(), http_outbound);
-                    linked_capabilities.insert("http-outbound".to_string());
+                        .link_capability::<HttpClient>()?
+                        .add_to_builder("http-client".to_string(), http_client);
+                    linked_capabilities.insert("http-client".to_string());
                 } else {
-                    bail!("the http-outbound capability was already linked");
+                    bail!("the http-client capability was already linked");
                 }
             }
             _ => {

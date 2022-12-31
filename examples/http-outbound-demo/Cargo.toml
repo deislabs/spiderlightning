@@ -1,11 +1,11 @@
 [package]
-name = "http-outbound-demo"
+name = "http-client-demo"
 version = "0.1.0"
 edition = "2021"
 authors = ["DeisLabs Engineering Team"]
 
 [[bin]]
-name = "http-outbound-demo"
+name = "http-client-demo"
 test = false
 
 [dependencies]

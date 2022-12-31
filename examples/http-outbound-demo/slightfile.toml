@@ -6,5 +6,5 @@ name = "my-rest-api"
     # This capability does not require any configs
 
 [[capability]]
-resource = "http-outbound"
+resource = "http-client"
 name = "something"

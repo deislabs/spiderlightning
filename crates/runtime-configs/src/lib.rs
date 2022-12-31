@@ -204,9 +204,7 @@ pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<Str
             get(ss, config_name, &state.slightfile_path)
                 .await
                 .with_context(|| {
-                    format!(
-                        "failed to get '{config_name}' secret using secret store type: {ss}"
-                    )
+                    format!("failed to get '{config_name}' secret using secret store type: {ss}")
                 })?,
         )?;
         Ok(config)

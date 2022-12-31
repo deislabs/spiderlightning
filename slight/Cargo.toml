@@ -23,7 +23,7 @@ slight-messaging = { path = "../crates/messaging" }
 slight-runtime-configs = { path = "../crates/runtime-configs" }
 slight-common = { path = "../crates/common" }
 slight-http-server = { path = "../crates/http-server" }
-slight-http-outbound = { path = "../crates/http-outbound" }
+slight-http-client = { path = "../crates/http-client" }
 anyhow = { workspace = true }
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }

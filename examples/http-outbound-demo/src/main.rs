@@ -4,9 +4,9 @@ use http_server::*;
 use slight_http_handler_macro::register_handler;
 
 wit_bindgen_rust::import!("../../wit/http-server.wit");
-wit_bindgen_rust::import!("../../wit/http-outbound.wit");
+wit_bindgen_rust::import!("../../wit/http-client.wit");
 wit_error_rs::impl_error!(http_server::HttpError);
-wit_error_rs::impl_error!(http_outbound::HttpError);
+wit_error_rs::impl_error!(http_client::HttpError);
 
 fn main() -> Result<()> {
     let router = Router::new()?;
@@ -19,14 +19,14 @@ fn main() -> Result<()> {
 
 #[register_handler]
 fn handle_hello(_req: Request) -> Result<Response, HttpError> {
-    let req = crate::http_outbound::Request {
-        method: crate::http_outbound::Method::Get,
+    let req = crate::http_client::Request {
+        method: crate::http_client::Method::Get,
         uri: "https://some-random-api.ml/facts/dog",
         headers: &[],
         body: None,
         params: &[],
     };
-    let res = crate::http_outbound::request(req).unwrap();
+    let res = crate::http_client::request(req).unwrap();
     println!("{:?}", res);
 
     let res = Response {

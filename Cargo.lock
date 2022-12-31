@@ -3526,7 +3526,7 @@ dependencies = [
  "reqwest",
  "slight-common",
  "slight-distributed-locking",
- "slight-http-outbound",
+ "slight-http-client",
  "slight-http-server",
  "slight-keyvalue",
  "slight-messaging",
@@ -3583,6 +3583,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "slight-http-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "reqwest",
+ "slight-common",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
+ "wit-error-rs",
+]
+
+[[package]]
 name = "slight-http-handler-macro"
 version = "0.1.0"
 dependencies = [
@@ -3592,18 +3604,6 @@ dependencies = [
  "syn",
  "wit-bindgen-gen-core 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
  "wit-bindgen-gen-rust-wasm",
-]
-
-[[package]]
-name = "slight-http-outbound"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "reqwest",
- "slight-common",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-error-rs",
 ]
 
 [[package]]
