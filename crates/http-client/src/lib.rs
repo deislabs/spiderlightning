@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use reqwest::Client;
 
 use http_client::*;
+use slight_common::impl_resource;
 wit_bindgen_wasmtime::export!({paths: ["../../wit/http-client.wit"], async: *});
 wit_error_rs::impl_error!(http_client::HttpError);
 wit_error_rs::impl_from!(anyhow::Error, http_client::HttpError::UnexpectedError);
@@ -46,22 +47,11 @@ impl http_client::HttpClient for HttpClient {
     }
 }
 
-impl slight_common::Capability for HttpClient {}
-impl slight_common::CapabilityBuilder for HttpClient {
-    fn build(self) -> Result<slight_common::HostState> {
-        Ok((Box::new(self), Some(Box::new(()))))
-    }
-}
-impl slight_common::WasmtimeLinkable for HttpClient {
-    fn add_to_linker<Ctx: slight_common::Ctx + Send + Sync + 'static>(
-        linker: &mut slight_common::Linker<Ctx>,
-    ) -> anyhow::Result<()> {
-        http_client::add_to_linker(linker, |ctx| {
-            let res = Ctx::get_host_state::<HttpClient, ()>(ctx, "http-client".to_string());
-            res.0
-        })
-    }
-}
+impl_resource!(
+    HttpClient,
+    http_client::add_to_linker,
+    "http-client".to_string()
+);
 
 impl From<http_client::Method> for reqwest::Method {
     fn from(method: http_client::Method) -> Self {
