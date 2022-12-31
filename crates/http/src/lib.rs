@@ -320,18 +320,11 @@ async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     // Invoke the handler with http request
     log::debug!("invoking handler: {}", handler_name);
 
-    // let res = tokio::task::spawn_blocking(|| {
-    //     handler.handle_http(&mut store, req)
-    // }).await???;
-    // let rt = tokio::runtime::Handle::current();
     let res = handler
         .handle_http(&mut store, req)
         .await
         .map_err(|e| anyhow::anyhow!(e.to_string()))?
         .map_err(|e| anyhow::anyhow!(e.to_string()))?;
-    // let res = rt.block_on(async {
-    //     handler.handle_http(&mut store, req)
-    // })??;
 
     // Perform the conversion from `handle_http::Response` to `hyper::Response`.
     log::debug!("response: {:?}", res);
