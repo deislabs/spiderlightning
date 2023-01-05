@@ -2,9 +2,8 @@ specversion = "0.2"
 
 [[secret_settings]]
 name = "key"
-value = "TxOSGugo"
+value = "rTQy17M4"
 
 [[capability]]
 resource = "configs.usersecrets"
 name = "my-secret-store"
-    # This capability does not require any configs

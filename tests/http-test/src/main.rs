@@ -4,7 +4,7 @@ use http_server::*;
 use slight_http_handler_macro::register_handler;
 
 wit_bindgen_rust::import!("../../wit/http-server.wit");
-wit_error_rs::impl_error!(http_server::HttpError);
+wit_error_rs::impl_error!(http_server::HttpRouterError);
 
 fn main() -> Result<()> {
     let router = Router::new()?;
@@ -81,14 +81,4 @@ fn upload(request: Request) -> Result<Response, HttpError> {
         body: request.body,
         status: 200,
     })
-}
-
-/// FIXME: We should come up with a solution that removes the need to register a 
-/// handle_http function. The reason this is needed because the host is 
-/// parsing the wit htto-handler file which has the handle_http function.        
-#[register_handler]
-fn handle_http(_req: Request) -> Result<Response, HttpError> {
-    Err(HttpError::UnexpectedError(
-        "this is a dummy handler".to_string(),
-    ))
 }

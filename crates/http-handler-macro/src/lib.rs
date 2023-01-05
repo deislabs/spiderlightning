@@ -114,6 +114,7 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
         #iface
 
         mod #internal_mod_ident {
+            use crate::*;
             use crate::#mod_ident::*;
             pub struct #struct_ident {}
             impl #trait_ident for #struct_ident {
