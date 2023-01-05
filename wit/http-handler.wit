@@ -1,3 +1,12 @@
-use { request, response, http-error } from http-types
+use { request, response } from http-types
+
+/// HTTP errors returned by the runtime.
+variant http-error {
+    invalid-url(string),
+    timeout-error(string),
+    protocol-error(string),
+    status-error(u16),
+    unexpected-error(string)
+}
 
 handle-http: func(req: request) -> expected<response, http-error>
