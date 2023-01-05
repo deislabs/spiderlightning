@@ -57,22 +57,38 @@ impl RouterInner {
     }
 
     /// Adds a new route with `GET` method and the handler's name.
-    fn get(&mut self, route: String, handler: String) -> Result<Self, http_server::HttpRouterError> {
+    fn get(
+        &mut self,
+        route: String,
+        handler: String,
+    ) -> Result<Self, http_server::HttpRouterError> {
         self.add(route, handler, Methods::GET)
     }
 
     /// Adds a new route with `PUT` method and the handler's name.
-    fn put(&mut self, route: String, handler: String) -> Result<Self, http_server::HttpRouterError> {
+    fn put(
+        &mut self,
+        route: String,
+        handler: String,
+    ) -> Result<Self, http_server::HttpRouterError> {
         self.add(route, handler, Methods::PUT)
     }
 
     /// Adds a new route with `POST` method and the handler's name.
-    fn post(&mut self, route: String, handler: String) -> Result<Self, http_server::HttpRouterError> {
+    fn post(
+        &mut self,
+        route: String,
+        handler: String,
+    ) -> Result<Self, http_server::HttpRouterError> {
         self.add(route, handler, Methods::POST)
     }
 
     /// Adds a new route with `DELETE` method and the handler's name.
-    fn delete(&mut self, route: String, handler: String) -> Result<Self, http_server::HttpRouterError> {
+    fn delete(
+        &mut self,
+        route: String,
+        handler: String,
+    ) -> Result<Self, http_server::HttpRouterError> {
         self.add(route, handler, Methods::DELETE)
     }
 
@@ -155,7 +171,10 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http_server::HttpServer for H
         Ok(RouterInner::default())
     }
 
-    fn router_new_with_base(&mut self, base: &str) -> Result<Self::Router, http_server::HttpRouterError> {
+    fn router_new_with_base(
+        &mut self,
+        base: &str,
+    ) -> Result<Self::Router, http_server::HttpRouterError> {
         Ok(RouterInner::new(base))
     }
 
@@ -217,15 +236,17 @@ impl<T: WasmtimeBuildable + Send + Sync + 'static> http_server::HttpServer for H
 
         // The outer builder is used to define the route paths, while creating a scope
         // for the inner builder which passes states to the route handler.
-        let mut outer_builder: RouterBuilder<Body, http_server::HttpRouterError> = Router::builder()
-            .middleware(enable_cors_all())
-            .data(instance_builder);
+        let mut outer_builder: RouterBuilder<Body, http_server::HttpRouterError> =
+            Router::builder()
+                .middleware(enable_cors_all())
+                .data(instance_builder);
 
         // There is a one-to-one mapping between the outer router's scope and inner router builder.
         let mut inner_routes = vec![];
         for route in router.routes.iter() {
             // per route state
-            let mut inner_builder: RouterBuilder<Body, http_server::HttpRouterError> = Router::builder();
+            let mut inner_builder: RouterBuilder<Body, http_server::HttpRouterError> =
+                Router::builder();
             inner_builder = inner_builder.data(route.clone());
             match route.method {
                 Methods::GET => {
