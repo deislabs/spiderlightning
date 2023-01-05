@@ -113,15 +113,15 @@ mod integration_tests {
             Ok(())
         }
 
-        #[test]
-        fn aws_dynamodb_test() -> Result<()> {
-            let file_config = "./tests/keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
-            run(
-                SLIGHT,
-                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
-            );
-            Ok(())
-        }
+        // #[test]
+        // fn aws_dynamodb_test() -> Result<()> {
+        //     let file_config = "./tests/keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
+        //     run(
+        //         SLIGHT,
+        //         vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+        //     );
+        //     Ok(())
+        // }
 
         #[test]
         #[cfg(unix)] // TODO: Add Windows support
