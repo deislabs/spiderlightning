@@ -1,7 +1,10 @@
 use anyhow::{bail, Result};
+use async_trait::async_trait;
 use redis::{Client, Commands};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
+
+use super::KeyvalueImplementor;
 
 /// This is the underlying struct behind the `AzBlob` variant of the `KeyvalueImplementor` enum.
 ///
@@ -26,8 +29,11 @@ impl RedisImplementor {
             container_name,
         }
     }
+}
 
-    pub fn get(&self, key: &str) -> Result<Vec<u8>> {
+#[async_trait]
+impl KeyvalueImplementor for RedisImplementor {
+    async fn get(&self, key: &str) -> Result<Vec<u8>> {
         let mut con = self.client.get_connection()?;
         let val: Vec<u8> = con.get(format!("{}:{}", self.container_name, key))?;
         // Redis GET returns [:ok; nil] for non-existent keys
@@ -37,14 +43,14 @@ impl RedisImplementor {
         Ok(val)
     }
 
-    pub fn set(&self, key: &str, value: &[u8]) -> Result<()> {
+    async fn set(&self, key: &str, value: &[u8]) -> Result<()> {
         let mut con = self.client.get_connection()?;
         con.set(format!("{}:{}", self.container_name, key), value)?;
 
         Ok(())
     }
 
-    pub fn keys(&self) -> Result<Vec<String>> {
+    async fn keys(&self) -> Result<Vec<String>> {
         let mut con = self.client.get_connection()?;
         let keys: Vec<String> = con.keys(format!("{}:*", self.container_name))?;
         // remove prefix
@@ -55,7 +61,7 @@ impl RedisImplementor {
         Ok(keys)
     }
 
-    pub fn delete(&self, key: &str) -> Result<()> {
+    async fn delete(&self, key: &str) -> Result<()> {
         let mut con = self.client.get_connection()?;
         con.del(format!("{}:{}", self.container_name, key))?;
 

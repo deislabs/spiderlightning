@@ -160,7 +160,7 @@ impl From<&str> for ConfigsImplementor {
             "configs.envvars" => ConfigsImplementor::EnvVars,
             "configs.azapp" => ConfigsImplementor::AzApp,
             "configs.local" => ConfigsImplementor::Local,
-            _ => panic!("unknown configuration type '{}'", from_str),
+            _ => panic!("unknown configuration type '{from_str}'"),
         }
     }
 }
@@ -205,10 +205,7 @@ pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<Str
             get(ss, config_name, &state.slightfile_path)
                 .await
                 .with_context(|| {
-                    format!(
-                        "failed to get '{}' secret using secret store type: {}",
-                        config_name, ss
-                    )
+                    format!("failed to get '{config_name}' secret using secret store type: {ss}")
                 })?,
         )?;
         Ok(config)
@@ -218,7 +215,7 @@ pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<Str
             .as_ref()
             .expect("this capability needs a [capability.configs] section...")
             .get(config_name)
-            .unwrap_or_else(|| panic!("failed to get config '{}'", config_name));
+            .unwrap_or_else(|| panic!("failed to get config '{config_name}'"));
 
         let (store, name) = maybe_get_config_store_and_value(c)?;
 
@@ -227,8 +224,7 @@ pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<Str
                 .await
                 .with_context(|| {
                     format!(
-                        "failed to get '{}' secret using secret store type: '{}'",
-                        config_name, store
+                        "failed to get '{config_name}' secret using secret store type: '{store}'"
                     )
                 })?,
         )?;
@@ -243,7 +239,7 @@ fn maybe_get_config_store_and_value(c: &str) -> Result<(String, String)> {
         if let Some(cap) = regex_match.captures(&prelim_cap[1]) {
             Ok((format!("configs.{}", &cap[1]), cap[2].to_string()))
         } else {
-            panic!("failed to get value for config '{}'", c);
+            panic!("failed to get value for config '{c}'");
         }
     } else {
         Ok(("configs.local".to_string(), c.to_string()))

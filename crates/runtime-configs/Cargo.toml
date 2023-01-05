@@ -19,7 +19,7 @@ spiderlightning = { path = "../.." }
 toml = "0.5"
 short-crypt = "1"
 azure-app-configuration = { git = "https://github.com/danbugs/azure-app-configuration.git", rev = "e6cc5bdd3d5dedb6fb48f0dcdf0ec674c8033cf6" }
-tracing = { version = "0.1", features = ["log"] }
+tracing = { workspace = true }
 async-trait = { workspace = true }
 regex = "1.6"
 

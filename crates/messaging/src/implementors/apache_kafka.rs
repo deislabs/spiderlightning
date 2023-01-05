@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -11,6 +12,8 @@ use slight_runtime_configs::get_from_state;
 use tokio::{runtime::Handle, task::block_in_place};
 
 use crate::providers::confluent;
+
+use super::{PubImplementor, SubImplementor};
 
 #[derive(Clone)]
 pub struct Pub {
@@ -42,8 +45,11 @@ impl Pub {
             producer: Arc::new(producer),
         }
     }
+}
 
-    pub fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
+#[async_trait]
+impl PubImplementor for Pub {
+    async fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
         tracing::info!("publishing to topic {}", topic);
 
         confluent::publish(
@@ -84,8 +90,11 @@ impl Sub {
             consumers: Arc::new(Mutex::new(HashMap::new())),
         }
     }
+}
 
-    pub async fn subscribe(&self, topic: &str) -> Result<String> {
+#[async_trait]
+impl SubImplementor for Sub {
+    async fn subscribe(&self, topic: &str) -> Result<String> {
         let consumer: StreamConsumer = ClientConfig::new()
             .set(
                 "bootstrap.servers",
@@ -117,7 +126,7 @@ impl Sub {
         Ok(sub_tok)
     }
 
-    pub async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
+    async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
         block_in_place(|| {
             Handle::current().block_on(async move {
                 let consumers_lock = self.consumers.lock().unwrap();

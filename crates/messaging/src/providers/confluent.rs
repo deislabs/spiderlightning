@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+#[cfg(feature = "apache_kafka")]
 use rdkafka::{
     consumer::{Consumer, StreamConsumer},
     producer::{BaseProducer, BaseRecord},

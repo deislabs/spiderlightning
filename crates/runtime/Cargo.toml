@@ -20,11 +20,11 @@ as-any = "0.3"
 wit-bindgen-wasmtime = { workspace = true }
 crossbeam-channel = "0.5"
 slight-http-api = { path = "../http-api/" }
-tracing = { version = "0.1", features = ["log"] }
+tracing = { workspace = true }
 slight-common = { path = "../common" }
 dyn-clone = "1"
 async-trait = { workspace = true }
 
 [dev-dependencies]
 slight-keyvalue = { path = "../keyvalue" }
-tokio = { version = "1", features = ["full"] }
+tokio = { workspace = true }
