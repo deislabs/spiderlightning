@@ -1,14 +1,11 @@
 mod implementors;
 pub mod providers;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use anyhow::Result;
 use async_trait::async_trait;
-use implementors::{
-    awsdynamodb::AwsDynamoDbImplementor, azblob::AzBlobImplementor,
-    filesystem::FilesystemImplementor, redis::RedisImplementor,
-};
+use implementors::*;
 
 use slight_common::{impl_resource, BasicState};
 
@@ -60,20 +57,36 @@ impl Keyvalue {
 ///
 /// It must be public because the implementation of `keyvalye::Keyvalue` cannot leak
 /// a private type.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct KeyvalueInner {
-    keyvalue_implementor: KeyvalueImplementors,
+    keyvalue_implementor: Arc<dyn KeyvalueImplementor + Send + Sync>,
 }
 
 impl KeyvalueInner {
-    async fn new(keyvalue_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
+    async fn new(
+        keyvalue_implementor: KeyvalueImplementors,
+        slight_state: &BasicState,
+        name: &str,
+    ) -> Self {
         Self {
-            keyvalue_implementor: KeyvalueImplementors::new(
-                keyvalue_implementor,
-                slight_state,
-                name,
-            )
-            .await,
+            keyvalue_implementor: match keyvalue_implementor {
+                #[cfg(feature = "filesystem")]
+                KeyvalueImplementors::Filesystem => {
+                    Arc::new(filesystem::FilesystemImplementor::new(slight_state, name).await)
+                }
+                #[cfg(feature = "azblob")]
+                KeyvalueImplementors::AzBlob => {
+                    Arc::new(azblob::AzBlobImplementor::new(slight_state, name).await)
+                }
+                #[cfg(feature = "awsdynamodb")]
+                KeyvalueImplementors::AwsDynamoDb => {
+                    Arc::new(awsdynamodb::AwsDynamoDbImplementor::new(slight_state, name).await)
+                }
+                #[cfg(feature = "redis")]
+                KeyvalueImplementors::Redis => {
+                    Arc::new(redis::RedisImplementor::new(slight_state, name).await)
+                }
+            },
         }
     }
 }
@@ -83,28 +96,28 @@ impl KeyvalueInner {
 /// As per its' usage in `KeyvalueInner`, it must `derive` `Debug`, and `Clone`.
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
-enum KeyvalueImplementors {
-    Filesystem(FilesystemImplementor),
-    AzBlob(AzBlobImplementor),
-    AwsDynamoDb(AwsDynamoDbImplementor),
-    Redis(RedisImplementor),
+pub enum KeyvalueImplementors {
+    #[cfg(feature = "filesystem")]
+    Filesystem,
+    #[cfg(feature = "azblob")]
+    AzBlob,
+    #[cfg(feature = "awsdynamodb")]
+    AwsDynamoDb,
+    #[cfg(feature = "redis")]
+    Redis,
 }
 
-impl KeyvalueImplementors {
-    async fn new(keyvalue_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
-        match keyvalue_implementor {
-            "keyvalue.filesystem" | "kv.filesystem" => {
-                Self::Filesystem(FilesystemImplementor::new(name))
-            }
-            "keyvalue.azblob" | "kv.azblob" => {
-                Self::AzBlob(AzBlobImplementor::new(slight_state, name).await)
-            }
-            "keyvalue.awsdynamodb" | "kv.awsdynamodb" => {
-                Self::AwsDynamoDb(AwsDynamoDbImplementor::new(name).await)
-            }
-            "keyvalue.redis" | "kv.redis" => {
-                Self::Redis(RedisImplementor::new(slight_state, name).await)
-            }
+impl From<&str> for KeyvalueImplementors {
+    fn from(s: &str) -> Self {
+        match s {
+            #[cfg(feature = "filesystem")]
+            "keyvalue.filesystem" | "kv.filesystem" => Self::Filesystem,
+            #[cfg(feature = "azblob")]
+            "keyvalue.azblob" | "kv.azblob" => Self::AzBlob,
+            #[cfg(feature = "awsdynamodb")]
+            "keyvalue.awsdynamodb" | "kv.awsdynamodb" => Self::AwsDynamoDb,
+            #[cfg(feature = "redis")]
+            "keyvalue.redis" | "kv.redis" => Self::Redis,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
@@ -151,7 +164,7 @@ impl keyvalue::Keyvalue for Keyvalue {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Keyvalue::new(&state.implementor, &state, name).await;
+        let inner = Self::Keyvalue::new(state.implementor.as_str().into(), &state, name).await;
 
         Ok(inner)
     }
@@ -161,12 +174,7 @@ impl keyvalue::Keyvalue for Keyvalue {
         self_: &Self::Keyvalue,
         key: &str,
     ) -> Result<Vec<u8>, KeyvalueError> {
-        Ok(match &self_.keyvalue_implementor {
-            KeyvalueImplementors::Filesystem(fi) => fi.get(key)?,
-            KeyvalueImplementors::AzBlob(ai) => ai.get(key).await?,
-            KeyvalueImplementors::AwsDynamoDb(adp) => adp.get(key).await?,
-            KeyvalueImplementors::Redis(ri) => ri.get(key)?,
-        })
+        Ok(self_.keyvalue_implementor.get(key).await?)
     }
 
     async fn keyvalue_set(
@@ -175,12 +183,7 @@ impl keyvalue::Keyvalue for Keyvalue {
         key: &str,
         value: &[u8],
     ) -> Result<(), KeyvalueError> {
-        match &self_.keyvalue_implementor {
-            KeyvalueImplementors::Filesystem(fi) => fi.set(key, value)?,
-            KeyvalueImplementors::AzBlob(ai) => ai.set(key, value).await?,
-            KeyvalueImplementors::AwsDynamoDb(adp) => adp.set(key, value).await?,
-            KeyvalueImplementors::Redis(ri) => ri.set(key, value)?,
-        };
+        self_.keyvalue_implementor.set(key, value).await?;
         Ok(())
     }
 
@@ -188,12 +191,7 @@ impl keyvalue::Keyvalue for Keyvalue {
         &mut self,
         self_: &Self::Keyvalue,
     ) -> Result<Vec<String>, KeyvalueError> {
-        Ok(match &self_.keyvalue_implementor {
-            KeyvalueImplementors::Filesystem(fi) => fi.keys()?,
-            KeyvalueImplementors::AzBlob(ai) => ai.keys().await?,
-            KeyvalueImplementors::AwsDynamoDb(adp) => adp.keys().await?,
-            KeyvalueImplementors::Redis(ri) => ri.keys()?,
-        })
+        Ok(self_.keyvalue_implementor.keys().await?)
     }
 
     async fn keyvalue_delete(
@@ -201,12 +199,7 @@ impl keyvalue::Keyvalue for Keyvalue {
         self_: &Self::Keyvalue,
         key: &str,
     ) -> Result<(), KeyvalueError> {
-        match &self_.keyvalue_implementor {
-            KeyvalueImplementors::Filesystem(fi) => fi.delete(key)?,
-            KeyvalueImplementors::AzBlob(ai) => ai.delete(key).await?,
-            KeyvalueImplementors::AwsDynamoDb(adp) => adp.delete(key).await?,
-            KeyvalueImplementors::Redis(ri) => ri.delete(key)?,
-        };
+        self_.keyvalue_implementor.delete(key).await?;
         Ok(())
     }
 }

@@ -17,9 +17,9 @@ path = "src/lib.rs"
 [dependencies]
 spiderlightning = { path = "../" }
 slight-runtime = { path = "../crates/runtime" }
-slight-keyvalue = { path = "../crates/keyvalue" }
-slight-distributed-locking = { path = "../crates/distributed-locking" }
-slight-messaging = { path = "../crates/messaging" }
+slight-keyvalue = { path = "../crates/keyvalue", features = ["filesystem", "awsdynamodb", "redis", "azblob"]}
+slight-distributed-locking = { path = "../crates/distributed-locking", features = ["etcd"]}
+slight-messaging = { path = "../crates/messaging", features = ["filesystem", "mosquitto", "azsbus"] }
 slight-runtime-configs = { path = "../crates/runtime-configs" }
 slight-common = { path = "../crates/common" }
 slight-http-server = { path = "../crates/http-server" }
@@ -27,13 +27,13 @@ slight-http-client = { path = "../crates/http-client" }
 anyhow = { workspace = true }
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
-tokio = { version = "1", features = ["full"] }
+tokio = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
 clap = { version = "3", features = ["derive"] }
 toml = "0.5"
 as-any = "0.3"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tracing = { version = "0.1", features = ["log"] }
+tracing = { workspace = true }
 reqwest = "0.11"
 flate2 = "1"
 tar = "0.4"

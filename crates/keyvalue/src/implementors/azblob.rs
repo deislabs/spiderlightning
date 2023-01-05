@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use async_trait::async_trait;
 use azure_storage::prelude::*;
 use azure_storage_blobs::{container::operations::BlobItem, prelude::*};
 use slight_common::BasicState;
@@ -6,6 +7,8 @@ use slight_runtime_configs::get_from_state;
 use tracing::log;
 
 use crate::providers::azure;
+
+use super::KeyvalueImplementor;
 
 /// This is the underlying struct behind the `AzBlob` variant of the `KeyvalueImplementor` enum.
 ///
@@ -35,8 +38,11 @@ impl AzBlobImplementor {
         let container_client = service_client.container_client(name);
         Self { container_client }
     }
+}
 
-    pub async fn get(&self, key: &str) -> Result<Vec<u8>> {
+#[async_trait]
+impl KeyvalueImplementor for AzBlobImplementor {
+    async fn get(&self, key: &str) -> Result<Vec<u8>> {
         let blob_client = self.container_client.blob_client(key);
         let res = azure::get(blob_client)
             .await
@@ -44,7 +50,7 @@ impl AzBlobImplementor {
         Ok(res)
     }
 
-    pub async fn set(&self, key: &str, value: &[u8]) -> Result<()> {
+    async fn set(&self, key: &str, value: &[u8]) -> Result<()> {
         let blob_client = self.container_client.blob_client(key);
         let value = Vec::from(value);
         azure::set(blob_client, value)
@@ -53,7 +59,7 @@ impl AzBlobImplementor {
         Ok(())
     }
 
-    pub async fn keys(&self) -> Result<Vec<String>> {
+    async fn keys(&self) -> Result<Vec<String>> {
         let blobs = azure::list_blobs(self.container_client.clone())
             .await
             .with_context(|| "failed to list blobs")?;
@@ -68,7 +74,7 @@ impl AzBlobImplementor {
         Ok(keys)
     }
 
-    pub async fn delete(&self, key: &str) -> Result<()> {
+    async fn delete(&self, key: &str) -> Result<()> {
         let blob_client = self.container_client.blob_client(key);
         azure::delete(blob_client)
             .await

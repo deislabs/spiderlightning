@@ -1,16 +1,11 @@
 mod implementors;
 pub mod providers;
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Result;
 use async_trait::async_trait;
 
-use implementors::{
-    apache_kafka,
-    azsbus::{self, AzSbusImplementor},
-    filesystem::{self, FilesystemImplementor},
-    mosquitto,
-};
+use implementors::{PubImplementor, SubImplementor, *};
 use slight_common::{impl_resource, BasicState};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -41,18 +36,89 @@ pub struct Messaging {
 }
 
 #[derive(Clone, Debug)]
-struct MessagingState {
-    pub_implementor: PubImplementor,
-    sub_implementor: SubImplementor,
+pub struct PubInner {
+    pub_implementor: Arc<dyn PubImplementor + Send + Sync>,
 }
+
+impl PubInner {
+    async fn new(
+        messaging_implementor: MessagingImplementors,
+        slight_state: &BasicState,
+        name: &str,
+    ) -> Result<Self> {
+        Ok(Self {
+            pub_implementor: match messaging_implementor {
+                #[cfg(feature = "filesystem")]
+                MessagingImplementors::Filesystem => {
+                    Arc::new(filesystem::FilesystemImplementor::new(name))
+                }
+                #[cfg(feature = "mosquitto")]
+                MessagingImplementors::Mosquitto => {
+                    Arc::new(mosquitto::Pub::new(slight_state).await)
+                }
+                #[cfg(feature = "apache_kafka")]
+                MessagingImplementors::ConfluentApacheKafka => {
+                    Arc::new(apache_kafka::Pub::new(slight_state).await)
+                }
+                #[cfg(feature = "azsbus")]
+                MessagingImplementors::AzSbus => {
+                    Arc::new(azsbus::AzSbusImplementor::new(slight_state).await)
+                }
+            },
+        })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SubInner {
+    sub_implementor: Arc<dyn SubImplementor + Send + Sync>,
+}
+
+impl SubInner {
+    async fn new(
+        messaging_implementor: MessagingImplementors,
+        slight_state: &BasicState,
+        name: &str,
+    ) -> Result<Self> {
+        let sub_implementor = Self {
+            sub_implementor: match messaging_implementor {
+                #[cfg(feature = "filesystem")]
+                MessagingImplementors::Filesystem => {
+                    Arc::new(filesystem::FilesystemImplementor::new(name))
+                }
+                #[cfg(feature = "mosquitto")]
+                MessagingImplementors::Mosquitto => {
+                    Arc::new(mosquitto::Sub::new(slight_state).await)
+                }
+                #[cfg(feature = "apache_kafka")]
+                MessagingImplementors::ConfluentApacheKafka => {
+                    Arc::new(apache_kafka::Sub::new(slight_state).await)
+                }
+                #[cfg(feature = "azsbus")]
+                MessagingImplementors::AzSbus => {
+                    Arc::new(azsbus::AzSbusImplementor::new(slight_state).await)
+                }
+            },
+        };
+
+        Ok(sub_implementor)
+    }
+}
+
+#[derive(Clone, Debug)]
+struct MessagingState {
+    pub_implementor: PubInner,
+    sub_implementor: SubInner,
+}
+
 impl Messaging {
-    pub async fn new(name: &str, capability_store: HashMap<String, BasicState>) -> Self {
+    pub async fn new(name: &str, capability_store: HashMap<String, BasicState>) -> Result<Self> {
         let state = capability_store.get(name).unwrap().clone();
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let p = PubImplementor::new(&state.implementor, &state, name).await;
-        let s = SubImplementor::new(&state.implementor, &state, name).await;
+        let p = PubInner::new(state.implementor.as_str().into(), &state, name).await?;
+        let s = SubInner::new(state.implementor.as_str().into(), &state, name).await?;
 
         let store = capability_store
             .iter()
@@ -67,7 +133,7 @@ impl Messaging {
             })
             .collect();
 
-        Self { store }
+        Ok(Self { store })
     }
 }
 
@@ -80,8 +146,8 @@ impl_resource!(
 
 #[async_trait]
 impl messaging::Messaging for Messaging {
-    type Pub = PubImplementor;
-    type Sub = SubImplementor;
+    type Pub = PubInner;
+    type Sub = SubInner;
 
     async fn pub_open(&mut self, name: &str) -> Result<Self::Pub, MessagingError> {
         let inner = self.store.get(name).unwrap().clone();
@@ -94,14 +160,7 @@ impl messaging::Messaging for Messaging {
         message: &[u8],
         topic: &str,
     ) -> Result<(), MessagingError> {
-        match &self_ {
-            PubImplementor::ConfluentApacheKafka(pi) => pi.publish(message, topic)?,
-            PubImplementor::Mosquitto(pi) => pi.publish(message, topic).await?,
-            PubImplementor::AzSbus(pi) => pi.publish(message, topic).await?,
-            PubImplementor::Filesystem(pi) => pi.publish(message, topic)?,
-            _ => panic!("Unknown implementor"),
-        };
-
+        self_.pub_implementor.publish(message, topic).await?;
         Ok(())
     }
 
@@ -110,96 +169,49 @@ impl messaging::Messaging for Messaging {
         Ok(inner.sub_implementor)
     }
 
-    async fn sub_receive(
-        &mut self,
-        self_: &Self::Sub,
-        sub_tok: SubscriptionTokenParam<'_>,
-    ) -> Result<Vec<u8>, MessagingError> {
-        Ok(match &self_ {
-            SubImplementor::ConfluentApacheKafka(pi) => pi.receive(sub_tok).await?,
-            SubImplementor::Mosquitto(pi) => pi.receive(sub_tok).await?,
-            SubImplementor::AzSbus(pi) => pi.receive(sub_tok).await?,
-            SubImplementor::Filesystem(pi) => pi.receive(sub_tok)?,
-            _ => panic!("Unknown implementor"),
-        })
-    }
-
     async fn sub_subscribe(
         &mut self,
         self_: &Self::Sub,
         topic: &str,
     ) -> Result<String, MessagingError> {
-        Ok(match &self_ {
-            SubImplementor::ConfluentApacheKafka(pi) => pi.subscribe(topic).await?,
-            SubImplementor::Mosquitto(pi) => pi.subscribe(topic).await?,
-            SubImplementor::AzSbus(pi) => pi.subscribe(topic).await?,
-            SubImplementor::Filesystem(pi) => pi.subscribe(topic)?,
-            _ => panic!("Unknown implementor"),
-        })
+        Ok(self_.sub_implementor.subscribe(topic).await?)
+    }
+
+    async fn sub_receive(
+        &mut self,
+        self_: &Self::Sub,
+        sub_tok: SubscriptionTokenParam<'_>,
+    ) -> Result<Vec<u8>, MessagingError> {
+        Ok(self_.sub_implementor.receive(sub_tok).await?)
     }
 }
 
 /// This defines the available implementor implementations for the `Messaging` interface.
 ///
 /// As per its' usage in `PubInner`, it must `derive` `Debug`, and `Clone`.
-#[derive(Debug, Clone, Default)]
-pub enum PubImplementor {
-    #[default]
-    Empty,
-    ConfluentApacheKafka(apache_kafka::Pub),
-    Mosquitto(mosquitto::Pub),
-    Filesystem(filesystem::FilesystemImplementor),
-    AzSbus(azsbus::AzSbusImplementor),
+#[derive(Debug, Clone)]
+pub enum MessagingImplementors {
+    #[cfg(feature = "apache_kafka")]
+    ConfluentApacheKafka,
+    #[cfg(feature = "mosquitto")]
+    Mosquitto,
+    #[cfg(feature = "filesystem")]
+    Filesystem,
+    #[cfg(feature = "azsbus")]
+    AzSbus,
 }
 
-impl PubImplementor {
-    async fn new(messaging_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
-        match messaging_implementor {
-            "messaging.confluent_apache_kafka" => {
-                Self::ConfluentApacheKafka(apache_kafka::Pub::new(slight_state).await)
-            }
-            "messaging.mosquitto" => Self::Mosquitto(mosquitto::Pub::new(slight_state).await),
-            "messaging.filesystem" | "mq.filesystem" => {
-                Self::Filesystem(FilesystemImplementor::new(name))
-            }
-            "messaging.azsbus" | "mq.azsbus" => {
-                Self::AzSbus(AzSbusImplementor::new(slight_state).await)
-            }
-            p => panic!(
-                "failed to match provided name (i.e., '{p}') to any known host implementations"
-            ),
-        }
-    }
-}
-
-/// This defines the available implementor implementations for the `Messaging` interface.
-///
-/// As per its' usage in `PubInner`, it must `derive` `Debug`, and `Clone`.
-#[derive(Debug, Clone, Default)]
-pub enum SubImplementor {
-    #[default]
-    Empty,
-    ConfluentApacheKafka(apache_kafka::Sub),
-    Mosquitto(mosquitto::Sub),
-    Filesystem(filesystem::FilesystemImplementor),
-    AzSbus(azsbus::AzSbusImplementor),
-}
-
-impl SubImplementor {
-    async fn new(messaging_implementor: &str, slight_state: &BasicState, name: &str) -> Self {
-        match messaging_implementor {
-            "messaging.confluent_apache_kafka" | "pubsub.confluent_apache_kafka" => {
-                Self::ConfluentApacheKafka(apache_kafka::Sub::new(slight_state).await)
-            }
-            "messaging.mosquitto" | "pubsub.mosquitto" => {
-                Self::Mosquitto(mosquitto::Sub::new(slight_state).await)
-            }
-            "messaging.filesystem" | "mq.filesystem" => {
-                Self::Filesystem(FilesystemImplementor::new(name))
-            }
-            "messaging.azsbus" | "mq.azsbus" => {
-                Self::AzSbus(AzSbusImplementor::new(slight_state).await)
-            }
+impl From<&str> for MessagingImplementors {
+    fn from(s: &str) -> Self {
+        match s {
+            #[cfg(feature = "apache_kafka")]
+            "messaging.confluent_apache_kafka" => Self::ConfluentApacheKafka,
+            #[cfg(feature = "mosquitto")]
+            "messaging.mosquitto" => Self::Mosquitto,
+            #[cfg(feature = "filesystem")]
+            "messaging.filesystem" | "mq.filesystem" => Self::Filesystem,
+            #[cfg(feature = "azsbus")]
+            "messaging.azsbus" | "mq.azsbus" => Self::AzSbus,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

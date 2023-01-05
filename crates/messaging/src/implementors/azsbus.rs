@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use azure_messaging_servicebus::service_bus::SubscriptionReceiver;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -8,6 +9,8 @@ use anyhow::{Context, Result};
 use azure_messaging_servicebus::prelude::TopicClient;
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
+
+use super::{PubImplementor, SubImplementor};
 
 #[derive(Clone)]
 pub struct AzSbusImplementor {
@@ -57,8 +60,11 @@ impl AzSbusImplementor {
         )
         .unwrap()
     }
+}
 
-    pub async fn publish(&self, msg: &[u8], topic: &str) -> Result<()> {
+#[async_trait]
+impl PubImplementor for AzSbusImplementor {
+    async fn publish(&self, msg: &[u8], topic: &str) -> Result<()> {
         let topic_client = self.make_topic_client(topic);
 
         topic_client
@@ -68,8 +74,11 @@ impl AzSbusImplementor {
 
         Ok(())
     }
+}
 
-    pub async fn subscribe(&self, topic: &str) -> Result<String> {
+#[async_trait]
+impl SubImplementor for AzSbusImplementor {
+    async fn subscribe(&self, topic: &str) -> Result<String> {
         let sub_tok = uuid::Uuid::new_v4().to_string();
 
         let topic_client = self.make_topic_client(topic);
@@ -84,7 +93,7 @@ impl AzSbusImplementor {
         Ok(sub_tok)
     }
 
-    pub async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
+    async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
         block_in_place(|| {
             Handle::current().block_on(async move {
                 let sub_toks = self.subscription_tokens.lock().unwrap();

@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -9,6 +10,8 @@ use mosquitto_rs::{Client, Message, QoS};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 use tokio::{runtime::Handle, task::block_in_place};
+
+use super::{PubImplementor, SubImplementor};
 
 #[derive(Clone)]
 pub struct Pub {
@@ -68,8 +71,11 @@ impl Pub {
 
         Self { producer }
     }
+}
 
-    pub async fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
+#[async_trait]
+impl PubImplementor for Pub {
+    async fn publish(&self, msg_value: &[u8], topic: &str) -> Result<()> {
         block_in_place(|| {
             Handle::current().block_on(async move {
                 self.producer
@@ -104,8 +110,11 @@ impl Sub {
             consumers: Arc::new(Mutex::new(HashMap::new())),
         }
     }
+}
 
-    pub async fn subscribe(&self, topic: &str) -> Result<String> {
+#[async_trait]
+impl SubImplementor for Sub {
+    async fn subscribe(&self, topic: &str) -> Result<String> {
         let new_consumer = block_in_place(|| {
             Handle::current().block_on(async move {
                 let mut client = Client::with_auto_id().unwrap();
@@ -142,7 +151,7 @@ impl Sub {
         Ok(k)
     }
 
-    pub async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
+    async fn receive(&self, sub_tok: &str) -> Result<Vec<u8>> {
         let mut res: Vec<u8> = vec![];
 
         block_in_place(|| {
