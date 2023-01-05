@@ -2,18 +2,18 @@ use anyhow::Result;
 
 use slight_http_handler_macro::register_handler;
 
-wit_bindgen_rust::import!("../../../wit/http.wit");
-wit_error_rs::impl_error!(http::Error);
+wit_bindgen_rust::import!("../../../wit/http-server.wit");
+wit_error_rs::impl_error!(http_server::Error);
 
 wit_bindgen_rust::import!("../../../wit/mq.wit");
 wit_error_rs::impl_error!(mq::Error);
 
 fn main() -> Result<()> {
-    let router = http::Router::new()?;
+    let router = http_server::Router::new()?;
     let router_with_route = router
         .post("/orders/", "handle_make_order")?
         .get("/orders/next/", "handle_get_next_order")?;
-    let _ = http::Server::serve("0.0.0.0:3000", &router_with_route)?;
+    let _ = http_server::Server::serve("0.0.0.0:3000", &router_with_route)?;
     Ok(())
 }
 

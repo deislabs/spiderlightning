@@ -3526,7 +3526,8 @@ dependencies = [
  "reqwest",
  "slight-common",
  "slight-distributed-locking",
- "slight-http",
+ "slight-http-client",
+ "slight-http-server",
  "slight-keyvalue",
  "slight-messaging",
  "slight-runtime",
@@ -3569,7 +3570,44 @@ dependencies = [
 ]
 
 [[package]]
-name = "slight-http"
+name = "slight-http-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "hyper",
+ "tokio",
+ "wasmtime",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-http-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "reqwest",
+ "slight-common",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
+ "wit-error-rs",
+]
+
+[[package]]
+name = "slight-http-handler-macro"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "wit-bindgen-gen-core 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
+ "wit-bindgen-gen-rust-wasm",
+]
+
+[[package]]
+name = "slight-http-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3586,31 +3624,6 @@ dependencies = [
  "url",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
  "wit-error-rs",
-]
-
-[[package]]
-name = "slight-http-api"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "hyper",
- "tokio",
- "wasmtime",
- "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
- "wit-error-rs",
-]
-
-[[package]]
-name = "slight-http-handler-macro"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "proc-macro2",
- "quote",
- "syn",
- "wit-bindgen-gen-core 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-bindgen-gen-rust-wasm",
 ]
 
 [[package]]

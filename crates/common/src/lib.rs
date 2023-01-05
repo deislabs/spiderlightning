@@ -17,6 +17,8 @@ pub trait Capability: AsAny {}
 /// A trait for wit-bindgen resource tables. see [here](https://github.com/bytecodealliance/wit-bindgen/blob/main/crates/wasmtime/src/table.rs) for more details:
 pub trait CapabilityIndexTable: AsAny {}
 
+impl CapabilityIndexTable for () {}
+
 pub trait CapabilityBuilder {
     fn build(self) -> Result<HostState>;
 }
@@ -33,14 +35,34 @@ pub type HostState = (
 #[allow(unknown_lints)]
 #[allow(clippy::crate_in_macro_def)]
 macro_rules! impl_resource {
-    ($resource:ident, $resource_table:ty, $state:ident, $add_to_linker:path, $scheme_name:expr) => {
+    ($resource:ident, $add_to_linker:path, $scheme_name:expr) => {
+        // This macro is used to the implement a new Capability. It does not
+        // require a resource table.
+        impl slight_common::Capability for $resource {}
+        impl slight_common::CapabilityBuilder for $resource {
+            fn build(self) -> anyhow::Result<slight_common::HostState> {
+                Ok((Box::new(self), Some(Box::new(()))))
+            }
+        }
+
+        impl slight_common::WasmtimeLinkable for $resource {
+            fn add_to_linker<Ctx: slight_common::Ctx + Send + Sync + 'static>(
+                linker: &mut slight_common::Linker<Ctx>,
+            ) -> anyhow::Result<()> {
+                $add_to_linker(linker, |ctx| {
+                    Ctx::get_host_state::<$resource, ()>(ctx, $scheme_name).0
+                })
+            }
+        }
+    };
+
+    ($resource:ident, $resource_table:ty, $add_to_linker:path, $scheme_name:expr) => {
+        // This macro is used to the implement a new Capability. It requires a
+        // resource table.
         impl slight_common::Capability for $resource {}
         impl slight_common::CapabilityIndexTable for $resource_table {}
         impl slight_common::CapabilityBuilder for $resource {
             fn build(self) -> anyhow::Result<slight_common::HostState> {
-                /// We prepare a default resource with host-provided state.
-                /// Then the guest will pass other configuration state to the resource.
-                /// This is done in the `<Capability>::open` function.
                 Ok((Box::new(self), Some(Box::new(<$resource_table>::default()))))
             }
         }
@@ -57,6 +79,8 @@ macro_rules! impl_resource {
     };
 
     ($resource:ty, $resource_table:ty, $state:ty, $lt:tt, $add_to_linker:path, $scheme_name:expr) => {
+        // This macro is used to the implement a new Capability. It requires
+        // a resource table and is generic to builder type.
         impl<$lt> slight_common::Capability for $resource where
             $lt: slight_common::WasmtimeBuildable + 'static
         {
@@ -70,9 +94,6 @@ macro_rules! impl_resource {
             $lt: slight_common::WasmtimeBuildable + Send + Sync + 'static,
         {
             fn build(self) -> anyhow::Result<slight_common::HostState> {
-                /// We prepare a default resource with host-provided state.
-                /// Then the guest will pass other configuration state to the resource.
-                /// This is done in the `<Capability>::open` function.
                 Ok((Box::new(self), Some(Box::new(<$resource_table>::default()))))
             }
         }

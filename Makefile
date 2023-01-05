@@ -79,7 +79,8 @@ build-rust:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/distributed-locking-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/messaging-producer-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/messaging-consumer-demo/Cargo.toml & \
-	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-server-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-client-demo/Cargo.toml & \
 	wait; \
 	/bin/sh -c 'echo "DONE"'
 
@@ -126,11 +127,13 @@ run-rust:
 .PHONY: clean-rust
 clean-rust:
 	cargo clean --manifest-path ./examples/configs-demo/Cargo.toml & \
-    cargo clean --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
-    cargo clean --manifest-path ./examples/keyvalue-demo/Cargo.toml & \
-    cargo clean --manifest-path ./examples/distributed-locking-demo/Cargo.toml & \
-    cargo clean --manifest-path ./examples/messaging-producer-demo/Cargo.toml & \
-    cargo clean --manifest-path ./examples/messaging-consumer-demo/Cargo.toml & \
+	cargo clean --manifest-path ./examples/multi_capability-demo/Cargo.toml & \
+	cargo clean --manifest-path ./examples/keyvalue-demo/Cargo.toml & \
+	cargo clean --manifest-path ./examples/distributed-locking-demo/Cargo.toml & \
+	cargo clean --manifest-path ./examples/messaging-producer-demo/Cargo.toml & \
+	cargo clean --manifest-path ./examples/messaging-consumer-demo/Cargo.toml & \
+	cargo clean --manifest-path ./examples/http-client-demo/Cargo.toml & \
+	cargo clean --manifest-path ./examples/http-server-demo/Cargo.toml & \
 	wait; \
 	/bin/sh -c 'echo "DONE"'
 

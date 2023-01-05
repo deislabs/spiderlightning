@@ -1,12 +1,12 @@
 use anyhow::Result;
 
-use http::*;
+use http_server::*;
 use keyvalue::*;
 use slight_http_handler_macro::register_handler;
 
-wit_bindgen_rust::import!("../../wit/http.wit");
+wit_bindgen_rust::import!("../../wit/http-server.wit");
 wit_bindgen_rust::import!("../../wit/keyvalue.wit");
-wit_error_rs::impl_error!(http::HttpRouterError);
+wit_error_rs::impl_error!(http_server::HttpRouterError);
 wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
 fn main() -> Result<()> {

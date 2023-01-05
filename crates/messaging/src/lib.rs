@@ -140,7 +140,6 @@ impl Messaging {
 impl_resource!(
     Messaging,
     messaging::MessagingTables<Messaging>,
-    MessagingState,
     messaging::add_to_linker,
     "messaging".to_string()
 );

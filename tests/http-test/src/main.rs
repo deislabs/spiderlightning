@@ -1,10 +1,10 @@
 use anyhow::Result;
 
-use http::*;
+use http_server::*;
 use slight_http_handler_macro::register_handler;
 
-wit_bindgen_rust::import!("../../wit/http.wit");
-wit_error_rs::impl_error!(http::HttpRouterError);
+wit_bindgen_rust::import!("../../wit/http-server.wit");
+wit_error_rs::impl_error!(http_server::HttpRouterError);
 
 fn main() -> Result<()> {
     let router = Router::new()?;

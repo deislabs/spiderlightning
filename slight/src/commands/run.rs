@@ -7,7 +7,8 @@ use anyhow::{bail, Result};
 use as_any::Downcast;
 use slight_common::{BasicState, Capability, WasmtimeBuildable};
 use slight_distributed_locking::DistributedLocking;
-use slight_http::Http;
+use slight_http_client::HttpClient;
+use slight_http_server::HttpServer;
 use slight_keyvalue::Keyvalue;
 use slight_messaging::Messaging;
 use slight_runtime::{Builder, Ctx};
@@ -68,7 +69,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
     if http_enabled {
         log::debug!("Http capability enabled");
         let guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module).await?;
-        let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
+        let http_api_resource: &mut HttpServer<Builder> = get_resource(&mut store, "http");
         http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     }
 
@@ -80,7 +81,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
     if http_enabled {
         log::info!("waiting for http to finish...");
         shutdown_signal().await;
-        let http_api_resource: &mut Http<Builder> = get_resource(&mut store, "http");
+        let http_api_resource: &mut HttpServer<Builder> = get_resource(&mut store, "http");
         http_api_resource.close();
     }
     Ok(())
@@ -193,13 +194,24 @@ async fn build_store_instance(
             }
             "http" => {
                 if !linked_capabilities.contains("http") {
-                    let http = slight_http::Http::<Builder>::default();
+                    let http = slight_http_server::HttpServer::<Builder>::default();
                     builder
-                        .link_capability::<Http<Builder>>()?
+                        .link_capability::<HttpServer<Builder>>()?
                         .add_to_builder("http".to_string(), http);
                     linked_capabilities.insert("http".to_string());
                 } else {
                     bail!("the http capability was already linked");
+                }
+            }
+            "http-client" => {
+                if !linked_capabilities.contains("http-client") {
+                    let http_client = HttpClient::new();
+                    builder
+                        .link_capability::<HttpClient>()?
+                        .add_to_builder("http-client".to_string(), http_client);
+                    linked_capabilities.insert("http-client".to_string());
+                } else {
+                    bail!("the http-client capability was already linked");
                 }
             }
             _ => {
