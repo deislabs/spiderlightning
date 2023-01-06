@@ -5,7 +5,7 @@ use slight_http_handler_macro::register_handler;
 
 wit_bindgen_rust::import!("../../wit/http-server.wit");
 wit_bindgen_rust::import!("../../wit/http-client.wit");
-wit_error_rs::impl_error!(http_server::HttpError);
+wit_error_rs::impl_error!(http_server::HttpRouterError);
 wit_error_rs::impl_error!(http_client::HttpError);
 
 fn main() -> Result<()> {

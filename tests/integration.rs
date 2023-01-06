@@ -190,12 +190,13 @@ mod integration_tests {
 
             let client = hyper::Client::new();
 
-            let (res1, res2, res3, res4, res5) = join!(
+            let (res1, res2, res3, res4, res5, res6) = join!(
                 handle_get_request(&client),
                 handle_get_params(&client),
                 handle_put_request(&client),
                 handle_post_request(&client),
                 handle_delete_request(&client),
+                handle_request(&client)
             );
 
             child.interrupt().expect("Error interrupting child");
@@ -206,6 +207,7 @@ mod integration_tests {
             assert!(res3.is_ok());
             assert!(res4.is_ok());
             assert!(res5.is_ok());
+            assert!(res6.is_ok());
 
             Ok(())
         }
@@ -288,6 +290,18 @@ mod integration_tests {
                 .expect("request builder");
 
             // curl -X DELETE http://0.0.0.0:3000/upload
+            let res = client.request(req).await?;
+            assert!(res.status().is_success());
+            Ok(())
+        }
+
+        async fn handle_request(client: &Client<HttpConnector>) -> Result<()> {
+            let req = Request::builder()
+                .method(Method::GET)
+                .uri("http://0.0.0.0:3000/request")
+                .body(Body::empty())
+                .expect("request builder");
+
             let res = client.request(req).await?;
             assert!(res.status().is_success());
             Ok(())
