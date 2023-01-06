@@ -17,4 +17,4 @@ hyper = "0.14"
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 [dev-dependencies]
-tokio = { version = "1.4", features = ["full"] }
+tokio = { workspace = true }

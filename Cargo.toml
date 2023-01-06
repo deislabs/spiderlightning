@@ -31,13 +31,14 @@ wasi-common = "0.39"
 wasi-cap-std-sync = "0.39"
 anyhow = "1"
 async-trait = "0.1"
-mosquitto-rs = { version = "0.4.0", features = ["default"] }
+tokio = { version = "1", features = ["full"] }
+tracing = { version = "0.1", features = ["log"] }
 
 [dev-dependencies]
 hyper = { version = "0.14", features = ["full"] }
-tokio = { version = "1.20", features = ["full"] }
+tokio = { workspace = true }
 tempdir = "0.3"
-mosquitto-rs = { workspace = true }
+mosquitto-rs = { version = "0.4.0", features = ["vendored-openssl", "vendored-mosquitto"] }
 
 [target.'cfg(unix)'.dev-dependencies]
 signal-child = "1"

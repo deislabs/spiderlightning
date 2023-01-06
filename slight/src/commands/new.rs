@@ -29,8 +29,7 @@ pub async fn handle_new(name_at_release: &str, template: &Templates) -> Result<(
     }
 
     let resp = reqwest::get(format!(
-        "https://github.com/deislabs/spiderlightning/releases/download/{}/{}-template.tar.gz",
-        release, template
+        "https://github.com/deislabs/spiderlightning/releases/download/{release}/{template}-template.tar.gz"
     ))
     .await?;
     if resp.status() == 404 {
@@ -47,8 +46,8 @@ pub async fn handle_new(name_at_release: &str, template: &Templates) -> Result<(
     };
 
     handle_add(
-        &format!("keyvalue@{}", release),
-        Some(&format!("./{}/wit/", project_name)),
+        &format!("keyvalue@{release}"),
+        Some(&format!("./{project_name}/wit/")),
     )
     .await?;
 
@@ -61,7 +60,7 @@ fn setup_c_template(project_name: &str, release: &str) -> Result<()> {
     makefile_s = makefile_s.replace("{{release}}", release);
 
     let mut makefile_f = File::create("./c/Makefile")?;
-    write!(makefile_f, "{}", makefile_s)?;
+    write!(makefile_f, "{makefile_s}")?;
     drop(makefile_f);
 
     better_rename("c", project_name)?;
@@ -73,12 +72,12 @@ fn setup_rust_template(project_name: &str, release: &str) -> Result<()> {
     let mut cargo_s = read_to_string("./rust/Cargo.toml")?;
     cargo_s = cargo_s.replace("{{project-name}}", project_name);
     let mut cargo_f = File::create("./rust/Cargo.toml")?;
-    write!(cargo_f, "{}", cargo_s)?;
+    write!(cargo_f, "{cargo_s}")?;
 
     let mut main_s = read_to_string("./rust/src/main.rs")?;
     main_s = main_s.replace("{{release}}", release);
     let mut main_f = File::create("./rust/src/main.rs")?;
-    write!(main_f, "{}", main_s)?;
+    write!(main_f, "{main_s}")?;
     drop(cargo_f);
     drop(main_f);
 
@@ -88,6 +87,6 @@ fn setup_rust_template(project_name: &str, release: &str) -> Result<()> {
 }
 
 fn better_rename(from: &str, to: &str) -> Result<()> {
-    std::fs::rename(from, to).with_context(|| format!("could not create project: {}", to))?;
+    std::fs::rename(from, to).with_context(|| format!("could not create project: {to}"))?;
     Ok(())
 }
