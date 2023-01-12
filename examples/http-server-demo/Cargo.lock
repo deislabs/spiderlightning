@@ -35,7 +35,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "http-demo"
+name = "http-server-demo"
 version = "0.1.0"
 dependencies = [
  "anyhow",
