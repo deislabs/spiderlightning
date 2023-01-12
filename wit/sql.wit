@@ -16,7 +16,7 @@ resource sql {
 // e.g., "SELECT * FROM users WHERE name = $1 AND age = $2"
 // vec!["John Doe", "32"]
 resource statement {
-    static prepare-statement: func(query: string, params: list<string>) -> statement    
+    static prepare: func(query: string, params: list<string>) -> statement    
 }
 
 // iterator data type

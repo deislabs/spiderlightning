@@ -117,7 +117,7 @@ impl sql::Sql for Sql {
         Ok(self_.sql_implementor.exec(&statement.query).await?)
     }
 
-    async fn statement_prepare_statement(&mut self, query: &str, params: Vec<&str>) -> Self::Statement {
+    async fn statement_prepare(&mut self, query: &str, params: Vec<&str>) -> Self::Statement {
         let mut prepared_query = String::from(query);
         let mut param_index = 0;
         while let Some(start_index) = prepared_query.find('?') {
