@@ -1,10 +1,10 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use postgres::{Client, NoTls};
 use slight_common::BasicState;
 use slight_runtime_configs::get_from_state;
 use tokio::task::block_in_place;
-use chrono::{NaiveDate, NaiveTime, NaiveDateTime};
 
 use crate::sql::DataType;
 
@@ -80,7 +80,8 @@ impl SqlImplementor for PostgresImplementor {
                         }
                         "timestamp" => {
                             let v: String = row.get(i);
-                            let parsed = NaiveDateTime::parse_from_str(&v, "%Y-%m-%d %H:%M:%S").unwrap();
+                            let parsed =
+                                NaiveDateTime::parse_from_str(&v, "%Y-%m-%d %H:%M:%S").unwrap();
                             DataType::Timestamp(parsed.to_string())
                         }
                         "bytea" => {

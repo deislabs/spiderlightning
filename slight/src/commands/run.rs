@@ -201,7 +201,8 @@ async fn build_store_instance(
                     linked_capabilities.insert("sql".to_string());
                 }
 
-                let resource = slight_sql::Sql::new(resource_type.to_string(), capability_store.clone());
+                let resource =
+                    slight_sql::Sql::new(resource_type.to_string(), capability_store.clone());
                 builder.add_to_builder("sql".to_string(), resource);
             }
             "http" => {

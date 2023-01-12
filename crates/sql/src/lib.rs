@@ -33,16 +33,11 @@ pub struct SqlInner {
 }
 
 impl SqlInner {
-    async fn new(
-        sql_implementor: SqlImplementors,
-        slight_state: &BasicState,
-    ) -> Self {
+    async fn new(sql_implementor: SqlImplementors, slight_state: &BasicState) -> Self {
         Self {
             sql_implementor: match sql_implementor {
                 #[cfg(feature = "postgres")]
-                SqlImplementors::Postgres => {
-                    Arc::new(PostgresImplementor::new(slight_state).await)
-                }
+                SqlImplementors::Postgres => Arc::new(PostgresImplementor::new(slight_state).await),
             },
         }
     }
@@ -50,7 +45,7 @@ impl SqlInner {
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone)]
-    pub enum SqlImplementors {
+pub enum SqlImplementors {
     #[cfg(feature = "postgres")]
     Postgres,
 }
@@ -76,7 +71,7 @@ impl_resource!(
 
 #[derive(Debug)]
 pub struct StatementInner {
-    query: String
+    query: String,
 }
 
 #[async_trait]
@@ -126,7 +121,7 @@ impl sql::Sql for Sql {
                 panic!("Not enough parameters provided for the query");
             }
             let param = &params[param_index];
-    
+
             let mut quoted_param = "'".to_string();
             for ch in param.chars() {
                 quoted_param.push(match ch {
@@ -142,9 +137,9 @@ impl sql::Sql for Sql {
         if params.len() != param_index {
             panic!("Too many parameters provided for the query");
         }
-        
+
         StatementInner {
-            query: prepared_query
+            query: prepared_query,
         }
     }
 }
