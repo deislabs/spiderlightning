@@ -1,0 +1,7 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "sql.postgres"
+name = "my-db"
+    [capability.configs]
+    POSTGRES_CONNECTION_URL = "${azapp.POSTGRES_CONNECTION_URL}"
