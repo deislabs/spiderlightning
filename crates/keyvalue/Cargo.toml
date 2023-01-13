@@ -21,7 +21,7 @@ tokio = { workspace = true }
 async-trait = { workspace = true }
 # kv.azblob deps
 azure_storage_blobs = { version = "0.8", optional = true }
-azure_storage = { version = "0.8", optional = true }
+azure_storage = { version = "0.9", optional = true }
 azure_core = { version = "0.8", optional = true }
 bytes = { version = "1", optional = true }
 futures = { version = "0.3", optional = true }
