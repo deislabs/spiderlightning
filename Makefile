@@ -51,7 +51,7 @@ install-deps-macos:
 	chmod +x /opt/wasi-sdk/bin/clang
 	brew update
 	brew install protobuf
-	brew install redis
+	brew install redis || true
 
 .PHONY: install-deps-win
 install-deps-win:
