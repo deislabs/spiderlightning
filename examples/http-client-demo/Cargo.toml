@@ -1,0 +1,17 @@
+[package]
+name = "http-client-demo"
+version = "0.1.0"
+edition = "2021"
+authors = ["DeisLabs Engineering Team"]
+
+[[bin]]
+name = "http-client-demo"
+test = false
+
+[dependencies]
+anyhow = "1"
+wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0" }
+wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
+slight-http-handler-macro = { path = "../../crates/http-handler-macro" }
+
+[workspace]

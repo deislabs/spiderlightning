@@ -1,0 +1,3 @@
+use { request, response, http-error } from http-types
+
+request: func(req: request) -> expected<response, http-error>

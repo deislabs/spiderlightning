@@ -39,3 +39,12 @@ record response {
     headers: option<headers>,
     body: option<body>,
 }
+
+/// HTTP errors returned by the runtime.
+variant http-error {
+    invalid-url(string),
+    timeout-error(string),
+    protocol-error(string),
+    status-error(u16),
+    unexpected-error(string)
+}

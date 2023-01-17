@@ -22,13 +22,14 @@ slight-distributed-locking = { path = "../crates/distributed-locking", features 
 slight-messaging = { path = "../crates/messaging", features = ["filesystem", "mosquitto", "azsbus"] }
 slight-runtime-configs = { path = "../crates/runtime-configs" }
 slight-common = { path = "../crates/common" }
-slight-http = { path = "../crates/http" }
+slight-http-server = { path = "../crates/http-server" }
+slight-http-client = { path = "../crates/http-client" }
 anyhow = { workspace = true }
 env_logger = "0.9"
 log = { version = "0.4", default-features = false }
 tokio = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
-clap = { version = "3", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
 toml = "0.5"
 as-any = "0.3"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
