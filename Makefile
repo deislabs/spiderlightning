@@ -70,6 +70,17 @@ install-slight:
 	install ./target/release/slight $(INSTALL_DIR_PREFIX)/bin
 ### END OF INSTALLS
 
+### RUST TESTS
+.PHONY: build-rust-integration-tests
+build-rust-integration-tests:
+	cargo build --target wasm32-wasi --release --manifest-path ./tests/configs-test/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./tests/keyvalue-test/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./tests/http-test/Cargo.toml & \
+	wait; \
+	/bin/sh -c 'echo "DONE"'
+
+### END OF RUST TESTS
+
 ### RUST EXAMPLES
 .PHONY: build-rust
 build-rust:

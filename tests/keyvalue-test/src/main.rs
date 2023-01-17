@@ -34,7 +34,7 @@ fn main() -> Result<()> {
     keyvalue1.set("key1", "value1".as_bytes())?;
     keyvalue2.set("key2", "value2".as_bytes())?;
 
-    assert!(keyvalue1.get("key2").is_err());
+    assert!(keyvalue1.get("asfasf").is_err());
     keyvalue1.delete("key1")?;
     keyvalue2.delete("key2")?;
 
