@@ -55,4 +55,5 @@ members = [
     "crates/runtime",
     "crates/runtime-configs",
     "crates/common",
+    "crates/sql"
 ]

@@ -1,0 +1,51 @@
+resource sql {
+    /// open a sql client
+	static open: func(name: string) -> expected<sql, sql-error>
+
+    // query is optimized for querying data, and 
+    // implementors can make use of that fact to optimize 
+    // the performance of query execution (e.g., using
+    // indexes).
+    query: func(q: statement) -> expected<list<row-item>, sql-error>
+    
+    // exec is for modifying data in the database.
+    exec: func(q: statement) -> expected<unit, sql-error>
+}
+
+// allows parameterized queries
+// e.g., "SELECT * FROM users WHERE name = $1 AND age = $2"
+// vec!["John Doe", "32"]
+resource statement {
+    static prepare: func(query: string, params: list<string>) -> statement    
+}
+
+// iterator data type
+record row-item {
+    field-name: string,
+    value: data-type,
+}
+
+// common data types
+variant data-type {
+    int32(s32),
+    int64(s64),
+    uint32(u32),
+    uint64(u64),
+    float(float64),
+    double(float64),
+    str(string),
+    boolean(bool),
+    date(string),
+    time(string),
+    timestamp(string),
+    binary(list<u8>),
+    null
+}
+
+// common error types
+variant sql-error {
+    syntax-error(string),
+    constraint-violation(string),
+    access-violation(string),
+    unexpected-error(string)
+}

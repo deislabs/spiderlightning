@@ -13,6 +13,7 @@ use slight_keyvalue::Keyvalue;
 use slight_messaging::Messaging;
 use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
+use slight_sql::Sql;
 use spiderlightning::core::slightfile::{Capability as TomlCapability, TomlFile};
 use wit_bindgen_wasmtime::wasmtime::Store;
 
@@ -39,6 +40,8 @@ const MESSAGING_HOST_IMPLEMENTORS: [&str; 8] = [
 ];
 const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
     ["configs.usersecrets", "configs.envvars", "configs.azapp"];
+
+const SQL_HOST_IMPLEMENTORS: [&str; 1] = ["sql.postgres"];
 
 pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Path>) -> Result<()> {
     let toml_file_contents =
@@ -191,6 +194,16 @@ async fn build_store_instance(
                     capability_store.clone(),
                 );
                 builder.add_to_builder("configs".to_string(), resource);
+            }
+            _ if SQL_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("sql") {
+                    builder.link_capability::<Sql>()?;
+                    linked_capabilities.insert("sql".to_string());
+                }
+
+                let resource =
+                    slight_sql::Sql::new(resource_type.to_string(), capability_store.clone());
+                builder.add_to_builder("sql".to_string(), resource);
             }
             "http" => {
                 if !linked_capabilities.contains("http") {
