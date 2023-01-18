@@ -4,7 +4,9 @@ use http_server::*;
 use slight_http_handler_macro::register_handler;
 
 wit_bindgen_rust::import!("../../wit/http-server.wit");
+wit_bindgen_rust::import!("../../wit/http-client.wit");
 wit_error_rs::impl_error!(http_server::HttpRouterError);
+wit_error_rs::impl_error!(http_client::HttpError);
 
 fn main() -> Result<()> {
     let router = Router::new()?;
@@ -14,7 +16,8 @@ fn main() -> Result<()> {
         .get("/foo", "handle_foo")?
         .put("/bar", "handle_bar")?
         .post("/upload", "upload")?
-        .delete("/delete-file", "delete_file_handler")?;
+        .delete("/delete-file", "delete_file_handler")?
+        .get("/request", "handle_request")?;
 
     println!("guest starting server");
     let _ = Server::serve("0.0.0.0:3000", &router_with_route)?;
@@ -81,4 +84,22 @@ fn upload(request: Request) -> Result<Response, HttpError> {
         body: request.body,
         status: 200,
     })
+}
+
+#[register_handler]
+fn handle_request(_request: Request) -> Result<Response, HttpError> {
+    let req = crate::http_client::Request {
+        method: crate::http_client::Method::Get,
+        uri: "https://some-random-api.ml/facts/cat",
+        headers: &[],
+        body: None,
+        params: &[],
+    };
+    let res = crate::http_client::request(req).unwrap();
+    let res = Response {
+        status: res.status,
+        headers: res.headers,
+        body: res.body,
+    };
+    Ok(res)
 }

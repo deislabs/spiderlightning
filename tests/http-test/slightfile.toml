@@ -4,3 +4,7 @@ specversion = "0.2"
 resource = "http"
 name = "my-rest-api"
     # This capability does not require any configs
+
+[[capability]]
+resource = "http-client"
+name = "request"
