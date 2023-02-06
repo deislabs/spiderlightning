@@ -41,11 +41,33 @@ jobs:
       - uses: actions/checkout@v1
       - uses: Swatinem/rust-cache@v1
 
-      - name: "add rustup wasm targets"
+      # 
+      # Install build tools
+      #      
+      - name: "Install Dependencies on Linux"
+        run: make install-deps
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - name: "Install Dependencies on MacOS"
+        run: make install-deps-macos
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') }}
+
+      - name: "Install make tool on Windows"
+        run: choco install make -y
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      - name: "Install Dependencies on Windows"
+        run: make install-deps-win
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+      
+      - name: "Install Rust Wasm targets"
         run: |
           rustup target add wasm32-wasi
           rustup target add wasm32-unknown-unknown
-          rustup target add aarch64-apple-darwin 
+          rustup target add aarch64-apple-darwin  
+
+      - name: "Install wit-bindgen-cli"
+        run: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0
 
       - run : choco install openssl
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}           
