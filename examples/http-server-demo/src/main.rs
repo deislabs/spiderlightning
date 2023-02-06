@@ -37,13 +37,22 @@ fn handle_hello(req: Request) -> Result<Response, HttpError> {
 
 #[register_handler]
 fn handle_foo(request: Request) -> Result<Response, HttpError> {
-    let keyvalue = Keyvalue::open("my-container").unwrap();
-    let value = keyvalue.get("key").unwrap();
-    Ok(Response {
-        headers: Some(request.headers),
-        body: Some(value),
-        status: 500,
-    })
+    let keyvalue =
+        Keyvalue::open("my-container").map_err(|e| HttpError::UnexpectedError(e.to_string()))?;
+
+    match keyvalue.get("key") {
+        Err(KeyvalueError::KeyNotFound(_)) => Ok(Response {
+            headers: Some(request.headers),
+            body: Some("Key not found".as_bytes().to_vec()),
+            status: 404,
+        }),
+        Ok(value) => Ok(Response {
+            headers: Some(request.headers),
+            body: Some(value),
+            status: 200,
+        }),
+        Err(e) => Err(HttpError::UnexpectedError(e.to_string())),
+    }
 }
 
 #[register_handler]
@@ -51,15 +60,18 @@ fn handle_bar(request: Request) -> Result<Response, HttpError> {
     assert_eq!(request.method, Method::Put);
     println!("request body: {:?}", request.body);
     if let Some(body) = request.body {
-        let keyvalue = Keyvalue::open("my-container").unwrap();
+        let keyvalue = Keyvalue::open("my-container")
+            .map_err(|e| HttpError::UnexpectedError(e.to_string()))?;
         println!("here1");
-        keyvalue.set("key", &body).unwrap();
+        keyvalue
+            .set("key", &body)
+            .map_err(|e| HttpError::UnexpectedError(e.to_string()))?;
         println!("here2");
     }
     Ok(Response {
         headers: Some(request.headers),
         body: None,
-        status: 200,
+        status: 204,
     })
 }
 
@@ -72,7 +84,6 @@ fn delete_file_handler(request: Request) -> Result<Response, HttpError> {
         status: 200,
     })
 }
-
 
 #[register_handler]
 fn upload(request: Request) -> Result<Response, HttpError> {
