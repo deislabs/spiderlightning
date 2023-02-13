@@ -1,55 +1,40 @@
-<img align="right" src="docs/images/tmp-logo.png" width="150px" />
 
-# SpiderLightning (or, `slight`)
-SpiderLightning defines a set of [WebAssembly Interface Types](https://github.com/WebAssembly/interface-types/blob/main/proposals/interface-types/Explainer.md) (i.e., WIT) files that abstract distributed application capabilities, such as state management, pub/sub, event driven programming, and more.  
+<div align="center">
+  <h1><code>SpiderLightning</code></h1>
+  <img src="docs/images/tmp-logo.png" width="150px" />
+  <p>
+    <strong> A set of
+    <a href="https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md">WIT</a> interfaces that abstract distributed application capabilities and a runtime CLI for running Wasm applications that use these capabilities. 
+    </strong>
+  </p>
+</div>
 
-In simple terms, SpiderLightning allows you to go:
-<table>
-<tr>
-    <th>From this:</th>
-    <th>To this:</th>
-</tr>
-<tr>
-    <td><img src="docs/images/readme0.png"/></td>
-    <td><img src="docs/images/readme1.png"/></td>
-</tr>
-</table>
+> Warning: Alpha quality software, do not use in production.
 
+## About
+SpiderLightning defines a set of [*.wit](https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md) files that abstract distributed application capabilities, such as key-value, messaging, http-server/client and more.  
 
-## Repository Structure
+Slight CLI is a runtime for running Wasm applications that compile to [WASI](https://wasi.dev/) and use SpiderLightning capabilities.
 
-- `/crates`: service implementations
-- `/docs`: useful documentation to help you understand design decisions, and how to contribute
-- `/examples`: guest examples
-- `/proposals`: design documents
-- `/slight`: the SpiderLightning host cli (i.e., Slight)
-- `/src`: core functionalities from SpiderLightning
-- `/templates`: templates used by `slight add` to create a new Rust or C project
-- `/tests`: guest tests
-- `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
+This repo also contains libraries that implement of SpiderLightning capabilities to common cloud services including AWS, Azure and more.
 
-## Looking for Contributors
-Do you want to contribute to SpiderLightning's growth? 
+## Installation
 
-<p align="center">Start with our <a href="https://github.com/deislabs/spiderlightning/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a></p>
-
-Aside from the `CONTRIBUTING.md` doc, here are a few other good starting points to contributing:
-- the [`service-implementation-101.md` doc](https://github.com/deislabs/spiderlightning/blob/main/docs/service-implementation-101.md): a step-by-step guide to develop your first service implementor, and
-- the [SpiderLightning YouTube Playlist](https://www.youtube.com/playlist?list=PLL6BzOBDywQcXy3otj_Y-20SCSOv-MxT3): a collection of informative and tutorial videos on SpiderLightning/`slight`.
-
-## How to install on MacOS and Linux?
+### UNIX
 
 ```sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.sh)"
 ```
 
-## How to install on Windows?
+### Windows
 
 ```sh
 iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/deislabs/spiderlightning/main/install.ps1'))
 ```
 
 ## Getting Started
+
+`slight` relies on a WIT bindings generator [wit-bindgen v0.2.0](https://github.com/bytecodealliance/wit-bindgen), and currently only supports C and Rust applications. We are planning to add more language supports, such as Go and JavaScript/TypeScript.
 
 ```sh
 slight new -n spidey@v0.1.0 rust && cd spidey
@@ -85,9 +70,30 @@ make build-c # builds our c example
 make run-c # runs our c example
 ```
 
-# Building Rust Examples
+## Building Rust Examples
 
 There are also Rust examples that can be built (`build-rust`) and ran (`run-rust`). However, we do not recommend running them because some of these examples have dependencies on environment variables or local programs (e.g., `etcd`), so it probably won't work right off the gate like the C one did.
+
+## Repository Structure
+
+- `/crates`: service implementations
+- `/docs`: useful documentation to help you understand design decisions, and how to contribute
+- `/examples`: guest examples
+- `/proposals`: design documents
+- `/slight`: the SpiderLightning host cli (i.e., Slight)
+- `/src`: core functionalities from SpiderLightning
+- `/templates`: templates used by `slight add` to create a new Rust or C project
+- `/tests`: guest tests
+- `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
+
+## Looking for Contributors
+Do you want to contribute to SpiderLightning's growth? 
+
+<p align="center">Start with our <a href="https://github.com/deislabs/spiderlightning/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a></p>
+
+Aside from the `CONTRIBUTING.md` doc, here are a few other good starting points to contributing:
+- the [`service-implementation-101.md` doc](https://github.com/deislabs/spiderlightning/blob/main/docs/service-implementation-101.md): a step-by-step guide to develop your first service implementor, and
+- the [SpiderLightning YouTube Playlist](https://www.youtube.com/playlist?list=PLL6BzOBDywQcXy3otj_Y-20SCSOv-MxT3): a collection of informative and tutorial videos on SpiderLightning/`slight`.
 
 ## FAQ
 
