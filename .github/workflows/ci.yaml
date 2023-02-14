@@ -25,8 +25,9 @@ jobs:
       with:
         profile: minimal
         toolchain: stable  
-    - name: "Install Rust Wasm targets"
+    - name: "Install Wasm Targets and Deps"
       run: |
+        make install-deps
         rustup target add wasm32-wasi
         rustup target add wasm32-unknown-unknown
     - uses: Swatinem/rust-cache@v1
