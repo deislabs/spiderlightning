@@ -13,6 +13,29 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  #
+  # Check formatting of the source code
+  #
+  rustfmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable  
+    - name: "Install Wasm Targets and Deps"
+      run: |
+        make install-deps
+        rustup target add wasm32-wasi
+        rustup target add wasm32-unknown-unknown
+    - uses: Swatinem/rust-cache@v1
+    - name: Format source code
+      run: make improve
+  #
+  # Build and test on multiple platforms
+  #
   build:
     runs-on: ${{ matrix.config.os }}
     strategy:
@@ -77,10 +100,7 @@ jobs:
       #
       # Build
       #
-      - name: "Run clippy and fmt"
-        run: make improve        
-        if: ${{ matrix.config.platformAgnosticChecks }}
-
+      
       - name: "Build SpiderLightning and Slight"
         run: make build
         if: ${{ matrix.config.platformAgnosticChecks }}
