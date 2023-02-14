@@ -1,6 +1,7 @@
 use std::{
     fs::{create_dir_all, remove_dir_all, File},
-    io::{self, ErrorKind}, process::Command,
+    io::{self, ErrorKind},
+    process::Command,
 };
 
 use anyhow::Result;
