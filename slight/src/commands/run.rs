@@ -6,6 +6,7 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use slight_common::{BasicState, Capability, WasmtimeBuildable};
+use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 use slight_distributed_locking::DistributedLocking;
 use slight_http_client::HttpClient;
 use slight_http_server::HttpServer;
@@ -14,7 +15,6 @@ use slight_messaging::Messaging;
 use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
 use slight_sql::Sql;
-use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 use wit_bindgen_wasmtime::wasmtime::Store;
 
 const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
