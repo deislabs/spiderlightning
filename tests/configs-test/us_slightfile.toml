@@ -2,7 +2,7 @@ specversion = "0.2"
 
 [[secret_settings]]
 name = "key"
-value = "rTQy17M4"
+value = "ma033Ti4"
 
 [[capability]]
 resource = "configs.usersecrets"

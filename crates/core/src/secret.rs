@@ -101,7 +101,7 @@ mod unittests {
     use tempdir::TempDir;
 
     use super::create_secret;
-    use crate::core::slightfile::TomlFile;
+    use crate::slightfile::TomlFile;
 
     #[test]
     fn create_secret_test() -> Result<()> {

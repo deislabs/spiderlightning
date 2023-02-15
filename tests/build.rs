@@ -27,7 +27,6 @@ fn main() {
             eprintln!("Error: {target} target is not installed. Run `rustup target add {target}`");
             std::process::exit(1);
         }
-
         // Build test wasm modules
         cargo_wasi_build(KEYVALUE_TEST_PATH);
         cargo_wasi_build(HTTP_TEST_PATH);
@@ -36,6 +35,7 @@ fn main() {
 }
 
 fn cargo_wasi_build(path: &str) {
+    let out_dir = format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR"));
     let mut cmd = Command::new("cargo");
     let output = cmd
         .arg("build")
@@ -43,6 +43,7 @@ fn cargo_wasi_build(path: &str) {
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .current_dir(path)
+        .env("CARGO_TARGET_DIR", &out_dir)
         .output()
         .expect("failed to execute process");
     let code = output.status.code().expect("should have status code");

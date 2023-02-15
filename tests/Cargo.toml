@@ -9,8 +9,9 @@ repository = { workspace = true }
 [dependencies]
 
 [dev-dependencies]
-hyper = { version = "0.14", features = ["full"] }
+hyper = { workspace = true, features = ["full"] }
 tokio = { workspace = true }
+anyhow = { workspace = true }
 
 [target.'cfg(unix)'.dev-dependencies]
 signal-child = "1"

@@ -13,10 +13,10 @@ doctest = false
 wit-bindgen-wasmtime = { workspace = true }
 anyhow = { workspace = true }
 wit-error-rs = { workspace = true }
-slight-common = { path = "../common" }
-rand = "0.8"
+slight-common = { workspace = true }
+rand = { workspace = true }
 slight-core = { path = "../core" }
-toml = "0.5"
+toml = { workspace = true }
 short-crypt = "1"
 azure-app-configuration = { git = "https://github.com/danbugs/azure-app-configuration.git", rev = "e6cc5bdd3d5dedb6fb48f0dcdf0ec674c8033cf6" }
 tracing = { workspace = true }
@@ -24,4 +24,4 @@ async-trait = { workspace = true }
 regex = "1.6"
 
 [dev-dependencies]
-tempdir = "0.3"
+tempdir = { workspace = true }
