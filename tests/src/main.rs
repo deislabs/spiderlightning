@@ -31,11 +31,11 @@ mod integration_tests {
         use anyhow::Result;
 
         const CONFIGS_TEST_MODULE: &str =
-            "./tests/configs-test/target/wasm32-wasi/debug/configs-test.wasm";
+            "./configs-test/target/wasm32-wasi/debug/configs-test.wasm";
 
         #[test]
         fn envvars_test() -> Result<()> {
-            let file_config = "./tests/configs-test/azapp_slightfile.toml";
+            let file_config = "./configs-test/azapp_slightfile.toml";
             run(
                 SLIGHT,
                 vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
@@ -45,7 +45,7 @@ mod integration_tests {
 
         #[test]
         fn usersecrets_test() -> Result<()> {
-            let file_config = "./tests/configs-test/us_slightfile.toml";
+            let file_config = "./configs-test/us_slightfile.toml";
             run(
                 SLIGHT,
                 vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
@@ -55,7 +55,7 @@ mod integration_tests {
 
         #[test]
         fn azapp_test() -> Result<()> {
-            let file_config = "./tests/configs-test/azapp_slightfile.toml";
+            let file_config = "./configs-test/azapp_slightfile.toml";
             run(
                 SLIGHT,
                 vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
@@ -77,11 +77,11 @@ mod integration_tests {
         use anyhow::Result;
 
         const KEYVALUE_TEST_MODULE: &str =
-            "./tests/keyvalue-test/target/wasm32-wasi/debug/keyvalue-test.wasm";
+            "./keyvalue-test/target/wasm32-wasi/debug/keyvalue-test.wasm";
 
         #[test]
         fn filesystem_test() -> Result<()> {
-            let file_config = "./tests/keyvalue-test/keyvalue_filesystem_slightfile.toml";
+            let file_config = "./keyvalue-test/keyvalue_filesystem_slightfile.toml";
             run(
                 SLIGHT,
                 vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
@@ -91,7 +91,7 @@ mod integration_tests {
 
         #[test]
         fn azblob_test() -> Result<()> {
-            let file_config = "./tests/keyvalue-test/keyvalue_azblob_slightfile.toml";
+            let file_config = "./keyvalue-test/keyvalue_azblob_slightfile.toml";
             run(
                 SLIGHT,
                 vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
@@ -101,7 +101,7 @@ mod integration_tests {
 
         // #[test]
         // fn aws_dynamodb_test() -> Result<()> {
-        //     let file_config = "./tests/keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
+        //     let file_config = "./keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
         //     run(
         //         SLIGHT,
         //         vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
@@ -140,7 +140,7 @@ mod integration_tests {
             // sleep 5 seconds waiting for redis server to start
             std::thread::sleep(std::time::Duration::from_secs(5));
 
-            let file_config = "./tests/keyvalue-test/keyvalue_redis_slightfile.toml";
+            let file_config = "./keyvalue-test/keyvalue_redis_slightfile.toml";
             env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{port}"));
             run(
                 SLIGHT,
@@ -163,6 +163,7 @@ mod integration_tests {
     }
 
     #[cfg(unix)]
+    #[cfg(test)]
     mod http_tests_unix {
 
         use std::process::Command;
@@ -178,11 +179,11 @@ mod integration_tests {
         };
         // use futures::future::{FutureExt};
 
-        const HTTP_TEST_MODULE: &str = "./tests/http-test/target/wasm32-wasi/debug/http-test.wasm";
+        const HTTP_TEST_MODULE: &str = "./http-test/target/wasm32-wasi/debug/http-test.wasm";
 
         #[tokio::test]
         async fn http_test() -> Result<()> {
-            let config = "./tests/http-test/slightfile.toml";
+            let config = "./http-test/slightfile.toml";
             let mut child = Command::new(SLIGHT)
                 .args(["-c", config, "run", "-m", HTTP_TEST_MODULE])
                 .spawn()?;
@@ -309,3 +310,5 @@ mod integration_tests {
     }
     // TODO: We need to add distributed_locking, and messaging_test modules
 }
+
+fn main() {}

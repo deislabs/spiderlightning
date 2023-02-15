@@ -4,7 +4,7 @@ use std::{
     io::Write,
 };
 
-use crate::core::slightfile::{Config, TomlFile};
+use crate::slightfile::{Config, TomlFile};
 use anyhow::{bail, Result};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use short_crypt::ShortCrypt;

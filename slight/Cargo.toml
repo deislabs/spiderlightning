@@ -15,7 +15,7 @@ name = "slight_lib"
 path = "src/lib.rs"
 
 [dependencies]
-spiderlightning = { path = "../" }
+slight-core = { path = "../crates/core" }
 slight-runtime = { path = "../crates/runtime" }
 slight-keyvalue = { path = "../crates/keyvalue", features = ["filesystem", "awsdynamodb", "redis", "azblob"]}
 slight-distributed-locking = { path = "../crates/distributed-locking", features = ["etcd"]}

@@ -4,9 +4,9 @@ use std::{
 };
 
 const WIT_DIRECTORY: &str = "wit/*";
-const KEYVALUE_TEST_PATH: &str = "tests/keyvalue-test";
-const HTTP_TEST_PATH: &str = "tests/http-test";
-const CONFIGS_TEST_PATH: &str = "tests/configs-test";
+const KEYVALUE_TEST_PATH: &str = "./keyvalue-test";
+const HTTP_TEST_PATH: &str = "./http-test";
+const CONFIGS_TEST_PATH: &str = "./configs-test";
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
