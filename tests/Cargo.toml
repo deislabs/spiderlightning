@@ -6,6 +6,9 @@ authors = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
 
+[lib]
+doctest = false
+
 [dependencies]
 
 [dev-dependencies]

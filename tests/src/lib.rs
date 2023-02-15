@@ -3,6 +3,7 @@ use std::{
     process::Command,
 };
 
+#[allow(dead_code)]
 fn slight_path() -> String {
     format!("{}/../target/release/slight", env!("CARGO_MANIFEST_DIR"))
 }
@@ -343,5 +344,3 @@ mod integration_tests {
     }
     // TODO: We need to add distributed_locking, and messaging_test modules
 }
-
-fn main() {}
