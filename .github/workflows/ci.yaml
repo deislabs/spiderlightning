@@ -8,6 +8,7 @@ on:
     paths-ignore:
       - "docs/**"
       - "README.md"
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
