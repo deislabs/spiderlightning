@@ -12,6 +12,7 @@ jobs:
   build: 
     uses: ./.github/workflows/ci.yaml
   create_release:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
