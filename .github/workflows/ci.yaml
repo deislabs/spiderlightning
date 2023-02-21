@@ -140,3 +140,72 @@ jobs:
         env:
           OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
           OPENSSL_NO_VENDOR: true
+
+      #
+      # Prepare release and upload artifacts for release.yml
+      #
+
+      - run: make prepare-release
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - name: upload ubuntu-latest tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: slight-linux-x86_64.tar.gz
+          path: ./slight-linux-x86_64.tar.gz
+          retention-days: 5
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - name: upload rust template tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: rust-template.tar.gz
+          path: ./rust-template.tar.gz
+          retention-days: 5
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - name: upload c template tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: c-template.tar.gz
+          path: ./c-template.tar.gz
+          retention-days: 5
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - run: make prepare-release-win
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      - name: upload windows-latest tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: slight-windows-x86_64.tar.gz
+          path: ./slight-windows-x86_64.tar.gz
+          retention-days: 5
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      - run: make prepare-release-mac
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'amd64') }}
+
+      - name: upload macos-amd64-latest tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: slight-macos-amd64.tar.gz
+          path: ./slight-macos-amd64.tar.gz
+          retention-days: 5
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'amd64') }}         
+
+      - name: "tar release for macos-aarch64"
+        run: tar -C target/ -czvf slight-macos-aarch64.tar.gz aarch64-apple-darwin/release/slight
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'aarch64') }}
+
+      - name: upload macos-aarch64-latest tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: slight-macos-aarch64.tar.gz
+          path: ./slight-macos-aarch64.tar.gz
+          retention-days: 5
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'aarch64') }}            
