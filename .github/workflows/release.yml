@@ -41,10 +41,11 @@ jobs:
           }
 
     steps:
-      - uses: actions/checkout@v1    
+      - uses: actions/checkout@v1 
+         
       - uses: actions/download-artifact@v3
         with:
-          path: _artifacts
+          path: ./
 
       - name: "add wits, and slight-linux-x86_64 and templates tars to release"
         uses: softprops/action-gh-release@v1
