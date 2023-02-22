@@ -45,7 +45,18 @@ jobs:
          
       - uses: actions/download-artifact@v3
         with:
-          path: ./
+          name: c-template.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: rust-template.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: slight-linux-x86_64.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
 
       - name: "add wits, and slight-linux-x86_64 and templates tars to release"
         uses: softprops/action-gh-release@v1
@@ -56,12 +67,23 @@ jobs:
             wit/*.wit
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
 
+      - uses: actions/download-artifact@v3
+        with:
+          name: slight-windows-x86_64.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}      
+
       - name: "add slight-windows tar to release"
         uses: softprops/action-gh-release@v1
         with:
           files: |
             slight-windows-x86_64.tar.gz
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: slight-macos-amd64.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'amd64') }}   
 
       - name: "add slight-macos-amd64 tar to release"
         uses: softprops/action-gh-release@v1
@@ -70,6 +92,12 @@ jobs:
             slight-macos-amd64.tar.gz
         if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
           fromJSON(matrix.config.arch == 'amd64') }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: slight-macos-aarch64.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'macos-latest') && 
+          fromJSON(matrix.config.arch == 'aarch64') }}         
 
       - name: "add slight-macos-aarch64 tar to release"
         uses: softprops/action-gh-release@v1
