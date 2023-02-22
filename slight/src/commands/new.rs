@@ -38,8 +38,8 @@ pub async fn handle_new(name_at_release: &str, template: &Templates) -> Result<(
     // if version is diff. from release, panic
     release = if !version.eq(&release) {
         // println that we are using release equal to version instead
-        println!("slight version {} is different from the release you are trying to add. slight will use version v{} instead.", release, version);
-        format!("v{}", version)
+        println!("slight version {release} is different from the release you are trying to add. slight will use version v{version} instead.");
+        format!("v{version}")
     } else {
         release
     };

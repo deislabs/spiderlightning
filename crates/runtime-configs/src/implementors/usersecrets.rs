@@ -2,7 +2,7 @@ use std::{fs::OpenOptions, path::Path};
 
 use anyhow::{bail, Result};
 use short_crypt::ShortCrypt;
-use spiderlightning::core::{
+use slight_core::{
     secret::{create_secret, get_key},
     slightfile::TomlFile,
 };
@@ -67,7 +67,7 @@ mod unittests {
     use std::{fs::OpenOptions, io::Write};
 
     use anyhow::Result;
-    use spiderlightning::core::slightfile::TomlFile;
+    use slight_core::slightfile::TomlFile;
     use tempdir::TempDir;
 
     use super::UserSecrets;

@@ -40,9 +40,9 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
     // if version is diff. from release, panic
     release = if !version.eq(&release) {
         // println that we are using release equal to version instead
-        println!("slight version {} is different from the release you are trying to add. slight will use version v{} instead.", release, version);
-        folder_name = folder_name.replace(&release, &format!("v{}", version));
-        format!("v{}", version)
+        println!("slight version {release} is different from the release you are trying to add. slight will use version v{version} instead.");
+        folder_name = folder_name.replace(&release, &format!("v{version}"));
+        format!("v{version}")
     } else {
         release
     };

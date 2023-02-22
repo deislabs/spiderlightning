@@ -9,6 +9,7 @@ use as_any::AsAny;
 pub use context::Ctx;
 pub use state::BasicState;
 
+#[cfg(feature = "wasmtime")]
 pub use wasmtime_runtime::{Builder, Linker, WasmtimeBuildable, WasmtimeLinkable};
 
 /// A trait for wit-bindgen capability

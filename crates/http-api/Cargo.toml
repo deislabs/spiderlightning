@@ -13,7 +13,7 @@ doctest = false
 wasmtime = { workspace = true }
 wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "6f80d65a483fe929a79e2661825d99842227b146", features = ["async"]}
 wit-error-rs = { workspace = true }
-hyper = "0.14"
+hyper = { workspace = true }
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 [dev-dependencies]

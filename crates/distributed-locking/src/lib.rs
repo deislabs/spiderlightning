@@ -146,6 +146,7 @@ impl DistributedLockingInner {
     ) -> Self {
         Self {
             distributed_locking_implementor: match distributed_locking_implementors {
+                #[cfg(feature = "etcd")]
                 DistributedLockingImplementors::Etcd => {
                     Arc::new(etcd::EtcdImplementor::new(slight_state).await)
                 }
@@ -157,12 +158,14 @@ impl DistributedLockingInner {
 /// This defines the available implementor implementations for the `DistributedLocking` interface.
 #[derive(Debug, Clone)]
 enum DistributedLockingImplementors {
+    #[cfg(feature = "etcd")]
     Etcd,
 }
 
 impl From<&str> for DistributedLockingImplementors {
     fn from(s: &str) -> Self {
         match s {
+            #[cfg(feature = "etcd")]
             "distributed_locking.etcd" | "lockd.etcd" => Self::Etcd,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"

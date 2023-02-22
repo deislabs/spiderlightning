@@ -23,7 +23,7 @@ test:
 
 .PHONY: test-integration
 test-integration:
-	RUST_LOG=$(LOG_LEVEL) cargo test --test integration --no-fail-fast  -- --nocapture
+	RUST_LOG=$(LOG_LEVEL) cargo test -p slight-integration-tests --no-fail-fast  -- --nocapture
 ### END OF GENERAL COMMANDS
 
 ### INSTALLS

@@ -5,6 +5,7 @@ use implementors::SqlImplementor;
 use slight_common::{impl_resource, BasicState};
 
 mod implementors;
+#[cfg(feature = "postgres")]
 use implementors::postgres::PostgresImplementor;
 
 use sql::RowItem;

@@ -3,9 +3,13 @@ use std::{
     process::Command,
 };
 
-pub const SLIGHT: &str = "./target/release/slight";
+#[allow(dead_code)]
+fn slight_path() -> String {
+    format!("{}/../target/release/slight", env!("CARGO_MANIFEST_DIR"))
+}
 
 pub fn run(executable: &str, args: Vec<&str>) {
+    println!("Running {executable} with args: {args:?}");
     let mut cmd = Command::new(executable);
     for arg in args {
         cmd.arg(arg);
@@ -27,38 +31,52 @@ pub fn run(executable: &str, args: Vec<&str>) {
 mod integration_tests {
     #[cfg(test)]
     mod configs_tests {
-        use crate::{run, SLIGHT};
-        use anyhow::Result;
+        use std::path::PathBuf;
 
-        const CONFIGS_TEST_MODULE: &str =
-            "./tests/configs-test/target/wasm32-wasi/debug/configs-test.wasm";
+        use crate::{run, slight_path};
+        use anyhow::Result;
 
         #[test]
         fn envvars_test() -> Result<()> {
-            let file_config = "./tests/configs-test/azapp_slightfile.toml";
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/configs-test.wasm");
+            let file_config = &format!(
+                "{}/configs-test/azapp_slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
             run(
-                SLIGHT,
-                vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
+                &slight_path(),
+                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
 
         #[test]
         fn usersecrets_test() -> Result<()> {
-            let file_config = "./tests/configs-test/us_slightfile.toml";
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/configs-test.wasm");
+            let file_config = &format!(
+                "{}/configs-test/us_slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
             run(
-                SLIGHT,
-                vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
+                &slight_path(),
+                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
 
         #[test]
         fn azapp_test() -> Result<()> {
-            let file_config = "./tests/configs-test/azapp_slightfile.toml";
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/configs-test.wasm");
+            let file_config = &format!(
+                "{}/configs-test/azapp_slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
             run(
-                SLIGHT,
-                vec!["-c", file_config, "run", "-m", CONFIGS_TEST_MODULE],
+                &slight_path(),
+                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
@@ -66,6 +84,7 @@ mod integration_tests {
 
     #[cfg(test)]
     mod keyvalue_tests {
+        use std::path::PathBuf;
         #[cfg(unix)]
         use std::{
             env,
@@ -73,37 +92,44 @@ mod integration_tests {
             process::Command,
         };
 
-        use crate::{run, SLIGHT};
+        use crate::{run, slight_path};
         use anyhow::Result;
-
-        const KEYVALUE_TEST_MODULE: &str =
-            "./tests/keyvalue-test/target/wasm32-wasi/debug/keyvalue-test.wasm";
 
         #[test]
         fn filesystem_test() -> Result<()> {
-            let file_config = "./tests/keyvalue-test/keyvalue_filesystem_slightfile.toml";
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/keyvalue-test.wasm");
+            let file_config = &format!(
+                "{}/keyvalue-test/keyvalue_filesystem_slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
             run(
-                SLIGHT,
-                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+                &slight_path(),
+                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
 
         #[test]
         fn azblob_test() -> Result<()> {
-            let file_config = "./tests/keyvalue-test/keyvalue_azblob_slightfile.toml";
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/keyvalue-test.wasm");
+            let file_config = &format!(
+                "{}/keyvalue-test/keyvalue_azblob_slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
             run(
-                SLIGHT,
-                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+                &slight_path(),
+                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
 
         // #[test]
         // fn aws_dynamodb_test() -> Result<()> {
-        //     let file_config = "./tests/keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
+        //     let file_config = "./keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
         //     run(
-        //         SLIGHT,
+        //         &slight_path(),
         //         vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
         //     );
         //     Ok(())
@@ -140,11 +166,16 @@ mod integration_tests {
             // sleep 5 seconds waiting for redis server to start
             std::thread::sleep(std::time::Duration::from_secs(5));
 
-            let file_config = "./tests/keyvalue-test/keyvalue_redis_slightfile.toml";
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/keyvalue-test.wasm");
+            let file_config = &format!(
+                "{}/keyvalue-test/keyvalue_redis_slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
             env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{port}"));
             run(
-                SLIGHT,
-                vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+                &slight_path(),
+                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
             );
 
             // kill the server
@@ -163,11 +194,12 @@ mod integration_tests {
     }
 
     #[cfg(unix)]
+    #[cfg(test)]
     mod http_tests_unix {
 
-        use std::process::Command;
+        use std::{path::PathBuf, process::Command};
 
-        use crate::SLIGHT;
+        use crate::slight_path;
         use anyhow::Result;
         use hyper::{body, client::HttpConnector, Body, Client, Method, Request, StatusCode};
         use signal_child::Signalable;
@@ -176,15 +208,18 @@ mod integration_tests {
             join,
             time::{sleep, Duration},
         };
-        // use futures::future::{FutureExt};
-
-        const HTTP_TEST_MODULE: &str = "./tests/http-test/target/wasm32-wasi/debug/http-test.wasm";
 
         #[tokio::test]
         async fn http_test() -> Result<()> {
-            let config = "./tests/http-test/slightfile.toml";
-            let mut child = Command::new(SLIGHT)
-                .args(["-c", config, "run", "-m", HTTP_TEST_MODULE])
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/http-test.wasm");
+            println!(
+                "out_dir: {}",
+                out_dir.to_owned().as_os_str().to_str().unwrap()
+            );
+            let config = &format!("{}/http-test/slightfile.toml", env!("CARGO_MANIFEST_DIR"));
+            let mut child = Command::new(slight_path())
+                .args(["-c", config, "run", "-m", out_dir.to_str().unwrap()])
                 .spawn()?;
             sleep(Duration::from_secs(2)).await;
 

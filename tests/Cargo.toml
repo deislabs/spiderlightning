@@ -1,0 +1,20 @@
+[package]
+name = "slight-integration-tests"
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[lib]
+doctest = false
+
+[dependencies]
+
+[dev-dependencies]
+hyper = { workspace = true, features = ["full"] }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+
+[target.'cfg(unix)'.dev-dependencies]
+signal-child = "1"

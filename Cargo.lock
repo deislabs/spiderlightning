@@ -3730,11 +3730,11 @@ dependencies = [
  "anyhow",
  "as-any",
  "clap",
- "env_logger",
  "flate2",
  "log",
  "reqwest",
  "slight-common",
+ "slight-core",
  "slight-distributed-locking",
  "slight-http-client",
  "slight-http-server",
@@ -3743,7 +3743,6 @@ dependencies = [
  "slight-runtime",
  "slight-runtime-configs",
  "slight-sql",
- "spiderlightning",
  "tar",
  "tempdir",
  "tokio",
@@ -3762,6 +3761,18 @@ dependencies = [
  "async-trait",
  "slight-http-api",
  "wasmtime",
+]
+
+[[package]]
+name = "slight-core"
+version = "0.3.1"
+dependencies = [
+ "anyhow",
+ "rand 0.8.5",
+ "serde",
+ "short-crypt",
+ "tempdir",
+ "toml",
 ]
 
 [[package]]
@@ -3806,18 +3817,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "slight-http-handler-macro"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "proc-macro2",
- "quote",
- "syn",
- "wit-bindgen-gen-core 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-bindgen-gen-rust-wasm",
-]
-
-[[package]]
 name = "slight-http-server"
 version = "0.1.0"
 dependencies = [
@@ -3835,6 +3834,16 @@ dependencies = [
  "url",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
  "wit-error-rs",
+]
+
+[[package]]
+name = "slight-integration-tests"
+version = "0.3.1"
+dependencies = [
+ "anyhow",
+ "hyper",
+ "signal-child",
+ "tokio",
 ]
 
 [[package]]
@@ -3917,7 +3926,7 @@ dependencies = [
  "regex",
  "short-crypt",
  "slight-common",
- "spiderlightning",
+ "slight-core",
  "tempdir",
  "toml",
  "tracing",
@@ -3966,21 +3975,6 @@ checksum = "02e2d2db9033d13a1567121ddd7a095ee144db4e1ca1b1bda3419bc0da294ebd"
 dependencies = [
  "libc",
  "winapi",
-]
-
-[[package]]
-name = "spiderlightning"
-version = "0.3.1"
-dependencies = [
- "anyhow",
- "hyper",
- "rand 0.8.5",
- "serde",
- "short-crypt",
- "signal-child",
- "tempdir",
- "tokio",
- "toml",
 ]
 
 [[package]]
@@ -5400,16 +5394,6 @@ source = "git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e266
 dependencies = [
  "heck 0.3.3",
  "wit-bindgen-gen-core 0.2.0 (git+https://github.com/Mossaka/wit-bindgen?rev=6f80d65a483fe929a79e2661825d99842227b146)",
-]
-
-[[package]]
-name = "wit-bindgen-gen-rust-wasm"
-version = "0.2.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0#cb871cfa1ee460b51eb1d144b175b9aab9c50aba"
-dependencies = [
- "heck 0.3.3",
- "wit-bindgen-gen-core 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
- "wit-bindgen-gen-rust 0.2.0 (git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0)",
 ]
 
 [[package]]

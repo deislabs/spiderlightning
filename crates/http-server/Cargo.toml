@@ -12,15 +12,15 @@ doctest = false
 [dependencies]
 anyhow = { workspace = true }
 wit-bindgen-wasmtime = { git = "https://github.com/Mossaka/wit-bindgen", rev = "6f80d65a483fe929a79e2661825d99842227b146" }
-url = "2.2"
+url = { workspace = true }
 wit-error-rs = { workspace = true }
 routerify = "3"
 routerify-cors = "3"
 crossbeam-utils = "0.8"
 crossbeam-channel = "0.5"
-hyper = "0.14"
+hyper = { workspace = true }
 futures = "0.3"
 tokio = { workspace = true }
 tracing = { workspace = true }
-slight-http-api = { path = "../http-api" }
-slight-common = { path = "../common" }
+slight-http-api = { workspace = true }
+slight-common = { workspace = true }
