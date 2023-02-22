@@ -13,16 +13,12 @@ fn main() -> Result<()> {
     let router = Router::new()?;
     let router_with_route = router
         .get("/hello", "handle_hello")?
-        .get("/foo", "handle_foo")?
-        .put("/bar", "handle_bar")?
+        .get("/get", "handle_get")?
+        .put("/set", "handle_set")?
         .post("/upload", "upload")?
         .delete("/delete-file", "delete_file_handler")?;
-
-    println!("guest starting server");
+    println!("Server is running on port 3000");
     let _ = Server::serve("0.0.0.0:3000", &router_with_route)?;
-    // server.stop().unwrap();
-    println!("guest moving on");
-
     Ok(())
 }
 
@@ -36,7 +32,7 @@ fn handle_hello(req: Request) -> Result<Response, HttpError> {
 }
 
 #[register_handler]
-fn handle_foo(request: Request) -> Result<Response, HttpError> {
+fn handle_get(request: Request) -> Result<Response, HttpError> {
     let keyvalue =
         Keyvalue::open("my-container").map_err(|e| HttpError::UnexpectedError(e.to_string()))?;
 
@@ -56,17 +52,14 @@ fn handle_foo(request: Request) -> Result<Response, HttpError> {
 }
 
 #[register_handler]
-fn handle_bar(request: Request) -> Result<Response, HttpError> {
+fn handle_set(request: Request) -> Result<Response, HttpError> {
     assert_eq!(request.method, Method::Put);
-    println!("request body: {:?}", request.body);
     if let Some(body) = request.body {
         let keyvalue = Keyvalue::open("my-container")
             .map_err(|e| HttpError::UnexpectedError(e.to_string()))?;
-        println!("here1");
         keyvalue
             .set("key", &body)
             .map_err(|e| HttpError::UnexpectedError(e.to_string()))?;
-        println!("here2");
     }
     Ok(Response {
         headers: Some(request.headers),

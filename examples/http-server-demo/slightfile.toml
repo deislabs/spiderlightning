@@ -6,10 +6,9 @@ name = "my-rest-api"
     # This capability does not require any configs
 
 [[capability]]
-resource = "keyvalue.awsdynamodb"
+resource = "keyvalue.azblob"
 name = "my-container"
-    # This capability loads its' config from environment variables. It requires:
-    #   - `AWS_ACCESS_KEY_ID`,
-    #   - `AWS_SECRET_ACCESS_KEY`, and
-    #   - `AWS_REGION`.
+    [capability.configs]
+    AZURE_STORAGE_ACCOUNT = "${azapp.AZURE_STORAGE_ACCOUNT}"
+    AZURE_STORAGE_KEY = "${azapp.AZURE_STORAGE_KEY}"
 
