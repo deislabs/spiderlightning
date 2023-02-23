@@ -13,8 +13,8 @@ doctest = false
 [dependencies]
 wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
-slight-common = { path = "../common" }
-slight-runtime-configs = { path = "../runtime-configs" }
+slight-common = { workspace = true }
+slight-runtime-configs = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }

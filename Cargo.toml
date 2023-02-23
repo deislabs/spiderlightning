@@ -1,28 +1,23 @@
-[package]
-name = "spiderlightning"
-version = "0.2.0"
-edition = { workspace = true }
-authors = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
-
 [workspace.package]
+version = "0.3.1"
 authors = ["DeisLabs Engineering Team"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/deislabs/spiderlightning"
 
-[lib]
-doctest = false
-
-[dependencies]
-anyhow = "1"
-serde = { version = "1", features = ["derive"] }
-short-crypt = "1"
-rand = "0.8"
-toml = "0.5"
 
 [workspace.dependencies]
+slight-core = { path = "./crates/core" }
+slight-runtime = { path = "./crates/runtime" }
+slight-keyvalue = { path = "./crates/keyvalue" }
+slight-distributed-locking = { path = "./crates/distributed-locking" }
+slight-messaging = { path = "./crates/messaging" }
+slight-runtime-configs = { path = "./crates/runtime-configs" }
+slight-common = { path = "./crates/common" }
+slight-sql = { path = "./crates/sql" }
+slight-http-server = { path = "./crates/http-server" }
+slight-http-client = { path = "./crates/http-client" }
+slight-http-api = { path = "./crates/http-api" }
 wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0", features = ["async"] }
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
 wasmtime = "0.39"
@@ -33,27 +28,20 @@ anyhow = "1"
 async-trait = "0.1"
 tokio = { version = "1", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
-
-[dev-dependencies]
-hyper = { version = "0.14", features = ["full"] }
-tokio = { workspace = true }
+toml = "0.5"
 tempdir = "0.3"
-mosquitto-rs = { version = "0.4.0", features = ["vendored-openssl", "vendored-mosquitto"] }
-
-[target.'cfg(unix)'.dev-dependencies]
-signal-child = "1"
+log = { version = "0.4", default-features = false }
+env_logger = "0.9"
+as-any = "0.3"
+serde = { version = "1", features = ["derive"] }
+hyper = "0.14"
+url = "2.2"
+rand = "0.8"
 
 [workspace]
 members = [
     "slight",
-    "crates/keyvalue",
-    "crates/distributed-locking",
-    "crates/http-server",
-    "crates/http-client",
-    "crates/http-api",
-    "crates/http-handler-macro",
-    "crates/messaging",
-    "crates/runtime",
-    "crates/runtime-configs",
+    "crates/core",
     "crates/common",
+    "tests"
 ]

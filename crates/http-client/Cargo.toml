@@ -14,5 +14,5 @@ anyhow = { workspace = true }
 async-trait = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
-slight-common = { path = "../common" }
+slight-common = { workspace = true }
 reqwest = { version = "0.11" }

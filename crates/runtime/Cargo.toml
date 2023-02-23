@@ -16,15 +16,15 @@ wasmtime-wasi = { workspace = true }
 wasi-common = { workspace = true }
 wasi-cap-std-sync = { workspace = true }
 anyhow = { workspace = true }
-as-any = "0.3"
+as-any = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
 crossbeam-channel = "0.5"
-slight-http-api = { path = "../http-api/" }
+slight-http-api = { workspace = true }
 tracing = { workspace = true }
-slight-common = { path = "../common" }
+slight-common = { workspace = true }
 dyn-clone = "1"
 async-trait = { workspace = true }
 
 [dev-dependencies]
-slight-keyvalue = { path = "../keyvalue" }
+slight-keyvalue = { workspace = true }
 tokio = { workspace = true }

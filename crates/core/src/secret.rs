@@ -4,7 +4,7 @@ use std::{
     io::Write,
 };
 
-use crate::core::slightfile::{Config, TomlFile};
+use crate::slightfile::{Config, TomlFile};
 use anyhow::{bail, Result};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use short_crypt::ShortCrypt;
@@ -101,7 +101,7 @@ mod unittests {
     use tempdir::TempDir;
 
     use super::create_secret;
-    use crate::core::slightfile::TomlFile;
+    use crate::slightfile::TomlFile;
 
     #[test]
     fn create_secret_test() -> Result<()> {

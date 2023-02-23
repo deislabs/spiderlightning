@@ -1,5 +1,5 @@
 use anyhow::Result;
-use spiderlightning::core::{secret::create_secret, slightfile::TomlFile};
+use slight_core::{secret::create_secret, slightfile::TomlFile};
 use std::{fs::OpenOptions, path::Path};
 
 pub fn handle_secret(key: &str, value: &str, toml_file_path: impl AsRef<Path>) -> Result<()> {

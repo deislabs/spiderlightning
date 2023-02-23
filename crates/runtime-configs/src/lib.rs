@@ -248,7 +248,7 @@ fn maybe_get_config_store_and_value(c: &str) -> Result<(String, String)> {
 #[cfg(test)]
 mod unittests {
     use anyhow::Result;
-    use spiderlightning::core::slightfile::TomlFile;
+    use slight_core::slightfile::TomlFile;
 
     use crate::maybe_get_config_store_and_value;
 

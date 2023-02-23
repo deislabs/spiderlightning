@@ -1,6 +1,7 @@
 use std::{
     fs::{create_dir_all, remove_dir_all, File},
     io::{self, ErrorKind},
+    process::Command,
 };
 
 use anyhow::Result;
@@ -15,7 +16,7 @@ const DISTRIBUTED_LOCKING_DOWNLOADS: [&str; 1] = ["distributed-locking"];
 const MESSAGING_DOWNLOADS: [&str; 1] = ["messaging"];
 
 pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Result<()> {
-    let (interface, release, folder_name) = if !what_to_add.contains('@') {
+    let (interface, mut release, mut folder_name) = if !what_to_add.contains('@') {
         panic!("invalid usage: to add an interface to your project, say `slight add -i <interface-name>@<release-tag>`");
         // TODO: In the future, let's support omitting the release tag to download the latest release
     } else {
@@ -23,10 +24,30 @@ pub async fn handle_add(what_to_add: &str, folder_prefix: Option<&str>) -> Resul
         // ^^^ fine to unwrap, we are guaranteed to have a '@' at this point.
         (
             &what_to_add[..find_at],
-            &what_to_add[find_at + 1..],
+            what_to_add[find_at + 1..].to_string(),
             what_to_add.replace('@', "_"),
         )
     };
+
+    let output = Command::new("slight")
+        .arg("--version")
+        .output()
+        .expect("failed to execute process");
+
+    let version = String::from_utf8_lossy(&output.stdout);
+    let version = version.replace("slight", "").trim().to_string();
+
+    // if version is diff. from release, panic
+    release = if !version.eq(&release) {
+        // println that we are using release equal to version instead
+        println!("slight version {release} is different from the release you are trying to add. slight will use version v{version} instead.");
+        folder_name = folder_name.replace(&release, &format!("v{version}"));
+        format!("v{version}")
+    } else {
+        release
+    };
+
+    // change folder name to have new release
 
     match what_to_add {
         _ if interface.eq("keyvalue")

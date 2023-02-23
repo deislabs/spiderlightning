@@ -23,7 +23,7 @@ test:
 
 .PHONY: test-integration
 test-integration:
-	RUST_LOG=$(LOG_LEVEL) cargo test --test integration --no-fail-fast  -- --nocapture
+	RUST_LOG=$(LOG_LEVEL) cargo test -p slight-integration-tests --no-fail-fast  -- --nocapture
 ### END OF GENERAL COMMANDS
 
 ### INSTALLS
@@ -85,6 +85,7 @@ build-rust:
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/messaging-consumer-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-server-demo/Cargo.toml & \
 	cargo build --target wasm32-wasi --release --manifest-path ./examples/http-client-demo/Cargo.toml & \
+	cargo build --target wasm32-wasi --release --manifest-path ./examples/sql-demo/Cargo.toml & \
 	wait; \
 	/bin/sh -c 'echo "DONE"'
 
@@ -127,6 +128,8 @@ run-rust:
 	# messaging.confluent_apache_kafka
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-consumer-demo/caf_slightfile.toml' run -m ./examples/messaging-consumer-demo/target/wasm32-wasi/release/messaging-consumer-demo.wasm &
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/caf_slightfile.toml' run -m ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm
+	# sql.postgres
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/sql-demo/postgres_slightfile.toml' run -m ./examples/sql-demo/target/wasm32-wasi/release/sql-demo.wasm
 
 .PHONY: clean-rust
 clean-rust:

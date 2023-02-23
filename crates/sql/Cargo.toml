@@ -1,28 +1,24 @@
 [package]
-name = "slight-distributed-locking"
+name = "slight-sql"
 version = "0.1.0"
 edition = { workspace = true }
 authors = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
 
-[lib]
-test = false
-doctest = false
-
 [dependencies]
 wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
-slight-common = { workspace = true }
-slight-runtime-configs = { workspace = true }
+slight-common = { path = "../common" }
+slight-runtime-configs = { path = "../runtime-configs" }
 anyhow = { workspace = true }
 tracing = { workspace = true }
-url = { workspace = true }
-async-trait = { workspace = true }
 tokio = { workspace = true }
-# lockd.etcd deps
-etcd-client = { version = "0.10", optional = true }
+async-trait = { workspace = true }
+# sql.postgres deps
+postgres = { version = "0.19", optional = true }
+chrono = "0.4"
 
 [features]
-default = ["etcd"]
-etcd = ["etcd-client"]
+default = ["postgres"]
+postgres = ["dep:postgres"]

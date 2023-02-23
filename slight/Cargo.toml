@@ -1,6 +1,6 @@
 [package]
 name = "slight"
-version = "0.2.0"
+version = { workspace = true }
 edition = { workspace = true }
 authors = { workspace = true }
 license = { workspace = true }
@@ -15,28 +15,38 @@ name = "slight_lib"
 path = "src/lib.rs"
 
 [dependencies]
-spiderlightning = { path = "../" }
-slight-runtime = { path = "../crates/runtime" }
-slight-keyvalue = { path = "../crates/keyvalue", features = ["filesystem", "awsdynamodb", "redis", "azblob"]}
-slight-distributed-locking = { path = "../crates/distributed-locking", features = ["etcd"]}
-slight-messaging = { path = "../crates/messaging", features = ["filesystem", "mosquitto", "azsbus"] }
-slight-runtime-configs = { path = "../crates/runtime-configs" }
-slight-common = { path = "../crates/common" }
-slight-http-server = { path = "../crates/http-server" }
-slight-http-client = { path = "../crates/http-client" }
+slight-core = { workspace = true }
+slight-runtime = { workspace = true }
+slight-keyvalue = { workspace = true, features = ["filesystem", "awsdynamodb", "redis", "azblob"], optional = true}
+slight-distributed-locking = { workspace = true, features = ["etcd"], optional = true}
+slight-messaging = { workspace = true, features = ["filesystem", "mosquitto", "azsbus"], optional = true}
+slight-runtime-configs = { workspace = true, optional = true }
+slight-common = { workspace = true }
+slight-sql = { workspace = true, features = ["postgres"], optional = true }
+slight-http-server = { workspace = true, optional = true }
+slight-http-client = { workspace = true, optional = true }
 anyhow = { workspace = true }
-env_logger = "0.9"
-log = { version = "0.4", default-features = false }
+log = { workspace = true }
 tokio = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
 clap = { version = "4", features = ["derive"] }
-toml = "0.5"
 as-any = "0.3"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tracing = { workspace = true }
 reqwest = "0.11"
 flate2 = "1"
 tar = "0.4"
 
 [dev-dependencies]
-tempdir = "0.3"
+tempdir = { workspace = true}
+
+[features]
+default = ["keyvalue", "distributed-locking", "messaging", "runtime-configs", "sql", "http-server", "http-client"]
+keyvalue = ["dep:slight-keyvalue"]
+distributed-locking = ["dep:slight-distributed-locking"]
+messaging = ["dep:slight-messaging"]
+runtime-configs = ["dep:slight-runtime-configs"]
+sql = ["dep:slight-sql"]
+http-server = ["dep:slight-http-server"]
+http-client = ["dep:slight-http-client"]
