@@ -4,7 +4,6 @@ use clap::{
     Command,
 };
 
-
 #[derive(Clone, Debug)]
 pub struct WasmModule {
     pub path: String,

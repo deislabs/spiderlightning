@@ -23,9 +23,7 @@ pub async fn handle_add(
     folder_prefix: Option<&str>,
 ) -> Result<()> {
     let (interface, mut release) = (what_to_add.name, what_to_add.version.to_string());
-    let mut folder_name = format!(
-        "{interface}_{release}"
-    );
+    let mut folder_name = format!("{interface}_{release}");
 
     let version = env!("CARGO_PKG_VERSION");
 
