@@ -231,7 +231,7 @@ mod integration_tests {
                 out_dir.to_owned().as_os_str().to_str().unwrap()
             );
             let config = &format!("{}/http-test/slightfile.toml", env!("CARGO_MANIFEST_DIR"));
-            let mut child = spawn(slight_path(), vec!["-c", config, "run", "-m", out_dir.to_str().unwrap()])?;
+            let mut child = spawn(&slight_path(), vec!["-c", config, "run", "-m", out_dir.to_str().unwrap()])?;
             sleep(Duration::from_secs(2)).await;
 
             let client = hyper::Client::new();
@@ -358,7 +358,7 @@ mod integration_tests {
     mod messaging_tests {
         use std::time::Duration;
 
-        use crate::{spawn, SLIGHT};
+        use crate::{spawn, slight_path};
         use anyhow::Result;
         use hyper::{Body, Method, Request};
         use mosquitto_rs::{Client, QoS};
@@ -387,7 +387,7 @@ mod integration_tests {
 
             let file_config = "./tests/messaging-test/messaging.slightfile.toml";
             let http_child = spawn(
-                SLIGHT,
+                &slight_path(),
                 vec![
                     "-c",
                     file_config,
@@ -397,11 +397,11 @@ mod integration_tests {
                 ],
             )?;
             let service_a_child = spawn(
-                SLIGHT,
+                &slight_path(),
                 vec!["-c", file_config, "run", "-m", MESSAGING_SERVICE_A_MODULE],
             )?;
             let service_b_child = spawn(
-                SLIGHT,
+                &slight_path(),
                 vec!["-c", file_config, "run", "-m", MESSAGING_SERVICE_B_MODULE],
             )?;
 

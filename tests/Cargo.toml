@@ -10,11 +10,12 @@ repository = { workspace = true }
 doctest = false
 
 [dependencies]
+anyhow = { workspace = true }
 
 [dev-dependencies]
 hyper = { workspace = true, features = ["full"] }
 tokio = { workspace = true }
-anyhow = { workspace = true }
+mosquitto-rs = { version = "0.4.0", features = ["vendored-openssl", "vendored-mosquitto"] }
 
 [target.'cfg(unix)'.dev-dependencies]
 signal-child = "1"
