@@ -46,7 +46,7 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
@@ -61,7 +61,7 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
@@ -76,7 +76,7 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
@@ -105,7 +105,7 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
@@ -120,7 +120,7 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
             );
             Ok(())
         }
@@ -130,7 +130,7 @@ mod integration_tests {
         //     let file_config = "./keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
         //     run(
         //         &slight_path(),
-        //         vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
+        //         vec!["-c", file_config, "run", KEYVALUE_TEST_MODULE],
         //     );
         //     Ok(())
         // }
@@ -175,7 +175,7 @@ mod integration_tests {
             env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{port}"));
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
             );
 
             // kill the server
@@ -219,7 +219,7 @@ mod integration_tests {
             );
             let config = &format!("{}/http-test/slightfile.toml", env!("CARGO_MANIFEST_DIR"));
             let mut child = Command::new(slight_path())
-                .args(["-c", config, "run", "-m", out_dir.to_str().unwrap()])
+                .args(["-c", config, "run", out_dir.to_str().unwrap()])
                 .spawn()?;
             sleep(Duration::from_secs(2)).await;
 
@@ -343,4 +343,45 @@ mod integration_tests {
         }
     }
     // TODO: We need to add distributed_locking, and messaging_test modules
+
+    #[cfg(test)]
+    mod cli_tests {
+        use std::process::Command;
+
+        use crate::slight_path;
+
+        #[test]
+        fn slight_new_rust() -> anyhow::Result<()> {
+            let tmpdir = tempdir::TempDir::new("tests")?;
+            let mut child = Command::new(slight_path())
+                .args(["new", "--name-at-release", "my-demo@v0.3.1", "rust"])
+                .current_dir(&tmpdir)
+                .spawn()?;
+            child.wait().ok();
+
+            // compile the my-demo at target wasm32-wasi
+            let p = tmpdir.path().to_owned();
+            let mut child = Command::new("cargo")
+                .args(["build", "--target", "wasm32-wasi"])
+                .current_dir(p.join("my-demo"))
+                .spawn()?;
+            child.wait().ok();
+
+            // run the my-demo
+            let output = Command::new(slight_path())
+                .args([
+                    "-c",
+                    "slightfile.toml",
+                    "run",
+                    "./target/wasm32-wasi/debug/my-demo.wasm",
+                ])
+                .current_dir(p.join("my-demo"))
+                .output()?;
+
+            // examine the output
+            assert!(output.status.success());
+            assert!(String::from_utf8(output.stdout)?.contains("Hello, SpiderLightning!"));
+            Ok(())
+        }
+    }
 }

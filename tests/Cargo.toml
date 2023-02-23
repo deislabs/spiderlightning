@@ -15,6 +15,8 @@ doctest = false
 hyper = { workspace = true, features = ["full"] }
 tokio = { workspace = true }
 anyhow = { workspace = true }
+mosquitto-rs = { version = "0.4.0", features = ["vendored-openssl", "vendored-mosquitto"] }
+tempdir = { workspace = true }
 
 [target.'cfg(unix)'.dev-dependencies]
 signal-child = "1"

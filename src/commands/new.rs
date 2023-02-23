@@ -1,7 +1,7 @@
 use anyhow::{bail, Context, Result};
 use flate2::bufread::GzDecoder;
+use slight_core::interface_parser::InterfaceAtRelease;
 use std::io::Write;
-use std::process::Command;
 use std::{
     fs::{read_to_string, File},
     io::BufReader,
@@ -12,36 +12,17 @@ use crate::cli::Templates;
 
 use super::add::handle_add;
 
-pub async fn handle_new(name_at_release: &str, template: &Templates) -> Result<()> {
-    let (project_name, mut release) = if !name_at_release.contains('@') {
-        panic!(
-            "invalid usage: to start a new project, say `slight new -n <project-name>@<release-tag> <some-template>`"
-        );
-        // TODO: In the future, let's support omitting the release tag to download the latest release
-    } else {
-        let find_at = name_at_release.find('@').unwrap();
-        // ^^^ fine to unwrap, we are guaranteed to have a '@' at this point.
-        (
-            &name_at_release[..find_at],
-            name_at_release[find_at + 1..].to_string(),
-        )
-    };
+pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templates) -> Result<()> {
+    let version = env!("CARGO_PKG_VERSION");
+    let input_version = name_at_release.version.to_string();
+    let project_name = name_at_release.name.to_owned();
 
-    let output = Command::new("slight")
-        .arg("--version")
-        .output()
-        .expect("failed to execute process");
-
-    let version = String::from_utf8_lossy(&output.stdout);
-    let version = version.replace("slight", "").trim().to_string();
-
-    // if version is diff. from release, panic
-    release = if !version.eq(&release) {
+    let release = if !version.eq(&input_version) {
         // println that we are using release equal to version instead
-        println!("slight version {release} is different from the release you are trying to add. slight will use version v{version} instead.");
-        format!("v{version}")
+        println!("slight version {input_version} is different from the release you are trying to add. slight will use version v{version} instead.");
+        version.to_string()
     } else {
-        release
+        input_version
     };
 
     // check project_name is not C or Rust
@@ -50,7 +31,7 @@ pub async fn handle_new(name_at_release: &str, template: &Templates) -> Result<(
     }
 
     let resp = reqwest::get(format!(
-        "https://github.com/deislabs/spiderlightning/releases/download/{release}/{template}-template.tar.gz"
+        "https://github.com/deislabs/spiderlightning/releases/download/v{release}/{template}-template.tar.gz"
     ))
     .await?;
     if resp.status() == 404 {
@@ -62,12 +43,12 @@ pub async fn handle_new(name_at_release: &str, template: &Templates) -> Result<(
     Archive::new(GzDecoder::new(BufReader::new(resp.as_ref()))).unpack("./")?;
 
     match template {
-        Templates::C => setup_c_template(project_name, &release)?,
-        Templates::Rust => setup_rust_template(project_name, &release)?,
+        Templates::C => setup_c_template(&project_name, &release)?,
+        Templates::Rust => setup_rust_template(&project_name, &release)?,
     };
 
     handle_add(
-        &format!("keyvalue@{release}"),
+        InterfaceAtRelease::new("keyvalue", &release),
         Some(&format!("./{project_name}/wit/")),
     )
     .await?;

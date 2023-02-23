@@ -15,6 +15,8 @@ serde = { workspace = true }
 short-crypt = "1"
 rand = { workspace = true }
 toml = { workspace = true }
+clap = { workspace = true }
+semver = { workspace = true }
 
 [dev-dependencies]
 tempdir = { workspace = true }
