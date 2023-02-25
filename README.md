@@ -76,15 +76,14 @@ There are also Rust examples that can be built (`build-rust`) and ran (`run-rust
 
 ## Repository Structure
 
-- `/crates`: service implementations
+- `/crates`: runtime, core library and service implementations
 - `/docs`: useful documentation to help you understand design decisions, and how to contribute
-- `/examples`: guest examples
+- `/examples`: Slight examples
 - `/proposals`: design documents
-- `/slight`: the SpiderLightning host cli (i.e., Slight)
-- `/src`: core functionalities from SpiderLightning
+- `/src`: the SpiderLightning cli (i.e., Slight)
 - `/templates`: templates used by `slight add` to create a new Rust or C project
-- `/tests`: guest tests
-- `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/bytecodealliance/wit-bindgen/blob/main/WIT.md))
+- `/tests`: integration tests
+- `/wit`: the SpiderLightning specification written in `*.wit` format (see [WIT](https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md))
 
 ## Looking for Contributors
 Do you want to contribute to SpiderLightning's growth? 
