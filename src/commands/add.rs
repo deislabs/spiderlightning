@@ -25,20 +25,6 @@ pub async fn handle_add(
     let (interface, mut release) = (what_to_add.name, what_to_add.version.to_string());
     let mut folder_name = format!("{interface}_{release}");
 
-    let version = env!("CARGO_PKG_VERSION");
-
-    // if version is diff. from release, panic
-    release = if !version.eq(&release) {
-        // println that we are using release equal to version instead
-        println!("slight version {release} is different from the release you are trying to add. slight will use version v{version} instead.");
-        folder_name = folder_name.replace(&release, &format!("v{version}"));
-        release
-    } else {
-        release
-    };
-
-    // change folder name to have new release
-
     match interface.as_str() {
         "keyvalue"
         | "configs"

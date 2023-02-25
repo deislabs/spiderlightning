@@ -13,17 +13,7 @@ use crate::cli::Templates;
 use super::add::handle_add;
 
 pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templates) -> Result<()> {
-    let version = env!("CARGO_PKG_VERSION");
-    let input_version = name_at_release.version.to_string();
     let project_name = name_at_release.name.to_owned();
-
-    let release = if !version.eq(&input_version) {
-        // println that we are using release equal to version instead
-        println!("slight version {input_version} is different from the release you are trying to add. slight will use version v{version} instead.");
-        version.to_string()
-    } else {
-        input_version
-    };
 
     // check project_name is not C or Rust
     if project_name == "c" || project_name == "rust" {
