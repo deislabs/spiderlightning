@@ -3768,7 +3768,9 @@ name = "slight-core"
 version = "0.4.0"
 dependencies = [
  "anyhow",
+ "clap",
  "rand 0.8.5",
+ "semver 1.0.14",
  "serde",
  "short-crypt",
  "tempdir",
@@ -3842,7 +3844,9 @@ version = "0.4.0"
 dependencies = [
  "anyhow",
  "hyper",
+ "mosquitto-rs",
  "signal-child",
+ "tempdir",
  "tokio",
 ]
 

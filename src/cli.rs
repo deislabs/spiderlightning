@@ -1,7 +1,15 @@
 use clap::{Parser, Subcommand};
+use slight_core::interface_parser::{InterfaceAtRelease, InterfaceParser};
+use slight_core::wasm_parser::{WasmModule, WasmModuleParser};
+
+/// Helper for passing VERSION to opt.
+/// If CARGO_VERSION_INFO is set, use it, otherwise use CARGO_PKG_VERSION.
+fn version() -> &'static str {
+    option_env!("CARGO_VERSION_INFO").unwrap_or(env!("CARGO_PKG_VERSION"))
+}
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about)]
+#[clap(author, version = version(), about)]
 pub struct Args {
     #[clap(subcommand)]
     pub command: Commands,
@@ -13,8 +21,8 @@ pub struct Args {
 pub enum Commands {
     /// Run slight providing a config and a module
     Run {
-        #[clap(short, long, value_parser)]
-        module: String,
+        #[clap(index = 1, value_parser = WasmModuleParser)]
+        module: WasmModule,
     },
     /// Add a secret to the application
     Secret {
@@ -25,15 +33,16 @@ pub enum Commands {
     },
     /// Download a SpiderLightning interface
     Add {
-        #[clap(short, long, value_parser)]
-        interface_at_release: String,
+        #[clap(index = 1, value_parser = InterfaceParser)]
+        interface_at_release: InterfaceAtRelease,
     },
+
     /// Start a new Slight project
     New {
         #[clap(subcommand)]
         command: Templates,
-        #[clap(short, long, value_parser)]
-        name_at_release: String,
+        #[clap(short, long, value_parser = InterfaceParser)]
+        name_at_release: InterfaceAtRelease,
     },
 }
 

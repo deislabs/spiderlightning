@@ -37,9 +37,9 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 `slight` relies on a WIT bindings generator [wit-bindgen v0.2.0](https://github.com/bytecodealliance/wit-bindgen), and currently only supports C and Rust applications. We are planning to add more language supports, such as Go and JavaScript/TypeScript.
 
 ```sh
-slight new -n spidey@v0.4.0 rust && cd spidey
-# ^^^ starts a new rust project under SpiderLightning's v0.4.0 spec
-# use: `slight new -n spidey@v0.4.0 c` to start a new c project
+slight new -n spidey@v0.3.1 rust && cd spidey
+# ^^^ starts a new rust project under SpiderLightning's v0.1.0 spec
+# use: `slight new -n spidey@v0.3.1 c` to start a new c project
 
 cargo build --target wasm32-wasi
 # ^^^ for c...
@@ -53,7 +53,7 @@ cargo build --target wasm32-wasi
 # on windows, run:
 # make bindings && make build-win
 
-slight -c slightfile.toml run -m target/wasm32-wasi/debug/spidey.wasm
+slight -c slightfile.toml run target/wasm32-wasi/debug/spidey.wasm
 # ^^^ for c, run:
 # slight -c slightfile.toml run -m spidey.wasm
 
