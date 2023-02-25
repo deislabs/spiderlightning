@@ -14,6 +14,7 @@ use super::add::handle_add;
 
 pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templates) -> Result<()> {
     let project_name = name_at_release.name.to_owned();
+    let release = name_at_release.version.to_string();
 
     // check project_name is not C or Rust
     if project_name == "c" || project_name == "rust" {

@@ -22,8 +22,8 @@ pub async fn handle_add(
     what_to_add: InterfaceAtRelease,
     folder_prefix: Option<&str>,
 ) -> Result<()> {
-    let (interface, mut release) = (what_to_add.name, what_to_add.version.to_string());
-    let mut folder_name = format!("{interface}_{release}");
+    let (interface, release) = (what_to_add.name, what_to_add.version.to_string());
+    let folder_name = format!("{interface}_{release}");
 
     match interface.as_str() {
         "keyvalue"
