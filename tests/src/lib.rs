@@ -383,5 +383,36 @@ mod integration_tests {
             assert!(String::from_utf8(output.stdout)?.contains("Hello, SpiderLightning!"));
             Ok(())
         }
+
+        #[test]
+        fn slight_add_tests() -> anyhow::Result<()> {
+            let capabilities = vec![
+                "keyvalue",
+                "configs",
+                "http-server",
+                "http-client",
+                "distributed-locking",
+                "messaging",
+                "sql",
+            ];
+            let version = "v0.3.1";
+
+            let tmpdir = tempdir::TempDir::new("tests")?;
+            for cap in capabilities {
+                let output = Command::new(slight_path())
+                    .args(["add", &format!("{cap}@{version}")])
+                    .current_dir(&tmpdir)
+                    .output()?;
+                assert!(output.status.success());
+            }
+
+            let ill_version = "v0.5763.2355";
+            let output = Command::new(slight_path())
+                .args(["add", &format!("keyvalue@{ill_version}")])
+                .current_dir(&tmpdir)
+                .output()?;
+            assert!(!output.status.success());
+            Ok(())
+        }
     }
 }
