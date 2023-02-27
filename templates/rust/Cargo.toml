@@ -12,7 +12,7 @@ wit-bindgen-rust = { git = "https://github.com/bytecodealliance/wit-bindgen", ta
 # ^^^ A language binding generator for WebAssembly interface types
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
 # ^^^ Convenience error-related trait implementations for types generated from a wit-bindgen import
-slight-http-handler-macro = { git = "https://github.com/deislabs/spiderlightning", tag = "0.4.0" }
+slight-http-handler-macro = { git = "https://github.com/deislabs/spiderlightning", tag = "0.3.2" }
 # ^^^ Macro for creating http request handlers when using SpiderLightning's http interface
 
 [workspace]
