@@ -1,5 +1,5 @@
 $INSTALL_DIR="C:\slight"
-$OWNER_AND_REPO="deislabds/spiderlightning"
+$OWNER_AND_REPO="deislabs/spiderlightning"
 $TAR="slight-windows-x86_64.tar.gz"
 $BINARY_NAME="slight.exe"
 
