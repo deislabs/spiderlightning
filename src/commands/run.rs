@@ -1,10 +1,12 @@
 use std::{
     collections::{HashMap, HashSet},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
+use wit_bindgen_wasmtime::wasmtime::Store;
+
 use slight_common::{BasicState, Capability, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
@@ -22,7 +24,6 @@ use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
 #[cfg(feature = "sql")]
 use slight_sql::Sql;
-use wit_bindgen_wasmtime::wasmtime::Store;
 
 #[cfg(feature = "keyvalue")]
 const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
@@ -59,15 +60,28 @@ const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
 #[cfg(feature = "sql")]
 const SQL_HOST_IMPLEMENTORS: [&str; 1] = ["sql.postgres"];
 
-pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Path>) -> Result<()> {
+pub type IORedirects = slight_runtime::IORedirects;
+
+#[derive(Clone, Default)]
+pub struct RunArgs {
+    pub module: PathBuf,
+    pub slightfile: PathBuf,
+    pub io_redirects: Option<IORedirects>,
+}
+
+pub async fn handle_run(args: RunArgs) -> Result<()> {
     let toml_file_contents =
-        std::fs::read_to_string(&toml_file_path).expect("could not locate slightfile");
+        std::fs::read_to_string(args.slightfile.clone()).expect("could not locate slightfile");
     let toml =
         toml::from_str::<TomlFile>(&toml_file_contents).expect("provided file is not a slightfile");
 
     tracing::info!("Starting slight");
 
-    let host_builder = build_store_instance(&toml, &toml_file_path, &module).await?;
+    let mut host_builder = build_store_instance(&toml, &args.slightfile, &args.module).await?;
+    if let Some(io_redirects) = args.io_redirects {
+        tracing::info!("slight io redirects were specified");
+        host_builder = host_builder.set_io(io_redirects);
+    }
     let (mut store, instance) = host_builder.build().await;
 
     let caps = toml.capability.as_ref().unwrap();
@@ -88,7 +102,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
 
         if http_enabled {
             log::debug!("Http capability enabled");
-            update_http_states(toml, toml_file_path, module, &mut store).await?;
+            update_http_states(toml, &args.slightfile, &args.module, &mut store).await?;
         }
         http_enabled
     } else {
@@ -340,4 +354,54 @@ fn maybe_add_named_capability_to_store(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod unittest {
+    use crate::commands::run::{handle_run, RunArgs};
+    use rand::Rng;
+    use slight_runtime::IORedirects;
+    use std::fs::File;
+    use std::path::{Path, PathBuf};
+    use tempfile::tempdir;
+    use tokio::fs;
+
+    #[tokio::test]
+    async fn test_handle_run_with_io() -> anyhow::Result<()> {
+        let module = "./src/commands/test/io-test.wasm";
+        assert!(Path::new(module).exists());
+        let slightfile = "./src/commands/test/slightfile.toml";
+        assert!(Path::new(slightfile).exists());
+
+        let tmp_dir = tempdir()?;
+        let stdin_path = tmp_dir.path().join("stdin");
+        let stdout_path = tmp_dir.path().join("stdout");
+        let stderr_path = tmp_dir.path().join("stderr");
+
+        let canary: String = rand::thread_rng()
+            .gen_ascii_chars()
+            .take(7)
+            .map(char::from)
+            .collect();
+        fs::write(&stdin_path, &canary).await?;
+        let _ = File::create(&stdout_path)?;
+        let _ = File::create(&stderr_path)?;
+
+        let args = RunArgs {
+            module: PathBuf::from(module),
+            slightfile: PathBuf::from(slightfile),
+            io_redirects: Some(IORedirects {
+                stdin_path: Some(PathBuf::from(&stdin_path)),
+                stdout_path: Some(PathBuf::from(&stdout_path)),
+                stderr_path: Some(PathBuf::from(&stderr_path)),
+            }),
+        };
+
+        handle_run(args).await?;
+        let stdout_output = fs::read_to_string(&stdout_path).await?;
+        assert_eq!(stdout_output, canary);
+        let stderr_output = fs::read_to_string(&stderr_path).await?;
+        assert_eq!(stderr_output, format!("error: {canary}"));
+        Ok(())
+    }
 }

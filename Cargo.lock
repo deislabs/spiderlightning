@@ -955,9 +955,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.0.32"
+version = "4.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7db700bc935f9e43e88d00b0850dae18a63773cfbec6d8e070fccf7fef89a39"
+checksum = "c3d7ae14b20b94cb02149ed21a86c423859cbe18dc7ed69845cace50e52b40a5"
 dependencies = [
  "bitflags",
  "clap_derive",
@@ -970,9 +970,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.0.21"
+version = "4.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0177313f9f02afc995627906bbd8967e2be069f5261954222dac78290c2b9014"
+checksum = "44bec8e5c9d09e439c4335b1af0abaab56dcf3b94999a936e1bb47b9134288f0"
 dependencies = [
  "heck 0.4.0",
  "proc-macro-error",
@@ -3877,6 +3877,7 @@ dependencies = [
  "clap",
  "flate2",
  "log",
+ "rand 0.4.6",
  "reqwest",
  "slight-common",
  "slight-core",
@@ -3890,6 +3891,7 @@ dependencies = [
  "slight-sql",
  "tar",
  "tempdir",
+ "tempfile",
  "tokio",
  "toml 0.7.2",
  "tracing",
@@ -3990,6 +3992,7 @@ dependencies = [
  "anyhow",
  "hyper",
  "mosquitto-rs",
+ "rand 0.8.5",
  "signal-child",
  "tempdir",
  "tokio",
@@ -4054,6 +4057,7 @@ dependencies = [
  "slight-common",
  "slight-http-api",
  "slight-keyvalue",
+ "tempfile",
  "tokio",
  "tracing",
  "wasi-cap-std-sync",
@@ -4331,16 +4335,15 @@ dependencies = [
 
 [[package]]
 name = "tempfile"
-version = "3.3.0"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cdb1ef4eaeeaddc8fbd371e5017057064af0911902ef36b39801f67cc6d79e4"
+checksum = "af18f7ae1acd354b992402e9ec5864359d693cd8a79dcbef59f76891701c1e95"
 dependencies = [
  "cfg-if",
  "fastrand",
- "libc",
  "redox_syscall",
- "remove_dir_all",
- "winapi",
+ "rustix",
+ "windows-sys 0.42.0",
 ]
 
 [[package]]

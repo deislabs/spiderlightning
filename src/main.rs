@@ -1,8 +1,16 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 use clap::Parser;
+
 use slight_lib::{
     cli::{Args, Commands},
-    commands::{add::handle_add, new::handle_new, run::handle_run, secret::handle_secret},
+    commands::{
+        add::handle_add,
+        new::handle_new,
+        run::{handle_run, RunArgs},
+        secret::handle_secret,
+    },
 };
 
 /// The entry point for slight CLI
@@ -15,7 +23,14 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     match &args.command {
-        Commands::Run { module } => handle_run(&module.path, args.config.unwrap()).await,
+        Commands::Run { module } => {
+            let run_args = RunArgs {
+                module: PathBuf::from(&module.path),
+                slightfile: PathBuf::from(args.config.unwrap()),
+                ..Default::default()
+            };
+            handle_run(run_args).await
+        }
         Commands::Secret { key, value } => handle_secret(key, value, args.config.unwrap()),
         Commands::Add {
             interface_at_release,
