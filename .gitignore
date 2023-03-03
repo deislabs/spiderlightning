@@ -4,3 +4,4 @@ bindings.rs
 .idea
 .DS_Store
 **.tar.gz
+tests/test.txt

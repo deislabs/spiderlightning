@@ -8,7 +8,7 @@ use async_trait::async_trait;
 use ctx::SlightCtxBuilder;
 use resource::{get_host_state, HttpData};
 use slight_common::{CapabilityBuilder, WasmtimeBuildable, WasmtimeLinkable};
-use wasi_cap_std_sync::WasiCtxBuilder;
+use wasi_cap_std_sync::{ambient_authority, Dir, WasiCtxBuilder};
 use wasi_common::WasiCtx;
 use wasmtime::{Config, Engine, Instance, Linker, Module, Store};
 
@@ -132,7 +132,10 @@ pub fn default_config() -> Result<Config> {
 
 // TODO (Joe): expose the wasmtime wasi context as a capability?
 pub fn default_wasi() -> Result<WasiCtx> {
-    let ctx: WasiCtxBuilder = WasiCtxBuilder::new().inherit_stdio().inherit_args()?;
+    let ctx: WasiCtxBuilder = WasiCtxBuilder::new()
+        .preopened_dir(Dir::open_ambient_dir(".", ambient_authority())?, ".")?
+        .inherit_stdio()
+        .inherit_args()?;
     Ok(ctx.build())
 }
 
