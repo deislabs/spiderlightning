@@ -37,6 +37,21 @@ mod integration_tests {
         use anyhow::Result;
 
         #[test]
+        fn filesystem_access_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/filesystem-access-test.wasm");
+            let file_config = &format!(
+                "{}/filesystem-access-test/slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            run(
+                &slight_path(),
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+            );
+            Ok(())
+        }
+
+        #[test]
         fn envvars_test() -> Result<()> {
             let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
             let out_dir = out_dir.join("wasm32-wasi/debug/configs-test.wasm");
