@@ -95,7 +95,7 @@ pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Pat
     };
 
     instance
-        .get_typed_func::<(), _, _>(&mut store, "_start")?
+        .get_typed_func::<(), _>(&mut store, "_start")?
         .call_async(&mut store, ())
         .await?;
 

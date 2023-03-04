@@ -15,5 +15,5 @@ anyhow = { workspace = true }
 proc-macro2 = "1"
 quote = "1"
 syn = { version = "1", features = ["full"] }
-wit-bindgen-gen-rust-wasm = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0" }
-wit-bindgen-gen-core = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0" }
+wit-bindgen-gen-rust-wasm = { git = "https://github.com/fermyon/wit-bindgen-backport" }
+wit-bindgen-gen-core = { git = "https://github.com/fermyon/wit-bindgen-backport" }

@@ -49,11 +49,11 @@ impl<T: Send> HttpHandler<T> {
     ) -> anyhow::Result<Self> {
         let mut store = store.as_context_mut();
         let canonical_abi_free =
-            instance.get_typed_func::<(i32, i32, i32), (), _>(&mut store, "canonical_abi_free")?;
+            instance.get_typed_func::<(i32, i32, i32), ()>(&mut store, "canonical_abi_free")?;
         let canonical_abi_realloc = instance
-            .get_typed_func::<(i32, i32, i32, i32), i32, _>(&mut store, "canonical_abi_realloc")?;
+            .get_typed_func::<(i32, i32, i32, i32), i32>(&mut store, "canonical_abi_realloc")?;
         let handle_http = instance
-            .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,), _>(
+            .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,)>(
                 &mut store,
                 handler_name,
             )?;
@@ -76,7 +76,7 @@ impl<T: Send> HttpHandler<T> {
         &self,
         caller: impl wasmtime::AsContextMut<Data = T>,
         req: Request<'_>,
-    ) -> Result<Result<Response, http_handler::HttpError>, wasmtime::Trap> {
+    ) -> Result<Result<Response, http_handler::HttpError>, anyhow::Error> {
         self.inner.handle_http(caller, req).await
     }
 }
