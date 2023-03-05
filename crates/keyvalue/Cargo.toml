@@ -22,7 +22,6 @@ async-trait = { workspace = true }
 # kv.azblob deps
 azure_storage_blobs = { version = "0.8", optional = true }
 azure_storage = { version = "0.8", optional = true }
-azure_core = { version = "0.8", optional = true }
 bytes = { version = "1", optional = true }
 futures = { version = "0.3", optional = true }
 # keyvalue.filesystem deps
@@ -36,6 +35,6 @@ redis = { version = "0.22", optional = true }
 [features]
 default = ["filesystem"]
 filesystem = ["serde_json"]
-azblob = ["azure_storage_blobs", "azure_storage", "azure_core", "bytes", "futures"]
+azblob = ["azure_storage_blobs", "azure_storage", "bytes", "futures"]
 awsdynamodb = ["aws-config", "aws-sdk-dynamodb"]
 redis = ["dep:redis"]
