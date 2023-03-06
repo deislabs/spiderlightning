@@ -17,12 +17,10 @@ wasi-common = { workspace = true }
 wasi-cap-std-sync = { workspace = true }
 anyhow = { workspace = true }
 as-any = { workspace = true }
-wit-bindgen-wasmtime = { workspace = true }
 crossbeam-channel = "0.5"
 slight-http-api = { workspace = true }
 tracing = { workspace = true }
 slight-common = { workspace = true }
-dyn-clone = "1"
 async-trait = { workspace = true }
 
 [dev-dependencies]
