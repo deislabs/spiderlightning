@@ -640,9 +640,9 @@ dependencies = [
 
 [[package]]
 name = "azure_core"
-version = "0.7.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8a13a7e5f9c8413644579bdee6731f0a7a0f722e318b3a5ea6dba5ecfd8eb64"
+checksum = "b8904f5c2ee4f5a172542700a42708706ef8591a16a5c6226bcf6b7f21ead9a6"
 dependencies = [
  "async-trait",
  "base64 0.13.1",
@@ -666,38 +666,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "azure_core"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca6dd496e30132b9403c478ea87121834669fa1a307ee2d0b6721c3aca47cccd"
-dependencies = [
- "async-trait",
- "base64 0.13.1",
- "bytes 1.3.0",
- "dyn-clone",
- "futures",
- "getrandom 0.2.8",
- "http-types",
- "log",
- "paste",
- "pin-project",
- "rand 0.8.5",
- "reqwest",
- "rustc_version 0.4.0",
- "serde",
- "serde_json",
- "time 0.3.17",
- "url",
- "uuid",
-]
-
-[[package]]
 name = "azure_messaging_servicebus"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "368c2b633128ccc5e2e7c74452e362426a6ae98894d9e563f3ef0fc8f3aa8502"
+checksum = "57a56b96f2d5dcd60299a61e285aba88329d9bdd259b1ced98e31ae33523052d"
 dependencies = [
- "azure_core 0.8.0",
+ "azure_core",
  "base64 0.13.1",
  "bytes 1.3.0",
  "hmac 0.12.1",
@@ -710,13 +684,13 @@ dependencies = [
 
 [[package]]
 name = "azure_storage"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7bb2015dd1a37fd054743ef324ae421f62fe4e63e46ca5c2895e76386f4b757"
+checksum = "4b5940f60d0cdfe6312e9feb6528c975ba9de061026843b0ded723585b540338"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core 0.7.0",
+ "azure_core",
  "base64 0.13.1",
  "bytes 1.3.0",
  "futures",
@@ -735,12 +709,12 @@ dependencies = [
 
 [[package]]
 name = "azure_storage_blobs"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d31a99b42ebe8a000c5b98d1bdc0dd9e88934f1b9a6e3536afff601668fe4ea0"
+checksum = "bf7e8d719a89c6079ba6298fc3969acf53a24d590e1f5c1faab6f732e3ddf56b"
 dependencies = [
  "RustyXML",
- "azure_core 0.7.0",
+ "azure_core",
  "azure_storage",
  "base64 0.13.1",
  "bytes 1.3.0",
@@ -2875,7 +2849,7 @@ checksum = "eda0fc3b0fb7c975631757e14d9049da17374063edb6ebbcbc54d880d4fe94e9"
 dependencies = [
  "once_cell",
  "thiserror",
- "toml",
+ "toml 0.5.10",
 ]
 
 [[package]]
@@ -3538,6 +3512,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_spanned"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0efd8caf556a6cebd3b285caf480045fcc1ac04f6bd786b09a6f11af30c4fcf4"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde_urlencoded"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3677,7 +3660,7 @@ dependencies = [
  "tar",
  "tempdir",
  "tokio",
- "toml",
+ "toml 0.7.2",
  "tracing",
  "tracing-subscriber",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/fermyon/wit-bindgen-backport)",
@@ -3705,7 +3688,7 @@ dependencies = [
  "serde",
  "short-crypt",
  "tempdir",
- "toml",
+ "toml 0.7.2",
 ]
 
 [[package]]
@@ -3810,7 +3793,7 @@ dependencies = [
  "anyhow",
  "async-channel",
  "async-trait",
- "azure_core 0.8.0",
+ "azure_core",
  "azure_messaging_servicebus",
  "crossbeam-channel",
  "filesystem-pubsub",
@@ -3860,7 +3843,7 @@ dependencies = [
  "slight-common",
  "slight-core",
  "tempdir",
- "toml",
+ "toml 0.7.2",
  "tracing",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/fermyon/wit-bindgen-backport)",
  "wit-error-rs",
@@ -4356,6 +4339,40 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1333c76748e868a4d9d1017b5ab53171dfd095f70c712fdb4653a406547f598f"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "toml"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f7afcae9e3f0fe2c370fd4657108972cbb2fa9db1b9f84849cefd80741b01cb6"
+dependencies = [
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "toml_edit",
+]
+
+[[package]]
+name = "toml_datetime"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ab8ed2edee10b50132aed5f331333428b011c99402b5a534154ed15746f9622"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.19.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a1eb0622d28f4b9c90adc4ea4b2b46b47663fde9ac5fafcb14a1369d5508825"
+dependencies = [
+ "indexmap",
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "winnow",
 ]
 
 [[package]]
@@ -4889,7 +4906,7 @@ dependencies = [
  "rustix",
  "serde",
  "sha2 0.10.6",
- "toml",
+ "toml 0.5.10",
  "windows-sys 0.42.0",
  "zstd",
 ]
@@ -5341,6 +5358,15 @@ name = "windows_x86_64_msvc"
 version = "0.42.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "447660ad36a13288b1db4d4248e857b510e8c3a225c822ba4fb748c0aafecffd"
+
+[[package]]
+name = "winnow"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c95fb4ff192527911dd18eb138ac30908e7165b8944e528b6af93aa4c842d345"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "winreg"
