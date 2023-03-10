@@ -4,7 +4,7 @@ specversion = "0.2"
 resource = "messaging.nats"
 name = "my-messaging"
     [capability.configs]
-    NATS_CREDS_PATH = "${envvars.NATS_CREDS_PATH}"
+    NATS_CREDS = "${azapp.NATS_CREDS_PATH}"
     # eventually, we'd like to support the ability to not pass in any creds, or connect via:
     #   - username/password
     #   - certificates
