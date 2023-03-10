@@ -107,7 +107,8 @@ stages:
           #
           - script: |
               /bin/bash -c "$(curl -fSs https://get-nats.io/install.sh)"
-            displayName: Install NATS
+            displayName: Install NATS for Linux/MacOS
+            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
             env:
               SECRET: $(NATS_SECRET)
           
