@@ -133,9 +133,10 @@ impl ConfigsInner {
 /// This defines the available implementor implementations for the `Configs` interface.
 ///
 /// As per its' usage in `ConfigsInner`, it must `derive` `Debug`, and `Clone`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum ConfigsImplementor {
     Local,
+    #[default]
     EnvVars,
     UserSecrets, // user creates configs at compile time that are encrypted and stored in their slightfile
     AzApp,
@@ -161,12 +162,6 @@ impl From<&str> for ConfigsImplementor {
             "configs.local" => ConfigsImplementor::Local,
             _ => panic!("unknown configuration type '{from_str}'"),
         }
-    }
-}
-
-impl Default for ConfigsImplementor {
-    fn default() -> Self {
-        ConfigsImplementor::EnvVars
     }
 }
 
