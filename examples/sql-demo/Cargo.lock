@@ -525,7 +525,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 [[package]]
 name = "wit-bindgen-gen-core"
 version = "0.2.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0#cb871cfa1ee460b51eb1d144b175b9aab9c50aba"
+source = "git+https://github.com/fermyon/wit-bindgen-backport#b97517c7bfcc82f3cd6e730270d40cd4781aa789"
 dependencies = [
  "anyhow",
  "wit-parser",
@@ -534,7 +534,7 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-gen-rust"
 version = "0.2.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0#cb871cfa1ee460b51eb1d144b175b9aab9c50aba"
+source = "git+https://github.com/fermyon/wit-bindgen-backport#b97517c7bfcc82f3cd6e730270d40cd4781aa789"
 dependencies = [
  "heck",
  "wit-bindgen-gen-core",
@@ -543,7 +543,7 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-gen-rust-wasm"
 version = "0.2.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0#cb871cfa1ee460b51eb1d144b175b9aab9c50aba"
+source = "git+https://github.com/fermyon/wit-bindgen-backport#b97517c7bfcc82f3cd6e730270d40cd4781aa789"
 dependencies = [
  "heck",
  "wit-bindgen-gen-core",
@@ -553,7 +553,7 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-rust"
 version = "0.2.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0#cb871cfa1ee460b51eb1d144b175b9aab9c50aba"
+source = "git+https://github.com/fermyon/wit-bindgen-backport#b97517c7bfcc82f3cd6e730270d40cd4781aa789"
 dependencies = [
  "async-trait",
  "bitflags",
@@ -563,7 +563,7 @@ dependencies = [
 [[package]]
 name = "wit-bindgen-rust-impl"
 version = "0.2.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0#cb871cfa1ee460b51eb1d144b175b9aab9c50aba"
+source = "git+https://github.com/fermyon/wit-bindgen-backport#b97517c7bfcc82f3cd6e730270d40cd4781aa789"
 dependencies = [
  "proc-macro2",
  "syn",
@@ -583,7 +583,7 @@ dependencies = [
 [[package]]
 name = "wit-parser"
 version = "0.2.0"
-source = "git+https://github.com/bytecodealliance/wit-bindgen?tag=v0.2.0#cb871cfa1ee460b51eb1d144b175b9aab9c50aba"
+source = "git+https://github.com/fermyon/wit-bindgen-backport#b97517c7bfcc82f3cd6e730270d40cd4781aa789"
 dependencies = [
  "anyhow",
  "id-arena",

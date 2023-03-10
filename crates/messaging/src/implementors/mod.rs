@@ -9,6 +9,8 @@ pub mod azsbus;
 pub mod filesystem;
 #[cfg(feature = "mosquitto")]
 pub mod mosquitto;
+#[cfg(feature = "natsio")]
+pub mod natsio;
 
 #[async_trait]
 pub trait PubImplementor {

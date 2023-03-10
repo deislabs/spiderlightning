@@ -40,7 +40,7 @@ const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
 const DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS: [&str; 2] = ["lockd.etcd", "distributed_locking.etcd"];
 
 #[cfg(feature = "messaging")]
-const MESSAGING_HOST_IMPLEMENTORS: [&str; 8] = [
+const MESSAGING_HOST_IMPLEMENTORS: [&str; 9] = [
     "pubsub.confluent_apache_kafka",
     "pubsub.mosquitto",
     "messaging.confluent_apache_kafka",
@@ -49,6 +49,7 @@ const MESSAGING_HOST_IMPLEMENTORS: [&str; 8] = [
     "mq.filesystem",
     "messaging.azsbus",
     "messaging.filesystem",
+    "messaging.nats"
 ];
 
 #[cfg(feature = "runtime-configs")]
@@ -287,7 +288,7 @@ async fn build_store_instance(
                 }
             }
             _ => {
-                bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'keyvalue.filesystem', 'keyvalue.azblob', 'keyvalue.awsdynamodb', 'distributed_locking.etcd', 'messaging.confluent_apache_kafka', 'messaging.mosquitto', and 'http' schemes")
+                bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'keyvalue.filesystem', 'keyvalue.azblob', 'keyvalue.awsdynamodb', 'distributed_locking.etcd', 'messaging.nats', 'messaging.confluent_apache_kafka', 'messaging.mosquitto', and 'http' schemes")
             }
         }
     }

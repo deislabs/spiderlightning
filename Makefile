@@ -127,6 +127,12 @@ run-rust:
 	# sql.postgres
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/sql-demo/postgres_slightfile.toml' run ./examples/sql-demo/target/wasm32-wasi/release/sql-demo.wasm
 
+.PHONY: run-rust-test
+run-rust-test:
+# messaging.nats
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-consumer-demo/nats_slightfile.toml' run ./examples/messaging-consumer-demo/target/wasm32-wasi/release/messaging-consumer-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/nats_slightfile.toml' run ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm
+
 .PHONY: clean-rust
 clean-rust:
 	cargo clean --manifest-path ./examples/configs-demo/Cargo.toml & \
