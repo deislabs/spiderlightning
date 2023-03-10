@@ -49,7 +49,7 @@ const MESSAGING_HOST_IMPLEMENTORS: [&str; 9] = [
     "mq.filesystem",
     "messaging.azsbus",
     "messaging.filesystem",
-    "messaging.nats"
+    "messaging.nats",
 ];
 
 #[cfg(feature = "runtime-configs")]

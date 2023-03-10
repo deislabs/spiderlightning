@@ -19,16 +19,17 @@ pub struct NatsIoImplementor {
 
 impl NatsIoImplementor {
     pub async fn new(slight_state: &BasicState) -> Self {
-        let nats_creds = get_from_state("NATS_CREDS", slight_state)
-            .await
-            .unwrap();
+        let nats_creds = get_from_state("NATS_CREDS", slight_state).await.unwrap();
 
-        let connection = nats::Options::with_static_credentials(&nats_creds).unwrap().connect("connect.ngs.global").unwrap();
+        let connection = nats::Options::with_static_credentials(&nats_creds)
+            .unwrap()
+            .connect("connect.ngs.global")
+            .unwrap();
         let subscription_tokens = Arc::new(Mutex::new(HashMap::new()));
 
         Self {
             connection,
-            subscription_tokens
+            subscription_tokens,
         }
     }
 }
