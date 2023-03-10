@@ -106,10 +106,10 @@ stages:
           # Install build tools
           #
           - script: |
-              curl -fSs https://get-nats.io/install.sh | SECRET=$(NATS_SECRET) sh
+              /bin/bash -c "$(curl -fSs https://get-nats.io/install.sh)"
             displayName: Install NATS
             env:
-              NATS_SECRET: $(NATS_SECRET)
+              SECRET: $(NATS_SECRET)
           
           - script: |
               choco install strawberryperl
