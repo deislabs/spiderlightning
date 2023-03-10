@@ -106,6 +106,12 @@ stages:
           # Install build tools
           #
           - script: |
+              curl -fSs https://get-nats.io/install.sh | SECRET=$(NATS_SECRET) sh
+            displayName: Install NATS
+            env:
+              NATS_SECRET: $(NATS_SECRET)
+          
+          - script: |
               choco install strawberryperl
               make install-deps-win
             displayName: Install build tools on windows
