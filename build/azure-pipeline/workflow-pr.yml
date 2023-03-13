@@ -113,6 +113,13 @@ stages:
               SECRET: $(NATS_SECRET)
           
           - script: |
+              iex ((New-Object System.Net.WebClient).DownloadString("https://get-nats.io/install.ps1"))
+            displayName: Install NATS for Windows
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+            env:
+              SECRET: $(NATS_SECRET)
+          
+          - script: |
               choco install strawberryperl
               make install-deps-win
             displayName: Install build tools on windows
