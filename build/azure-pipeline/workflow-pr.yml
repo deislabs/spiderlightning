@@ -119,7 +119,7 @@ stages:
               targetType: 'inline'
               script: |
                 Invoke-WebRequest -Uri "https://get-nats.io/install.ps1" -OutFile "install.ps1"
-                .\install.ps1
+                .\install.ps1 -Confirm:$false
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
             env:
               SECRET: $(NATS_SECRET)
