@@ -112,10 +112,14 @@ stages:
             env:
               SECRET: $(NATS_SECRET)
           
-          - script: |
-              curl -o install.ps1 https://get-nats.io/install.ps1
-              powershell.exe -ExecutionPolicy Bypass -File .\install.ps1
+          - task: PowerShell@2
+            name: WindowsInstallNATS
             displayName: Install NATS for Windows
+            inputs:
+              targetType: 'inline'
+              script: |
+                Invoke-WebRequest -Uri "https://get-nats.io/install.ps1" -OutFile "install.ps1"
+                .\install.ps1
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
             env:
               SECRET: $(NATS_SECRET)
