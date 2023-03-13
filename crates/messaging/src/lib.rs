@@ -64,6 +64,10 @@ impl PubInner {
                 MessagingImplementors::AzSbus => {
                     Arc::new(azsbus::AzSbusImplementor::new(slight_state).await)
                 }
+                #[cfg(feature = "natsio")]
+                MessagingImplementors::Nats => {
+                    Arc::new(natsio::NatsIoImplementor::new(slight_state).await)
+                }
             },
         })
     }
@@ -97,6 +101,10 @@ impl SubInner {
                 #[cfg(feature = "azsbus")]
                 MessagingImplementors::AzSbus => {
                     Arc::new(azsbus::AzSbusImplementor::new(slight_state).await)
+                }
+                #[cfg(feature = "natsio")]
+                MessagingImplementors::Nats => {
+                    Arc::new(natsio::NatsIoImplementor::new(slight_state).await)
                 }
             },
         };
@@ -199,6 +207,8 @@ pub enum MessagingImplementors {
     Filesystem,
     #[cfg(feature = "azsbus")]
     AzSbus,
+    #[cfg(feature = "natsio")]
+    Nats,
 }
 
 impl From<&str> for MessagingImplementors {
@@ -212,6 +222,8 @@ impl From<&str> for MessagingImplementors {
             "messaging.filesystem" | "mq.filesystem" => Self::Filesystem,
             #[cfg(feature = "azsbus")]
             "messaging.azsbus" | "mq.azsbus" => Self::AzSbus,
+            #[cfg(feature = "natsio")]
+            "messaging.nats" => Self::Nats,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

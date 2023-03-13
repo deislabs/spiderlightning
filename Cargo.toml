@@ -19,7 +19,7 @@ slight-core = { workspace = true }
 slight-runtime = { workspace = true }
 slight-keyvalue = { workspace = true, features = ["filesystem", "awsdynamodb", "redis", "azblob"], optional = true}
 slight-distributed-locking = { workspace = true, features = ["etcd"], optional = true}
-slight-messaging = { workspace = true, features = ["filesystem", "mosquitto", "azsbus"], optional = true}
+slight-messaging = { workspace = true, features = ["filesystem", "mosquitto", "azsbus", "natsio"], optional = true}
 slight-runtime-configs = { workspace = true, optional = true }
 slight-common = { workspace = true }
 slight-sql = { workspace = true, features = ["postgres"], optional = true }

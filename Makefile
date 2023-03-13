@@ -126,6 +126,9 @@ run-rust:
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/caf_slightfile.toml' run ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm
 	# sql.postgres
 	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/sql-demo/postgres_slightfile.toml' run ./examples/sql-demo/target/wasm32-wasi/release/sql-demo.wasm
+	# messaging.nats
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-consumer-demo/nats_slightfile.toml' run ./examples/messaging-consumer-demo/target/wasm32-wasi/release/messaging-consumer-demo.wasm &
+	RUST_LOG=$(LOG_LEVEL) $(SLIGHT) -c './examples/messaging-producer-demo/nats_slightfile.toml' run ./examples/messaging-producer-demo/target/wasm32-wasi/release/messaging-producer-demo.wasm
 
 .PHONY: clean-rust
 clean-rust:
