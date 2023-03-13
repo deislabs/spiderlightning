@@ -287,7 +287,26 @@ async fn build_store_instance(
                 }
             }
             _ => {
-                bail!("invalid url: currently slight only supports 'configs.usersecrets', 'configs.envvars', 'keyvalue.filesystem', 'keyvalue.azblob', 'keyvalue.awsdynamodb', 'distributed_locking.etcd', 'messaging.confluent_apache_kafka', 'messaging.mosquitto', and 'http' schemes")
+                let mut allowed_schemes: Vec<&str> = Vec::new();
+
+                #[cfg(feature = "keyvalue")]
+                allowed_schemes.extend(&KEYVALUE_HOST_IMPLEMENTORS);
+
+                #[cfg(feature = "distributed-locking")]
+                allowed_schemes.extend(&DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS);
+
+                #[cfg(feature = "messaging")]
+                allowed_schemes.extend(&MESSAGING_HOST_IMPLEMENTORS);
+
+                #[cfg(feature = "runtime-configs")]
+                allowed_schemes.extend(&CONFIGS_HOST_IMPLEMENTORS);
+
+                #[cfg(feature = "sql")]
+                allowed_schemes.extend(&SQL_HOST_IMPLEMENTORS);
+
+                let allowed_schemes_str = allowed_schemes.join(", ");
+
+                bail!("invalid url: currently slight only supports http, and the '{}' capability schemes", allowed_schemes_str);
             }
         }
     }
