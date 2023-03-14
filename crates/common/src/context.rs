@@ -1,4 +1,4 @@
-use slight_http_api::{ HttpHandlerData, HttpServerExportData };
+use slight_http_api::{HttpHandlerData, HttpServerExportData};
 
 /// A WebAssembly runtime context to be consumed by the wasm component.
 pub trait Ctx {

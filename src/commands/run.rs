@@ -6,14 +6,14 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use wit_bindgen_wasmtime::wasmtime::Store;
-use slight_common::{BasicState, Capability, WasmtimeBuildable, Ctx as _};
+use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
 #[cfg(feature = "http-server")]
-use slight_http_server::{ HttpServer, HttpServerInit };
+use slight_http_server::{HttpServer, HttpServerInit};
 #[cfg(feature = "keyvalue")]
 use slight_keyvalue::Keyvalue;
 #[cfg(feature = "messaging")]

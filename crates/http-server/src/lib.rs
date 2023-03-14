@@ -18,8 +18,8 @@ use slight_common::{impl_resource, Builder, Ctx, WasmtimeBuildable};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
 
+pub use slight_http_api::HttpServerInit;
 use slight_http_api::{HttpBody, HttpHandler, HttpHeader, Method, Request};
-pub use slight_http_api::{ HttpServerInit };
 
 wit_bindgen_wasmtime::export!("../../wit/http-server.wit");
 wit_error_rs::impl_error!(http_server::HttpRouterError);
