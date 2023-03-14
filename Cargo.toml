@@ -99,7 +99,7 @@ rand = "0.8"
 members = [
     "crates/core",
     "crates/common",
-    "crates/http-server-macro/",
-    "crates/http-handler-macro/",
+    "crates/http-server-macro",
+    "crates/http-handler-macro",
     "tests"
 ]

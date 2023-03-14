@@ -77,7 +77,7 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
     tracing::info!("Starting slight");
 
     let mut host_builder = build_store_instance(&toml, &args.slightfile, &args.module).await?;
-    if let Some(io_redirects) = args.io_redirects {
+    if let Some(io_redirects) = args.io_redirects.clone() {
         tracing::info!("slight io redirects were specified");
         host_builder = host_builder.set_io(io_redirects);
     }
@@ -98,7 +98,14 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
     // looking for the http capability.
     if cfg!(feature = "http-server") && http_enabled {
         log::debug!("Http capability enabled");
-        update_http_states(toml, args.slightfile, args.module, &mut store).await?;
+        update_http_states(
+            toml,
+            args.slightfile,
+            args.module,
+            &mut store,
+            args.io_redirects,
+        )
+        .await?;
 
         // invoke on_server_init
         let http_server =
@@ -138,8 +145,13 @@ async fn update_http_states(
     toml_file_path: impl AsRef<Path>,
     module: impl AsRef<Path>,
     store: &mut Store<slight_runtime::RuntimeContext>,
+    maybe_stdio: Option<IORedirects>,
 ) -> Result<(), anyhow::Error> {
-    let guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module).await?;
+    let mut guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module).await?;
+    if let Some(ioredirects) = maybe_stdio {
+        tracing::info!("setting HTTP guest builder io redirects");
+        guest_builder = guest_builder.set_io(ioredirects);
+    }
     let http_api_resource: &mut HttpServer<Builder> = get_resource(store, "http");
     http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     Ok(())
@@ -359,6 +371,7 @@ fn maybe_add_named_capability_to_store(
 #[cfg(test)]
 mod unittest {
     use crate::commands::run::{handle_run, RunArgs};
+    use rand::distributions::Alphanumeric;
     use rand::Rng;
     use slight_runtime::IORedirects;
     use std::fs::File;
@@ -379,7 +392,7 @@ mod unittest {
         let stderr_path = tmp_dir.path().join("stderr");
 
         let canary: String = rand::thread_rng()
-            .sample_iter(&rand::distributions::Alphanumeric)
+            .sample_iter(&Alphanumeric)
             .take(7)
             .map(char::from)
             .collect();
