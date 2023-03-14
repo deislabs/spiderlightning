@@ -118,6 +118,20 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
             impl #trait_ident for #struct_ident {
                 #func
             }
+
+            impl std::fmt::Display for #mod_ident::Method {
+                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                    match self {
+                        #mod_ident::Method::Get => write!(f, "GET"),
+                        #mod_ident::Method::Post => write!(f, "POST"),
+                        #mod_ident::Method::Put => write!(f, "PUT"),
+                        #mod_ident::Method::Delete => write!(f, "DELETE"),
+                        #mod_ident::Method::Patch => write!(f, "PATCH"),
+                        #mod_ident::Method::Head => write!(f, "HEAD"),
+                        #mod_ident::Method::Options => write!(f, "OPTIONS")
+                    }
+                }
+            }
         }
     )
     .into()
