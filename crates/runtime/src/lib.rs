@@ -38,7 +38,7 @@ pub struct RuntimeContext {
 }
 
 impl slight_common::Ctx for RuntimeContext {
-    fn get_http_state_mut(&mut self) -> &mut HttpData {
+    fn get_http_handler_mut(&mut self) -> &mut HttpData {
         &mut self.http_state
     }
 
@@ -49,7 +49,7 @@ impl slight_common::Ctx for RuntimeContext {
         get_host_state(self, resource_key)
     }
 
-    fn get_http_server_state_mut(&mut self) -> &mut slight_http_api::HttpServerExportData {
+    fn get_http_server_mut(&mut self) -> &mut slight_http_api::HttpServerExportData {
         &mut self.http_server_state
     }
 }

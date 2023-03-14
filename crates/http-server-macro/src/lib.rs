@@ -1,16 +1,5 @@
 use proc_macro::TokenStream;
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use anyhow::Result;
 use quote::quote;
-use wit_bindgen_gen_core::{wit_parser::Interface, Direction, Files, Generator};
-use wit_bindgen_gen_rust_wasm::RustWasm;
-
-const HTTP_WIT_PATH: &str = concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../wit/http-server-export.wit"
-);
 
 #[proc_macro_attribute]
 pub fn on_server_init(_attr: TokenStream, item: TokenStream) -> TokenStream {

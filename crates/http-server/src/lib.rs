@@ -336,7 +336,7 @@ async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     // Construct http handler
     let handler_name = &route.handler.replace('_', "-");
     let handler = HttpHandler::new(&mut store, &instance, handler_name, |ctx| {
-        ctx.get_http_state_mut()
+        ctx.get_http_handler_mut()
     })?;
 
     // Invoke the handler with http request

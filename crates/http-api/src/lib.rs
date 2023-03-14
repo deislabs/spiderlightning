@@ -11,6 +11,9 @@ wit_bindgen_wasmtime::import!({paths: ["../../wit/http-handler.wit"], async: *})
 wit_bindgen_wasmtime::import!({paths: ["../../wit/http-server-export.wit"], async: *});
 wit_error_rs::impl_error!(http_handler::HttpError);
 
+/// An exported HTTP server init function from the wasm module
+///
+/// This is a wrapper implementation of the WIT generated `HttpServerExport`
 pub struct HttpServerInit<T> {
     inner: http_server_export::HttpServerExport<T>,
 }
