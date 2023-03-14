@@ -39,7 +39,9 @@ flate2 = "1"
 tar = "0.4"
 
 [dev-dependencies]
-tempdir = { workspace = true}
+tempdir = { workspace = true }
+tempfile = { workspace = true }
+rand = { worspace = true }
 
 [features]
 default = ["keyvalue", "distributed-locking", "messaging", "runtime-configs", "sql", "http-server", "http-client"]
@@ -57,7 +59,6 @@ authors = ["DeisLabs Engineering Team"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/deislabs/spiderlightning"
-
 
 [workspace.dependencies]
 slight-core = { path = "./crates/core" }
@@ -83,15 +84,16 @@ tokio = { version = "1", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
 toml = "0.7"
 tempdir = "0.3"
+tempfile = "3.4"
 log = { version = "0.4", default-features = false }
 env_logger = "0.10"
 as-any = "0.3"
 serde = { version = "1", features = ["derive"] }
 hyper = "0.14"
 url = "2.2"
-rand = "0.8"
 semver = "1"
 clap = { version = "4", features = ["derive"] }
+rand = "0.8"
 
 [workspace]
 members = [
