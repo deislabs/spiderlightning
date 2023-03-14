@@ -8,13 +8,13 @@ repository = { workspace = true }
 
 [[bin]]
 name = "slight"
-test = false
 
 [lib]
 name = "slight_lib"
 path = "src/lib.rs"
 
 [dependencies]
+slight-blob-store = { workspace = true, features = ["aws_s3"], optional = true }
 slight-core = { workspace = true }
 slight-runtime = { workspace = true }
 slight-keyvalue = { workspace = true, features = ["filesystem", "awsdynamodb", "redis", "azblob"], optional = true}
@@ -42,7 +42,8 @@ tar = "0.4"
 tempdir = { workspace = true}
 
 [features]
-default = ["keyvalue", "distributed-locking", "messaging", "runtime-configs", "sql", "http-server", "http-client"]
+default = ["blob-store", "keyvalue", "distributed-locking", "messaging", "runtime-configs", "sql", "http-server", "http-client"]
+blob-store = ["dep:slight-blob-store"]
 keyvalue = ["dep:slight-keyvalue"]
 distributed-locking = ["dep:slight-distributed-locking"]
 messaging = ["dep:slight-messaging"]
@@ -60,6 +61,7 @@ repository = "https://github.com/deislabs/spiderlightning"
 
 
 [workspace.dependencies]
+slight-blob-store = { path = "./crates/blob-store" }
 slight-core = { path = "./crates/core" }
 slight-runtime = { path = "./crates/runtime" }
 slight-keyvalue = { path = "./crates/keyvalue" }

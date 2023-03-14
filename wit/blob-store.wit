@@ -1,5 +1,6 @@
-use { container-metadata, object-name, object-metadata, object-id } from blob-types
+// wasi-blob-store based on https://github.com/WebAssembly/wasi-blob-store
 
+use { container-metadata, object-name, object-metadata, object-id } from blob-types
 
 // a Container is a collection of objects
 resource container {

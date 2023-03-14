@@ -1,0 +1,26 @@
+[package]
+name = "slight-blob-store"
+version = "0.1.0"
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wit-bindgen-wasmtime = { workspace = true }
+wit-error-rs = { workspace = true }
+slight-common = { workspace = true }
+slight-runtime-configs = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+# blobstore.s3 deps
+aws-config = { version = "0.54", optional = true }
+aws-sdk-s3 = { version = "0.24" , optional = true }
+
+[features]
+default = ["aws_s3"]
+aws_s3 = ["aws-config", "aws-sdk-s3"]
