@@ -379,7 +379,7 @@ mod unittest {
         let stderr_path = tmp_dir.path().join("stderr");
 
         let canary: String = rand::thread_rng()
-            .gen_ascii_chars()
+            .sample_iter(&rand::distributions::Alphanumeric)
             .take(7)
             .map(char::from)
             .collect();
