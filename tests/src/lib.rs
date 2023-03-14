@@ -227,7 +227,7 @@ mod integration_tests {
         #[tokio::test]
         async fn http_test() -> Result<()> {
             let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
-            let out_dir = out_dir.join("wasm32-wasi/debug/http-test.wasm");
+            let out_dir = out_dir.join("wasm32-wasi/debug/http_test.wasm");
             println!(
                 "out_dir: {}",
                 out_dir.to_owned().as_os_str().to_str().unwrap()

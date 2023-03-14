@@ -9,7 +9,7 @@ use std::{
 use anyhow::Result;
 use async_trait::async_trait;
 use ctx::SlightCtxBuilder;
-use resource::{get_host_state, HttpData};
+use resource::{get_host_state, HttpData, HttpServerExportData};
 use slight_common::{CapabilityBuilder, WasmtimeBuildable, WasmtimeLinkable};
 use wasi_cap_std_sync::{ambient_authority, Dir, WasiCtxBuilder};
 use wasi_common::pipe::{ReadPipe, WritePipe};
@@ -34,6 +34,7 @@ pub struct RuntimeContext {
     pub wasi: Option<WasiCtx>,
     pub slight: SlightCtx,
     pub http_state: HttpData,
+    pub http_server_state: HttpServerExportData,
 }
 
 impl slight_common::Ctx for RuntimeContext {
@@ -46,6 +47,10 @@ impl slight_common::Ctx for RuntimeContext {
         resource_key: String,
     ) -> (&mut T, &mut TTable) {
         get_host_state(self, resource_key)
+    }
+
+    fn get_http_server_state_mut(&mut self) -> &mut slight_http_api::HttpServerExportData {
+        &mut self.http_server_state
     }
 }
 
@@ -147,6 +152,7 @@ impl WasmtimeBuildable for Builder {
             wasi: Some(wasi),
             slight: self.state_builder.build(),
             http_state: HttpData::default(),
+            http_server_state: HttpServerExportData::default(),
         };
 
         let mut store = Store::new(&self.engine, ctx);

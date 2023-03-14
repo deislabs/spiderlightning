@@ -6,15 +6,14 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use wit_bindgen_wasmtime::wasmtime::Store;
-
-use slight_common::{BasicState, Capability, WasmtimeBuildable};
+use slight_common::{BasicState, Capability, WasmtimeBuildable, Ctx as _};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
 #[cfg(feature = "http-server")]
-use slight_http_server::HttpServer;
+use slight_http_server::{ HttpServer, HttpServerInit };
 #[cfg(feature = "keyvalue")]
 use slight_keyvalue::Keyvalue;
 #[cfg(feature = "messaging")]
@@ -85,38 +84,39 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
     let (mut store, instance) = host_builder.build().await;
 
     let caps = toml.capability.as_ref().unwrap();
+    let http_enabled;
 
-    // looking for the http capability.
-    let http_enabled = if cfg!(feature = "http-server") {
-        let http_enabled;
-
-        if toml.specversion == "0.1" {
-            http_enabled = caps.iter().any(|cap| cap.name == "http");
-        } else if toml.specversion == "0.2" {
-            http_enabled = caps
-                .iter()
-                .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
-        } else {
-            bail!("unsupported toml spec version");
-        }
-
-        if http_enabled {
-            log::debug!("Http capability enabled");
-            update_http_states(toml, &args.slightfile, &args.module, &mut store).await?;
-        }
-        http_enabled
+    if toml.specversion == "0.1" {
+        http_enabled = caps.iter().any(|cap| cap.name == "http");
+    } else if toml.specversion == "0.2" {
+        http_enabled = caps
+            .iter()
+            .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
     } else {
-        false
-    };
-
-    instance
-        .get_typed_func::<(), _>(&mut store, "_start")?
-        .call_async(&mut store, ())
-        .await?;
-
+        bail!("unsupported toml spec version");
+    }
+    // looking for the http capability.
     if cfg!(feature = "http-server") && http_enabled {
+        log::debug!("Http capability enabled");
+        update_http_states(toml, args.slightfile, args.module, &mut store).await?;
+
+        // invoke on_server_init
+        let http_server =
+            HttpServerInit::new(&mut store, &instance, |ctx| ctx.get_http_server_mut())?;
+
+        let res = http_server.on_server_init(&mut store).await?;
+        match res {
+            Ok(_) => {}
+            Err(e) => bail!(e),
+        }
+
         log::info!("waiting for http to finish...");
         close_http_server(store).await;
+    } else {
+        instance
+            .get_typed_func::<(), _>(&mut store, "_start")?
+            .call_async(&mut store, ())
+            .await?;
     }
     Ok(())
 }
