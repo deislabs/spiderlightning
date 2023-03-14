@@ -1,5 +1,6 @@
 use anyhow::{bail, Result};
 use async_trait::async_trait;
+use aws_config::{from_env, meta::region::RegionProviderChain};
 use aws_sdk_dynamodb::model::{AttributeValue, Select};
 use aws_sdk_dynamodb::Client;
 
@@ -23,7 +24,7 @@ pub struct AwsDynamoDbImplementor {
 impl AwsDynamoDbImplementor {
     /// Creates a new `AwsDynamoDbImplementor` instance.
     ///
-    /// It uses the `aws_config::load_from_env()` for AWS Configuration.
+    /// It uses the `aws_config::from_env()` for AWS Configuration.
     /// It will access the AWS Configuration environment variables:
     ///   - `AWS_ACCESS_KEY_ID`, and
     ///   - `AWS_SECRET_ACCESS_KEY`, and
@@ -44,8 +45,9 @@ impl AwsDynamoDbImplementor {
     /// }
     /// ```
     pub async fn new(_slight_state: &BasicState, name: &str) -> Self {
-        let shared_config = aws_config::load_from_env().await;
-        let client = Client::new(&shared_config);
+        let region = RegionProviderChain::default_provider().or_else("us-west-2");
+        let config = from_env().region(region).load().await;
+        let client = Client::new(&config);
         let table_name = name.into();
         log::info!(
             "Creating a new AWS DynamoDB resource with table name: {}",
