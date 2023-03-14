@@ -1,3 +1,4 @@
+use std::fmt;
 use anyhow::Result;
 
 use http_server::*;
@@ -27,11 +28,26 @@ fn main() -> Result<()> {
 
 #[register_handler]
 fn handle_hello(req: Request) -> Result<Response, HttpError> {
+    println!("I just got a request uri: {} method: {}", req.uri, req.method);
     Ok(Response {
         headers: Some(req.headers),
         body: Some("hello".as_bytes().to_vec()),
         status: 200,
     })
+}
+
+impl fmt::Display for handle_hello_mod::Method {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            handle_hello_mod::Method::Get => write!(f, "GET"),
+            handle_hello_mod::Method::Post => write!(f, "POST"),
+            handle_hello_mod::Method::Put => write!(f, "PUT"),
+            handle_hello_mod::Method::Delete => write!(f, "DELETE"),
+            handle_hello_mod::Method::Patch => write!(f, "PATCH"),
+            handle_hello_mod::Method::Head => write!(f, "HEAD"),
+            handle_hello_mod::Method::Options => write!(f, "OPTIONS")
+        }
+    }
 }
 
 #[register_handler]

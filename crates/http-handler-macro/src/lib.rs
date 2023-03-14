@@ -64,7 +64,6 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // builds struct name from function name
     let struct_name = handle_func
         .split('_')
-        .into_iter()
         .map(capitalize_first_letter)
         .collect::<String>();
 
@@ -74,7 +73,6 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // builds trait name from mod name
     let trait_name = mod_name
         .split('_')
-        .into_iter()
         .map(capitalize_first_letter)
         .collect::<String>();
     let internal_mod = format!("{}_internal", &mod_name);
@@ -135,7 +133,6 @@ mod unittests {
         let struct_name = func_name
             .to_string()
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(struct_name, "HandleHello".to_string());
@@ -143,7 +140,6 @@ mod unittests {
         let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(trait_name, "HandleHelloMod");
@@ -152,7 +148,6 @@ mod unittests {
         let struct_name = func_name
             .to_string()
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(struct_name, "Handle".to_string());
@@ -160,7 +155,6 @@ mod unittests {
         let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(trait_name, "HandleMod");
@@ -169,7 +163,6 @@ mod unittests {
         let struct_name = func_name
             .to_string()
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(struct_name, "HandleFuncA".to_string());
@@ -177,7 +170,6 @@ mod unittests {
         let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(trait_name, "HandleFuncAMod");

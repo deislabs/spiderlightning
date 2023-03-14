@@ -5,7 +5,6 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use wit_bindgen_wasmtime::wasmtime::Store;
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
@@ -23,6 +22,7 @@ use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
 #[cfg(feature = "sql")]
 use slight_sql::Sql;
+use wit_bindgen_wasmtime::wasmtime::Store;
 
 #[cfg(feature = "keyvalue")]
 const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
