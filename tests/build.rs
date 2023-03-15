@@ -13,7 +13,7 @@ const IO_TEST_PATH: &str = "./io-test";
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed={WIT_DIRECTORY}");
-    println!("cargo:rerun-if-changed={KEYVALUE_TEST_PATH}/src/main.rs");
+    println!("cargo:rerun-if-changed={KEYVALUE_TEST_PATH}/src/lib.rs");
     println!("cargo:rerun-if-changed={HTTP_TEST_PATH}/src/main.rs");
     println!("cargo:rerun-if-changed={CONFIGS_TEST_PATH}/src/main.rs");
     println!("cargo:rerun-if-changed={FILESYSTEM_ACCESS_TEST_PATH}/src/main.rs");

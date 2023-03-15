@@ -3,7 +3,7 @@ pub use crate::RuntimeContext;
 
 use as_any::Downcast;
 
-use slight_http_api::HttpHandlerData;
+pub use slight_http_api::{HttpHandlerData, HttpServerExportData};
 pub use wasmtime::Linker;
 
 /// Guest data for http handler
