@@ -8,7 +8,6 @@ repository = { workspace = true }
 
 [lib]
 doctest = false
-test = false
 
 [dependencies]
 wasmtime = { workspace = true }
@@ -25,4 +24,5 @@ async-trait = { workspace = true }
 
 [dev-dependencies]
 slight-keyvalue = { workspace = true }
+tempfile = { workspace = true }
 tokio = { workspace = true }

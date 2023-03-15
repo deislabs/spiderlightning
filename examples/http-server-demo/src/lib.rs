@@ -3,12 +3,15 @@ use anyhow::Result;
 use http_server::*;
 use keyvalue::*;
 use slight_http_handler_macro::register_handler;
+use slight_http_server_macro::on_server_init;
 
 wit_bindgen_rust::import!("../../wit/http-server.wit");
+wit_bindgen_rust::export!("../../wit/http-server-export.wit");
 wit_bindgen_rust::import!("../../wit/keyvalue.wit");
 wit_error_rs::impl_error!(http_server::HttpRouterError);
 wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
+#[on_server_init]
 fn main() -> Result<()> {
     let router = Router::new()?;
     let router_with_route = router
@@ -24,6 +27,7 @@ fn main() -> Result<()> {
 
 #[register_handler]
 fn handle_hello(req: Request) -> Result<Response, HttpError> {
+    println!("I just got a request uri: {} method: {}", req.uri, req.method);
     Ok(Response {
         headers: Some(req.headers),
         body: Some("hello".as_bytes().to_vec()),

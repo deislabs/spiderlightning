@@ -124,6 +124,12 @@ jobs:
           OPENSSL_NO_VENDOR: true
 
       #
+      # Build Examples
+      #
+      - name: "Build Examples"
+        run: make build-rust
+
+      #
       # Run Unit Tests
       #
       - name: "Run Unit Tests"

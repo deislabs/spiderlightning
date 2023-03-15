@@ -1,0 +1,14 @@
+[package]
+name = "io-test"
+version = "0.1.0"
+edition = "2021"
+authors = [ "DeisLabs Engineering Team" ]
+
+[[bin]]
+name = "io-test"
+test = false
+
+[dependencies]
+anyhow = "1"
+
+[workspace]

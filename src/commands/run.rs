@@ -1,18 +1,18 @@
 use std::{
     collections::{HashMap, HashSet},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
-use slight_common::{BasicState, Capability, WasmtimeBuildable};
+use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
 #[cfg(feature = "http-server")]
-use slight_http_server::HttpServer;
+use slight_http_server::{HttpServer, HttpServerInit};
 #[cfg(feature = "keyvalue")]
 use slight_keyvalue::Keyvalue;
 #[cfg(feature = "messaging")]
@@ -40,7 +40,7 @@ const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
 const DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS: [&str; 2] = ["lockd.etcd", "distributed_locking.etcd"];
 
 #[cfg(feature = "messaging")]
-const MESSAGING_HOST_IMPLEMENTORS: [&str; 8] = [
+const MESSAGING_HOST_IMPLEMENTORS: [&str; 9] = [
     "pubsub.confluent_apache_kafka",
     "pubsub.mosquitto",
     "messaging.confluent_apache_kafka",
@@ -49,6 +49,7 @@ const MESSAGING_HOST_IMPLEMENTORS: [&str; 8] = [
     "mq.filesystem",
     "messaging.azsbus",
     "messaging.filesystem",
+    "messaging.nats",
 ];
 
 #[cfg(feature = "runtime-configs")]
@@ -58,50 +59,71 @@ const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
 #[cfg(feature = "sql")]
 const SQL_HOST_IMPLEMENTORS: [&str; 1] = ["sql.postgres"];
 
-pub async fn handle_run(module: impl AsRef<Path>, toml_file_path: impl AsRef<Path>) -> Result<()> {
+pub type IORedirects = slight_runtime::IORedirects;
+
+#[derive(Clone, Default)]
+pub struct RunArgs {
+    pub module: PathBuf,
+    pub slightfile: PathBuf,
+    pub io_redirects: Option<IORedirects>,
+}
+
+pub async fn handle_run(args: RunArgs) -> Result<()> {
     let toml_file_contents =
-        std::fs::read_to_string(&toml_file_path).expect("could not locate slightfile");
+        std::fs::read_to_string(args.slightfile.clone()).expect("could not locate slightfile");
     let toml =
         toml::from_str::<TomlFile>(&toml_file_contents).expect("provided file is not a slightfile");
 
     tracing::info!("Starting slight");
 
-    let host_builder = build_store_instance(&toml, &toml_file_path, &module).await?;
+    let mut host_builder = build_store_instance(&toml, &args.slightfile, &args.module).await?;
+    if let Some(io_redirects) = args.io_redirects.clone() {
+        tracing::info!("slight io redirects were specified");
+        host_builder = host_builder.set_io(io_redirects);
+    }
     let (mut store, instance) = host_builder.build().await;
 
     let caps = toml.capability.as_ref().unwrap();
+    let http_enabled;
 
-    // looking for the http capability.
-    let http_enabled = if cfg!(feature = "http-server") {
-        let http_enabled;
-
-        if toml.specversion == "0.1" {
-            http_enabled = caps.iter().any(|cap| cap.name == "http");
-        } else if toml.specversion == "0.2" {
-            http_enabled = caps
-                .iter()
-                .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
-        } else {
-            bail!("unsupported toml spec version");
-        }
-
-        if http_enabled {
-            log::debug!("Http capability enabled");
-            update_http_states(toml, toml_file_path, module, &mut store).await?;
-        }
-        http_enabled
+    if toml.specversion == "0.1" {
+        http_enabled = caps.iter().any(|cap| cap.name == "http");
+    } else if toml.specversion == "0.2" {
+        http_enabled = caps
+            .iter()
+            .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
     } else {
-        false
-    };
-
-    instance
-        .get_typed_func::<(), _>(&mut store, "_start")?
-        .call_async(&mut store, ())
+        bail!("unsupported toml spec version");
+    }
+    // looking for the http capability.
+    if cfg!(feature = "http-server") && http_enabled {
+        log::debug!("Http capability enabled");
+        update_http_states(
+            toml,
+            args.slightfile,
+            args.module,
+            &mut store,
+            args.io_redirects,
+        )
         .await?;
 
-    if cfg!(feature = "http-server") && http_enabled {
+        // invoke on_server_init
+        let http_server =
+            HttpServerInit::new(&mut store, &instance, |ctx| ctx.get_http_server_mut())?;
+
+        let res = http_server.on_server_init(&mut store).await?;
+        match res {
+            Ok(_) => {}
+            Err(e) => bail!(e),
+        }
+
         log::info!("waiting for http to finish...");
         close_http_server(store).await;
+    } else {
+        instance
+            .get_typed_func::<(), _>(&mut store, "_start")?
+            .call_async(&mut store, ())
+            .await?;
     }
     Ok(())
 }
@@ -123,8 +145,13 @@ async fn update_http_states(
     toml_file_path: impl AsRef<Path>,
     module: impl AsRef<Path>,
     store: &mut Store<slight_runtime::RuntimeContext>,
+    maybe_stdio: Option<IORedirects>,
 ) -> Result<(), anyhow::Error> {
-    let guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module).await?;
+    let mut guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module).await?;
+    if let Some(ioredirects) = maybe_stdio {
+        tracing::info!("setting HTTP guest builder io redirects");
+        guest_builder = guest_builder.set_io(ioredirects);
+    }
     let http_api_resource: &mut HttpServer<Builder> = get_resource(store, "http");
     http_api_resource.update_state(slight_common::Builder::new(guest_builder))?;
     Ok(())
@@ -358,4 +385,55 @@ fn maybe_add_named_capability_to_store(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod unittest {
+    use crate::commands::run::{handle_run, RunArgs};
+    use rand::distributions::Alphanumeric;
+    use rand::Rng;
+    use slight_runtime::IORedirects;
+    use std::fs::File;
+    use std::path::{Path, PathBuf};
+    use tempfile::tempdir;
+    use tokio::fs;
+
+    #[tokio::test]
+    async fn test_handle_run_with_io() -> anyhow::Result<()> {
+        let module = "./src/commands/test/io-test.wasm";
+        assert!(Path::new(module).exists());
+        let slightfile = "./src/commands/test/slightfile.toml";
+        assert!(Path::new(slightfile).exists());
+
+        let tmp_dir = tempdir()?;
+        let stdin_path = tmp_dir.path().join("stdin");
+        let stdout_path = tmp_dir.path().join("stdout");
+        let stderr_path = tmp_dir.path().join("stderr");
+
+        let canary: String = rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(7)
+            .map(char::from)
+            .collect();
+        fs::write(&stdin_path, &canary).await?;
+        let _ = File::create(&stdout_path)?;
+        let _ = File::create(&stderr_path)?;
+
+        let args = RunArgs {
+            module: PathBuf::from(module),
+            slightfile: PathBuf::from(slightfile),
+            io_redirects: Some(IORedirects {
+                stdin_path: Some(PathBuf::from(&stdin_path)),
+                stdout_path: Some(PathBuf::from(&stdout_path)),
+                stderr_path: Some(PathBuf::from(&stderr_path)),
+            }),
+        };
+
+        handle_run(args).await?;
+        let stdout_output = fs::read_to_string(&stdout_path).await?;
+        assert_eq!(stdout_output, canary);
+        let stderr_output = fs::read_to_string(&stderr_path).await?;
+        assert_eq!(stderr_output, format!("error: {canary}"));
+        Ok(())
+    }
 }

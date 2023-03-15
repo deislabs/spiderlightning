@@ -40,6 +40,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "slight-http-handler-macro",
+ "slight-http-server-macro",
  "wit-bindgen-rust",
  "wit-error-rs",
 ]
@@ -87,6 +88,18 @@ dependencies = [
 
 [[package]]
 name = "slight-http-handler-macro"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "wit-bindgen-gen-core",
+ "wit-bindgen-gen-rust-wasm",
+]
+
+[[package]]
+name = "slight-http-server-macro"
 version = "0.1.0"
 dependencies = [
  "anyhow",

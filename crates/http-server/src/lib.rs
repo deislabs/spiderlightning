@@ -18,6 +18,7 @@ use slight_common::{impl_resource, Builder, Ctx, WasmtimeBuildable};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
 use tracing::log;
 
+pub use slight_http_api::HttpServerInit;
 use slight_http_api::{HttpBody, HttpHandler, HttpHeader, Method, Request};
 
 wit_bindgen_wasmtime::export!("../../wit/http-server.wit");
@@ -335,7 +336,7 @@ async fn handler<T: WasmtimeBuildable + Send + Sync + 'static>(
     // Construct http handler
     let handler_name = &route.handler.replace('_', "-");
     let handler = HttpHandler::new(&mut store, &instance, handler_name, |ctx| {
-        ctx.get_http_state_mut()
+        ctx.get_http_handler_mut()
     })?;
 
     // Invoke the handler with http request

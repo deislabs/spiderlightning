@@ -34,6 +34,8 @@ async-channel = { version = "1.5", optional = true }
 azure_core = { version = "0.10.0", optional = true }
 azure_messaging_servicebus = { version = "0.10.0", optional = true }
 http = { version = "0.2", optional = true }
+# messaging.nats deps
+nats = { version = "0.24.0", optional = true } 
 
 [features]
 default = ["filesystem"]
@@ -41,3 +43,4 @@ apache_kafka = ["rdkafka", "openssl"]
 filesystem = ["filesystem-pubsub"]
 mosquitto = ["mosquitto-rs", "async-channel"]
 azsbus = ["azure_core", "azure_messaging_servicebus", "http"]
+natsio = ["nats"]

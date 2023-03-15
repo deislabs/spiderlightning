@@ -8,11 +8,12 @@ const KEYVALUE_TEST_PATH: &str = "./keyvalue-test";
 const HTTP_TEST_PATH: &str = "./http-test";
 const CONFIGS_TEST_PATH: &str = "./configs-test";
 const FILESYSTEM_ACCESS_TEST_PATH: &str = "./filesystem-access-test";
+const IO_TEST_PATH: &str = "./io-test";
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed={WIT_DIRECTORY}");
-    println!("cargo:rerun-if-changed={KEYVALUE_TEST_PATH}/src/main.rs");
+    println!("cargo:rerun-if-changed={KEYVALUE_TEST_PATH}/src/lib.rs");
     println!("cargo:rerun-if-changed={HTTP_TEST_PATH}/src/main.rs");
     println!("cargo:rerun-if-changed={CONFIGS_TEST_PATH}/src/main.rs");
     println!("cargo:rerun-if-changed={FILESYSTEM_ACCESS_TEST_PATH}/src/main.rs");
@@ -30,6 +31,7 @@ fn main() {
             std::process::exit(1);
         }
         // Build test wasm modules
+        cargo_wasi_build(IO_TEST_PATH);
         cargo_wasi_build(KEYVALUE_TEST_PATH);
         cargo_wasi_build(HTTP_TEST_PATH);
         cargo_wasi_build(CONFIGS_TEST_PATH);

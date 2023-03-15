@@ -104,7 +104,7 @@ stages:
 
           #
           # Install build tools
-          #
+          #          
           - script: |
               choco install strawberryperl
               make install-deps-win
