@@ -3847,7 +3847,7 @@ checksum = "03b634d87b960ab1a38c4fe143b508576f075e7c978bfad18217645ebfdfa2ec"
 
 [[package]]
 name = "slight"
-version = "0.3.3"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "as-any",
@@ -3889,7 +3889,7 @@ dependencies = [
 
 [[package]]
 name = "slight-core"
-version = "0.3.3"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -3988,7 +3988,7 @@ dependencies = [
 
 [[package]]
 name = "slight-integration-tests"
-version = "0.3.3"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "hyper",
