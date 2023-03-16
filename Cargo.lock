@@ -3854,7 +3854,7 @@ dependencies = [
  "clap",
  "flate2",
  "log",
- "rand 0.8.5",
+ "rand 0.7.3",
  "reqwest",
  "slight-common",
  "slight-core",
