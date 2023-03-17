@@ -410,7 +410,7 @@ mod integration_tests {
                 "messaging",
                 "sql",
             ];
-            let version = "v0.3.1";
+            let version = "v0.4.0";
 
             let tmpdir = tempdir::TempDir::new("tests")?;
             for cap in capabilities {
