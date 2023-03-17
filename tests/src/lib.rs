@@ -453,7 +453,7 @@ mod integration_tests {
             let p = tmpdir.path().to_owned();
             let mut files = std::fs::read_dir(p.join(format!(
                 "http-server_{version}",
-                version = version.strip_prefix("v").expect("version format")
+                version = version.strip_prefix('v').expect("version format")
             )))?
             .map(|res| res.map(|e| e.file_name().into_string().unwrap()))
             .collect::<Result<Vec<_>, std::io::Error>>()?;
