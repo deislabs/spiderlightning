@@ -369,7 +369,7 @@ mod integration_tests {
         fn slight_new_rust() -> anyhow::Result<()> {
             let tmpdir = tempdir::TempDir::new("tests")?;
             let mut child = Command::new(slight_path())
-                .args(["new", "--name-at-release", "my-demo@v0.3.1", "rust"])
+                .args(["new", "--name-at-release", "my-demo@v0.4.0", "rust"])
                 .current_dir(&tmpdir)
                 .spawn()?;
             child.wait().ok();
@@ -410,7 +410,7 @@ mod integration_tests {
                 "messaging",
                 "sql",
             ];
-            let version = "v0.3.1";
+            let version = "v0.4.0";
 
             let tmpdir = tempdir::TempDir::new("tests")?;
             for cap in capabilities {
@@ -427,6 +427,39 @@ mod integration_tests {
                 .current_dir(&tmpdir)
                 .output()?;
             assert!(!output.status.success());
+            Ok(())
+        }
+
+        #[test]
+        fn slight_add_http_server_tests() -> anyhow::Result<()> {
+            let mut wits = vec![
+                "http-server-export.wit",
+                "http-server.wit",
+                "http-types.wit",
+                "http-handler.wit",
+            ];
+            wits.sort();
+            let version = "v0.4.0";
+
+            let tmpdir = tempdir::TempDir::new("tests")?;
+
+            let output = Command::new(slight_path())
+                .args(["add", &format!("{cap}@{version}", cap = "http-server")])
+                .current_dir(&tmpdir)
+                .output()?;
+            assert!(output.status.success());
+
+            // check file names in the http-server folder
+            let p = tmpdir.path().to_owned();
+            let mut files = std::fs::read_dir(p.join(format!(
+                "http-server_{version}",
+                version = version.strip_prefix('v').expect("version format")
+            )))?
+            .map(|res| res.map(|e| e.file_name().into_string().unwrap()))
+            .collect::<Result<Vec<_>, std::io::Error>>()?;
+
+            files.sort();
+            assert_eq!(files, wits);
             Ok(())
         }
     }
