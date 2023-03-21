@@ -10,7 +10,12 @@ const GITHUB_URL: &str = "https://github.com/deislabs/spiderlightning/releases/d
 
 const KEYVALUE_DOWNLOADS: [&str; 1] = ["keyvalue"];
 const CONFIGS_DOWNLOADS: [&str; 1] = ["configs"];
-const HTTP_DOWNLOADS: [&str; 3] = ["http-server", "http-handler", "http-types"];
+const HTTP_DOWNLOADS: [&str; 4] = [
+    "http-server",
+    "http-server-export",
+    "http-handler",
+    "http-types",
+];
 const HTTP_CLIENT_DOWNLOADS: [&str; 2] = ["http-types", "http-client"];
 const DISTRIBUTED_LOCKING_DOWNLOADS: [&str; 1] = ["distributed-locking"];
 const MESSAGING_DOWNLOADS: [&str; 1] = ["messaging"];

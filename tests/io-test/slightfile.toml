@@ -1,0 +1,6 @@
+specversion = "0.2"
+
+# TODO: remove. It's only needed because of https://github.com/deislabs/spiderlightning/issues/355
+[[capability]]
+resource = "configs.envvars"
+name = "env-configs"

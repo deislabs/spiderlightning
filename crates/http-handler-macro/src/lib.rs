@@ -64,7 +64,6 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // builds struct name from function name
     let struct_name = handle_func
         .split('_')
-        .into_iter()
         .map(capitalize_first_letter)
         .collect::<String>();
 
@@ -74,7 +73,6 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // builds trait name from mod name
     let trait_name = mod_name
         .split('_')
-        .into_iter()
         .map(capitalize_first_letter)
         .collect::<String>();
     let internal_mod = format!("{}_internal", &mod_name);
@@ -120,6 +118,20 @@ pub fn register_handler(_attr: TokenStream, item: TokenStream) -> TokenStream {
             impl #trait_ident for #struct_ident {
                 #func
             }
+
+            impl std::fmt::Display for #mod_ident::Method {
+                fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                    match self {
+                        #mod_ident::Method::Get => write!(f, "GET"),
+                        #mod_ident::Method::Post => write!(f, "POST"),
+                        #mod_ident::Method::Put => write!(f, "PUT"),
+                        #mod_ident::Method::Delete => write!(f, "DELETE"),
+                        #mod_ident::Method::Patch => write!(f, "PATCH"),
+                        #mod_ident::Method::Head => write!(f, "HEAD"),
+                        #mod_ident::Method::Options => write!(f, "OPTIONS")
+                    }
+                }
+            }
         }
     )
     .into()
@@ -135,7 +147,6 @@ mod unittests {
         let struct_name = func_name
             .to_string()
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(struct_name, "HandleHello".to_string());
@@ -143,7 +154,6 @@ mod unittests {
         let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(trait_name, "HandleHelloMod");
@@ -152,7 +162,6 @@ mod unittests {
         let struct_name = func_name
             .to_string()
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(struct_name, "Handle".to_string());
@@ -160,7 +169,6 @@ mod unittests {
         let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(trait_name, "HandleMod");
@@ -169,7 +177,6 @@ mod unittests {
         let struct_name = func_name
             .to_string()
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(struct_name, "HandleFuncA".to_string());
@@ -177,7 +184,6 @@ mod unittests {
         let mod_name = format!("{func_name}_mod");
         let trait_name = mod_name
             .split('_')
-            .into_iter()
             .map(capitalize_first_letter)
             .collect::<String>();
         assert_eq!(trait_name, "HandleFuncAMod");

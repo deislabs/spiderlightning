@@ -37,9 +37,9 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 `slight` relies on a WIT bindings generator [wit-bindgen v0.2.0](https://github.com/bytecodealliance/wit-bindgen), and currently only supports C and Rust applications. We are planning to add more language supports, such as Go and JavaScript/TypeScript.
 
 ```sh
-slight new -n spidey@v0.3.3 rust && cd spidey
+slight new -n spidey@v0.4.1 rust && cd spidey
 # ^^^ starts a new rust project under SpiderLightning's v0.1.0 spec
-# use: `slight new -n spidey@v0.3.3 c` to start a new c project
+# use: `slight new -n spidey@v0.4.1 c` to start a new c project
 
 cargo build --target wasm32-wasi
 # ^^^ for c...
