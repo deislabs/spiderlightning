@@ -1,40 +1,43 @@
 mod container;
-mod data_blob;
-mod data_blob_writer;
 mod implementors;
 mod read_stream;
 mod write_stream;
-use std::{collections::HashMap, fmt::Debug};
+use std::{collections::HashMap, fmt::{Debug, Display}};
 
 use async_trait::async_trait;
 
+use container::{ContainerInner};
+use read_stream::ReadStreamInner;
 use slight_common::{impl_resource, BasicState};
 
 use blob_store::*;
+use write_stream::WriteStreamInner;
 wit_bindgen_wasmtime::export!({paths: ["../../wit/blob-store.wit"], async: *});
 wit_error_rs::impl_error!(blob_store::Error);
 wit_error_rs::impl_from!(anyhow::Error, blob_store::Error::UnexpectedError);
 
 #[derive(Clone, Default)]
 pub struct BlobStore {
-    implementor: String,
+    implementor: BlobStoreImplementors,
     capability_store: HashMap<String, BasicState>,
 }
 
 impl BlobStore {
     pub fn new(implementor: String, keyvalue_store: HashMap<String, BasicState>) -> Self {
         Self {
-            implementor,
+            implementor: implementor.as_str().into(),
             capability_store: keyvalue_store,
         }
     }
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum BlobStoreImplementors {
     #[cfg(feature = "aws_s3")]
     S3,
+    #[default]
+    None,
 }
 
 impl From<&str> for BlobStoreImplementors {
@@ -49,6 +52,16 @@ impl From<&str> for BlobStoreImplementors {
     }
 }
 
+impl Display for BlobStoreImplementors {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            #[cfg(feature = "aws_s3")]
+            Self::S3 => write!(f, "blobstore.aws_s3"),
+            Self::None => panic!("No implementor specified")
+        }
+    }
+}
+
 impl_resource!(
     BlobStore,
     blob_store::BlobStoreTables<BlobStore>,
@@ -56,87 +69,97 @@ impl_resource!(
     "blobstore".to_string()
 );
 
+impl BlobStore {
+    fn fetch_state(&mut self, name: &str) -> BasicState {
+        let s: String = self.implementor.to_string();
+        let state = if let Some(r) = self.capability_store.get(name) {
+            r.clone()
+        } else if let Some(r) = self.capability_store.get(&s) {
+            r.clone()
+        } else {
+            panic!(
+                "could not find capability under name '{}' for implementor '{}'",
+                name, &s
+            );
+        };
+    
+        state
+    }
+}
+
 #[async_trait]
 impl blob_store::BlobStore for BlobStore {
-    type Container = ();
-    type DataBlob = ();
-    type DataBlobWriter = ();
-    type ReadStream = ();
-    type WriteStream = ();
+    type Container = ContainerInner;
+    type ReadStream = ReadStreamInner;
+    type WriteStream = WriteStreamInner;
+
+    async fn container_open(&mut self, name: &str) -> Result<Self::Container, Error> {
+        let state = self.fetch_state(name);
+        tracing::log::info!("Opening implementor {}", &state.implementor);
+        let inner = Self::Container::new(state.implementor.as_str().into(), &state, name).await;
+
+        Ok(inner)
+    }
+
     async fn container_name(&mut self, self_: &Self::Container) -> Result<String, Error> {
-        todo!()
+        Ok(self_.implementor.name().await?)
     }
     async fn container_info(
         &mut self,
         self_: &Self::Container,
     ) -> Result<ContainerMetadata, Error> {
-        todo!()
+        Ok(self_.implementor.info().await?)
     }
     async fn container_read_object(
         &mut self,
         self_: &Self::Container,
         name: ObjectNameParam<'_>,
     ) -> Result<Self::ReadStream, Error> {
-        todo!()
+        let inner = Self::ReadStream::new(self_.implementor.clone(), name).await;
+        Ok(inner)
     }
     async fn container_write_object(
         &mut self,
         self_: &Self::Container,
         name: ObjectNameParam<'_>,
     ) -> Result<Self::WriteStream, Error> {
-        todo!()
-    }
-    async fn container_get_data(
-        &mut self,
-        self_: &Self::Container,
-        name: ObjectNameParam<'_>,
-        start: u64,
-        end: u64,
-    ) -> Result<Self::DataBlob, Error> {
-        todo!()
-    }
-    async fn container_write_data(
-        &mut self,
-        self_: &Self::Container,
-        name: ObjectNameParam<'_>,
-        data: &Self::DataBlob,
-    ) -> Result<(), Error> {
-        todo!()
+        let inner = Self::WriteStream::new(self_.implementor.clone(), name).await;
+        Ok(inner)
     }
     async fn container_list_objects(
         &mut self,
         self_: &Self::Container,
         name: ObjectNameParam<'_>,
     ) -> Result<Vec<ObjectNameResult>, Error> {
-        todo!()
+        Ok(self_.implementor.list_objects(name).await?)
     }
     async fn container_delete_object(
         &mut self,
         self_: &Self::Container,
         name: ObjectNameParam<'_>,
     ) -> Result<(), Error> {
-        todo!()
+        Ok(self_.implementor.delete_object(name).await?)
     }
     async fn container_delete_objects(
         &mut self,
         self_: &Self::Container,
         names: Vec<ObjectNameParam<'_>>,
     ) -> Result<(), Error> {
-        todo!()
+        Ok(self_.implementor.delete_objects(names).await?)
     }
     async fn container_has_object(
         &mut self,
         self_: &Self::Container,
         name: ObjectNameParam<'_>,
     ) -> Result<bool, Error> {
-        todo!()
+        Ok(self_.implementor.has_object(name).await?)
     }
     async fn container_object_info(
         &mut self,
         self_: &Self::Container,
         name: ObjectNameParam<'_>,
     ) -> Result<ObjectMetadata, Error> {
-        todo!()
+        Ok(self_.implementor.object_info(name).await?)
     }
     async fn container_clear(&mut self, self_: &Self::Container) -> Result<(), Error> {
         todo!()
@@ -146,41 +169,20 @@ impl blob_store::BlobStore for BlobStore {
         self_: &Self::WriteStream,
         data: &[u8],
     ) -> Result<(), Error> {
-        todo!()
+        Ok(self_.implementor.write(data).await?)
     }
     async fn write_stream_close(&mut self, self_: &Self::WriteStream) -> Result<(), Error> {
-        todo!()
+        Ok(self_.implementor.close().await?)
     }
     async fn read_stream_read_into(
         &mut self,
         self_: &Self::ReadStream,
         ref_: &[u8],
     ) -> Result<Option<u64>, Error> {
-        todo!()
+        Ok(self_.implementor.read_into(ref_).await?)
     }
     async fn read_stream_available(&mut self, self_: &Self::ReadStream) -> Result<u64, Error> {
-        todo!()
-    }
-    async fn data_blob_create(&mut self, self_: &Self::DataBlob) -> Self::DataBlobWriter {
-        todo!()
-    }
-    async fn data_blob_read(&mut self, self_: &Self::DataBlob) -> Result<Self::ReadStream, Error> {
-        todo!()
-    }
-    async fn data_blob_size(&mut self, self_: &Self::DataBlob) -> Result<u64, Error> {
-        todo!()
-    }
-    async fn data_blob_writer_write(
-        &mut self,
-        self_: &Self::DataBlobWriter,
-        data: &[u8],
-    ) -> Result<(), Error> {
-        todo!()
-    }
-    async fn data_blob_writer_finalize(
-        &mut self,
-        self_: &Self::DataBlobWriter,
-    ) -> Result<Self::DataBlob, Error> {
-        todo!()
+        Ok(self_.implementor.available().await?)
     }
 }
+
