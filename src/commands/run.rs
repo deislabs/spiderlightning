@@ -5,6 +5,8 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
+#[cfg(feature = "blob-store")]
+use slight_blob_store::BlobStore;
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
@@ -22,8 +24,6 @@ use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
 #[cfg(feature = "sql")]
 use slight_sql::Sql;
-#[cfg(feature = "blob-store")]
-use slight_blob_store::BlobStore;
 use wit_bindgen_wasmtime::wasmtime::Store;
 
 #[cfg(feature = "blob-store")]
@@ -348,7 +348,7 @@ async fn build_store_instance(
                 #[cfg(feature = "sql")]
                 allowed_schemes.extend(&SQL_HOST_IMPLEMENTORS);
 
-                #[cfg(feature="blob-store")]
+                #[cfg(feature = "blob-store")]
                 allowed_schemes.extend(&BLOB_STORE_HOST_IMPLEMENTORS);
 
                 let allowed_schemes_str = allowed_schemes.join(", ");
