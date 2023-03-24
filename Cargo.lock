@@ -4357,6 +4357,7 @@ dependencies = [
  "async-trait",
  "aws-config 0.54.1",
  "aws-sdk-s3",
+ "futures",
  "slight-common",
  "slight-runtime-configs",
  "tokio",

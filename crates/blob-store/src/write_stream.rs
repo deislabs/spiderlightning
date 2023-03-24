@@ -1,36 +1,29 @@
-use std::sync::Arc;
+use anyhow::Result;
 
 use async_trait::async_trait;
 
-use crate::{blob_store::Error, container::{DynW, DynContainer}};
+use crate::container::DynW;
 
 #[async_trait]
 pub trait WriteStreamImplementor {
-    async fn write(
-        &self,
-        data: &[u8],
-    ) -> Result<(), Error>;
-    async fn close(&self) -> Result<(), Error>;
+    async fn write(&self, data: &[u8]) -> Result<()>;
+    async fn close(&self) -> Result<()>;
 }
 
 impl std::fmt::Debug for dyn WriteStreamImplementor + Send + Sync {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("WriteStreamImplementor").finish_non_exhaustive()
+        f.debug_struct("WriteStreamImplementor")
+            .finish_non_exhaustive()
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct WriteStreamInner {
-    pub implementor: Arc<DynW>,
+    pub implementor: Box<DynW>,
 }
 
 impl WriteStreamInner {
-    pub async fn new(
-        container_implementor: Arc<DynContainer>,
-        name: &str,
-    ) -> Self {
-        Self {
-            implementor: todo!()
-        }
+    pub async fn new(implementor: Box<DynW>) -> Self {
+        Self { implementor }
     }
 }

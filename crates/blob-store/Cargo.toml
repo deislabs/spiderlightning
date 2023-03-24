@@ -20,7 +20,8 @@ async-trait = { workspace = true }
 # blobstore.s3 deps
 aws-config = { version = "0.54", optional = true }
 aws-sdk-s3 = { version = "0.24" , optional = true }
+futures = { version = "0.3", optional = true }
 
 [features]
 default = ["aws_s3"]
-aws_s3 = ["aws-config", "aws-sdk-s3"]
+aws_s3 = ["aws-config", "aws-sdk-s3", "futures"]

@@ -1,37 +1,29 @@
-use std::sync::Arc;
+use anyhow::Result;
 
 use async_trait::async_trait;
 
-use crate::{blob_store::Error, container::{DynR, DynContainer}};
+use crate::container::DynR;
 
 #[async_trait]
 pub trait ReadStreamImplementor {
-    async fn read_into(
-        &self,
-        ref_: &[u8],
-    ) -> Result<Option<u64>, Error>;
-    async fn available(&self) -> Result<u64, Error>;
+    async fn read(&self, size: u64) -> Result<Option<Vec<u8>>>;
+    async fn available(&self) -> Result<u64>;
 }
 
 impl std::fmt::Debug for dyn ReadStreamImplementor + Send + Sync {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ReadStreamImplementor").finish_non_exhaustive()
+        f.debug_struct("ReadStreamImplementor")
+            .finish_non_exhaustive()
     }
 }
 
-
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ReadStreamInner {
-    pub implementor: Arc<DynR>,
+    pub implementor: Box<DynR>,
 }
 
 impl ReadStreamInner {
-    pub async fn new(
-        container_implementor: Arc<DynContainer>,
-        name: &str,
-    ) -> Self {
-        Self {
-            implementor: todo!(),
-        }
+    pub async fn new(implementor: Box<DynR>) -> Self {
+        Self { implementor }
     }
 }

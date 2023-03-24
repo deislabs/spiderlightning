@@ -64,7 +64,9 @@ resource read-stream {
 	// reads bytes from the object into an existing array,
 	// until the buffer is full or the end of the stream.
 	// Returns number of bytes written, or none if the stream has ended.
-	read-into: func(ref: list<u8>) -> expected<option<u64>, error>
+	// read-into: func(ref: list<u8>) -> expected<option<u64>, error>
+
+	read: func(size: u64) -> expected<option<list<u8>>, error>
   
 	// returns the number of bytes remaining that could be read until the end of the stream.
 	available: func() -> expected<u64, error>

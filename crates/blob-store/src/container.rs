@@ -1,12 +1,15 @@
+use anyhow::Result;
+
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use slight_common::BasicState;
 
 use crate::{
-    blob_store::{ContainerMetadata, Error, ObjectMetadata, ObjectNameParam, ObjectNameResult},
-    read_stream::ReadStreamImplementor,
-    write_stream::WriteStreamImplementor,
+    blob_store::{ContainerMetadata, ObjectMetadata, ObjectNameParam, ObjectNameResult},
+    implementors::aws_s3::S3Container,
+    read_stream::{ReadStreamImplementor, ReadStreamInner},
+    write_stream::{WriteStreamImplementor, WriteStreamInner},
     BlobStoreImplementors,
 };
 
@@ -16,14 +19,15 @@ pub(crate) type DynContainer = dyn ContainerImplementor + Send + Sync;
 
 #[async_trait]
 pub trait ContainerImplementor {
-    async fn name(&self) -> Result<String, Error>;
-    async fn info(&self) -> Result<ContainerMetadata, Error>;
-    async fn list_objects(&self, name: ObjectNameParam<'_>)
-        -> Result<Vec<ObjectNameResult>, Error>;
-    async fn delete_object(&self, name: ObjectNameParam<'_>) -> Result<(), Error>;
-    async fn delete_objects(&self, names: Vec<ObjectNameParam<'_>>) -> Result<(), Error>;
-    async fn has_object(&self, name: ObjectNameParam<'_>) -> Result<bool, Error>;
-    async fn object_info(&self, name: ObjectNameParam<'_>) -> Result<ObjectMetadata, Error>;
+    async fn name(&self) -> Result<String>;
+    async fn info(&self) -> Result<ContainerMetadata>;
+    async fn list_objects(&self, name: ObjectNameParam<'_>) -> Result<Vec<ObjectNameResult>>;
+    async fn delete_object(&self, name: ObjectNameParam<'_>) -> Result<()>;
+    async fn delete_objects(&self, names: Vec<ObjectNameParam<'_>>) -> Result<()>;
+    async fn has_object(&self, name: ObjectNameParam<'_>) -> Result<bool>;
+    async fn object_info(&self, name: ObjectNameParam<'_>) -> Result<ObjectMetadata>;
+    async fn read_object(&self, name: ObjectNameParam<'_>) -> Result<ReadStreamInner>;
+    async fn write_object(&self, name: ObjectNameParam<'_>) -> Result<WriteStreamInner>;
 }
 
 impl std::fmt::Debug for DynContainer {
@@ -43,17 +47,16 @@ impl ContainerInner {
         blobstore_implementor: BlobStoreImplementors,
         slight_state: &BasicState,
         name: &str,
-    ) -> Self {
-        Self {
+    ) -> Result<Self> {
+        let container = Self {
             implementor: match blobstore_implementor {
                 #[cfg(feature = "aws_s3")]
-                BlobStoreImplementors::S3 => {
-                    todo!()
-                }
+                BlobStoreImplementors::S3 => Arc::new(S3Container::new(slight_state, name).await?),
                 BlobStoreImplementors::None => {
                     panic!("No implementor specified")
                 }
             },
-        }
+        };
+        Ok(container)
     }
 }

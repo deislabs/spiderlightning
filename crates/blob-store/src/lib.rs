@@ -2,11 +2,14 @@ mod container;
 mod implementors;
 mod read_stream;
 mod write_stream;
-use std::{collections::HashMap, fmt::{Debug, Display}};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display},
+};
 
 use async_trait::async_trait;
 
-use container::{ContainerInner};
+use container::ContainerInner;
 use read_stream::ReadStreamInner;
 use slight_common::{impl_resource, BasicState};
 
@@ -57,7 +60,7 @@ impl Display for BlobStoreImplementors {
         match self {
             #[cfg(feature = "aws_s3")]
             Self::S3 => write!(f, "blobstore.aws_s3"),
-            Self::None => panic!("No implementor specified")
+            Self::None => panic!("No implementor specified"),
         }
     }
 }
@@ -82,7 +85,7 @@ impl BlobStore {
                 name, &s
             );
         };
-    
+
         state
     }
 }
@@ -96,7 +99,7 @@ impl blob_store::BlobStore for BlobStore {
     async fn container_open(&mut self, name: &str) -> Result<Self::Container, Error> {
         let state = self.fetch_state(name);
         tracing::log::info!("Opening implementor {}", &state.implementor);
-        let inner = Self::Container::new(state.implementor.as_str().into(), &state, name).await;
+        let inner = Self::Container::new(state.implementor.as_str().into(), &state, name).await?;
 
         Ok(inner)
     }
@@ -115,16 +118,16 @@ impl blob_store::BlobStore for BlobStore {
         self_: &Self::Container,
         name: ObjectNameParam<'_>,
     ) -> Result<Self::ReadStream, Error> {
-        let inner = Self::ReadStream::new(self_.implementor.clone(), name).await;
-        Ok(inner)
+        let read_stream = self_.implementor.read_object(name).await?;
+        Ok(read_stream)
     }
     async fn container_write_object(
         &mut self,
         self_: &Self::Container,
         name: ObjectNameParam<'_>,
     ) -> Result<Self::WriteStream, Error> {
-        let inner = Self::WriteStream::new(self_.implementor.clone(), name).await;
-        Ok(inner)
+        let write_stream = self_.implementor.write_object(name).await?;
+        Ok(write_stream)
     }
     async fn container_list_objects(
         &mut self,
@@ -161,7 +164,7 @@ impl blob_store::BlobStore for BlobStore {
     ) -> Result<ObjectMetadata, Error> {
         Ok(self_.implementor.object_info(name).await?)
     }
-    async fn container_clear(&mut self, self_: &Self::Container) -> Result<(), Error> {
+    async fn container_clear(&mut self, _self_: &Self::Container) -> Result<(), Error> {
         todo!()
     }
     async fn write_stream_write(
@@ -174,15 +177,14 @@ impl blob_store::BlobStore for BlobStore {
     async fn write_stream_close(&mut self, self_: &Self::WriteStream) -> Result<(), Error> {
         Ok(self_.implementor.close().await?)
     }
-    async fn read_stream_read_into(
+    async fn read_stream_read(
         &mut self,
         self_: &Self::ReadStream,
-        ref_: &[u8],
-    ) -> Result<Option<u64>, Error> {
-        Ok(self_.implementor.read_into(ref_).await?)
+        size: u64,
+    ) -> Result<Option<Vec<u8>>, Error> {
+        Ok(self_.implementor.read(size).await?)
     }
     async fn read_stream_available(&mut self, self_: &Self::ReadStream) -> Result<u64, Error> {
         Ok(self_.implementor.available().await?)
     }
 }
-
