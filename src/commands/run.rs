@@ -22,7 +22,12 @@ use slight_runtime::{Builder, Ctx};
 use slight_runtime_configs::Configs;
 #[cfg(feature = "sql")]
 use slight_sql::Sql;
+#[cfg(feature = "blob-store")]
+use slight_blob_store::BlobStore;
 use wit_bindgen_wasmtime::wasmtime::Store;
+
+#[cfg(feature = "blob-store")]
+const BLOB_STORE_HOST_IMPLEMENTORS: [&str; 1] = ["blobstore.aws_s3"];
 
 #[cfg(feature = "keyvalue")]
 const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
@@ -228,6 +233,18 @@ async fn build_store_instance(
         }
 
         match resource_type {
+            #[cfg(feature = "blob-store")]
+            _ if BLOB_STORE_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains("blobstore") {
+                    builder.link_capability::<BlobStore>()?;
+                    linked_capabilities.insert("blobstore".to_string());
+                }
+                let resource = slight_blob_store::BlobStore::new(
+                    resource_type.to_string(),
+                    capability_store.clone(),
+                );
+                builder.add_to_builder("blobstore".to_string(), resource);
+            }
             #[cfg(feature = "keyvalue")]
             _ if KEYVALUE_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("keyvalue") {
@@ -330,6 +347,9 @@ async fn build_store_instance(
 
                 #[cfg(feature = "sql")]
                 allowed_schemes.extend(&SQL_HOST_IMPLEMENTORS);
+
+                #[cfg(feature="blob-store")]
+                allowed_schemes.extend(&BLOB_STORE_HOST_IMPLEMENTORS);
 
                 let allowed_schemes_str = allowed_schemes.join(", ");
 
