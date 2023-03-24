@@ -20,7 +20,6 @@ use crate::{
     read_stream::{ReadStreamImplementor, ReadStreamInner},
     write_stream::{WriteStreamImplementor, WriteStreamInner},
 };
-use futures::stream::{StreamExt, TryStreamExt};
 
 #[derive(Debug, Clone)]
 pub struct S3Container {
