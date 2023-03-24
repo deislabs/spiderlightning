@@ -19,6 +19,11 @@ wit_bindgen_wasmtime::export!({paths: ["../../wit/blob-store.wit"], async: *});
 wit_error_rs::impl_error!(blob_store::Error);
 wit_error_rs::impl_from!(anyhow::Error, blob_store::Error::UnexpectedError);
 
+pub const BLOB_STORE_SCHEME_NAME: &'static str = "blob-store";
+
+#[cfg(feature = "aws_s3")]
+pub use implementors::aws_s3::S3_CAPABILITY_NAME;
+
 #[derive(Clone, Default)]
 pub struct BlobStore {
     implementor: BlobStoreImplementors,
@@ -47,7 +52,7 @@ impl From<&str> for BlobStoreImplementors {
     fn from(s: &str) -> Self {
         match s {
             #[cfg(feature = "aws_s3")]
-            "blobstore.aws_s3" => Self::S3,
+            S3_CAPABILITY_NAME => Self::S3,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
@@ -59,7 +64,7 @@ impl Display for BlobStoreImplementors {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             #[cfg(feature = "aws_s3")]
-            Self::S3 => write!(f, "blobstore.aws_s3"),
+            Self::S3 => write!(f, "{}", S3_CAPABILITY_NAME),
             Self::None => panic!("No implementor specified"),
         }
     }
@@ -69,7 +74,7 @@ impl_resource!(
     BlobStore,
     blob_store::BlobStoreTables<BlobStore>,
     blob_store::add_to_linker,
-    "blobstore".to_string()
+    BLOB_STORE_SCHEME_NAME.to_string()
 );
 
 impl BlobStore {

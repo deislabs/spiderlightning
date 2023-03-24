@@ -6,7 +6,7 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 #[cfg(feature = "blob-store")]
-use slight_blob_store::BlobStore;
+use slight_blob_store::{BlobStore, BLOB_STORE_SCHEME_NAME, S3_CAPABILITY_NAME};
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
@@ -27,7 +27,7 @@ use slight_sql::Sql;
 use wit_bindgen_wasmtime::wasmtime::Store;
 
 #[cfg(feature = "blob-store")]
-const BLOB_STORE_HOST_IMPLEMENTORS: [&str; 1] = ["blobstore.aws_s3"];
+const BLOB_STORE_HOST_IMPLEMENTORS: [&str; 1] = [S3_CAPABILITY_NAME];
 
 #[cfg(feature = "keyvalue")]
 const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
@@ -235,15 +235,15 @@ async fn build_store_instance(
         match resource_type {
             #[cfg(feature = "blob-store")]
             _ if BLOB_STORE_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                if !linked_capabilities.contains("blobstore") {
+                if !linked_capabilities.contains(BLOB_STORE_SCHEME_NAME) {
                     builder.link_capability::<BlobStore>()?;
-                    linked_capabilities.insert("blobstore".to_string());
+                    linked_capabilities.insert(BLOB_STORE_SCHEME_NAME.to_string());
                 }
                 let resource = slight_blob_store::BlobStore::new(
                     resource_type.to_string(),
                     capability_store.clone(),
                 );
-                builder.add_to_builder("blobstore".to_string(), resource);
+                builder.add_to_builder(BLOB_STORE_SCHEME_NAME.to_string(), resource);
             }
             #[cfg(feature = "keyvalue")]
             _ if KEYVALUE_HOST_IMPLEMENTORS.contains(&resource_type) => {
