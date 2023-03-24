@@ -21,7 +21,7 @@ use crate::{
     write_stream::{WriteStreamImplementor, WriteStreamInner},
 };
 
-pub const S3_CAPABILITY_NAME: &'static str = "blobstore.aws_s3";
+pub const S3_CAPABILITY_NAME: &str = "blobstore.aws_s3";
 
 #[derive(Debug, Clone)]
 pub struct S3Container {

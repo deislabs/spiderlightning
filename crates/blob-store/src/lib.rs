@@ -19,7 +19,7 @@ wit_bindgen_wasmtime::export!({paths: ["../../wit/blob-store.wit"], async: *});
 wit_error_rs::impl_error!(blob_store::Error);
 wit_error_rs::impl_from!(anyhow::Error, blob_store::Error::UnexpectedError);
 
-pub const BLOB_STORE_SCHEME_NAME: &'static str = "blob-store";
+pub const BLOB_STORE_SCHEME_NAME: &str = "blob-store";
 
 #[cfg(feature = "aws_s3")]
 pub use implementors::aws_s3::S3_CAPABILITY_NAME;
@@ -64,7 +64,7 @@ impl Display for BlobStoreImplementors {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             #[cfg(feature = "aws_s3")]
-            Self::S3 => write!(f, "{}", S3_CAPABILITY_NAME),
+            Self::S3 => write!(f, "{S3_CAPABILITY_NAME}"),
             Self::None => panic!("No implementor specified"),
         }
     }
