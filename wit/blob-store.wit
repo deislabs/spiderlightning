@@ -28,7 +28,7 @@ resource container {
 	// write-data: func(name: object-name, data: data-blob) -> expected<unit, error>
 
 	// returns list of objects in the container. Order is undefined.
-	list-objects: func(name: object-name) -> expected<list<object-name>, error>
+	list-objects: func() -> expected<list<object-name>, error>
   
 	// deletes object.
 	// does not return error if object did not exist.

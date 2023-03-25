@@ -68,7 +68,7 @@ impl ContainerImplementor for S3Container {
     async fn info(&self) -> Result<ContainerMetadata> {
         Ok(ContainerMetadata::from(&self.bucket))
     }
-    async fn list_objects(&self, _name: ObjectNameParam<'_>) -> Result<Vec<ObjectNameResult>> {
+    async fn list_objects(&self) -> Result<Vec<ObjectNameResult>> {
         let resp = self
             .client
             .list_objects_v2()
@@ -141,6 +141,7 @@ impl ContainerImplementor for S3Container {
             .get_object_attributes()
             .bucket(container.clone())
             .key(name)
+            .object_attributes(aws_sdk_s3::model::ObjectAttributes::ObjectSize)
             .send()
             .await?;
         let res = ObjectMetadata {

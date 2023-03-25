@@ -463,4 +463,29 @@ mod integration_tests {
             Ok(())
         }
     }
+
+    #[cfg(test)]
+    mod blob_store_tests {
+        #[cfg(unix)]
+        use std::env;
+        use std::path::PathBuf;
+
+        use crate::{run, slight_path};
+        use anyhow::Result;
+
+        #[test]
+        fn s3_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/blob-store-test.wasm");
+            let file_config = &format!(
+                "{}/blob-store-test/blob_s3.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            run(
+                &slight_path(),
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+            );
+            Ok(())
+        }
+    }
 }

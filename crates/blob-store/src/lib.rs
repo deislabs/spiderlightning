@@ -137,9 +137,8 @@ impl blob_store::BlobStore for BlobStore {
     async fn container_list_objects(
         &mut self,
         self_: &Self::Container,
-        name: ObjectNameParam<'_>,
     ) -> Result<Vec<ObjectNameResult>, Error> {
-        Ok(self_.implementor.list_objects(name).await?)
+        Ok(self_.implementor.list_objects().await?)
     }
     async fn container_delete_object(
         &mut self,

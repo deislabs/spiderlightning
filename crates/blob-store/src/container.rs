@@ -21,7 +21,7 @@ pub(crate) type DynContainer = dyn ContainerImplementor + Send + Sync;
 pub trait ContainerImplementor {
     async fn name(&self) -> Result<String>;
     async fn info(&self) -> Result<ContainerMetadata>;
-    async fn list_objects(&self, name: ObjectNameParam<'_>) -> Result<Vec<ObjectNameResult>>;
+    async fn list_objects(&self) -> Result<Vec<ObjectNameResult>>;
     async fn delete_object(&self, name: ObjectNameParam<'_>) -> Result<()>;
     async fn delete_objects(&self, names: Vec<ObjectNameParam<'_>>) -> Result<()>;
     async fn has_object(&self, name: ObjectNameParam<'_>) -> Result<bool>;
