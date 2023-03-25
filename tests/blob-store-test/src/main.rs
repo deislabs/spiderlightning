@@ -26,7 +26,7 @@ fn main() -> Result<()> {
         // let body = std::fs::read(format!("testfile{i}.txt")).expect("should have been able to read the file");
         bucket
             .write_object(&format!("testfile{}.txt", i))?
-            .write(&body)?;
+            .write(body)?;
     }
 
     // read 3 files
