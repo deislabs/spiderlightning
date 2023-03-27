@@ -23,17 +23,22 @@ use crate::{
 
 pub const S3_CAPABILITY_NAME: &str = "blobstore.aws_s3";
 
+/// A container maps to a bucket in aws S3
 #[derive(Debug, Clone)]
 pub struct S3Container {
     client: Arc<Client>,
     bucket: Bucket,
 }
 
+/// A read stream maps to a GetObject request
+/// 
+/// To use this stream, you must call `send` on it.
 #[derive(Debug)]
 pub struct S3ReadStream {
     req: GetObject,
 }
 
+/// A write stream contains a S3 client, the bucket name and a key
 #[derive(Debug, Clone)]
 pub struct S3WriteStream {
     client: Arc<Client>,
@@ -47,7 +52,7 @@ impl S3Container {
         let config = from_env().region(region).load().await;
         let client = Arc::new(Client::new(&config));
 
-        // perform list buckets, costly?
+        // perform list buckets, too costly?
         let resp = client.list_buckets().send().await?;
         let buckets = resp.buckets().unwrap_or_default();
         let bucket = buckets
@@ -189,6 +194,14 @@ impl S3WriteStream {
 #[async_trait]
 impl ReadStreamImplementor for S3ReadStream {
     async fn read(&self, size: u64) -> Result<Option<Vec<u8>>> {
+        // In wasi-blob-store, `read` takes a mutable buffer as an argument.
+        // I changed it to return a vector of bytes instead because as of right now, 
+        // wit-bindgen does not support generating mutable buffers. 
+        // 
+        // This is something we might want to go back and change in the future
+        // when we transform wit-bindgen v0.2.0 to the newest component model syntax.
+        // 
+        // TODO: change `read` to take a mutable buffer as an argument
         let resp = self.req.clone().send().await?;
         let content_length = resp.content_length() as u64;
         let stream: ByteStream = resp.body;
@@ -210,6 +223,7 @@ impl ReadStreamImplementor for S3ReadStream {
 #[async_trait]
 impl WriteStreamImplementor for S3WriteStream {
     async fn write(&self, data: &[u8]) -> Result<()> {
+        // TODO: same comment from `read` applies here
         let _ = self
             .client
             .put_object()
