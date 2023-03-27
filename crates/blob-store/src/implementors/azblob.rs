@@ -108,12 +108,7 @@ impl ContainerImplementor for AzBlobContainer {
         //
         //
         // followed up on https://github.com/Azure/azure-sdk-for-rust/issues/1249
-        self.client
-            .delete_blobs()
-            .delete_snapshots_method(DeleteSnapshotsMethod::Include)
-            .delete_blobs(names)
-            .into_future()
-            .await?;
+        todo!()
     }
     async fn has_object(&self, name: ObjectNameParam<'_>) -> Result<bool> {
         let res = self.client.blob_client(name).exists().await?;
