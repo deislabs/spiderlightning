@@ -487,5 +487,20 @@ mod integration_tests {
             );
             Ok(())
         }
+
+        #[test]
+        fn az_blob_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/blob-store-test.wasm");
+            let file_config = &format!(
+                "{}/blob-store-test/az_blob.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            run(
+                &slight_path(),
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+            );
+            Ok(())
+        }
     }
 }

@@ -7,7 +7,7 @@ use slight_common::BasicState;
 
 use crate::{
     blob_store::{ContainerMetadata, ObjectMetadata, ObjectNameParam, ObjectNameResult},
-    implementors::aws_s3::S3Container,
+    implementors::{aws_s3::S3Container, azblob::AzBlobContainer},
     read_stream::{ReadStreamImplementor, ReadStreamInner},
     write_stream::{WriteStreamImplementor, WriteStreamInner},
     BlobStoreImplementors,
@@ -52,6 +52,10 @@ impl ContainerInner {
             implementor: match blobstore_implementor {
                 #[cfg(feature = "aws_s3")]
                 BlobStoreImplementors::S3 => Arc::new(S3Container::new(slight_state, name).await?),
+                #[cfg(feature = "azblob")]
+                BlobStoreImplementors::AzBlob => {
+                    Arc::new(AzBlobContainer::new(slight_state, name).await?)
+                }
                 BlobStoreImplementors::None => {
                     panic!("No implementor specified")
                 }

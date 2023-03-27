@@ -31,7 +31,7 @@ pub struct S3Container {
 }
 
 /// A read stream maps to a GetObject request
-/// 
+///
 /// To use this stream, you must call `send` on it.
 #[derive(Debug)]
 pub struct S3ReadStream {
@@ -195,12 +195,12 @@ impl S3WriteStream {
 impl ReadStreamImplementor for S3ReadStream {
     async fn read(&self, size: u64) -> Result<Option<Vec<u8>>> {
         // In wasi-blob-store, `read` takes a mutable buffer as an argument.
-        // I changed it to return a vector of bytes instead because as of right now, 
-        // wit-bindgen does not support generating mutable buffers. 
-        // 
+        // I changed it to return a vector of bytes instead because as of right now,
+        // wit-bindgen does not support generating mutable buffers.
+        //
         // This is something we might want to go back and change in the future
         // when we transform wit-bindgen v0.2.0 to the newest component model syntax.
-        // 
+        //
         // TODO: change `read` to take a mutable buffer as an argument
         let resp = self.req.clone().send().await?;
         let content_length = resp.content_length() as u64;

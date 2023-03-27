@@ -21,7 +21,12 @@ async-trait = { workspace = true }
 aws-config = { version = "0.54", optional = true }
 aws-sdk-s3 = { version = "0.24" , optional = true }
 futures = { version = "0.3", optional = true }
+# kv.azblob deps
+azure_storage_blobs = { version = "0.11", optional = true }
+azure_storage = { version = "0.11", optional = true }
+bytes = { version = "1", optional = true }
 
 [features]
-default = ["aws_s3"]
+default = ["aws_s3", "azblob"]
 aws_s3 = ["aws-config", "aws-sdk-s3", "futures"]
+azblob = ["azure_storage_blobs", "azure_storage", "bytes", "futures"]

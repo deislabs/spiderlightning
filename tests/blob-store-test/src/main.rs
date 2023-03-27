@@ -60,6 +60,11 @@ fn main() -> Result<()> {
     println!("metadata created-at: {:?}", metadata.created_at);
 
     // delete all three files
-    bucket.delete_objects(&["testfile0.txt", "testfile1.txt", "testfile2.txt"])?;
+    // TODO: re-enable this once the delete_objects() method is implemented in azblob
+    // bucket.delete_objects(&["testfile0.txt", "testfile1.txt", "testfile2.txt"])?;
+
+    for name in bucket.list_objects()? {
+        bucket.delete_object(&name)?;
+    }
     Ok(())
 }
