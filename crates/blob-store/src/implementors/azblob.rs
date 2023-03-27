@@ -1,4 +1,4 @@
-use std::sync::Arc;
+
 
 use anyhow::{bail, Result};
 use async_trait::async_trait;
@@ -100,7 +100,7 @@ impl ContainerImplementor for AzBlobContainer {
             .await?;
         Ok(())
     }
-    async fn delete_objects(&self, names: Vec<ObjectNameParam<'_>>) -> Result<()> {
+    async fn delete_objects(&self, _names: Vec<ObjectNameParam<'_>>) -> Result<()> {
         // TODO: there isn't an API in azure blob storage to do this directly
         // if we are going to delete a lot of objects, we should use a batch delete
         // otherwise, we run into issues with deleting half the objects and then
