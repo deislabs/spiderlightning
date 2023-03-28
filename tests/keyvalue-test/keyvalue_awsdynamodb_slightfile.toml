@@ -4,36 +4,32 @@ specversion = "0.2"
 resource = "keyvalue.awsdynamodb"
 name = "rand"
     [capability.configs]
-    AWS_ACCESS_KEY_ID = "${envvar.AWS_ACCESS_KEY_ID}"
-    AWS_SECRET_ACCESS_KEY = "${envvar.AWS_SECRET_ACCESS_KEY}"
-    AWS_REGION = "${envvar.AWS_REGION}"
-    # This capability loads its' config from environment variables. It requires:
-    #   - `AWS_ACCESS_KEY_ID`,
-    #   - `AWS_SECRET_ACCESS_KEY`, and
-    #   - `AWS_REGION`.
+    AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
+    AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
+    AWS_REGION = "${envvars.AWS_REGION}"
 
 [[capability]]
 resource = "keyvalue.awsdynamodb"
 name = "random1"
     [capability.configs]
-    AWS_ACCESS_KEY_ID = "${envvar.AWS_ACCESS_KEY_ID}"
-    AWS_SECRET_ACCESS_KEY = "${envvar.AWS_SECRET_ACCESS_KEY}"
-    AWS_REGION = "${envvar.AWS_REGION}"
+    AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
+    AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
+    AWS_REGION = "${envvars.AWS_REGION}"
     
 
 [[capability]]
 resource = "keyvalue.awsdynamodb"
 name = "random2"
     [capability.configs]
-    AWS_ACCESS_KEY_ID = "${envvar.AWS_ACCESS_KEY_ID}"
-    AWS_SECRET_ACCESS_KEY = "${envvar.AWS_SECRET_ACCESS_KEY}"
-    AWS_REGION = "${envvar.AWS_REGION}"
+    AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
+    AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
+    AWS_REGION = "${envvars.AWS_REGION}"
     
 [[capability]]
 resource = "keyvalue.awsdynamodb"
 name = "random3"
     [capability.configs]
-    AWS_ACCESS_KEY_ID = "${envvar.AWS_ACCESS_KEY_ID}"
-    AWS_SECRET_ACCESS_KEY = "${envvar.AWS_SECRET_ACCESS_KEY}"
-    AWS_REGION = "${envvar.AWS_REGION}"
+    AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
+    AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
+    AWS_REGION = "${envvars.AWS_REGION}"
     
