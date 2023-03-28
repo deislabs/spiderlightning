@@ -46,12 +46,16 @@ impl AwsDynamoDbImplementor {
     /// }
     /// ```
     pub async fn new(slight_state: &BasicState, name: &str) -> Self {
-        let access_id = get_from_state("AWS_ACCESS_KEY_ID", slight_state).await.unwrap();
+        let access_id = get_from_state("AWS_ACCESS_KEY_ID", slight_state)
+            .await
+            .unwrap();
         std::env::set_var("AWS_ACCESS_KEY_ID", access_id);
-        
-        let access_key = get_from_state("AWS_SECRET_ACCESS_KEY", slight_state).await.unwrap();
+
+        let access_key = get_from_state("AWS_SECRET_ACCESS_KEY", slight_state)
+            .await
+            .unwrap();
         std::env::set_var("AWS_SECRET_ACCESS_KEY", access_key);
-        
+
         let region = get_from_state("AWS_REGION", slight_state).await;
         let default_region = get_from_state("AWS_DEFAULT_REGION", slight_state).await;
         if region.is_err() && default_region.is_err() {
@@ -61,7 +65,7 @@ impl AwsDynamoDbImplementor {
         } else {
             std::env::set_var("AWS_REGION", region.unwrap());
         }
-        
+
         let region = RegionProviderChain::default_provider();
         let config = from_env().region(region).load().await;
         let client = Client::new(&config);
