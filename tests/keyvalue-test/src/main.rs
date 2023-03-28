@@ -7,7 +7,7 @@ wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 
 fn main() -> Result<()> {
     // test get, set, delete
-    let keyvalue = Keyvalue::open("rand")?;
+    let keyvalue = Keyvalue::open("slight-keyvalue-test-4")?;
     let value = "spiderlightning".as_bytes();
     keyvalue.set("key", value)?;
     println!(
@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     assert!(value.is_err());
 
     // test keys
-    let keyvalue = Keyvalue::open("rand")?;
+    let keyvalue = Keyvalue::open("slight-keyvalue-test-4")?;
     let value = "spiderlightning".as_bytes();
     keyvalue.set("key", value)?;
     keyvalue.set("key2", value)?;
@@ -29,8 +29,8 @@ fn main() -> Result<()> {
     keyvalue.delete("key")?;
     keyvalue.delete("key2")?;
 
-    let keyvalue1 = Keyvalue::open("random1")?;
-    let keyvalue2 = Keyvalue::open("random2")?;
+    let keyvalue1 = Keyvalue::open("slight-keyvalue-test-1")?;
+    let keyvalue2 = Keyvalue::open("slight-keyvalue-test-2")?;
     keyvalue1.set("key1", "value1".as_bytes())?;
     keyvalue2.set("key2", "value2".as_bytes())?;
 
@@ -38,8 +38,8 @@ fn main() -> Result<()> {
     keyvalue1.delete("key1")?;
     keyvalue2.delete("key2")?;
 
-    let keyvalue1 = Keyvalue::open("random1")?;
-    let keyvalue2 = Keyvalue::open("random1")?;
+    let keyvalue1 = Keyvalue::open("slight-keyvalue-test-1")?;
+    let keyvalue2 = Keyvalue::open("slight-keyvalue-test-1")?;
     keyvalue1.set("key1", "value1".as_bytes())?;
     keyvalue2.set("key2", "value2".as_bytes())?;
     assert!(keyvalue1.get("key2")? == "value2".as_bytes());
@@ -47,7 +47,7 @@ fn main() -> Result<()> {
     keyvalue2.delete("key2")?;
 
     // test get empty key
-    let keyvalue3 = Keyvalue::open("random3")?;
+    let keyvalue3 = Keyvalue::open("slight-keyvalue-test-3")?;
     let value = keyvalue3.get("");
     assert!(value.is_err());
 

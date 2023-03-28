@@ -2,7 +2,7 @@ pub mod implementors;
 
 use std::{collections::HashMap, path::Path};
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use async_trait::async_trait;
 use regex::Regex;
 
@@ -189,7 +189,7 @@ pub async fn set(
         ConfigsImplementor::EnvVars => Ok(EnvVars::set(key, value)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),
         ConfigsImplementor::AzApp => Ok(AzApp::set(key, value).await?),
-        _ => panic!("unknown configuration type"),
+        _ => bail!("unknown configuration type"),
     }
 }
 
@@ -209,7 +209,7 @@ pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<Str
             .as_ref()
             .expect("this capability needs a [capability.configs] section...")
             .get(config_name)
-            .unwrap_or_else(|| panic!("failed to get config '{config_name}'"));
+            .with_context(|| format!("no config named '{config_name}' found"))?;
 
         let (store, name) = maybe_get_config_store_and_value(c)?;
 

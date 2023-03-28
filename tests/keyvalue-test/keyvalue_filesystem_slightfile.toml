@@ -2,20 +2,20 @@ specversion = "0.2"
 
 [[capability]]
 resource = "keyvalue.filesystem"
-name = "rand"
+name = "slight-keyvalue-test-1"
     # This capability does not require any configs
 
 [[capability]]
 resource = "keyvalue.filesystem"
-name = "random1"
+name = "slight-keyvalue-test-2"
     # This capability does not require any configs
 
 [[capability]]
 resource = "keyvalue.filesystem"
-name = "random2"
+name = "slight-keyvalue-test-3"
     # This capability does not require any configs
 
 [[capability]]
 resource = "keyvalue.filesystem"
-name = "random3"
+name = "slight-keyvalue-test-4"
     # This capability does not require any configs        
