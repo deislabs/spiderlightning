@@ -25,9 +25,9 @@ pub const BLOB_STORE_SCHEME_NAME: &str = "blob-store";
 pub use implementors::aws_s3::S3_CAPABILITY_NAME;
 
 /// A BlobStore is a container for storing and retrieving arbitrary data.
-/// 
-/// The implementation of the blobstore roughtly follows the 
-/// [wasi-blob-store](https://github.com/WebAssembly/wasi-blob-store) interfaces, 
+///
+/// The implementation of the blobstore roughtly follows the
+/// [wasi-blob-store](https://github.com/WebAssembly/wasi-blob-store) interfaces,
 #[derive(Clone, Default)]
 pub struct BlobStore {
     implementor: BlobStoreImplementors,

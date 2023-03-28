@@ -11,6 +11,7 @@ use aws_sdk_s3::{
     Client,
 };
 use slight_common::BasicState;
+use slight_runtime_configs::get_from_state;
 
 use tracing::info;
 
@@ -31,7 +32,7 @@ pub struct S3Container {
 }
 
 /// A read stream maps to a GetObject request
-/// 
+///
 /// To use this stream, you must call `send` on it.
 #[derive(Debug)]
 pub struct S3ReadStream {
@@ -47,8 +48,28 @@ pub struct S3WriteStream {
 }
 
 impl S3Container {
-    pub async fn new(_slight_state: &BasicState, name: &str) -> Result<Self> {
-        let region = RegionProviderChain::default_provider().or_else("us-west-2");
+    pub async fn new(slight_state: &BasicState, name: &str) -> Result<Self> {
+        let access_id = get_from_state("AWS_ACCESS_KEY_ID", slight_state)
+            .await
+            .unwrap();
+        std::env::set_var("AWS_ACCESS_KEY_ID", access_id);
+
+        let access_key = get_from_state("AWS_SECRET_ACCESS_KEY", slight_state)
+            .await
+            .unwrap();
+        std::env::set_var("AWS_SECRET_ACCESS_KEY", access_key);
+
+        let region = get_from_state("AWS_REGION", slight_state).await;
+        let default_region = get_from_state("AWS_DEFAULT_REGION", slight_state).await;
+        if region.is_err() && default_region.is_err() {
+            panic!("AWS_REGION or AWS_DEFAULT_REGION must be set");
+        } else if region.is_err() {
+            std::env::set_var("AWS_DEFAULT_REGION", default_region.unwrap());
+        } else {
+            std::env::set_var("AWS_REGION", region.unwrap());
+        }
+
+        let region = RegionProviderChain::default_provider();
         let config = from_env().region(region).load().await;
         let client = Arc::new(Client::new(&config));
 
@@ -195,12 +216,12 @@ impl S3WriteStream {
 impl ReadStreamImplementor for S3ReadStream {
     async fn read(&self, size: u64) -> Result<Option<Vec<u8>>> {
         // In wasi-blob-store, `read` takes a mutable buffer as an argument.
-        // I changed it to return a vector of bytes instead because as of right now, 
-        // wit-bindgen does not support generating mutable buffers. 
-        // 
+        // I changed it to return a vector of bytes instead because as of right now,
+        // wit-bindgen does not support generating mutable buffers.
+        //
         // This is something we might want to go back and change in the future
         // when we transform wit-bindgen v0.2.0 to the newest component model syntax.
-        // 
+        //
         // TODO: change `read` to take a mutable buffer as an argument
         let resp = self.req.clone().send().await?;
         let content_length = resp.content_length() as u64;
