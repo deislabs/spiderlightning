@@ -2,7 +2,7 @@ specversion = "0.2"
 
 [[capability]]
 resource = "keyvalue.awsdynamodb"
-name = "rand"
+name = "slight-keyvalue-test-1"
     [capability.configs]
     AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
     AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
@@ -10,7 +10,7 @@ name = "rand"
 
 [[capability]]
 resource = "keyvalue.awsdynamodb"
-name = "random1"
+name = "slight-keyvalue-test-2"
     [capability.configs]
     AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
     AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
@@ -19,7 +19,7 @@ name = "random1"
 
 [[capability]]
 resource = "keyvalue.awsdynamodb"
-name = "random2"
+name = "slight-keyvalue-test-3"
     [capability.configs]
     AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
     AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
@@ -27,7 +27,7 @@ name = "random2"
     
 [[capability]]
 resource = "keyvalue.awsdynamodb"
-name = "random3"
+name = "slight-keyvalue-test-4"
     [capability.configs]
     AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
     AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
