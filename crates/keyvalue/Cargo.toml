@@ -27,8 +27,8 @@ futures = { version = "0.3", optional = true }
 # keyvalue.filesystem deps
 serde_json = { version = "1", optional = true }
 # kv.awsdynamodb deps
-aws-config = { version = "0.51", optional = true }
-aws-sdk-dynamodb = { version = "0.21", optional = true }
+aws-config = { version = "0.54", optional = true }
+aws-sdk-dynamodb = { version = "0.24", optional = true }
 # kv.redis deps
 redis = { version = "0.22", optional = true }
 

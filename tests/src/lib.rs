@@ -140,15 +140,17 @@ mod integration_tests {
             Ok(())
         }
 
-        // #[test]
-        // fn aws_dynamodb_test() -> Result<()> {
-        //     let file_config = "./keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
-        //     run(
-        //         &slight_path(),
-        //         vec!["-c", file_config, "run", KEYVALUE_TEST_MODULE],
-        //     );
-        //     Ok(())
-        // }
+        #[test]
+        fn aws_dynamodb_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/keyvalue-test.wasm");
+            let file_config = "./keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
+            run(
+                &slight_path(),
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+            );
+            Ok(())
+        }
 
         #[test]
         #[cfg(unix)] // TODO: Add Windows support
