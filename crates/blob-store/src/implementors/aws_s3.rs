@@ -173,8 +173,8 @@ impl ContainerImplementor for S3Container {
         let res = ObjectMetadata {
             name: name.to_owned(),
             container,
-            created_at: u64::try_from(metadata.last_modified().unwrap().as_secs_f64())?,
-            size: u64::try_from(metadata.object_size())?,
+            created_at: metadata.last_modified().unwrap().as_secs_f64() as u64,
+            size: metadata.object_size() as u64,
         };
         Ok(res)
     }
