@@ -9,6 +9,8 @@ pub mod azblob;
 pub mod filesystem;
 #[cfg(feature = "redis")]
 pub mod redis;
+#[cfg(feature = "dapr")]
+pub mod dapr;
 
 #[async_trait]
 pub trait KeyvalueImplementor {

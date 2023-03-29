@@ -1583,6 +1583,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "dapr"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dd3c32c32d2077ed230fcd1449118eb3ea1f7651d1a6268b0901f75cc368a9f"
+dependencies = [
+ "async-trait",
+ "bytes 1.4.0",
+ "prost",
+ "prost-types",
+ "tonic",
+ "tonic-build",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4314,6 +4328,7 @@ dependencies = [
  "azure_storage 0.10.0",
  "azure_storage_blobs 0.10.0",
  "bytes 1.4.0",
+ "dapr",
  "futures",
  "redis",
  "serde_json",
