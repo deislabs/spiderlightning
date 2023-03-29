@@ -6,7 +6,9 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 #[cfg(feature = "blob-store")]
-use slight_blob_store::{BlobStore, BLOB_STORE_SCHEME_NAME, S3_CAPABILITY_NAME};
+use slight_blob_store::{
+    BlobStore, AZBLOB_CAPABILITY_NAME, BLOB_STORE_SCHEME_NAME, S3_CAPABILITY_NAME,
+};
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
@@ -27,7 +29,7 @@ use slight_sql::Sql;
 use wit_bindgen_wasmtime::wasmtime::Store;
 
 #[cfg(feature = "blob-store")]
-const BLOB_STORE_HOST_IMPLEMENTORS: [&str; 1] = [S3_CAPABILITY_NAME];
+const BLOB_STORE_HOST_IMPLEMENTORS: [&str; 2] = [S3_CAPABILITY_NAME, AZBLOB_CAPABILITY_NAME];
 
 #[cfg(feature = "keyvalue")]
 const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [

@@ -23,6 +23,8 @@ pub const BLOB_STORE_SCHEME_NAME: &str = "blob-store";
 
 #[cfg(feature = "aws_s3")]
 pub use implementors::aws_s3::S3_CAPABILITY_NAME;
+#[cfg(feature = "azblob")]
+pub use implementors::azblob::AZBLOB_CAPABILITY_NAME;
 
 /// A BlobStore is a container for storing and retrieving arbitrary data.
 ///
@@ -48,6 +50,8 @@ impl BlobStore {
 pub enum BlobStoreImplementors {
     #[cfg(feature = "aws_s3")]
     S3,
+    #[cfg(feature = "azblob")]
+    AzBlob,
     #[default]
     None,
 }
@@ -57,6 +61,8 @@ impl From<&str> for BlobStoreImplementors {
         match s {
             #[cfg(feature = "aws_s3")]
             S3_CAPABILITY_NAME => Self::S3,
+            #[cfg(feature = "azblob")]
+            AZBLOB_CAPABILITY_NAME => Self::AzBlob,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
@@ -69,6 +75,8 @@ impl Display for BlobStoreImplementors {
         match self {
             #[cfg(feature = "aws_s3")]
             Self::S3 => write!(f, "{S3_CAPABILITY_NAME}"),
+            #[cfg(feature = "azblob")]
+            Self::AzBlob => write!(f, "{AZBLOB_CAPABILITY_NAME}"),
             Self::None => panic!("No implementor specified"),
         }
     }
