@@ -8,11 +8,14 @@ fn slight_path() -> String {
     format!("{}/../target/release/slight", env!("CARGO_MANIFEST_DIR"))
 }
 
-pub fn run(executable: &str, args: Vec<&str>) {
+pub fn run(executable: &str, args: Vec<&str>, current_dir: Option<&str>) {
     println!("Running {executable} with args: {args:?}");
     let mut cmd = Command::new(executable);
     for arg in args {
         cmd.arg(arg);
+    }
+    if let Some(dir) = current_dir {
+        cmd.current_dir(dir);
     }
     let output = cmd
         .stdout(std::process::Stdio::piped())
@@ -47,6 +50,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -62,6 +66,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -77,6 +82,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -92,6 +98,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -121,6 +128,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -136,6 +144,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -148,6 +157,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -193,6 +203,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
 
             // kill the server
@@ -486,6 +497,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                Some(&format!("{}/blob-store-test/", env!("CARGO_MANIFEST_DIR"))),
             );
             Ok(())
         }
@@ -501,6 +513,7 @@ mod integration_tests {
             run(
                 &slight_path(),
                 vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                Some(&format!("{}/blob-store-test/", env!("CARGO_MANIFEST_DIR"))),
             );
             Ok(())
         }
