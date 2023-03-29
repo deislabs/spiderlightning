@@ -8,14 +8,14 @@ use std::fmt::Debug;
 #[async_trait]
 pub trait ReadStreamImplementor {
     /// Read a number of bytes from the stream
-    /// 
+    ///
     /// Returns `None` if the stream has reached the end
     /// Otherwise returns a `Vec<u8>` of the bytes read
     async fn read(&self, size: u64) -> Result<Option<Vec<u8>>>;
 
     /// Returns the number of bytes available to read
-    /// 
-    /// TODO: This is not implemented for all implementors 
+    ///
+    /// TODO: This is not implemented for all implementors
     async fn available(&self) -> Result<u64>;
 }
 
