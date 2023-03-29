@@ -1,5 +1,3 @@
-
-
 use anyhow::{bail, Result};
 use async_trait::async_trait;
 use azure_storage::prelude::*;
