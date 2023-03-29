@@ -4,9 +4,18 @@ use async_trait::async_trait;
 
 use crate::container::DynW;
 
+/// A stream of bytes that can be written to
 #[async_trait]
 pub trait WriteStreamImplementor {
+    /// Write a number of bytes to the stream
+    /// 
+    /// This is a blocking operation that write the data byte array
+    /// to the blob.
     async fn write(&self, data: &[u8]) -> Result<()>;
+
+    /// Close the stream
+    /// 
+    /// TODO: Not used
     async fn close(&self) -> Result<()>;
 }
 
