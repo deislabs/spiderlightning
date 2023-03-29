@@ -6,7 +6,7 @@ use aws_config::{from_env, meta::region::RegionProviderChain};
 use aws_sdk_s3::{
     client::fluent_builders::GetObject,
     error::{GetObjectError, GetObjectErrorKind},
-    model::{Bucket, Delete, ObjectIdentifier},
+    model::{Bucket, Delete, ObjectAttributes::ObjectSize, ObjectIdentifier},
     types::ByteStream,
     Client,
 };
@@ -167,7 +167,7 @@ impl ContainerImplementor for S3Container {
             .get_object_attributes()
             .bucket(container.clone())
             .key(name)
-            .object_attributes(aws_sdk_s3::model::ObjectAttributes::ObjectSize)
+            .object_attributes(ObjectSize)
             .send()
             .await?;
         let res = ObjectMetadata {

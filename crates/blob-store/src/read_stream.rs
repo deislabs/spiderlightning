@@ -1,8 +1,8 @@
 use anyhow::Result;
 
-use async_trait::async_trait;
-
 use crate::container::DynR;
+use async_trait::async_trait;
+use std::fmt::Debug;
 
 #[async_trait]
 pub trait ReadStreamImplementor {
@@ -10,7 +10,7 @@ pub trait ReadStreamImplementor {
     async fn available(&self) -> Result<u64>;
 }
 
-impl std::fmt::Debug for dyn ReadStreamImplementor + Send + Sync {
+impl Debug for dyn ReadStreamImplementor + Send + Sync {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ReadStreamImplementor")
             .finish_non_exhaustive()
