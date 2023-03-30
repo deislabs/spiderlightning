@@ -11,26 +11,27 @@ fn main() -> Result<()> {
     assert_eq!(bucket.name()?, "slight-test-bucket");
 
     for name in bucket.list_objects()? {
-        println!("Found object: {}", name);
+        println!("Found object: {name}");
         bucket.delete_object(&name)?;
     }
 
     // upload 3 files
     for i in 0..3 {
-        let body = std::fs::read(format!("testfile{i}.txt")).expect("should have been able to read the file");
+        let body = std::fs::read(format!("testfile{i}.txt"))
+            .expect("should have been able to read the file");
         bucket
-            .write_object(&format!("testfile{}.txt", i))?
+            .write_object(&format!("testfile{i}.txt"))?
             .write(body.as_ref())?;
     }
 
     // read 3 files
     for name in bucket.list_objects()? {
-        println!("Found object: {}", name);
+        println!("Found object: {name}");
         let read_stream = bucket.read_object(&name)?;
         let contents = read_stream.read(1024 * 4)?.unwrap();
 
         // compare the contents with content on filesystem
-        let body = std::fs::read(format!("{}", name)).expect("should have been able to read the file");
+        let body = std::fs::read(&name).expect("should have been able to read the file");
         assert_eq!(body, contents);
     }
 
