@@ -6,9 +6,9 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
-use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
+use slight_file::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
 #[cfg(feature = "http-server")]

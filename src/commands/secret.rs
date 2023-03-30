@@ -1,5 +1,6 @@
 use anyhow::Result;
-use slight_core::{secret::create_secret, slightfile::TomlFile};
+use slight_core::secret::create_secret;
+use slight_file::TomlFile;
 use std::{fs::OpenOptions, path::Path};
 
 pub fn handle_secret(key: &str, value: &str, toml_file_path: impl AsRef<Path>) -> Result<()> {

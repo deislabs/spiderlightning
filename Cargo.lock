@@ -3894,6 +3894,7 @@ dependencies = [
  "slight-common",
  "slight-core",
  "slight-distributed-locking",
+ "slight-file",
  "slight-http-client",
  "slight-http-server",
  "slight-keyvalue",
@@ -3930,8 +3931,8 @@ dependencies = [
  "clap",
  "rand 0.8.5",
  "semver 1.0.17",
- "serde",
  "short-crypt",
+ "slight-file",
  "tempdir",
  "toml 0.7.3",
 ]
@@ -3950,6 +3951,14 @@ dependencies = [
  "url",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/fermyon/wit-bindgen-backport)",
  "wit-error-rs",
+]
+
+[[package]]
+name = "slight-file"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
 ]
 
 [[package]]
@@ -4114,6 +4123,7 @@ dependencies = [
  "short-crypt",
  "slight-common",
  "slight-core",
+ "slight-file",
  "tempdir",
  "toml 0.7.3",
  "tracing",

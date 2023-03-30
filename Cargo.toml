@@ -16,6 +16,7 @@ path = "src/lib.rs"
 
 [dependencies]
 slight-core = { workspace = true }
+slight-file = { workspace = true }
 slight-runtime = { workspace = true }
 slight-keyvalue = { workspace = true, features = ["filesystem", "awsdynamodb", "redis", "azblob"], optional = true}
 slight-distributed-locking = { workspace = true, features = ["etcd"], optional = true}
@@ -62,6 +63,7 @@ repository = "https://github.com/deislabs/spiderlightning"
 
 [workspace.dependencies]
 slight-core = { path = "./crates/core" }
+slight-file = { path = "./crates/slightfile" }
 slight-runtime = { path = "./crates/runtime" }
 slight-keyvalue = { path = "./crates/keyvalue" }
 slight-distributed-locking = { path = "./crates/distributed-locking" }

@@ -2,10 +2,8 @@ use std::{fs::OpenOptions, path::Path};
 
 use anyhow::{bail, Result};
 use short_crypt::ShortCrypt;
-use slight_core::{
-    secret::{create_secret, get_key},
-    slightfile::TomlFile,
-};
+use slight_core::secret::{create_secret, get_key};
+use slight_file::TomlFile;
 
 pub struct UserSecrets;
 
