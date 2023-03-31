@@ -390,7 +390,7 @@ mod integration_tests {
     mod messaging_tests {
         use std::time::Duration;
 
-        use crate::{spawn, slight_path};
+        use crate::{slight_path, spawn};
         use anyhow::Result;
         use hyper::{Body, Method, Request};
         use mosquitto_rs::{Client, QoS};
