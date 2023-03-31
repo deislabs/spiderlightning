@@ -1,0 +1,10 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "blobstore.aws_s3"
+name = "slight-example-bucket"
+    # This capability does not require any configs
+    [capability.configs]
+    AWS_ACCESS_KEY_ID = "${envvars.AWS_ACCESS_KEY_ID}"
+    AWS_SECRET_ACCESS_KEY = "${envvars.AWS_SECRET_ACCESS_KEY}"
+    AWS_REGION = "${envvars.AWS_REGION}"

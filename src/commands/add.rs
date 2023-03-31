@@ -20,6 +20,7 @@ const HTTP_CLIENT_DOWNLOADS: [&str; 2] = ["http-types", "http-client"];
 const DISTRIBUTED_LOCKING_DOWNLOADS: [&str; 1] = ["distributed-locking"];
 const MESSAGING_DOWNLOADS: [&str; 1] = ["messaging"];
 const SQL_DOWNLOADS: [&str; 1] = ["sql"];
+const BLOBSTORE_DOWNLOADS: [&str; 2] = ["blob-store", "blob-types"];
 
 const ERROR_MSG: &str = "invalid interface name (2): currently, slight only supports the download of 'configs', 'keyvalue', 'distributed_locking', 'messaging', 'sql', and 'http'.";
 
@@ -86,6 +87,7 @@ pub fn get_interface_downloads_by_name(name: &str) -> Vec<&str> {
         _ if name.eq("distributed-locking") => DISTRIBUTED_LOCKING_DOWNLOADS.to_vec(),
         _ if name.eq("messaging") => MESSAGING_DOWNLOADS.to_vec(),
         _ if name.eq("sql") => SQL_DOWNLOADS.to_vec(),
+        _ if name.eq("blobstore") | name.eq("blob-store") => BLOBSTORE_DOWNLOADS.to_vec(),
         _ => {
             vec![]
         }

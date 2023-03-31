@@ -5,6 +5,10 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
+#[cfg(feature = "blob-store")]
+use slight_blob_store::{
+    BlobStore, AZBLOB_CAPABILITY_NAME, BLOB_STORE_SCHEME_NAME, S3_CAPABILITY_NAME,
+};
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
@@ -23,6 +27,9 @@ use slight_runtime_configs::Configs;
 #[cfg(feature = "sql")]
 use slight_sql::Sql;
 use wit_bindgen_wasmtime::wasmtime::Store;
+
+#[cfg(feature = "blob-store")]
+const BLOB_STORE_HOST_IMPLEMENTORS: [&str; 2] = [S3_CAPABILITY_NAME, AZBLOB_CAPABILITY_NAME];
 
 #[cfg(feature = "keyvalue")]
 const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
@@ -228,6 +235,18 @@ async fn build_store_instance(
         }
 
         match resource_type {
+            #[cfg(feature = "blob-store")]
+            _ if BLOB_STORE_HOST_IMPLEMENTORS.contains(&resource_type) => {
+                if !linked_capabilities.contains(BLOB_STORE_SCHEME_NAME) {
+                    builder.link_capability::<BlobStore>()?;
+                    linked_capabilities.insert(BLOB_STORE_SCHEME_NAME.to_string());
+                }
+                let resource = slight_blob_store::BlobStore::new(
+                    resource_type.to_string(),
+                    capability_store.clone(),
+                );
+                builder.add_to_builder(BLOB_STORE_SCHEME_NAME.to_string(), resource);
+            }
             #[cfg(feature = "keyvalue")]
             _ if KEYVALUE_HOST_IMPLEMENTORS.contains(&resource_type) => {
                 if !linked_capabilities.contains("keyvalue") {
@@ -330,6 +349,9 @@ async fn build_store_instance(
 
                 #[cfg(feature = "sql")]
                 allowed_schemes.extend(&SQL_HOST_IMPLEMENTORS);
+
+                #[cfg(feature = "blob-store")]
+                allowed_schemes.extend(&BLOB_STORE_HOST_IMPLEMENTORS);
 
                 let allowed_schemes_str = allowed_schemes.join(", ");
 
