@@ -1,0 +1,13 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "keyvalue.redis"
+name = "my-container"
+    [capability.configs]
+    REDIS_ADDRESS = "redis://127.0.0.1:6379"
+
+[[capability]]
+resource = "keyvalue.redis"
+name = "my-container2"
+    [capability.configs]
+    REDIS_ADDRESS = "redis://127.0.0.1:6379"    

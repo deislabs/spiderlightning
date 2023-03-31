@@ -8,7 +8,9 @@ use as_any::Downcast;
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
-use slight_file::{Capability as TomlCapability, TomlFile};
+use slight_file::{
+    has_http_cap, read_as_toml_file, Capability as TomlCapability, Resource, SpecVersion, TomlFile,
+};
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
 #[cfg(feature = "http-server")]
@@ -69,11 +71,8 @@ pub struct RunArgs {
 }
 
 pub async fn handle_run(args: RunArgs) -> Result<()> {
-    let toml_file_contents =
-        std::fs::read_to_string(args.slightfile.clone()).expect("could not locate slightfile");
-    let toml =
-        toml::from_str::<TomlFile>(&toml_file_contents).expect("provided file is not a slightfile");
-
+    let toml = read_as_toml_file(args.slightfile.clone())?;
+    let http_enabled = has_http_cap(&toml);
     tracing::info!("Starting slight");
 
     let mut host_builder = build_store_instance(&toml, &args.slightfile, &args.module).await?;
@@ -83,18 +82,6 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
     }
     let (mut store, instance) = host_builder.build().await;
 
-    let caps = toml.capability.as_ref().unwrap();
-    let http_enabled;
-
-    if toml.specversion == "0.1" {
-        http_enabled = caps.iter().any(|cap| cap.name == "http");
-    } else if toml.specversion == "0.2" {
-        http_enabled = caps
-            .iter()
-            .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
-    } else {
-        bail!("unsupported toml spec version");
-    }
     // looking for the http capability.
     if cfg!(feature = "http-server") && http_enabled {
         log::debug!("Http capability enabled");
@@ -205,28 +192,20 @@ async fn build_store_instance(
 
     builder.link_wasi()?;
     for c in toml.capability.as_ref().unwrap() {
-        let resource_type = if toml.specversion == "0.1" {
-            c.name.as_str()
-        } else if toml.specversion == "0.2" {
-            if let Some(r) = &c.resource {
-                r.as_str()
-            } else {
-                bail!("missing resource field");
-            }
-        } else {
-            bail!("unsupported toml spec version");
-        };
+        let resource_type = c.resource();
 
-        if resource_type != "http" {
-            maybe_add_named_capability_to_store(
-                &toml.specversion,
+        match resource_type {
+            Resource::HttpServer => {}
+            _ => maybe_add_named_capability_to_store(
+                toml.specversion,
                 toml.secret_store.clone(),
                 &mut capability_store,
                 c.clone(),
                 &toml_file_path,
-            )?;
+            )?,
         }
-
+        let resource_type = resource_type.to_string();
+        let resource_type = resource_type.as_str();
         match resource_type {
             #[cfg(feature = "keyvalue")]
             _ if KEYVALUE_HOST_IMPLEMENTORS.contains(&resource_type) => {
@@ -262,7 +241,7 @@ async fn build_store_instance(
                 }
 
                 let resource =
-                    slight_messaging::Messaging::new(&c.name, capability_store.clone()).await?;
+                    slight_messaging::Messaging::new(&c.name(), capability_store.clone()).await?;
                 builder.add_to_builder("messaging".to_string(), resource);
             }
             #[cfg(feature = "runtime-configs")]
@@ -342,46 +321,45 @@ async fn build_store_instance(
 }
 
 fn maybe_add_named_capability_to_store(
-    specversion: &str,
+    specversion: SpecVersion,
     secret_store: Option<String>,
     capability_store: &mut HashMap<String, BasicState>,
     c: TomlCapability,
     toml_file_path: impl AsRef<Path>,
 ) -> Result<()> {
-    if specversion == "0.1" {
-        if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone())
-        {
-            e.insert(BasicState::new(
-                secret_store,
-                c.name.clone(),
-                c.name.clone(),
-                c.configs,
-                toml_file_path,
-            ));
-        } else {
-            bail!("cannot add capabilities of the same name");
-        }
-    } else if specversion == "0.2" {
-        if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone())
-        {
-            let resource = if let Some(r) = c.resource {
-                r
+    match specversion {
+        SpecVersion::V1 => {
+            if let std::collections::hash_map::Entry::Vacant(e) =
+                capability_store.entry(c.name().clone())
+            {
+                e.insert(BasicState::new(
+                    secret_store,
+                    c.name().clone(),
+                    c.name().clone(),
+                    c.configs(),
+                    toml_file_path,
+                ));
             } else {
-                bail!("missing resource field");
-            };
-
-            e.insert(BasicState::new(
-                None,
-                resource,
-                c.name.clone(),
-                c.configs,
-                toml_file_path,
-            ));
-        } else {
-            bail!("cannot add capabilities of the same name");
+                bail!("cannot add capabilities of the same name");
+            }
         }
-    } else {
-        bail!("unsupported toml version");
+        SpecVersion::V2 => {
+            if let std::collections::hash_map::Entry::Vacant(e) =
+                capability_store.entry(c.name().clone())
+            {
+                let resource = c.resource().to_string();
+
+                e.insert(BasicState::new(
+                    None,
+                    resource,
+                    c.name().clone(),
+                    c.configs(),
+                    toml_file_path,
+                ));
+            } else {
+                bail!("cannot add capabilities of the same name");
+            }
+        }
     }
 
     Ok(())
