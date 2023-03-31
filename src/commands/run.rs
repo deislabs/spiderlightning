@@ -238,7 +238,7 @@ async fn build_store_instance(
                 builder.add_to_builder("messaging".to_string(), resource);
             }
             #[cfg(feature = "runtime-configs")]
-            Resource::ConfigsAzapp | Resource::ConfigsEnvvars => {
+            Resource::ConfigsAzapp | Resource::ConfigsEnvvars | Resource::ConfigsUsersecrets => {
                 if !linked_capabilities.contains("configs") {
                     builder.link_capability::<Configs>()?;
                     linked_capabilities.insert("configs".to_string());
