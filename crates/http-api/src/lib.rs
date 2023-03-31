@@ -1,5 +1,6 @@
 use anyhow::{bail, Result};
 pub use http_handler::{HttpError, HttpHandlerData, Method, Request, Response};
+pub use http_server_export::HttpServerExportData;
 use hyper::{
     body::HttpBody as HyperHttpBody,
     header::{HeaderName, HeaderValue},
@@ -7,7 +8,45 @@ use hyper::{
 };
 
 wit_bindgen_wasmtime::import!({paths: ["../../wit/http-handler.wit"], async: *});
+wit_bindgen_wasmtime::import!({paths: ["../../wit/http-server-export.wit"], async: *});
 wit_error_rs::impl_error!(http_handler::HttpError);
+
+/// An exported HTTP server init function from the wasm module
+///
+/// This is a wrapper implementation of the WIT generated `HttpServerExport`
+pub struct HttpServerInit<T> {
+    inner: http_server_export::HttpServerExport<T>,
+}
+
+impl<T> AsRef<http_server_export::HttpServerExport<T>> for HttpServerInit<T> {
+    fn as_ref(&self) -> &http_server_export::HttpServerExport<T> {
+        &self.inner
+    }
+}
+
+impl<T> AsMut<http_server_export::HttpServerExport<T>> for HttpServerInit<T> {
+    fn as_mut(&mut self) -> &mut http_server_export::HttpServerExport<T> {
+        &mut self.inner
+    }
+}
+
+impl<T: Send> HttpServerInit<T> {
+    pub fn new(
+        store: impl wasmtime::AsContextMut<Data = T>,
+        instance: &wasmtime::Instance,
+        get_state: impl Fn(&mut T) -> &mut HttpServerExportData + Send + Sync + Copy + 'static,
+    ) -> Result<Self> {
+        http_server_export::HttpServerExport::new(store, instance, get_state)
+            .map(|inner| Self { inner })
+    }
+
+    pub async fn on_server_init(
+        &self,
+        caller: impl wasmtime::AsContextMut<Data = T>,
+    ) -> Result<Result<(), String>, anyhow::Error> {
+        self.inner.on_server_init(caller).await
+    }
+}
 
 /// A HTTP Handler that finds the handler function from the wasm module
 /// and calls it with the HTTP request.
@@ -49,11 +88,11 @@ impl<T: Send> HttpHandler<T> {
     ) -> anyhow::Result<Self> {
         let mut store = store.as_context_mut();
         let canonical_abi_free =
-            instance.get_typed_func::<(i32, i32, i32), (), _>(&mut store, "canonical_abi_free")?;
+            instance.get_typed_func::<(i32, i32, i32), ()>(&mut store, "canonical_abi_free")?;
         let canonical_abi_realloc = instance
-            .get_typed_func::<(i32, i32, i32, i32), i32, _>(&mut store, "canonical_abi_realloc")?;
+            .get_typed_func::<(i32, i32, i32, i32), i32>(&mut store, "canonical_abi_realloc")?;
         let handle_http = instance
-            .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,), _>(
+            .get_typed_func::<(i32, i32, i32, i32, i32, i32, i32, i32, i32, i32), (i32,)>(
                 &mut store,
                 handler_name,
             )?;
@@ -76,7 +115,7 @@ impl<T: Send> HttpHandler<T> {
         &self,
         caller: impl wasmtime::AsContextMut<Data = T>,
         req: Request<'_>,
-    ) -> Result<Result<Response, http_handler::HttpError>, wasmtime::Trap> {
+    ) -> Result<Result<Response, http_handler::HttpError>, anyhow::Error> {
         self.inner.handle_http(caller, req).await
     }
 }

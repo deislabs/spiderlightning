@@ -1,12 +1,68 @@
+[package]
+name = "slight"
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[[bin]]
+name = "slight"
+
+[lib]
+name = "slight_lib"
+path = "src/lib.rs"
+
+[dependencies]
+slight-blob-store = { workspace = true, features = ["aws_s3"], optional = true }
+slight-core = { workspace = true }
+slight-runtime = { workspace = true }
+slight-keyvalue = { workspace = true, features = ["filesystem", "awsdynamodb", "redis", "azblob"], optional = true}
+slight-distributed-locking = { workspace = true, features = ["etcd"], optional = true}
+slight-messaging = { workspace = true, features = ["filesystem", "mosquitto", "azsbus", "natsio"], optional = true}
+slight-runtime-configs = { workspace = true, optional = true }
+slight-common = { workspace = true }
+slight-sql = { workspace = true, features = ["postgres"], optional = true }
+slight-http-server = { workspace = true, optional = true }
+slight-http-client = { workspace = true, optional = true }
+anyhow = { workspace = true }
+log = { workspace = true }
+tokio = { workspace = true }
+wit-bindgen-wasmtime = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+clap = { workspace = true }
+as-any = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+reqwest = "0.11"
+flate2 = "1"
+tar = "0.4"
+
+[dev-dependencies]
+tempdir = { workspace = true }
+tempfile = { workspace = true }
+rand = { worspace = true }
+
+[features]
+default = ["blob-store", "keyvalue", "distributed-locking", "messaging", "runtime-configs", "sql", "http-server", "http-client"]
+blob-store = ["dep:slight-blob-store"]
+keyvalue = ["dep:slight-keyvalue"]
+distributed-locking = ["dep:slight-distributed-locking"]
+messaging = ["dep:slight-messaging"]
+runtime-configs = ["dep:slight-runtime-configs"]
+sql = ["dep:slight-sql"]
+http-server = ["dep:slight-http-server"]
+http-client = ["dep:slight-http-client"]
+
 [workspace.package]
-version = "0.3.1"
+version = "0.4.1"
 authors = ["DeisLabs Engineering Team"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/deislabs/spiderlightning"
 
-
 [workspace.dependencies]
+slight-blob-store = { path = "./crates/blob-store" }
 slight-core = { path = "./crates/core" }
 slight-runtime = { path = "./crates/runtime" }
 slight-keyvalue = { path = "./crates/keyvalue" }
@@ -18,30 +74,34 @@ slight-sql = { path = "./crates/sql" }
 slight-http-server = { path = "./crates/http-server" }
 slight-http-client = { path = "./crates/http-client" }
 slight-http-api = { path = "./crates/http-api" }
-wit-bindgen-wasmtime = { git = "https://github.com/bytecodealliance/wit-bindgen", tag = "v0.2.0", features = ["async"] }
+wit-bindgen-wasmtime = { git = "https://github.com/fermyon/wit-bindgen-backport", features = ["async"] }
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
-wasmtime = "0.39"
-wasmtime-wasi = "0.39"
-wasi-common = "0.39"
-wasi-cap-std-sync = "0.39"
+wasmtime = "7.0.0"
+wasmtime-wasi = "7.0.0"
+wasi-common = "7.0.0"
+wasi-cap-std-sync = "7.0.0"
 anyhow = "1"
 async-trait = "0.1"
 tokio = { version = "1", features = ["full"] }
 tracing = { version = "0.1", features = ["log"] }
-toml = "0.5"
+toml = "0.7"
 tempdir = "0.3"
+tempfile = "3.4"
 log = { version = "0.4", default-features = false }
-env_logger = "0.9"
+env_logger = "0.10"
 as-any = "0.3"
 serde = { version = "1", features = ["derive"] }
 hyper = "0.14"
 url = "2.2"
+semver = "1"
+clap = { version = "4", features = ["derive"] }
 rand = "0.8"
 
 [workspace]
 members = [
-    "slight",
     "crates/core",
     "crates/common",
+    "crates/http-server-macro",
+    "crates/http-handler-macro",
     "tests"
 ]

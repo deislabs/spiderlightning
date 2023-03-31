@@ -8,11 +8,14 @@ fn slight_path() -> String {
     format!("{}/../target/release/slight", env!("CARGO_MANIFEST_DIR"))
 }
 
-pub fn run(executable: &str, args: Vec<&str>) {
+pub fn run(executable: &str, args: Vec<&str>, current_dir: Option<&str>) {
     println!("Running {executable} with args: {args:?}");
     let mut cmd = Command::new(executable);
     for arg in args {
         cmd.arg(arg);
+    }
+    if let Some(dir) = current_dir {
+        cmd.current_dir(dir);
     }
     let output = cmd
         .stdout(std::process::Stdio::piped())
@@ -51,6 +54,22 @@ mod integration_tests {
         use anyhow::Result;
 
         #[test]
+        fn filesystem_access_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/filesystem-access-test.wasm");
+            let file_config = &format!(
+                "{}/filesystem-access-test/slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            run(
+                &slight_path(),
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
+            );
+            Ok(())
+        }
+
+        #[test]
         fn envvars_test() -> Result<()> {
             let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
             let out_dir = out_dir.join("wasm32-wasi/debug/configs-test.wasm");
@@ -60,7 +79,8 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -75,7 +95,8 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -90,7 +111,8 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -119,7 +141,8 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
@@ -134,20 +157,24 @@ mod integration_tests {
             );
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
             Ok(())
         }
 
-        // #[test]
-        // fn aws_dynamodb_test() -> Result<()> {
-        //     let file_config = "./keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
-        //     run(
-        //         &slight_path(),
-        //         vec!["-c", file_config, "run", "-m", KEYVALUE_TEST_MODULE],
-        //     );
-        //     Ok(())
-        // }
+        #[test]
+        fn aws_dynamodb_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/keyvalue-test.wasm");
+            let file_config = "./keyvalue-test/keyvalue_awsdynamodb_slightfile.toml";
+            run(
+                &slight_path(),
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
+            );
+            Ok(())
+        }
 
         #[test]
         #[cfg(unix)] // TODO: Add Windows support
@@ -189,7 +216,8 @@ mod integration_tests {
             env::set_var("REDIS_ADDRESS", format!("redis://127.0.0.1:{port}"));
             run(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", out_dir.to_str().unwrap()],
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                None,
             );
 
             // kill the server
@@ -210,13 +238,14 @@ mod integration_tests {
     #[cfg(unix)]
     #[cfg(test)]
     mod http_tests_unix {
-        use crate::{spawn, slight_path};
+        use crate::slight_path;
 
         use std::{path::PathBuf, process::Command};
 
         use anyhow::Result;
         use hyper::{body, client::HttpConnector, Body, Client, Method, Request, StatusCode};
 
+        use signal_child::Signalable;
         use tokio::{
             join,
             time::{sleep, Duration},
@@ -225,13 +254,15 @@ mod integration_tests {
         #[tokio::test]
         async fn http_test() -> Result<()> {
             let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
-            let out_dir = out_dir.join("wasm32-wasi/debug/http-test.wasm");
+            let out_dir = out_dir.join("wasm32-wasi/debug/http_test.wasm");
             println!(
                 "out_dir: {}",
                 out_dir.to_owned().as_os_str().to_str().unwrap()
             );
             let config = &format!("{}/http-test/slightfile.toml", env!("CARGO_MANIFEST_DIR"));
-            let mut child = spawn(&slight_path(), vec!["-c", config, "run", "-m", out_dir.to_str().unwrap()])?;
+            let mut child = Command::new(slight_path())
+                .args(["-c", config, "run", out_dir.to_str().unwrap()])
+                .spawn()?;
             sleep(Duration::from_secs(2)).await;
 
             let client = hyper::Client::new();
@@ -245,7 +276,8 @@ mod integration_tests {
                 handle_request(&client)
             );
 
-            child();
+            child.interrupt().expect("Error interrupting child");
+            child.wait().ok();
 
             assert!(res1.is_ok());
             assert!(res2.is_ok());
@@ -450,4 +482,151 @@ mod integration_tests {
         }
     }
     // TODO: We need to add distributed_locking modules
+
+    #[cfg(test)]
+    mod cli_tests {
+        use std::process::Command;
+
+        use crate::slight_path;
+
+        #[test]
+        fn slight_new_rust() -> anyhow::Result<()> {
+            let tmpdir = tempdir::TempDir::new("tests")?;
+            let mut child = Command::new(slight_path())
+                .args(["new", "--name-at-release", "my-demo@v0.4.0", "rust"])
+                .current_dir(&tmpdir)
+                .spawn()?;
+            child.wait().ok();
+
+            // compile the my-demo at target wasm32-wasi
+            let p = tmpdir.path().to_owned();
+            let mut child = Command::new("cargo")
+                .args(["build", "--target", "wasm32-wasi"])
+                .current_dir(p.join("my-demo"))
+                .spawn()?;
+            child.wait().ok();
+
+            // run the my-demo
+            let output = Command::new(slight_path())
+                .args([
+                    "-c",
+                    "slightfile.toml",
+                    "run",
+                    "./target/wasm32-wasi/debug/my-demo.wasm",
+                ])
+                .current_dir(p.join("my-demo"))
+                .output()?;
+
+            // examine the output
+            assert!(output.status.success());
+            assert!(String::from_utf8(output.stdout)?.contains("Hello, SpiderLightning!"));
+            Ok(())
+        }
+
+        #[test]
+        fn slight_add_tests() -> anyhow::Result<()> {
+            let capabilities = vec![
+                "keyvalue",
+                "configs",
+                "http-server",
+                "http-client",
+                "distributed-locking",
+                "messaging",
+                "sql",
+            ];
+            let version = "v0.4.0";
+
+            let tmpdir = tempdir::TempDir::new("tests")?;
+            for cap in capabilities {
+                let output = Command::new(slight_path())
+                    .args(["add", &format!("{cap}@{version}")])
+                    .current_dir(&tmpdir)
+                    .output()?;
+                assert!(output.status.success());
+            }
+
+            let ill_version = "v0.5763.2355";
+            let output = Command::new(slight_path())
+                .args(["add", &format!("keyvalue@{ill_version}")])
+                .current_dir(&tmpdir)
+                .output()?;
+            assert!(!output.status.success());
+            Ok(())
+        }
+
+        #[test]
+        fn slight_add_http_server_tests() -> anyhow::Result<()> {
+            let mut wits = vec![
+                "http-server-export.wit",
+                "http-server.wit",
+                "http-types.wit",
+                "http-handler.wit",
+            ];
+            wits.sort();
+            let version = "v0.4.0";
+
+            let tmpdir = tempdir::TempDir::new("tests")?;
+
+            let output = Command::new(slight_path())
+                .args(["add", &format!("{cap}@{version}", cap = "http-server")])
+                .current_dir(&tmpdir)
+                .output()?;
+            assert!(output.status.success());
+
+            // check file names in the http-server folder
+            let p = tmpdir.path().to_owned();
+            let mut files = std::fs::read_dir(p.join(format!(
+                "http-server_{version}",
+                version = version.strip_prefix('v').expect("version format")
+            )))?
+            .map(|res| res.map(|e| e.file_name().into_string().unwrap()))
+            .collect::<Result<Vec<_>, std::io::Error>>()?;
+
+            files.sort();
+            assert_eq!(files, wits);
+            Ok(())
+        }
+    }
+
+    #[cfg(test)]
+    mod blob_store_tests {
+        #[cfg(unix)]
+        use std::env;
+        use std::path::PathBuf;
+
+        use crate::{run, slight_path};
+        use anyhow::Result;
+
+        #[test]
+        fn s3_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/blob-store-test.wasm");
+            let file_config = &format!(
+                "{}/blob-store-test/blob_s3.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            run(
+                &slight_path(),
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                Some(&format!("{}/blob-store-test/", env!("CARGO_MANIFEST_DIR"))),
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn az_blob_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let out_dir = out_dir.join("wasm32-wasi/debug/blob-store-test.wasm");
+            let file_config = &format!(
+                "{}/blob-store-test/az_blob.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            run(
+                &slight_path(),
+                vec!["-c", file_config, "run", out_dir.to_str().unwrap()],
+                Some(&format!("{}/blob-store-test/", env!("CARGO_MANIFEST_DIR"))),
+            );
+            Ok(())
+        }
+    }
 }
