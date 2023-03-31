@@ -285,9 +285,6 @@ async fn build_store_instance(
                     bail!("the http-client capability was already linked");
                 }
             }
-            _ => {
-                bail!("not supported yet");
-            }
         }
     }
 
