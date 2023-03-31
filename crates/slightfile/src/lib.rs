@@ -159,29 +159,23 @@ pub fn read_as_toml_file(path: impl AsRef<Path>) -> Result<TomlFile> {
     // check specversion
     match &toml.specversion {
         SpecVersion::V1 => {
-            if toml.capability.as_ref().is_some() {
-                if toml
+            if toml.capability.as_ref().is_some() && toml
                     .capability
                     .as_ref()
                     .unwrap()
                     .iter()
-                    .any(|cap| cap.is_v2())
-                {
-                    bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
-                }
+                    .any(|cap| cap.is_v2()) {
+                bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
             }
         }
         SpecVersion::V2 => {
-            if toml.capability.as_ref().is_some() {
-                if toml
+            if toml.capability.as_ref().is_some() && toml
                     .capability
                     .as_ref()
                     .unwrap()
                     .iter()
-                    .any(|cap| cap.is_v1())
-                {
-                    bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
-                }
+                    .any(|cap| cap.is_v1()) {
+                bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
             }
         }
     };
