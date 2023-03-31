@@ -11,6 +11,7 @@ use async_trait::async_trait;
 use ctx::SlightCtxBuilder;
 use resource::{get_host_state, HttpData, HttpServerExportData};
 use slight_common::{CapabilityBuilder, WasmtimeBuildable, WasmtimeLinkable};
+use tracing::info;
 use wasi_cap_std_sync::{ambient_authority, Dir, WasiCtxBuilder};
 use wasi_common::pipe::{ReadPipe, WritePipe};
 use wasi_common::WasiCtx;
@@ -168,10 +169,11 @@ impl WasmtimeBuildable for Builder {
 fn build_wasi_context(io_redirects: IORedirects) -> Result<WasiCtx> {
     let mut ctx: WasiCtxBuilder = WasiCtxBuilder::new();
     ctx = add_io_redirects_to_wasi_context(ctx, io_redirects)?;
-    Ok(ctx
-        .inherit_args()?
-        .preopened_dir(Dir::open_ambient_dir(".", ambient_authority())?, ".")?
-        .build())
+    let dir = Dir::open_ambient_dir(".", ambient_authority())?;
+    // get pwd
+    let path = std::env::current_dir()?;
+    info!("Currnet dir: {:?}", path);
+    Ok(ctx.inherit_args()?.preopened_dir(dir, ".")?.build())
 }
 
 /// add_io_redirects_to_wasi_context inherits existing stdio and overrides stdio as available.

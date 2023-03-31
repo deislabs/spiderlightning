@@ -5,6 +5,8 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
+#[cfg(feature = "blob-store")]
+use slight_blob_store::{BlobStore, BLOB_STORE_SCHEME_NAME};
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
@@ -26,6 +28,7 @@ use slight_runtime_configs::Configs;
 #[cfg(feature = "sql")]
 use slight_sql::Sql;
 use wit_bindgen_wasmtime::wasmtime::Store;
+
 pub type IORedirects = slight_runtime::IORedirects;
 
 #[derive(Clone, Default)]
@@ -171,6 +174,18 @@ async fn build_store_instance(
         }
 
         match resource_type {
+            #[cfg(feature = "blob-store")]
+            Resource::BlobstoreAwsS3 | Resource::BlobstoreAzblob => {
+                if !linked_capabilities.contains(BLOB_STORE_SCHEME_NAME) {
+                    builder.link_capability::<BlobStore>()?;
+                    linked_capabilities.insert(BLOB_STORE_SCHEME_NAME.to_string());
+                }
+                let resource = slight_blob_store::BlobStore::new(
+                    resource_type.to_string(),
+                    capability_store.clone(),
+                );
+                builder.add_to_builder(BLOB_STORE_SCHEME_NAME.to_string(), resource);
+            }
             #[cfg(feature = "keyvalue")]
             Resource::KeyvalueAwsDynamoDb
             | Resource::KeyvalueDapr
