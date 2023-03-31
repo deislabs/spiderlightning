@@ -32,15 +32,17 @@ use wit_bindgen_wasmtime::wasmtime::Store;
 const BLOB_STORE_HOST_IMPLEMENTORS: [&str; 2] = [S3_CAPABILITY_NAME, AZBLOB_CAPABILITY_NAME];
 
 #[cfg(feature = "keyvalue")]
-const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
+const KEYVALUE_HOST_IMPLEMENTORS: [&str; 10] = [
     "kv.filesystem",
     "kv.azblob",
     "kv.awsdynamodb",
     "kv.redis",
+    "kv.dapr",
     "keyvalue.filesystem",
     "keyvalue.azblob",
     "keyvalue.awsdynamodb",
     "keyvalue.redis",
+    "keyvalue.dapr",
 ];
 
 #[cfg(feature = "distributed-locking")]

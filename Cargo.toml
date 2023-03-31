@@ -17,7 +17,7 @@ path = "src/lib.rs"
 slight-blob-store = { workspace = true, features = ["aws_s3"], optional = true }
 slight-core = { workspace = true }
 slight-runtime = { workspace = true }
-slight-keyvalue = { workspace = true, features = ["filesystem", "awsdynamodb", "redis", "azblob"], optional = true}
+slight-keyvalue = { workspace = true, features = ["filesystem", "awsdynamodb", "redis", "azblob", "dapr"], optional = true}
 slight-distributed-locking = { workspace = true, features = ["etcd"], optional = true}
 slight-messaging = { workspace = true, features = ["filesystem", "mosquitto", "azsbus", "natsio"], optional = true}
 slight-runtime-configs = { workspace = true, optional = true }

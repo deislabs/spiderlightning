@@ -31,6 +31,8 @@ aws-config = { version = "0.54", optional = true }
 aws-sdk-dynamodb = { version = "0.24", optional = true }
 # kv.redis deps
 redis = { version = "0.22", optional = true }
+# kv.dapr deps
+dapr = { version ="0.11.0", optional = true }
 
 [features]
 default = ["filesystem"]
@@ -38,3 +40,4 @@ filesystem = ["serde_json"]
 azblob = ["azure_storage_blobs", "azure_storage", "bytes", "futures"]
 awsdynamodb = ["aws-config", "aws-sdk-dynamodb"]
 redis = ["dep:redis"]
+dapr = ["dep:dapr"]

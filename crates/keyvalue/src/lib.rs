@@ -86,6 +86,10 @@ impl KeyvalueInner {
                 KeyvalueImplementors::Redis => {
                     Arc::new(redis::RedisImplementor::new(slight_state, name).await)
                 }
+                #[cfg(feature = "dapr")]
+                KeyvalueImplementors::Dapr => {
+                    Arc::new(dapr::DaprImplementor::new(slight_state, name).await)
+                }
             },
         }
     }
@@ -105,6 +109,8 @@ pub enum KeyvalueImplementors {
     AwsDynamoDb,
     #[cfg(feature = "redis")]
     Redis,
+    #[cfg(feature = "dapr")]
+    Dapr,
 }
 
 impl From<&str> for KeyvalueImplementors {
