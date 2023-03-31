@@ -388,7 +388,7 @@ mod integration_tests {
     #[cfg(test)]
     #[cfg(unix)]
     mod messaging_tests {
-        use std::time::Duration;
+        use std::{path::PathBuf, time::Duration};
 
         use crate::{slight_path, spawn};
         use anyhow::Result;
@@ -396,15 +396,21 @@ mod integration_tests {
         use mosquitto_rs::{Client, QoS};
         use tokio::{process::Command, time::sleep};
 
-        const MESSAGING_HTTP_SERVICE_MODULE: &str =
-            "./tests/messaging-test/target/wasm32-wasi/debug/messaging-test.wasm";
-        const MESSAGING_SERVICE_A_MODULE: &str =
-            "./tests/messaging-test/target/wasm32-wasi/debug/consumer_a.wasm";
-        const MESSAGING_SERVICE_B_MODULE: &str =
-            "./tests/messaging-test/target/wasm32-wasi/debug/consumer_b.wasm";
-
         #[tokio::test]
         async fn messaging_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let http_service_dir = out_dir.join("wasm32-wasi/debug/messaging_test.wasm");
+            let service_a_dir = out_dir.join("wasm32-wasi/debug/consumer_a.wasm");
+            let service_b_dir = out_dir.join("wasm32-wasi/debug/consumer_b.wasm");
+            let file_config = &format!(
+                "{}/messaging-test/messaging.slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            let consumer_config = &format!(
+                "{}/messaging-test/consumer.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+
             let mut mosquitto_binary_path = "mosquitto";
             let output = Command::new("which")
                 .arg(mosquitto_binary_path)
@@ -417,24 +423,27 @@ mod integration_tests {
             }
             let mosquitto_child = spawn(mosquitto_binary_path, vec![])?;
 
-            let file_config = "./tests/messaging-test/messaging.slightfile.toml";
             let http_child = spawn(
                 &slight_path(),
-                vec![
-                    "-c",
-                    file_config,
-                    "run",
-                    "-m",
-                    MESSAGING_HTTP_SERVICE_MODULE,
-                ],
+                vec!["-c", file_config, "run", http_service_dir.to_str().unwrap()],
             )?;
             let service_a_child = spawn(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", MESSAGING_SERVICE_A_MODULE],
+                vec![
+                    "-c",
+                    consumer_config,
+                    "run",
+                    service_a_dir.to_str().unwrap(),
+                ],
             )?;
             let service_b_child = spawn(
                 &slight_path(),
-                vec!["-c", file_config, "run", "-m", MESSAGING_SERVICE_B_MODULE],
+                vec![
+                    "-c",
+                    consumer_config,
+                    "run",
+                    service_b_dir.to_str().unwrap(),
+                ],
             )?;
 
             sleep(Duration::from_secs(2)).await;

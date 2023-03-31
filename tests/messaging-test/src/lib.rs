@@ -1,13 +1,16 @@
 use anyhow::Result;
 
-use http::*;
+use http_server::*;
 use slight_http_handler_macro::register_handler;
+use slight_http_server_macro::on_server_init;
 
-wit_bindgen_rust::import!("../../wit/http.wit");
+wit_bindgen_rust::import!("../../wit/http-server.wit");
+wit_bindgen_rust::export!("../../wit/http-server-export.wit");
 wit_bindgen_rust::import!("../../wit/messaging.wit");
-wit_error_rs::impl_error!(http::HttpRouterError);
+wit_error_rs::impl_error!(http_server::HttpRouterError);
 wit_error_rs::impl_error!(messaging::MessagingError);
 
+#[on_server_init]
 fn main() -> Result<()> {
     let router = Router::new()?;
     let router_with_route = router

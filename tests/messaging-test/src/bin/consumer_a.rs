@@ -11,6 +11,7 @@ fn main() -> Result<()> {
     let ps = Pub::open("my-messaging")?;
     loop {
         let msg = sub.receive(&sub_token)?;
+        println!("Received message: {:?}", msg);
         ps.publish(&msg, "service-a-channel-out")?;
     }
 }
