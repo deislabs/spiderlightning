@@ -65,7 +65,7 @@ mod unittests {
     use std::{fs::OpenOptions, io::Write};
 
     use anyhow::Result;
-    use slight_core::slightfile::TomlFile;
+    use slight_file::TomlFile;
     use tempdir::TempDir;
 
     use super::UserSecrets;

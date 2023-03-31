@@ -11,11 +11,12 @@ test = false
 doctest = false
 
 [dependencies]
+slight-file = { workspace = true }
+slight-common = { workspace = true }
+slight-runtime-configs = { workspace = true }
 anyhow = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
-slight-common = { workspace = true }
-slight-runtime-configs = { workspace = true }
 uuid = { version = "1.1", features = ["v4"] }
 tracing = { workspace = true }
 crossbeam-channel = "0.5"

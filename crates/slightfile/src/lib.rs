@@ -17,7 +17,7 @@ pub enum SpecVersion {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TomlFile {
     pub specversion: SpecVersion,
-    pub secret_store: Option<String>,
+    pub secret_store: Option<SecretStoreResource>,
     pub secret_settings: Option<Vec<Config>>,
     pub capability: Option<Vec<Capability>>,
 }
@@ -31,16 +31,10 @@ pub enum Capability {
 
 impl Capability {
     pub fn is_v1(&self) -> bool {
-        match self {
-            Capability::V1(_) => true,
-            _ => false,
-        }
+        matches!(self, Capability::V1(_))
     }
     pub fn is_v2(&self) -> bool {
-        match self {
-            Capability::V2(_) => true,
-            _ => false,
-        }
+        matches!(self, Capability::V2(_))
     }
     pub fn resource(&self) -> Resource {
         match self {
@@ -87,6 +81,43 @@ impl Config {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum SecretStoreResource {
+    #[serde(rename = "configs.azapp")]
+    Azapp,
+    #[serde(rename = "configs.envvars")]
+    Envvars,
+    #[serde(rename = "configs.usersecrets")]
+    Usersecrets,
+    #[serde(rename = "configs.local")]
+    Local,
+}
+
+impl TryFrom<String> for SecretStoreResource {
+    type Error = anyhow::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "configs.azapp" => Ok(SecretStoreResource::Azapp),
+            "configs.envvars" => Ok(SecretStoreResource::Envvars),
+            "configs.usersecrets" => Ok(SecretStoreResource::Usersecrets),
+            "configs.local" => Ok(SecretStoreResource::Local),
+            _ => bail!("Unknown secret store resource: {}", value),
+        }
+    }
+}
+
+impl From<SecretStoreResource> for String {
+    fn from(value: SecretStoreResource) -> Self {
+        match value {
+            SecretStoreResource::Azapp => String::from("configs.azapp"),
+            SecretStoreResource::Envvars => String::from("configs.envvars"),
+            SecretStoreResource::Usersecrets => String::from("configs.usersecrets"),
+            SecretStoreResource::Local => String::from("configs.local"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Resource {
     #[serde(rename = "blobstore.aws_s3")]
     BlobstoreAwsS3,
@@ -100,6 +131,14 @@ pub enum Resource {
     KeyvalueFilesystem,
     #[serde(rename = "keyvalue.redis")]
     KeyvalueRedis,
+    #[serde(rename = "kv.awsdynamodb")]
+    V1KeyvalueAwsDynamoDb,
+    #[serde(rename = "kv.azblob")]
+    V1KeyvalueAzblob,
+    #[serde(rename = "kv.filesystem")]
+    V1KeyvalueFilesystem,
+    #[serde(rename = "kv.redis")]
+    V1KeyvalueRedis,
     #[serde(rename = "keyvalue.dapr")]
     KeyvalueDapr,
     #[serde(rename = "messaging.azsbus")]
@@ -110,6 +149,10 @@ pub enum Resource {
     MessagingFilesystem,
     #[serde(rename = "messaging.mosquitto")]
     MessagingMosquitto,
+    #[serde(rename = "mq.azsbus")]
+    V1MessagingAzsbus,
+    #[serde(rename = "mq.filesystem")]
+    V1MessagingFilesystem,
     #[serde(rename = "messaging.nats")]
     MessagingNats,
     #[serde(rename = "http")] // TODO: change this to http-server and bump up slightfile version?
@@ -120,8 +163,12 @@ pub enum Resource {
     ConfigsAzapp,
     #[serde(rename = "configs.envvars")]
     ConfigsEnvvars,
+    #[serde(rename = "configs.usersecrets")]
+    ConfigsUsersecrets,
     #[serde(rename = "distributed_locking.etcd")]
     DistributedLockingEtcd,
+    #[serde(rename = "lockd.etcd")]
+    V1DistributedLockingEtcd,
     #[serde(rename = "sql.postgres")]
     SqlPostgres,
 }
@@ -147,8 +194,16 @@ impl Display for Resource {
             Resource::HttpClient => write!(f, "http-client"),
             Resource::ConfigsAzapp => write!(f, "configs.azapp"),
             Resource::ConfigsEnvvars => write!(f, "configs.envvars"),
+            Resource::ConfigsUsersecrets => write!(f, "configs.usersecrets"),
             Resource::DistributedLockingEtcd => write!(f, "distributed_locking.etcd"),
             Resource::SqlPostgres => write!(f, "sql.postgres"),
+            Resource::V1KeyvalueAwsDynamoDb => write!(f, "kv.awsdynamodb"),
+            Resource::V1KeyvalueAzblob => write!(f, "kv.azblob"),
+            Resource::V1KeyvalueFilesystem => write!(f, "kv.filesystem"),
+            Resource::V1KeyvalueRedis => write!(f, "kv.redis"),
+            Resource::V1MessagingAzsbus => write!(f, "mq.azsbus"),
+            Resource::V1MessagingFilesystem => write!(f, "mq.filesystem"),
+            Resource::V1DistributedLockingEtcd => write!(f, "lockd.etcd"),
         }
     }
 }
@@ -159,22 +214,26 @@ pub fn read_as_toml_file(path: impl AsRef<Path>) -> Result<TomlFile> {
     // check specversion
     match &toml.specversion {
         SpecVersion::V1 => {
-            if toml.capability.as_ref().is_some() && toml
+            if toml.capability.as_ref().is_some()
+                && toml
                     .capability
                     .as_ref()
                     .unwrap()
                     .iter()
-                    .any(|cap| cap.is_v2()) {
+                    .any(|cap| cap.is_v2())
+            {
                 bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
             }
         }
         SpecVersion::V2 => {
-            if toml.capability.as_ref().is_some() && toml
+            if toml.capability.as_ref().is_some()
+                && toml
                     .capability
                     .as_ref()
                     .unwrap()
                     .iter()
-                    .any(|cap| cap.is_v1()) {
+                    .any(|cap| cap.is_v1())
+            {
                 bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
             }
         }
@@ -185,14 +244,8 @@ pub fn read_as_toml_file(path: impl AsRef<Path>) -> Result<TomlFile> {
 pub fn has_http_cap(toml: &TomlFile) -> bool {
     if let Some(capability) = &toml.capability {
         capability.iter().any(|cap| match cap {
-            Capability::V1(cap) => match cap.name {
-                Resource::HttpServer => true,
-                _ => false,
-            },
-            Capability::V2(cap) => match cap.resource {
-                Resource::HttpServer => true,
-                _ => false,
-            },
+            Capability::V1(cap) => matches!(cap.name, Resource::HttpServer),
+            Capability::V2(cap) => matches!(cap.resource, Resource::HttpServer),
         })
     } else {
         false

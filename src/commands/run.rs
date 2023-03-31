@@ -9,7 +9,8 @@ use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
 use slight_file::{
-    has_http_cap, read_as_toml_file, Capability as TomlCapability, Resource, SpecVersion, TomlFile,
+    has_http_cap, read_as_toml_file, Capability as TomlCapability, Resource, SecretStoreResource,
+    SpecVersion, TomlFile,
 };
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
@@ -25,42 +26,6 @@ use slight_runtime_configs::Configs;
 #[cfg(feature = "sql")]
 use slight_sql::Sql;
 use wit_bindgen_wasmtime::wasmtime::Store;
-
-#[cfg(feature = "keyvalue")]
-const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
-    "kv.filesystem",
-    "kv.azblob",
-    "kv.awsdynamodb",
-    "kv.redis",
-    "keyvalue.filesystem",
-    "keyvalue.azblob",
-    "keyvalue.awsdynamodb",
-    "keyvalue.redis",
-];
-
-#[cfg(feature = "distributed-locking")]
-const DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS: [&str; 2] = ["lockd.etcd", "distributed_locking.etcd"];
-
-#[cfg(feature = "messaging")]
-const MESSAGING_HOST_IMPLEMENTORS: [&str; 9] = [
-    "pubsub.confluent_apache_kafka",
-    "pubsub.mosquitto",
-    "messaging.confluent_apache_kafka",
-    "messaging.mosquitto",
-    "mq.azsbus",
-    "mq.filesystem",
-    "messaging.azsbus",
-    "messaging.filesystem",
-    "messaging.nats",
-];
-
-#[cfg(feature = "runtime-configs")]
-const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
-    ["configs.usersecrets", "configs.envvars", "configs.azapp"];
-
-#[cfg(feature = "sql")]
-const SQL_HOST_IMPLEMENTORS: [&str; 1] = ["sql.postgres"];
-
 pub type IORedirects = slight_runtime::IORedirects;
 
 #[derive(Clone, Default)]
@@ -204,11 +169,18 @@ async fn build_store_instance(
                 &toml_file_path,
             )?,
         }
-        let resource_type = resource_type.to_string();
-        let resource_type = resource_type.as_str();
+
         match resource_type {
             #[cfg(feature = "keyvalue")]
-            _ if KEYVALUE_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::KeyvalueAwsDynamoDb
+            | Resource::KeyvalueDapr
+            | Resource::KeyvalueAzblob
+            | Resource::KeyvalueFilesystem
+            | Resource::KeyvalueRedis
+            | Resource::V1KeyvalueAwsDynamoDb
+            | Resource::V1KeyvalueFilesystem
+            | Resource::V1KeyvalueRedis
+            | Resource::V1KeyvalueAzblob => {
                 if !linked_capabilities.contains("keyvalue") {
                     builder.link_capability::<Keyvalue>()?;
                     linked_capabilities.insert("keyvalue".to_string());
@@ -221,7 +193,7 @@ async fn build_store_instance(
                 builder.add_to_builder("keyvalue".to_string(), resource);
             }
             #[cfg(feature = "distributed-locking")]
-            _ if DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::DistributedLockingEtcd | Resource::V1DistributedLockingEtcd => {
                 if !linked_capabilities.contains("distributed_locking") {
                     builder.link_capability::<DistributedLocking>()?;
                     linked_capabilities.insert("distributed_locking".to_string());
@@ -234,7 +206,13 @@ async fn build_store_instance(
                 builder.add_to_builder("distributed_locking".to_string(), resource);
             }
             #[cfg(feature = "messaging")]
-            _ if MESSAGING_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::MessagingAzsbus
+            | Resource::MessagingFilesystem
+            | Resource::MessagingNats
+            | Resource::MessagingMosquitto
+            | Resource::MessagingConfluentApacheKafka
+            | Resource::V1MessagingAzsbus
+            | Resource::V1MessagingFilesystem => {
                 if !linked_capabilities.contains("messaging") {
                     builder.link_capability::<Messaging>()?;
                     linked_capabilities.insert("messaging".to_string());
@@ -245,7 +223,7 @@ async fn build_store_instance(
                 builder.add_to_builder("messaging".to_string(), resource);
             }
             #[cfg(feature = "runtime-configs")]
-            _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::ConfigsAzapp | Resource::ConfigsEnvvars => {
                 if !linked_capabilities.contains("configs") {
                     builder.link_capability::<Configs>()?;
                     linked_capabilities.insert("configs".to_string());
@@ -258,7 +236,7 @@ async fn build_store_instance(
                 builder.add_to_builder("configs".to_string(), resource);
             }
             #[cfg(feature = "sql")]
-            _ if SQL_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::SqlPostgres => {
                 if !linked_capabilities.contains("sql") {
                     builder.link_capability::<Sql>()?;
                     linked_capabilities.insert("sql".to_string());
@@ -269,7 +247,7 @@ async fn build_store_instance(
                 builder.add_to_builder("sql".to_string(), resource);
             }
             #[cfg(feature = "http-server")]
-            "http" => {
+            Resource::HttpServer => {
                 if !linked_capabilities.contains("http") {
                     let http = slight_http_server::HttpServer::<Builder>::default();
                     builder
@@ -281,7 +259,7 @@ async fn build_store_instance(
                 }
             }
             #[cfg(feature = "http-client")]
-            "http-client" => {
+            Resource::HttpClient => {
                 if !linked_capabilities.contains("http-client") {
                     let http_client = HttpClient::new();
                     builder
@@ -293,26 +271,7 @@ async fn build_store_instance(
                 }
             }
             _ => {
-                let mut allowed_schemes: Vec<&str> = Vec::new();
-
-                #[cfg(feature = "keyvalue")]
-                allowed_schemes.extend(&KEYVALUE_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "distributed-locking")]
-                allowed_schemes.extend(&DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "messaging")]
-                allowed_schemes.extend(&MESSAGING_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "runtime-configs")]
-                allowed_schemes.extend(&CONFIGS_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "sql")]
-                allowed_schemes.extend(&SQL_HOST_IMPLEMENTORS);
-
-                let allowed_schemes_str = allowed_schemes.join(", ");
-
-                bail!("invalid url: currently slight only supports http, and the '{}' capability schemes", allowed_schemes_str);
+                bail!("not supported yet");
             }
         }
     }
@@ -322,20 +281,18 @@ async fn build_store_instance(
 
 fn maybe_add_named_capability_to_store(
     specversion: SpecVersion,
-    secret_store: Option<String>,
+    secret_store: Option<SecretStoreResource>,
     capability_store: &mut HashMap<String, BasicState>,
     c: TomlCapability,
     toml_file_path: impl AsRef<Path>,
 ) -> Result<()> {
     match specversion {
         SpecVersion::V1 => {
-            if let std::collections::hash_map::Entry::Vacant(e) =
-                capability_store.entry(c.name().clone())
-            {
+            if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name()) {
                 e.insert(BasicState::new(
                     secret_store,
-                    c.name().clone(),
-                    c.name().clone(),
+                    c.resource(),
+                    c.name(),
                     c.configs(),
                     toml_file_path,
                 ));
@@ -344,15 +301,13 @@ fn maybe_add_named_capability_to_store(
             }
         }
         SpecVersion::V2 => {
-            if let std::collections::hash_map::Entry::Vacant(e) =
-                capability_store.entry(c.name().clone())
-            {
-                let resource = c.resource().to_string();
+            if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name()) {
+                let resource = c.resource();
 
                 e.insert(BasicState::new(
                     None,
                     resource,
-                    c.name().clone(),
+                    c.name(),
                     c.configs(),
                     toml_file_path,
                 ));

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use slight_core::secret::create_secret;
-use slight_file::{SpecVersion, TomlFile};
+use slight_file::{SecretStoreResource, SpecVersion, TomlFile};
 use std::{fs::OpenOptions, path::Path};
 
 pub fn handle_secret(key: &str, value: &str, toml_file_path: impl AsRef<Path>) -> Result<()> {
@@ -14,7 +14,7 @@ pub fn handle_secret(key: &str, value: &str, toml_file_path: impl AsRef<Path>) -
 
     // if specversion is 0.1 -- set secret_store to configs.usersecrets
     if let SpecVersion::V1 = toml.specversion {
-        toml.secret_store = Some("configs.usersecrets".to_string());
+        toml.secret_store = Some(SecretStoreResource::Usersecrets);
     }
 
     // removed global secret_store

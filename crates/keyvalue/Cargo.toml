@@ -11,10 +11,11 @@ test = false
 doctest = false
 
 [dependencies]
-wit-bindgen-wasmtime = { workspace = true }
-wit-error-rs = { workspace = true }
+slight-file = { workspace = true }
 slight-common = { workspace = true }
 slight-runtime-configs = { workspace = true }
+wit-bindgen-wasmtime = { workspace = true }
+wit-error-rs = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
