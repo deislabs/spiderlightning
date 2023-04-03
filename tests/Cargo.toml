@@ -10,6 +10,7 @@ repository = { workspace = true }
 doctest = false
 
 [dependencies]
+anyhow = { workspace = true }
 
 [dev-dependencies]
 hyper = { workspace = true, features = ["full"] }

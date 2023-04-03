@@ -31,6 +31,20 @@ pub fn run(executable: &str, args: Vec<&str>, current_dir: Option<&str>) {
     }
 }
 
+pub fn spawn(executable: &str, args: Vec<&str>) -> anyhow::Result<Box<dyn FnOnce()>> {
+    let mut cmd = Command::new(executable);
+    for arg in args {
+        cmd.arg(arg);
+    }
+    let mut child = cmd.spawn().expect("Error spawning the process");
+
+    let f = move || {
+        child.kill().expect("command wasn't running");
+        child.wait().ok();
+    };
+    Ok(Box::new(f))
+}
+
 mod integration_tests {
     #[cfg(test)]
     mod configs_tests {
@@ -224,14 +238,14 @@ mod integration_tests {
     #[cfg(unix)]
     #[cfg(test)]
     mod http_tests_unix {
+        use crate::slight_path;
 
         use std::{path::PathBuf, process::Command};
 
-        use crate::slight_path;
         use anyhow::Result;
         use hyper::{body, client::HttpConnector, Body, Client, Method, Request, StatusCode};
-        use signal_child::Signalable;
 
+        use signal_child::Signalable;
         use tokio::{
             join,
             time::{sleep, Duration},
@@ -370,7 +384,113 @@ mod integration_tests {
             Ok(())
         }
     }
-    // TODO: We need to add distributed_locking, and messaging_test modules
+
+    #[cfg(test)]
+    #[cfg(unix)]
+    mod messaging_tests {
+        use std::{path::PathBuf, time::Duration};
+
+        use crate::{slight_path, spawn};
+        use anyhow::Result;
+        use hyper::{Body, Method, Request};
+        use mosquitto_rs::{Client, QoS};
+        use tokio::{process::Command, time::sleep};
+
+        #[tokio::test]
+        async fn messaging_test() -> Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let http_service_dir = out_dir.join("wasm32-wasi/debug/messaging_test.wasm");
+            let service_a_dir = out_dir.join("wasm32-wasi/debug/consumer_a.wasm");
+            let service_b_dir = out_dir.join("wasm32-wasi/debug/consumer_b.wasm");
+            let file_config = &format!(
+                "{}/messaging-test/messaging.slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            let consumer_config = &format!(
+                "{}/messaging-test/consumer.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+
+            let mut mosquitto_binary_path = "mosquitto";
+            let output = Command::new("which")
+                .arg(mosquitto_binary_path)
+                .output()
+                .await
+                .expect("failed to execute process");
+
+            if !output.status.success() {
+                mosquitto_binary_path = "/usr/local/sbin/mosquitto";
+            }
+            let mosquitto_child = spawn(mosquitto_binary_path, vec![])?;
+
+            let http_child = spawn(
+                &slight_path(),
+                vec!["-c", file_config, "run", http_service_dir.to_str().unwrap()],
+            )?;
+            let service_a_child = spawn(
+                &slight_path(),
+                vec![
+                    "-c",
+                    consumer_config,
+                    "run",
+                    service_a_dir.to_str().unwrap(),
+                ],
+            )?;
+            let service_b_child = spawn(
+                &slight_path(),
+                vec![
+                    "-c",
+                    consumer_config,
+                    "run",
+                    service_b_dir.to_str().unwrap(),
+                ],
+            )?;
+
+            sleep(Duration::from_secs(2)).await;
+            // read streams "service-a-channel-out" and "service-b-channel-out"
+            let mut client = Client::with_auto_id().unwrap();
+
+            client
+                .connect("localhost", 1883, std::time::Duration::from_secs(5), None)
+                .await
+                .unwrap();
+
+            client
+                .subscribe("service-a-channel-out", QoS::AtLeastOnce)
+                .await
+                .unwrap();
+            client
+                .subscribe("service-b-channel-out", QoS::AtLeastOnce)
+                .await
+                .unwrap();
+
+            let http_client = hyper::Client::new();
+            let req = Request::builder()
+                .method(Method::PUT)
+                .uri("http://0.0.0.0:3001/send")
+                .body(Body::from("a message!"))
+                .expect("request builder");
+
+            // curl -X PUT http://0.0.0.0:3001/send -d "a message!"
+            let res = http_client.request(req).await?;
+            assert!(res.status().is_success());
+
+            sleep(Duration::from_secs(2)).await;
+            let subscriber = client.subscriber().unwrap();
+            let msg1 = subscriber.try_recv()?;
+            let msg2 = subscriber.try_recv()?;
+
+            http_child();
+            service_a_child();
+            service_b_child();
+            mosquitto_child();
+
+            assert!(msg1.payload == "a message!".as_bytes());
+            assert!(msg2.payload == "a message!".as_bytes());
+            Ok(())
+        }
+    }
+    // TODO: We need to add distributed_locking modules
 
     #[cfg(test)]
     mod cli_tests {
