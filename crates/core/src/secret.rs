@@ -4,10 +4,10 @@ use std::{
     io::Write,
 };
 
-use crate::slightfile::{Config, TomlFile};
 use anyhow::{bail, Result};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use short_crypt::ShortCrypt;
+use slight_file::{Config, TomlFile};
 
 pub const SLIGHTKEY: &str = ".slightkey";
 
@@ -101,7 +101,7 @@ mod unittests {
     use tempdir::TempDir;
 
     use super::create_secret;
-    use crate::slightfile::TomlFile;
+    use slight_file::TomlFile;
 
     #[test]
     fn create_secret_test() -> Result<()> {

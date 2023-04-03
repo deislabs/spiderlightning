@@ -3,6 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use async_trait::async_trait;
 use implementors::SqlImplementor;
 use slight_common::{impl_resource, BasicState};
+use slight_file::Resource;
 
 mod implementors;
 #[cfg(feature = "postgres")]
@@ -51,11 +52,11 @@ pub enum SqlImplementors {
     Postgres,
 }
 
-impl From<&str> for SqlImplementors {
-    fn from(s: &str) -> Self {
+impl From<Resource> for SqlImplementors {
+    fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "postgres")]
-            "sql.postgres" => Self::Postgres,
+            Resource::SqlPostgres => Self::Postgres,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
@@ -94,7 +95,7 @@ impl sql::Sql for Sql {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Sql::new(state.implementor.as_str().into(), &state).await;
+        let inner = Self::Sql::new(state.implementor.clone().into(), &state).await;
 
         Ok(inner)
     }

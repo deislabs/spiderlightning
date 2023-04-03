@@ -9,6 +9,7 @@ repository = { workspace = true }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+slight-file = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
 slight-common = { workspace = true }

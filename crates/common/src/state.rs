@@ -3,6 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use slight_file::{Resource, SecretStoreResource};
+
 /// `BasicState` provides an attempt at a "fit-all" for basic scenarios
 /// of a host's state.
 ///
@@ -11,10 +13,10 @@ use std::{
 ///     - a `name`,
 ///     - a `configs_map`, and
 ///     - the `slightfile_path`.
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct BasicState {
-    pub secret_store: Option<String>,
-    pub implementor: String,
+    pub secret_store: Option<SecretStoreResource>,
+    pub implementor: Resource,
     pub name: String,
     pub configs_map: Option<HashMap<String, String>>,
     pub slightfile_path: PathBuf,
@@ -22,8 +24,8 @@ pub struct BasicState {
 
 impl BasicState {
     pub fn new(
-        secret_store: Option<String>,
-        implementor: String,
+        secret_store: Option<SecretStoreResource>,
+        implementor: Resource,
         name: String,
         configs_map: Option<HashMap<String, String>>,
         slightfile_path: impl AsRef<Path>,

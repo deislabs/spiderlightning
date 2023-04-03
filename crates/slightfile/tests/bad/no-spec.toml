@@ -1,0 +1,3 @@
+[[capability]]
+name = "std"
+resource = "keyvalue.azblob"

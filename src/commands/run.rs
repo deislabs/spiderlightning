@@ -6,13 +6,14 @@ use std::{
 use anyhow::{bail, Result};
 use as_any::Downcast;
 #[cfg(feature = "blob-store")]
-use slight_blob_store::{
-    BlobStore, AZBLOB_CAPABILITY_NAME, BLOB_STORE_SCHEME_NAME, S3_CAPABILITY_NAME,
-};
+use slight_blob_store::{BlobStore, BLOB_STORE_SCHEME_NAME};
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
-use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
+use slight_file::{
+    has_http_cap, read_as_toml_file, Capability as TomlCapability, Resource, SecretStoreResource,
+    SpecVersion, TomlFile,
+};
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
 #[cfg(feature = "http-server")]
@@ -28,44 +29,6 @@ use slight_runtime_configs::Configs;
 use slight_sql::Sql;
 use wit_bindgen_wasmtime::wasmtime::Store;
 
-#[cfg(feature = "blob-store")]
-const BLOB_STORE_HOST_IMPLEMENTORS: [&str; 2] = [S3_CAPABILITY_NAME, AZBLOB_CAPABILITY_NAME];
-
-#[cfg(feature = "keyvalue")]
-const KEYVALUE_HOST_IMPLEMENTORS: [&str; 8] = [
-    "kv.filesystem",
-    "kv.azblob",
-    "kv.awsdynamodb",
-    "kv.redis",
-    "keyvalue.filesystem",
-    "keyvalue.azblob",
-    "keyvalue.awsdynamodb",
-    "keyvalue.redis",
-];
-
-#[cfg(feature = "distributed-locking")]
-const DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS: [&str; 2] = ["lockd.etcd", "distributed_locking.etcd"];
-
-#[cfg(feature = "messaging")]
-const MESSAGING_HOST_IMPLEMENTORS: [&str; 9] = [
-    "pubsub.confluent_apache_kafka",
-    "pubsub.mosquitto",
-    "messaging.confluent_apache_kafka",
-    "messaging.mosquitto",
-    "mq.azsbus",
-    "mq.filesystem",
-    "messaging.azsbus",
-    "messaging.filesystem",
-    "messaging.nats",
-];
-
-#[cfg(feature = "runtime-configs")]
-const CONFIGS_HOST_IMPLEMENTORS: [&str; 3] =
-    ["configs.usersecrets", "configs.envvars", "configs.azapp"];
-
-#[cfg(feature = "sql")]
-const SQL_HOST_IMPLEMENTORS: [&str; 1] = ["sql.postgres"];
-
 pub type IORedirects = slight_runtime::IORedirects;
 
 #[derive(Clone, Default)]
@@ -76,11 +39,8 @@ pub struct RunArgs {
 }
 
 pub async fn handle_run(args: RunArgs) -> Result<()> {
-    let toml_file_contents =
-        std::fs::read_to_string(args.slightfile.clone()).expect("could not locate slightfile");
-    let toml =
-        toml::from_str::<TomlFile>(&toml_file_contents).expect("provided file is not a slightfile");
-
+    let toml = read_as_toml_file(args.slightfile.clone())?;
+    let http_enabled = has_http_cap(&toml);
     tracing::info!("Starting slight");
 
     let mut host_builder = build_store_instance(&toml, &args.slightfile, &args.module).await?;
@@ -90,18 +50,6 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
     }
     let (mut store, instance) = host_builder.build().await;
 
-    let caps = toml.capability.as_ref().unwrap();
-    let http_enabled;
-
-    if toml.specversion == "0.1" {
-        http_enabled = caps.iter().any(|cap| cap.name == "http");
-    } else if toml.specversion == "0.2" {
-        http_enabled = caps
-            .iter()
-            .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
-    } else {
-        bail!("unsupported toml spec version");
-    }
     // looking for the http capability.
     if cfg!(feature = "http-server") && http_enabled {
         log::debug!("Http capability enabled");
@@ -212,31 +160,22 @@ async fn build_store_instance(
 
     builder.link_wasi()?;
     for c in toml.capability.as_ref().unwrap() {
-        let resource_type = if toml.specversion == "0.1" {
-            c.name.as_str()
-        } else if toml.specversion == "0.2" {
-            if let Some(r) = &c.resource {
-                r.as_str()
-            } else {
-                bail!("missing resource field");
-            }
-        } else {
-            bail!("unsupported toml spec version");
-        };
+        let resource_type = c.resource();
 
-        if resource_type != "http" {
-            maybe_add_named_capability_to_store(
-                &toml.specversion,
+        match resource_type {
+            Resource::HttpServer => {}
+            _ => maybe_add_named_capability_to_store(
+                toml.specversion,
                 toml.secret_store.clone(),
                 &mut capability_store,
                 c.clone(),
                 &toml_file_path,
-            )?;
+            )?,
         }
 
         match resource_type {
             #[cfg(feature = "blob-store")]
-            _ if BLOB_STORE_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::BlobstoreAwsS3 | Resource::BlobstoreAzblob => {
                 if !linked_capabilities.contains(BLOB_STORE_SCHEME_NAME) {
                     builder.link_capability::<BlobStore>()?;
                     linked_capabilities.insert(BLOB_STORE_SCHEME_NAME.to_string());
@@ -248,7 +187,15 @@ async fn build_store_instance(
                 builder.add_to_builder(BLOB_STORE_SCHEME_NAME.to_string(), resource);
             }
             #[cfg(feature = "keyvalue")]
-            _ if KEYVALUE_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::KeyvalueAwsDynamoDb
+            | Resource::KeyvalueDapr
+            | Resource::KeyvalueAzblob
+            | Resource::KeyvalueFilesystem
+            | Resource::KeyvalueRedis
+            | Resource::V1KeyvalueAwsDynamoDb
+            | Resource::V1KeyvalueFilesystem
+            | Resource::V1KeyvalueRedis
+            | Resource::V1KeyvalueAzblob => {
                 if !linked_capabilities.contains("keyvalue") {
                     builder.link_capability::<Keyvalue>()?;
                     linked_capabilities.insert("keyvalue".to_string());
@@ -261,7 +208,7 @@ async fn build_store_instance(
                 builder.add_to_builder("keyvalue".to_string(), resource);
             }
             #[cfg(feature = "distributed-locking")]
-            _ if DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::DistributedLockingEtcd | Resource::V1DistributedLockingEtcd => {
                 if !linked_capabilities.contains("distributed_locking") {
                     builder.link_capability::<DistributedLocking>()?;
                     linked_capabilities.insert("distributed_locking".to_string());
@@ -274,18 +221,24 @@ async fn build_store_instance(
                 builder.add_to_builder("distributed_locking".to_string(), resource);
             }
             #[cfg(feature = "messaging")]
-            _ if MESSAGING_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::MessagingAzsbus
+            | Resource::MessagingFilesystem
+            | Resource::MessagingNats
+            | Resource::MessagingMosquitto
+            | Resource::MessagingConfluentApacheKafka
+            | Resource::V1MessagingAzsbus
+            | Resource::V1MessagingFilesystem => {
                 if !linked_capabilities.contains("messaging") {
                     builder.link_capability::<Messaging>()?;
                     linked_capabilities.insert("messaging".to_string());
                 }
 
                 let resource =
-                    slight_messaging::Messaging::new(&c.name, capability_store.clone()).await?;
+                    slight_messaging::Messaging::new(&c.name(), capability_store.clone()).await?;
                 builder.add_to_builder("messaging".to_string(), resource);
             }
             #[cfg(feature = "runtime-configs")]
-            _ if CONFIGS_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::ConfigsAzapp | Resource::ConfigsEnvvars | Resource::ConfigsUsersecrets => {
                 if !linked_capabilities.contains("configs") {
                     builder.link_capability::<Configs>()?;
                     linked_capabilities.insert("configs".to_string());
@@ -298,7 +251,7 @@ async fn build_store_instance(
                 builder.add_to_builder("configs".to_string(), resource);
             }
             #[cfg(feature = "sql")]
-            _ if SQL_HOST_IMPLEMENTORS.contains(&resource_type) => {
+            Resource::SqlPostgres => {
                 if !linked_capabilities.contains("sql") {
                     builder.link_capability::<Sql>()?;
                     linked_capabilities.insert("sql".to_string());
@@ -309,7 +262,7 @@ async fn build_store_instance(
                 builder.add_to_builder("sql".to_string(), resource);
             }
             #[cfg(feature = "http-server")]
-            "http" => {
+            Resource::HttpServer => {
                 if !linked_capabilities.contains("http") {
                     let http = slight_http_server::HttpServer::<Builder>::default();
                     builder
@@ -321,7 +274,7 @@ async fn build_store_instance(
                 }
             }
             #[cfg(feature = "http-client")]
-            "http-client" => {
+            Resource::HttpClient => {
                 if !linked_capabilities.contains("http-client") {
                     let http_client = HttpClient::new();
                     builder
@@ -332,31 +285,6 @@ async fn build_store_instance(
                     bail!("the http-client capability was already linked");
                 }
             }
-            _ => {
-                let mut allowed_schemes: Vec<&str> = Vec::new();
-
-                #[cfg(feature = "keyvalue")]
-                allowed_schemes.extend(&KEYVALUE_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "distributed-locking")]
-                allowed_schemes.extend(&DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "messaging")]
-                allowed_schemes.extend(&MESSAGING_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "runtime-configs")]
-                allowed_schemes.extend(&CONFIGS_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "sql")]
-                allowed_schemes.extend(&SQL_HOST_IMPLEMENTORS);
-
-                #[cfg(feature = "blob-store")]
-                allowed_schemes.extend(&BLOB_STORE_HOST_IMPLEMENTORS);
-
-                let allowed_schemes_str = allowed_schemes.join(", ");
-
-                bail!("invalid url: currently slight only supports http, and the '{}' capability schemes", allowed_schemes_str);
-            }
         }
     }
 
@@ -364,46 +292,41 @@ async fn build_store_instance(
 }
 
 fn maybe_add_named_capability_to_store(
-    specversion: &str,
-    secret_store: Option<String>,
+    specversion: SpecVersion,
+    secret_store: Option<SecretStoreResource>,
     capability_store: &mut HashMap<String, BasicState>,
     c: TomlCapability,
     toml_file_path: impl AsRef<Path>,
 ) -> Result<()> {
-    if specversion == "0.1" {
-        if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone())
-        {
-            e.insert(BasicState::new(
-                secret_store,
-                c.name.clone(),
-                c.name.clone(),
-                c.configs,
-                toml_file_path,
-            ));
-        } else {
-            bail!("cannot add capabilities of the same name");
-        }
-    } else if specversion == "0.2" {
-        if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name.clone())
-        {
-            let resource = if let Some(r) = c.resource {
-                r
+    match specversion {
+        SpecVersion::V1 => {
+            if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name()) {
+                e.insert(BasicState::new(
+                    secret_store,
+                    c.resource(),
+                    c.name(),
+                    c.configs(),
+                    toml_file_path,
+                ));
             } else {
-                bail!("missing resource field");
-            };
-
-            e.insert(BasicState::new(
-                None,
-                resource,
-                c.name.clone(),
-                c.configs,
-                toml_file_path,
-            ));
-        } else {
-            bail!("cannot add capabilities of the same name");
+                bail!("cannot add capabilities of the same name");
+            }
         }
-    } else {
-        bail!("unsupported toml version");
+        SpecVersion::V2 => {
+            if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name()) {
+                let resource = c.resource();
+
+                e.insert(BasicState::new(
+                    None,
+                    resource,
+                    c.name(),
+                    c.configs(),
+                    toml_file_path,
+                ));
+            } else {
+                bail!("cannot add capabilities of the same name");
+            }
+        }
     }
 
     Ok(())

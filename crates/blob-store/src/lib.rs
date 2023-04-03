@@ -12,6 +12,7 @@ use async_trait::async_trait;
 use container::ContainerInner;
 use read_stream::ReadStreamInner;
 use slight_common::{impl_resource, BasicState};
+use slight_file::Resource;
 
 use blob_store::*;
 use write_stream::WriteStreamInner;
@@ -32,14 +33,14 @@ pub use implementors::azblob::AZBLOB_CAPABILITY_NAME;
 /// [wasi-blob-store](https://github.com/WebAssembly/wasi-blob-store) interfaces,
 #[derive(Clone, Default)]
 pub struct BlobStore {
-    implementor: BlobStoreImplementors,
+    implementor: String,
     capability_store: HashMap<String, BasicState>,
 }
 
 impl BlobStore {
     pub fn new(implementor: String, keyvalue_store: HashMap<String, BasicState>) -> Self {
         Self {
-            implementor: implementor.as_str().into(),
+            implementor,
             capability_store: keyvalue_store,
         }
     }
@@ -56,13 +57,13 @@ pub enum BlobStoreImplementors {
     None,
 }
 
-impl From<&str> for BlobStoreImplementors {
-    fn from(s: &str) -> Self {
+impl From<Resource> for BlobStoreImplementors {
+    fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "aws_s3")]
-            S3_CAPABILITY_NAME => Self::S3,
+            Resource::BlobstoreAwsS3 => Self::S3,
             #[cfg(feature = "azblob")]
-            AZBLOB_CAPABILITY_NAME => Self::AzBlob,
+            Resource::BlobstoreAzblob => Self::AzBlob,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
@@ -117,7 +118,7 @@ impl blob_store::BlobStore for BlobStore {
     async fn container_open(&mut self, name: &str) -> Result<Self::Container, Error> {
         let state = self.fetch_state(name);
         tracing::log::info!("Opening implementor {}", &state.implementor);
-        let inner = Self::Container::new(state.implementor.as_str().into(), &state, name).await?;
+        let inner = Self::Container::new(state.implementor.clone().into(), &state, name).await?;
 
         Ok(inner)
     }

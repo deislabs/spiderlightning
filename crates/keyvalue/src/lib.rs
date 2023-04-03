@@ -8,6 +8,7 @@ use async_trait::async_trait;
 use implementors::*;
 
 use slight_common::{impl_resource, BasicState};
+use slight_file::Resource;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -107,17 +108,17 @@ pub enum KeyvalueImplementors {
     Redis,
 }
 
-impl From<&str> for KeyvalueImplementors {
-    fn from(s: &str) -> Self {
+impl From<Resource> for KeyvalueImplementors {
+    fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "filesystem")]
-            "keyvalue.filesystem" | "kv.filesystem" => Self::Filesystem,
+            Resource::KeyvalueFilesystem | Resource::V1KeyvalueFilesystem => Self::Filesystem,
             #[cfg(feature = "azblob")]
-            "keyvalue.azblob" | "kv.azblob" => Self::AzBlob,
+            Resource::KeyvalueAzblob | Resource::V1KeyvalueAzblob => Self::AzBlob,
             #[cfg(feature = "awsdynamodb")]
-            "keyvalue.awsdynamodb" | "kv.awsdynamodb" => Self::AwsDynamoDb,
+            Resource::KeyvalueAwsDynamoDb | Resource::V1KeyvalueAwsDynamoDb => Self::AwsDynamoDb,
             #[cfg(feature = "redis")]
-            "keyvalue.redis" | "kv.redis" => Self::Redis,
+            Resource::KeyvalueRedis | Resource::V1KeyvalueRedis => Self::Redis,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
@@ -164,7 +165,7 @@ impl keyvalue::Keyvalue for Keyvalue {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Keyvalue::new(state.implementor.as_str().into(), &state, name).await;
+        let inner = Self::Keyvalue::new(state.implementor.clone().into(), &state, name).await;
 
         Ok(inner)
     }

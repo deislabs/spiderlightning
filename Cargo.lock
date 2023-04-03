@@ -4224,6 +4224,7 @@ dependencies = [
  "slight-common",
  "slight-core",
  "slight-distributed-locking",
+ "slight-file",
  "slight-http-client",
  "slight-http-server",
  "slight-keyvalue",
@@ -4254,6 +4255,7 @@ dependencies = [
  "bytes 1.3.0",
  "futures",
  "slight-common",
+ "slight-file",
  "slight-runtime-configs",
  "tokio",
  "tracing",
@@ -4268,6 +4270,7 @@ dependencies = [
  "anyhow",
  "as-any",
  "async-trait",
+ "slight-file",
  "slight-http-api",
  "wasmtime",
 ]
@@ -4280,8 +4283,8 @@ dependencies = [
  "clap",
  "rand 0.8.5",
  "semver 1.0.14",
- "serde",
  "short-crypt",
+ "slight-file",
  "tempdir",
  "toml 0.7.3",
 ]
@@ -4294,12 +4297,22 @@ dependencies = [
  "async-trait",
  "etcd-client",
  "slight-common",
+ "slight-file",
  "slight-runtime-configs",
  "tokio",
  "tracing",
  "url",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/fermyon/wit-bindgen-backport)",
  "wit-error-rs",
+]
+
+[[package]]
+name = "slight-file"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "toml 0.7.3",
 ]
 
 [[package]]
@@ -4399,6 +4412,7 @@ dependencies = [
  "redis",
  "serde_json",
  "slight-common",
+ "slight-file",
  "slight-runtime-configs",
  "tokio",
  "tracing",
@@ -4423,6 +4437,7 @@ dependencies = [
  "openssl",
  "rdkafka",
  "slight-common",
+ "slight-file",
  "slight-runtime-configs",
  "tokio",
  "tracing",
@@ -4464,6 +4479,7 @@ dependencies = [
  "short-crypt",
  "slight-common",
  "slight-core",
+ "slight-file",
  "tempdir",
  "toml 0.7.3",
  "tracing",
@@ -4480,6 +4496,7 @@ dependencies = [
  "chrono",
  "postgres",
  "slight-common",
+ "slight-file",
  "slight-runtime-configs",
  "tokio",
  "tracing",

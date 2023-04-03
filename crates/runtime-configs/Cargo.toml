@@ -10,6 +10,7 @@ repository = { workspace = true }
 doctest = false
 
 [dependencies]
+slight-file = { workspace = true }
 wit-bindgen-wasmtime = { workspace = true }
 anyhow = { workspace = true }
 wit-error-rs = { workspace = true }

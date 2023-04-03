@@ -2,10 +2,8 @@ use std::{fs::OpenOptions, path::Path};
 
 use anyhow::{bail, Result};
 use short_crypt::ShortCrypt;
-use slight_core::{
-    secret::{create_secret, get_key},
-    slightfile::TomlFile,
-};
+use slight_core::secret::{create_secret, get_key};
+use slight_file::TomlFile;
 
 pub struct UserSecrets;
 
@@ -67,7 +65,7 @@ mod unittests {
     use std::{fs::OpenOptions, io::Write};
 
     use anyhow::Result;
-    use slight_core::slightfile::TomlFile;
+    use slight_file::TomlFile;
     use tempdir::TempDir;
 
     use super::UserSecrets;
