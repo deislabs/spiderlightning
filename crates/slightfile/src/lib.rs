@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use std::{collections::HashMap, fmt::Display, path::Path};
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 /// slightfile version.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -42,9 +42,9 @@ impl Capability {
             Capability::V2(c) => c.resource.clone(),
         }
     }
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> CapabilityName {
         match self {
-            Capability::V1(c) => c.name.to_string(),
+            Capability::V1(c) => CapabilityName::Specific(c.name.to_string()),
             Capability::V2(c) => c.name.clone(),
         }
     }
@@ -64,8 +64,38 @@ pub struct CapabilityV1 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CapabilityV2 {
     pub resource: Resource,
-    pub name: String,
+    pub name: CapabilityName,
     pub configs: Option<HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub enum CapabilityName {
+    #[serde(rename = "*")]
+    Any,
+    Specific(String),
+}
+
+impl Display for CapabilityName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CapabilityName::Any => write!(f, "*"),
+            CapabilityName::Specific(s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for CapabilityName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        if s == "*" {
+            Ok(Self::Any)
+        } else {
+            Ok(Self::Specific(s))
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -318,5 +348,23 @@ mod tests {
     fn resource_to_str() {
         let azblob = Resource::BlobstoreAzblob;
         assert_eq!(azblob.to_string(), "blobstore.azblob");
+    }
+
+    #[test]
+    fn deserialize_wildcard() -> Result<()> {
+        let path = format!("{}/tests/good/msg.toml", env!("CARGO_MANIFEST_DIR"));
+
+        // deserialize the toml file to struct
+        let toml_file = read_as_toml_file(path)?;
+        if let Some(capability) = &toml_file.capability {
+            assert!(capability.len() == 1);
+            assert!(matches!(capability[0].name(), CapabilityName::Any));
+        }
+
+        // serialize the struct to toml
+        let toml = toml::to_string(&toml_file)?;
+        assert!(toml.contains("name = \"*\""));
+
+        Ok(())
     }
 }
