@@ -11,8 +11,8 @@ use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
 use slight_file::{
-    has_http_cap, read_as_toml_file, Capability as TomlCapability, Resource, SecretStoreResource,
-    SpecVersion, TomlFile,
+    has_http_cap, Capability as TomlCapability, Resource, SecretStoreResource, SlightFile,
+    SlightFileBuilder, SpecVersion,
 };
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
@@ -39,7 +39,9 @@ pub struct RunArgs {
 }
 
 pub async fn handle_run(args: RunArgs) -> Result<()> {
-    let toml = read_as_toml_file(args.slightfile.clone())?;
+    let toml = SlightFileBuilder::new()
+        .path(args.slightfile.clone())?
+        .build()?;
     let http_enabled = has_http_cap(&toml);
     tracing::info!("Starting slight");
 
@@ -85,7 +87,7 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
 
 #[cfg(not(feature = "http-server"))]
 async fn update_http_states(
-    _toml: TomlFile,
+    _toml: SlightFile,
     _toml_file_path: impl AsRef<Path>,
     _module: impl AsRef<Path>,
     _store: &mut Store<slight_runtime::RuntimeContext>,
@@ -96,7 +98,7 @@ async fn update_http_states(
 
 #[cfg(feature = "http-server")]
 async fn update_http_states(
-    toml: TomlFile,
+    toml: SlightFile,
     toml_file_path: impl AsRef<Path>,
     module: impl AsRef<Path>,
     store: &mut Store<slight_runtime::RuntimeContext>,
@@ -150,7 +152,7 @@ async fn shutdown_signal() {
 }
 
 async fn build_store_instance(
-    toml: &TomlFile,
+    toml: &SlightFile,
     toml_file_path: impl AsRef<Path>,
     module: impl AsRef<Path>,
 ) -> Result<Builder> {
@@ -233,8 +235,11 @@ async fn build_store_instance(
                     linked_capabilities.insert("messaging".to_string());
                 }
 
-                let resource =
-                    slight_messaging::Messaging::new(&c.name(), capability_store.clone()).await?;
+                let resource = slight_messaging::Messaging::new(
+                    &c.name().to_string(),
+                    capability_store.clone(),
+                )
+                .await?;
                 builder.add_to_builder("messaging".to_string(), resource);
             }
             #[cfg(feature = "runtime-configs")]
@@ -300,11 +305,13 @@ fn maybe_add_named_capability_to_store(
 ) -> Result<()> {
     match specversion {
         SpecVersion::V1 => {
-            if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name()) {
+            if let std::collections::hash_map::Entry::Vacant(e) =
+                capability_store.entry(c.name().to_string())
+            {
                 e.insert(BasicState::new(
                     secret_store,
                     c.resource(),
-                    c.name(),
+                    c.name().to_string(),
                     c.configs(),
                     toml_file_path,
                 ));
@@ -313,13 +320,15 @@ fn maybe_add_named_capability_to_store(
             }
         }
         SpecVersion::V2 => {
-            if let std::collections::hash_map::Entry::Vacant(e) = capability_store.entry(c.name()) {
+            if let std::collections::hash_map::Entry::Vacant(e) =
+                capability_store.entry(c.name().to_string())
+            {
                 let resource = c.resource();
 
                 e.insert(BasicState::new(
                     None,
                     resource,
-                    c.name(),
+                    c.name().to_string(),
                     c.configs(),
                     toml_file_path,
                 ));

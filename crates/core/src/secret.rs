@@ -7,14 +7,14 @@ use std::{
 use anyhow::{bail, Result};
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use short_crypt::ShortCrypt;
-use slight_file::{Config, TomlFile};
+use slight_file::{Config, SlightFile};
 
 pub const SLIGHTKEY: &str = ".slightkey";
 
 pub fn create_secret(
     key: &str,
     value: &str,
-    toml: &mut TomlFile,
+    toml: &mut SlightFile,
     toml_file: &mut File,
 ) -> Result<()> {
     maybe_set_key()?;
@@ -101,7 +101,7 @@ mod unittests {
     use tempdir::TempDir;
 
     use super::create_secret;
-    use slight_file::TomlFile;
+    use slight_file::SlightFile;
 
     #[test]
     fn create_secret_test() -> Result<()> {
@@ -109,7 +109,7 @@ mod unittests {
         let toml_file_pathpuf = dir.path().join("slightfile.toml");
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
-        let mut tmp_toml = toml::from_str::<TomlFile>("specversion = \"0.2\"")?;
+        let mut tmp_toml = toml::from_str::<SlightFile>("specversion = \"0.2\"")?;
         let mut toml_file = OpenOptions::new()
             .read(true)
             .write(true)
@@ -138,7 +138,7 @@ mod unittests {
         value = "bar_val)_unencrypted"
         "#;
 
-        let mut tmp_toml = toml::from_str::<TomlFile>(toml_str)?;
+        let mut tmp_toml = toml::from_str::<SlightFile>(toml_str)?;
         let mut toml_file = OpenOptions::new()
             .read(true)
             .write(true)
@@ -185,7 +185,7 @@ mod unittests {
         value = "foo_val_unencrypted"
         "#;
 
-        let mut tmp_toml = toml::from_str::<TomlFile>(toml_str)?;
+        let mut tmp_toml = toml::from_str::<SlightFile>(toml_str)?;
 
         assert_eq!(
             tmp_toml.secret_settings.as_ref().unwrap()[0].value,
@@ -226,7 +226,7 @@ mod unittests {
         value = "duplicate_foo_val_unencrypted"
         "#;
 
-        let mut tmp_toml = toml::from_str::<TomlFile>(toml_str)?;
+        let mut tmp_toml = toml::from_str::<SlightFile>(toml_str)?;
 
         assert_eq!(
             tmp_toml.secret_settings.as_ref().unwrap()[0].value,

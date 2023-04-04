@@ -19,7 +19,7 @@ pub enum SpecVersion {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TomlFile {
+pub struct SlightFile {
     pub specversion: SpecVersion,
     pub secret_store: Option<SecretStoreResource>,
     pub secret_settings: Option<Vec<Config>>,
@@ -114,40 +114,55 @@ impl Config {
     }
 }
 
-pub fn read_as_toml_file(path: impl AsRef<Path>) -> Result<TomlFile> {
-    let toml_file_contents = std::fs::read_to_string(path.as_ref())?;
-    let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
-    // check specversion
-    match &toml.specversion {
-        SpecVersion::V1 => {
-            if toml.capability.as_ref().is_some()
-                && toml
-                    .capability
-                    .as_ref()
-                    .unwrap()
-                    .iter()
-                    .any(|cap| cap.is_v2())
-            {
-                bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
-            }
-        }
-        SpecVersion::V2 => {
-            if toml.capability.as_ref().is_some()
-                && toml
-                    .capability
-                    .as_ref()
-                    .unwrap()
-                    .iter()
-                    .any(|cap| cap.is_v1())
-            {
-                bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
-            }
-        }
-    };
-    Ok(toml)
+pub struct SlightFileBuilder {
+    file_content: String,
 }
 
-pub fn has_http_cap(toml: &TomlFile) -> bool {
+impl SlightFileBuilder {
+    pub fn new() -> Self {
+        Self {
+            file_content: String::new(),
+        }
+    }
+    pub fn path(mut self, path: impl AsRef<Path>) -> Result<Self> {
+        let toml_file_contents = std::fs::read_to_string(path.as_ref())?;
+        self.file_content = toml_file_contents;
+        Ok(self)
+    }
+    pub fn build(self) -> Result<SlightFile> {
+        let toml = toml::from_str::<SlightFile>(&self.file_content)?;
+        // check specversion
+        match &toml.specversion {
+            SpecVersion::V1 => {
+                if toml.capability.as_ref().is_some()
+                    && toml
+                        .capability
+                        .as_ref()
+                        .unwrap()
+                        .iter()
+                        .any(|cap| cap.is_v2())
+                {
+                    bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
+                }
+            }
+            SpecVersion::V2 => {
+                if toml.capability.as_ref().is_some()
+                    && toml
+                        .capability
+                        .as_ref()
+                        .unwrap()
+                        .iter()
+                        .any(|cap| cap.is_v1())
+                {
+                    bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
+                }
+            }
+        };
+        Ok(toml)
+    }
+}
+
+pub fn has_http_cap(toml: &SlightFile) -> bool {
     if let Some(capability) = &toml.capability {
         capability.iter().any(|cap| match cap {
             Capability::V1(cap) => matches!(cap.name, Resource::HttpServer),
@@ -173,7 +188,11 @@ mod tests {
             .filter_map(|entry| entry.ok())
             .filter(|entry| entry.path().extension().unwrap() == "toml")
             .map(|entry| entry.path())
-            .map(|path| (read_as_toml_file(path.clone()), path))
+            .map(|path| {
+                let toml_file = SlightFileBuilder::new().path(path.clone()).unwrap();
+                let toml_file = toml_file.build();
+                (toml_file, path)
+            })
             .collect::<Vec<_>>();
 
         // assert all files are valid
@@ -197,7 +216,11 @@ mod tests {
             .filter_map(|entry| entry.ok())
             .filter(|entry| entry.path().extension().unwrap() == "toml")
             .map(|entry| entry.path())
-            .map(|path| (read_as_toml_file(path.clone()), path))
+            .map(|path| {
+                let toml_file = SlightFileBuilder::new().path(path.clone()).unwrap();
+                let toml_file = toml_file.build();
+                (toml_file, path)
+            })
             .collect::<Vec<_>>();
 
         // all files should panic
@@ -231,7 +254,8 @@ mod tests {
         let path = format!("{}/tests/good/msg.toml", env!("CARGO_MANIFEST_DIR"));
 
         // deserialize the toml file to struct
-        let toml_file = read_as_toml_file(path)?;
+        let builder = SlightFileBuilder::new();
+        let toml_file = builder.path(path.clone())?.build()?;
         if let Some(capability) = &toml_file.capability {
             assert!(capability.len() == 1);
             assert!(matches!(capability[0].name(), CapabilityName::Any));
