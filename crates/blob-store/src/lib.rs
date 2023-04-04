@@ -12,7 +12,7 @@ use async_trait::async_trait;
 use container::ContainerInner;
 use read_stream::ReadStreamInner;
 use slight_common::{impl_resource, BasicState};
-use slight_file::Resource;
+use slight_file::{resource::BlobResource::*, Resource};
 
 use blob_store::*;
 use write_stream::WriteStreamInner;
@@ -61,9 +61,9 @@ impl From<Resource> for BlobStoreImplementors {
     fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "aws_s3")]
-            Resource::BlobstoreAwsS3 => Self::S3,
+            Resource::Blob(AwsS3) => Self::S3,
             #[cfg(feature = "azblob")]
-            Resource::BlobstoreAzblob => Self::AzBlob,
+            Resource::Blob(Azblob) => Self::AzBlob,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

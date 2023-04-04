@@ -16,8 +16,10 @@ use slight_file::{
 };
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
+
 #[cfg(feature = "http-server")]
 use slight_http_server::{HttpServer, HttpServerInit};
+
 #[cfg(feature = "keyvalue")]
 use slight_keyvalue::Keyvalue;
 #[cfg(feature = "messaging")]
@@ -165,7 +167,7 @@ async fn build_store_instance(
         let resource_type = c.resource();
 
         match resource_type {
-            Resource::HttpServer => {}
+            Resource::HttpServer(_) => {}
             _ => maybe_add_named_capability_to_store(
                 toml.specversion,
                 toml.secret_store.clone(),
@@ -177,7 +179,7 @@ async fn build_store_instance(
 
         match resource_type {
             #[cfg(feature = "blob-store")]
-            Resource::BlobstoreAwsS3 | Resource::BlobstoreAzblob => {
+            Resource::Blob(_) => {
                 if !linked_capabilities.contains(BLOB_STORE_SCHEME_NAME) {
                     builder.link_capability::<BlobStore>()?;
                     linked_capabilities.insert(BLOB_STORE_SCHEME_NAME.to_string());
@@ -189,15 +191,7 @@ async fn build_store_instance(
                 builder.add_to_builder(BLOB_STORE_SCHEME_NAME.to_string(), resource);
             }
             #[cfg(feature = "keyvalue")]
-            Resource::KeyvalueAwsDynamoDb
-            | Resource::KeyvalueDapr
-            | Resource::KeyvalueAzblob
-            | Resource::KeyvalueFilesystem
-            | Resource::KeyvalueRedis
-            | Resource::V1KeyvalueAwsDynamoDb
-            | Resource::V1KeyvalueFilesystem
-            | Resource::V1KeyvalueRedis
-            | Resource::V1KeyvalueAzblob => {
+            Resource::Keyvalue(_) => {
                 if !linked_capabilities.contains("keyvalue") {
                     builder.link_capability::<Keyvalue>()?;
                     linked_capabilities.insert("keyvalue".to_string());
@@ -210,7 +204,7 @@ async fn build_store_instance(
                 builder.add_to_builder("keyvalue".to_string(), resource);
             }
             #[cfg(feature = "distributed-locking")]
-            Resource::DistributedLockingEtcd | Resource::V1DistributedLockingEtcd => {
+            Resource::DistributedLocking(_) => {
                 if !linked_capabilities.contains("distributed_locking") {
                     builder.link_capability::<DistributedLocking>()?;
                     linked_capabilities.insert("distributed_locking".to_string());
@@ -223,13 +217,7 @@ async fn build_store_instance(
                 builder.add_to_builder("distributed_locking".to_string(), resource);
             }
             #[cfg(feature = "messaging")]
-            Resource::MessagingAzsbus
-            | Resource::MessagingFilesystem
-            | Resource::MessagingNats
-            | Resource::MessagingMosquitto
-            | Resource::MessagingConfluentApacheKafka
-            | Resource::V1MessagingAzsbus
-            | Resource::V1MessagingFilesystem => {
+            Resource::Messaging(_) => {
                 if !linked_capabilities.contains("messaging") {
                     builder.link_capability::<Messaging>()?;
                     linked_capabilities.insert("messaging".to_string());
@@ -243,7 +231,7 @@ async fn build_store_instance(
                 builder.add_to_builder("messaging".to_string(), resource);
             }
             #[cfg(feature = "runtime-configs")]
-            Resource::ConfigsAzapp | Resource::ConfigsEnvvars | Resource::ConfigsUsersecrets => {
+            Resource::Configs(_) => {
                 if !linked_capabilities.contains("configs") {
                     builder.link_capability::<Configs>()?;
                     linked_capabilities.insert("configs".to_string());
@@ -256,7 +244,7 @@ async fn build_store_instance(
                 builder.add_to_builder("configs".to_string(), resource);
             }
             #[cfg(feature = "sql")]
-            Resource::SqlPostgres => {
+            Resource::Sql(_) => {
                 if !linked_capabilities.contains("sql") {
                     builder.link_capability::<Sql>()?;
                     linked_capabilities.insert("sql".to_string());
@@ -267,7 +255,7 @@ async fn build_store_instance(
                 builder.add_to_builder("sql".to_string(), resource);
             }
             #[cfg(feature = "http-server")]
-            Resource::HttpServer => {
+            Resource::HttpServer(_) => {
                 if !linked_capabilities.contains("http") {
                     let http = slight_http_server::HttpServer::<Builder>::default();
                     builder
@@ -279,7 +267,7 @@ async fn build_store_instance(
                 }
             }
             #[cfg(feature = "http-client")]
-            Resource::HttpClient => {
+            Resource::HttpClient(_) => {
                 if !linked_capabilities.contains("http-client") {
                     let http_client = HttpClient::new();
                     builder

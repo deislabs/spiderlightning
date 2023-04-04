@@ -7,13 +7,13 @@ use anyhow::Result;
 use async_trait::async_trait;
 use implementors::*;
 
-use slight_common::{impl_resource, BasicState};
-use slight_file::Resource;
-
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use keyvalue::*;
+use slight_common::{impl_resource, BasicState};
+use slight_file::resource::KeyvalueResource::*;
+use slight_file::Resource;
 wit_bindgen_wasmtime::export!({paths: ["../../wit/keyvalue.wit"], async: *});
 wit_error_rs::impl_error!(keyvalue::KeyvalueError);
 wit_error_rs::impl_from!(anyhow::Error, keyvalue::KeyvalueError::UnexpectedError);
@@ -112,13 +112,15 @@ impl From<Resource> for KeyvalueImplementors {
     fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "filesystem")]
-            Resource::KeyvalueFilesystem | Resource::V1KeyvalueFilesystem => Self::Filesystem,
+            Resource::Keyvalue(Filesystem) | Resource::Keyvalue(V1Filesystem) => Self::Filesystem,
             #[cfg(feature = "azblob")]
-            Resource::KeyvalueAzblob | Resource::V1KeyvalueAzblob => Self::AzBlob,
+            Resource::Keyvalue(Azblob) | Resource::Keyvalue(V1Azblob) => Self::AzBlob,
             #[cfg(feature = "awsdynamodb")]
-            Resource::KeyvalueAwsDynamoDb | Resource::V1KeyvalueAwsDynamoDb => Self::AwsDynamoDb,
+            Resource::Keyvalue(AwsDynamoDb) | Resource::Keyvalue(V1AwsDynamoDb) => {
+                Self::AwsDynamoDb
+            }
             #[cfg(feature = "redis")]
-            Resource::KeyvalueRedis | Resource::V1KeyvalueRedis => Self::Redis,
+            Resource::Keyvalue(Redis) | Resource::Keyvalue(V1Redis) => Self::Redis,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

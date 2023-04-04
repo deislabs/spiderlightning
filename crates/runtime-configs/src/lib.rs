@@ -8,6 +8,7 @@ use regex::Regex;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
 use slight_common::{impl_resource, BasicState};
+use slight_file::resource::ConfigsResource::{Azapp, Envvars, Usersecrets};
 use slight_file::{Resource, SecretStoreResource};
 
 wit_bindgen_wasmtime::export!({paths: ["../../wit/configs.wit"], async: *});
@@ -146,9 +147,9 @@ pub enum ConfigsImplementor {
 impl From<ConfigsImplementor> for Resource {
     fn from(c: ConfigsImplementor) -> Resource {
         match c {
-            ConfigsImplementor::UserSecrets => Resource::ConfigsUsersecrets,
-            ConfigsImplementor::EnvVars => Resource::ConfigsEnvvars,
-            ConfigsImplementor::AzApp => Resource::ConfigsAzapp,
+            ConfigsImplementor::UserSecrets => Resource::Configs(Usersecrets),
+            ConfigsImplementor::EnvVars => Resource::Configs(Envvars),
+            ConfigsImplementor::AzApp => Resource::Configs(Azapp),
             _ => panic!("unknown configuration type"),
         }
     }
@@ -157,9 +158,9 @@ impl From<ConfigsImplementor> for Resource {
 impl From<Resource> for ConfigsImplementor {
     fn from(from: Resource) -> Self {
         match from {
-            Resource::ConfigsUsersecrets => ConfigsImplementor::UserSecrets,
-            Resource::ConfigsAzapp => ConfigsImplementor::AzApp,
-            Resource::ConfigsEnvvars => ConfigsImplementor::EnvVars,
+            Resource::Configs(Usersecrets) => ConfigsImplementor::UserSecrets,
+            Resource::Configs(Azapp) => ConfigsImplementor::AzApp,
+            Resource::Configs(Envvars) => ConfigsImplementor::EnvVars,
             _ => panic!("unknown configuration type '{from}'"),
         }
     }

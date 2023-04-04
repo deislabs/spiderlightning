@@ -7,6 +7,7 @@ use async_trait::async_trait;
 
 use implementors::{PubImplementor, SubImplementor, *};
 use slight_common::{impl_resource, BasicState};
+use slight_file::resource::MessagingResource::*;
 use slight_file::Resource;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
@@ -216,15 +217,15 @@ impl From<Resource> for MessagingImplementors {
     fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "apache_kafka")]
-            Resource::MessagingConfluentApacheKafka => Self::ConfluentApacheKafka,
+            Resource::Messaging(ConfluentApacheKafka) => Self::ConfluentApacheKafka,
             #[cfg(feature = "mosquitto")]
-            Resource::MessagingMosquitto => Self::Mosquitto,
+            Resource::Messaging(Mosquitto) => Self::Mosquitto,
             #[cfg(feature = "filesystem")]
-            Resource::MessagingFilesystem | Resource::V1MessagingFilesystem => Self::Filesystem,
+            Resource::Messaging(Filesystem) | Resource::Messaging(V1Filesystem) => Self::Filesystem,
             #[cfg(feature = "azsbus")]
-            Resource::MessagingAzsbus | Resource::V1MessagingAzsbus => Self::AzSbus,
+            Resource::Messaging(Azsbus) | Resource::Messaging(V1Azsbus) => Self::AzSbus,
             #[cfg(feature = "natsio")]
-            Resource::MessagingNats => Self::Nats,
+            Resource::Messaging(Nats) => Self::Nats,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

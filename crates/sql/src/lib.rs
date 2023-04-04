@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use async_trait::async_trait;
 use implementors::SqlImplementor;
 use slight_common::{impl_resource, BasicState};
-use slight_file::Resource;
+use slight_file::{resource::SqlResource::*, Resource};
 
 mod implementors;
 #[cfg(feature = "postgres")]
@@ -56,7 +56,7 @@ impl From<Resource> for SqlImplementors {
     fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "postgres")]
-            Resource::SqlPostgres => Self::Postgres,
+            Resource::Sql(Postgres) => Self::Postgres,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+use resource::HttpServerResource;
 use std::{collections::HashMap, fmt::Display, path::Path};
 
 use serde::{Deserialize, Deserializer, Serialize};
@@ -24,6 +25,81 @@ pub struct SlightFile {
     pub secret_store: Option<SecretStoreResource>,
     pub secret_settings: Option<Vec<Config>>,
     pub capability: Option<Vec<Capability>>,
+}
+
+impl SlightFile {
+    pub fn from_toml_string(toml: &str) -> Result<Self> {
+        let s = toml::from_str::<SlightFile>(toml)?;
+        Ok(s)
+    }
+    pub fn check_version(&self) -> Result<()> {
+        // check specversion
+        match self.specversion {
+            SpecVersion::V1 => {
+                if self.capability.as_ref().is_some()
+                    && self
+                        .capability
+                        .as_ref()
+                        .unwrap()
+                        .iter()
+                        .any(|cap| cap.is_v2())
+                {
+                    bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
+                }
+            }
+            SpecVersion::V2 => {
+                if self.capability.as_ref().is_some()
+                    && self
+                        .capability
+                        .as_ref()
+                        .unwrap()
+                        .iter()
+                        .any(|cap| cap.is_v1())
+                {
+                    bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
+                }
+            }
+        };
+        Ok(())
+    }
+
+    /// For each capability, deduplicate the resource names.
+    ///
+    /// For example, if you have two resources with the same resource name,
+    /// this will return only one resource.
+    ///
+    /// A special case is when you have a resource that uses the
+    /// Any resource name. In this case, all reousrces of the same capability
+    /// except this one will be removed from the list.
+    pub fn de_dup(mut self) -> Result<Self> {
+        // if let Some(capabilities) = &mut self.capability {
+        //     let mut new_capabilities = vec!();
+        //     for cap in capabilities {
+        //         let resource = cap.resource();
+
+        //         if let Some(cap) = new_capabilities.iter_mut().find(|c| c.resource() == resource) {
+        //             if cap.name() == CapabilityName::Any {
+        //                 continue;
+        //             }
+        //             if name == CapabilityName::Any {
+        //                 *cap = Capability::V2(CapabilityV2 {
+        //                     resource,
+        //                     name,
+        //                     configs,
+        //                 });
+        //             }
+        //         } else {
+        //             new_capabilities.push(Capability::V2(CapabilityV2 {
+        //                 resource,
+        //                 name,
+        //                 configs,
+        //             }));
+        //         }
+        //     }
+        //     self.capability = Some(new_capabilities);
+        // }
+        Ok(self)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -130,43 +206,22 @@ impl SlightFileBuilder {
         Ok(self)
     }
     pub fn build(self) -> Result<SlightFile> {
-        let toml = toml::from_str::<SlightFile>(&self.file_content)?;
-        // check specversion
-        match &toml.specversion {
-            SpecVersion::V1 => {
-                if toml.capability.as_ref().is_some()
-                    && toml
-                        .capability
-                        .as_ref()
-                        .unwrap()
-                        .iter()
-                        .any(|cap| cap.is_v2())
-                {
-                    bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
-                }
-            }
-            SpecVersion::V2 => {
-                if toml.capability.as_ref().is_some()
-                    && toml
-                        .capability
-                        .as_ref()
-                        .unwrap()
-                        .iter()
-                        .any(|cap| cap.is_v1())
-                {
-                    bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
-                }
-            }
-        };
-        Ok(toml)
+        let slight_file = SlightFile::from_toml_string(&self.file_content)?;
+        slight_file.check_version()?;
+        Ok(slight_file)
     }
 }
 
 pub fn has_http_cap(toml: &SlightFile) -> bool {
     if let Some(capability) = &toml.capability {
         capability.iter().any(|cap| match cap {
-            Capability::V1(cap) => matches!(cap.name, Resource::HttpServer),
-            Capability::V2(cap) => matches!(cap.resource, Resource::HttpServer),
+            Capability::V1(cap) => {
+                matches!(cap.name, Resource::HttpServer(HttpServerResource::Server))
+            }
+            Capability::V2(cap) => matches!(
+                cap.resource,
+                Resource::HttpServer(HttpServerResource::Server)
+            ),
         })
     } else {
         false
@@ -245,7 +300,7 @@ mod tests {
 
     #[test]
     fn resource_to_str() {
-        let azblob = Resource::BlobstoreAzblob;
+        let azblob = Resource::Blob(resource::BlobResource::Azblob);
         assert_eq!(azblob.to_string(), "blobstore.azblob");
     }
 

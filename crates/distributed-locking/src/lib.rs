@@ -8,7 +8,7 @@ use async_trait::async_trait;
 
 use implementors::*;
 use slight_common::{impl_resource, BasicState};
-use slight_file::Resource;
+use slight_file::{resource::DistributedLockingResource::*, Resource};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -167,7 +167,7 @@ impl From<Resource> for DistributedLockingImplementors {
     fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "etcd")]
-            Resource::DistributedLockingEtcd | Resource::V1DistributedLockingEtcd => Self::Etcd,
+            Resource::DistributedLocking(Etcd) | Resource::DistributedLocking(V1Etcd) => Self::Etcd,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
