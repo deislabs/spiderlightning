@@ -167,7 +167,7 @@ impl keyvalue::Keyvalue for Keyvalue {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Keyvalue::new(state.implementor.clone().into(), &state, name).await;
+        let inner = Self::Keyvalue::new(state.implementor.into(), &state, name).await;
 
         Ok(inner)
     }

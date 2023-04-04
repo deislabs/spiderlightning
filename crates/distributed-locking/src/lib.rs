@@ -81,7 +81,7 @@ impl distributed_locking::DistributedLocking for DistributedLocking {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::DistributedLocking::new(state.implementor.clone().into(), &state).await;
+        let inner = Self::DistributedLocking::new(state.implementor.into(), &state).await;
 
         Ok(inner)
     }

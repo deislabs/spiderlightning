@@ -95,7 +95,7 @@ impl sql::Sql for Sql {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Sql::new(state.implementor.clone().into(), &state).await;
+        let inner = Self::Sql::new(state.implementor.into(), &state).await;
 
         Ok(inner)
     }

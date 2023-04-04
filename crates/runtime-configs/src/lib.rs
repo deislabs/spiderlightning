@@ -68,7 +68,7 @@ impl configs::Configs for Configs {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Configs::new(state.implementor.clone(), &state);
+        let inner = Self::Configs::new(state.implementor, &state);
 
         Ok(inner)
     }

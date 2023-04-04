@@ -118,7 +118,7 @@ impl blob_store::BlobStore for BlobStore {
     async fn container_open(&mut self, name: &str) -> Result<Self::Container, Error> {
         let state = self.fetch_state(name);
         tracing::log::info!("Opening implementor {}", &state.implementor);
-        let inner = Self::Container::new(state.implementor.clone().into(), &state, name).await?;
+        let inner = Self::Container::new(state.implementor.into(), &state, name).await?;
 
         Ok(inner)
     }

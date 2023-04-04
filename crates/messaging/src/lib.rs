@@ -127,8 +127,8 @@ impl Messaging {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let p = PubInner::new(state.implementor.clone().into(), &state, name).await?;
-        let s = SubInner::new(state.implementor.clone().into(), &state, name).await?;
+        let p = PubInner::new(state.implementor.into(), &state, name).await?;
+        let s = SubInner::new(state.implementor.into(), &state, name).await?;
 
         let store = capability_store
             .iter()

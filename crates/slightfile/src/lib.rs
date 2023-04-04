@@ -45,8 +45,8 @@ impl Capability {
     }
     pub fn resource(&self) -> Resource {
         match self {
-            Capability::V1(c) => c.name.clone(),
-            Capability::V2(c) => c.resource.clone(),
+            Capability::V1(c) => c.name,
+            Capability::V2(c) => c.resource,
         }
     }
     pub fn name(&self) -> CapabilityName {
@@ -117,6 +117,7 @@ impl Config {
     }
 }
 
+#[derive(Debug, Clone, Default)]
 pub struct SlightFileBuilder {
     file_content: String,
 }
@@ -222,7 +223,7 @@ mod tests {
 
         // deserialize the toml file to struct
         let builder = SlightFileBuilder::new();
-        let toml_file = builder.path(path.clone())?.build()?;
+        let toml_file = builder.path(path)?.build()?;
         if let Some(capability) = &toml_file.as_ref().capability {
             assert!(capability.len() == 1);
             assert!(matches!(capability[0].name(), CapabilityName::Any));
