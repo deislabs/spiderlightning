@@ -1,105 +1,32 @@
-use anyhow::{bail, Result};
-use resource::HttpServerResource;
+use anyhow::Result;
 use std::{collections::HashMap, fmt::Display, path::Path};
 
 use serde::{Deserialize, Deserializer, Serialize};
 
 pub mod resource;
 pub mod secret_store;
+pub mod slightfile;
 pub use resource::Resource;
 pub use secret_store::SecretStoreResource;
+pub use slightfile::SlightFileInner;
 /// slightfile version.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
 pub enum SpecVersion {
     /// Version 0.1 format.
     #[serde(rename = "0.1")]
     V1,
     /// Version 0.2 format.
     #[serde(rename = "0.2")]
+    #[default]
     V2,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct SlightFile {
     pub specversion: SpecVersion,
     pub secret_store: Option<SecretStoreResource>,
     pub secret_settings: Option<Vec<Config>>,
     pub capability: Option<Vec<Capability>>,
-}
-
-impl SlightFile {
-    pub fn from_toml_string(toml: &str) -> Result<Self> {
-        let s = toml::from_str::<SlightFile>(toml)?;
-        Ok(s)
-    }
-    pub fn check_version(&self) -> Result<()> {
-        // check specversion
-        match self.specversion {
-            SpecVersion::V1 => {
-                if self.capability.as_ref().is_some()
-                    && self
-                        .capability
-                        .as_ref()
-                        .unwrap()
-                        .iter()
-                        .any(|cap| cap.is_v2())
-                {
-                    bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
-                }
-            }
-            SpecVersion::V2 => {
-                if self.capability.as_ref().is_some()
-                    && self
-                        .capability
-                        .as_ref()
-                        .unwrap()
-                        .iter()
-                        .any(|cap| cap.is_v1())
-                {
-                    bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
-                }
-            }
-        };
-        Ok(())
-    }
-
-    /// For each capability, deduplicate the resource names.
-    ///
-    /// For example, if you have two resources with the same resource name,
-    /// this will return only one resource.
-    ///
-    /// A special case is when you have a resource that uses the
-    /// Any resource name. In this case, all reousrces of the same capability
-    /// except this one will be removed from the list.
-    pub fn de_dup(mut self) -> Result<Self> {
-        // if let Some(capabilities) = &mut self.capability {
-        //     let mut new_capabilities = vec!();
-        //     for cap in capabilities {
-        //         let resource = cap.resource();
-
-        //         if let Some(cap) = new_capabilities.iter_mut().find(|c| c.resource() == resource) {
-        //             if cap.name() == CapabilityName::Any {
-        //                 continue;
-        //             }
-        //             if name == CapabilityName::Any {
-        //                 *cap = Capability::V2(CapabilityV2 {
-        //                     resource,
-        //                     name,
-        //                     configs,
-        //                 });
-        //             }
-        //         } else {
-        //             new_capabilities.push(Capability::V2(CapabilityV2 {
-        //                 resource,
-        //                 name,
-        //                 configs,
-        //             }));
-        //         }
-        //     }
-        //     self.capability = Some(new_capabilities);
-        // }
-        Ok(self)
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -148,7 +75,7 @@ pub struct CapabilityV2 {
     pub configs: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
 pub enum CapabilityName {
     #[serde(rename = "*")]
     Any,
@@ -205,26 +132,11 @@ impl SlightFileBuilder {
         self.file_content = toml_file_contents;
         Ok(self)
     }
-    pub fn build(self) -> Result<SlightFile> {
-        let slight_file = SlightFile::from_toml_string(&self.file_content)?;
+    pub fn build(self) -> Result<SlightFileInner> {
+        let mut slight_file = SlightFileInner::from_toml_string(&self.file_content)?;
         slight_file.check_version()?;
+        slight_file.validate_namespace()?;
         Ok(slight_file)
-    }
-}
-
-pub fn has_http_cap(toml: &SlightFile) -> bool {
-    if let Some(capability) = &toml.capability {
-        capability.iter().any(|cap| match cap {
-            Capability::V1(cap) => {
-                matches!(cap.name, Resource::HttpServer(HttpServerResource::Server))
-            }
-            Capability::V2(cap) => matches!(
-                cap.resource,
-                Resource::HttpServer(HttpServerResource::Server)
-            ),
-        })
-    } else {
-        false
     }
 }
 
@@ -311,13 +223,13 @@ mod tests {
         // deserialize the toml file to struct
         let builder = SlightFileBuilder::new();
         let toml_file = builder.path(path.clone())?.build()?;
-        if let Some(capability) = &toml_file.capability {
+        if let Some(capability) = &toml_file.as_ref().capability {
             assert!(capability.len() == 1);
             assert!(matches!(capability[0].name(), CapabilityName::Any));
         }
 
         // serialize the struct to toml
-        let toml = toml::to_string(&toml_file)?;
+        let toml = toml::to_string(toml_file.as_ref())?;
         assert!(toml.contains("name = \"*\""));
 
         Ok(())

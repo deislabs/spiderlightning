@@ -11,8 +11,8 @@ use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
 use slight_file::{
-    has_http_cap, Capability as TomlCapability, Resource, SecretStoreResource, SlightFile,
-    SlightFileBuilder, SpecVersion,
+    Capability as TomlCapability, Resource, SecretStoreResource, SlightFile, SlightFileBuilder,
+    SpecVersion,
 };
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
@@ -44,10 +44,11 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
     let toml = SlightFileBuilder::new()
         .path(args.slightfile.clone())?
         .build()?;
-    let http_enabled = has_http_cap(&toml);
+    let http_enabled = toml.has_http_cap();
     tracing::info!("Starting slight");
 
-    let mut host_builder = build_store_instance(&toml, &args.slightfile, &args.module).await?;
+    let mut host_builder =
+        build_store_instance(toml.as_ref(), &args.slightfile, &args.module).await?;
     if let Some(io_redirects) = args.io_redirects.clone() {
         tracing::info!("slight io redirects were specified");
         host_builder = host_builder.set_io(io_redirects);
@@ -58,7 +59,7 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
     if cfg!(feature = "http-server") && http_enabled {
         log::debug!("Http capability enabled");
         update_http_states(
-            toml,
+            toml.as_ref(),
             args.slightfile,
             args.module,
             &mut store,
@@ -89,7 +90,7 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
 
 #[cfg(not(feature = "http-server"))]
 async fn update_http_states(
-    _toml: SlightFile,
+    _toml: &SlightFile,
     _toml_file_path: impl AsRef<Path>,
     _module: impl AsRef<Path>,
     _store: &mut Store<slight_runtime::RuntimeContext>,
@@ -100,13 +101,13 @@ async fn update_http_states(
 
 #[cfg(feature = "http-server")]
 async fn update_http_states(
-    toml: SlightFile,
+    toml: &SlightFile,
     toml_file_path: impl AsRef<Path>,
     module: impl AsRef<Path>,
     store: &mut Store<slight_runtime::RuntimeContext>,
     maybe_stdio: Option<IORedirects>,
 ) -> Result<(), anyhow::Error> {
-    let mut guest_builder: Builder = build_store_instance(&toml, &toml_file_path, &module).await?;
+    let mut guest_builder: Builder = build_store_instance(toml, &toml_file_path, &module).await?;
     if let Some(ioredirects) = maybe_stdio {
         tracing::info!("setting HTTP guest builder io redirects");
         guest_builder = guest_builder.set_io(ioredirects);

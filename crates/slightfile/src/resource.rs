@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum BlobResource {
     #[serde(rename = "blobstore.aws_s3")]
     AwsS3,
@@ -19,7 +19,7 @@ impl Display for BlobResource {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum KeyvalueResource {
     #[serde(rename = "keyvalue.awsdynamodb")]
     AwsDynamoDb,
@@ -57,7 +57,7 @@ impl Display for KeyvalueResource {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum MessagingResource {
     #[serde(rename = "messaging.azsbus")]
     Azsbus,
@@ -91,7 +91,7 @@ impl Display for MessagingResource {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum HttpServerResource {
     #[serde(rename = "http")]
     Server,
@@ -105,7 +105,7 @@ impl Display for HttpServerResource {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum HttpClientResource {
     #[serde(rename = "http-client")]
     Client,
@@ -119,7 +119,7 @@ impl Display for HttpClientResource {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum ConfigsResource {
     #[serde(rename = "configs.azapp")]
     Azapp,
@@ -139,7 +139,7 @@ impl Display for ConfigsResource {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum DistributedLockingResource {
     #[serde(rename = "distributed_locking.etcd")]
     Etcd,
@@ -158,7 +158,7 @@ impl Display for DistributedLockingResource {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 pub enum SqlResource {
     #[serde(rename = "sql.postgres")]
     Postgres,
@@ -175,7 +175,7 @@ impl Display for SqlResource {
 /// All the resources that slightfile supports. This is used in the
 /// `Capability` section in slightfile to specify what resource a
 /// capability is for.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
 #[serde(untagged)]
 pub enum Resource {
     Blob(BlobResource),
@@ -186,6 +186,21 @@ pub enum Resource {
     Configs(ConfigsResource),
     DistributedLocking(DistributedLockingResource),
     Sql(SqlResource),
+}
+
+impl Resource {
+    pub fn to_cap_name(&self) -> String {
+        match self {
+            Resource::Blob(_) => "blob".into(),
+            Resource::Keyvalue(_) => "keyvalue".into(),
+            Resource::Messaging(_) => "messaging".into(),
+            Resource::HttpServer(_) => "http".into(),
+            Resource::HttpClient(_) => "http-client".into(),
+            Resource::Configs(_) => "configs".into(),
+            Resource::DistributedLocking(_) => "distributed_locking".into(),
+            Resource::Sql(_) => "sql".into(),
+        }
+    }
 }
 
 impl Display for Resource {
