@@ -678,11 +678,11 @@ mod integration_tests {
             let http_client = hyper::Client::new();
             let req = Request::builder()
                 .method(Method::PUT)
-                .uri("http://0.0.0.0:3001/register")
+                .uri("http://0.0.0.0:3002/register")
                 .body(Body::empty())
                 .expect("request builder");
 
-            // curl -X PUT http://0.0.0.0:3001/register
+            // curl -X PUT http://0.0.0.0:3002/register
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
             let token_a = String::from_utf8(
@@ -694,10 +694,10 @@ mod integration_tests {
 
             let req = Request::builder()
                 .method(Method::PUT)
-                .uri("http://0.0.0.0:3001/register")
+                .uri("http://0.0.0.0:3002/register")
                 .body(Body::empty())
                 .expect("request builder");
-            // curl -X PUT http://0.0.0.0:3001/register
+            // curl -X PUT http://0.0.0.0:3002/register
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
             let token_b = String::from_utf8(
@@ -709,19 +709,19 @@ mod integration_tests {
 
             let req = Request::builder()
                 .method(Method::PUT)
-                .uri("http://0.0.0.0:3001/send/sender".to_string())
+                .uri("http://0.0.0.0:3002/send/sender".to_string())
                 .body(Body::from("a message!"))
                 .expect("request builder");
-            // curl -X PUT http://0.0.0.0:3001/send/sender -x "a message!"
+            // curl -X PUT http://0.0.0.0:3002/send/sender -x "a message!"
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
 
             let req = Request::builder()
                 .method(Method::GET)
-                .uri(format!("http://0.0.0.0:3001/get/{token_a}"))
+                .uri(format!("http://0.0.0.0:3002/get/{token_a}"))
                 .body(Body::empty())
                 .expect("request builder");
-            // curl -X GET http://0.0.0.0:3001/get/{token_a}
+            // curl -X GET http://0.0.0.0:3002/get/{token_a}
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
             let body = res.into_body();
@@ -732,10 +732,10 @@ mod integration_tests {
 
             let req = Request::builder()
                 .method(Method::GET)
-                .uri(format!("http://0.0.0.0:3001/get/{token_b}"))
+                .uri(format!("http://0.0.0.0:3002/get/{token_b}"))
                 .body(Body::empty())
                 .expect("request builder");
-            // curl -X GET http://0.0.0.0:3001/get/{token_b}
+            // curl -X GET http://0.0.0.0:3002/get/{token_b}
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
             let body = res.into_body();
