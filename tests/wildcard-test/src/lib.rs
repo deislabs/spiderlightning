@@ -18,7 +18,7 @@ fn main() -> Result<()> {
         .put("/register", "handle_register")?
         .put("/send/:id", "handle_send")?
         .get("/get/:id", "handle_get")?;
-        
+
     println!("guest starting server");
     let _ = Server::serve("0.0.0.0:3000", &router_with_route)?;
     // server.stop().unwrap();
@@ -28,12 +28,11 @@ fn main() -> Result<()> {
 }
 
 fn generate_random_id() -> String {
-    let user_token = rand::thread_rng()
+    rand::thread_rng()
         .sample_iter(&Alphanumeric)
         .take(30)
         .map(char::from)
-        .collect::<String>();
-    user_token
+        .collect::<String>()
 }
 
 #[register_handler]
@@ -51,7 +50,12 @@ fn handle_register(req: Request) -> Result<Response, HttpError> {
 
 #[register_handler]
 fn handle_send(req: Request) -> Result<Response, HttpError> {
-    let id = req.params.into_iter().find(|x| x.0 == "id").unwrap_or(("".into(), "".into())).1;
+    let id = req
+        .params
+        .into_iter()
+        .find(|x| x.0 == "id")
+        .unwrap_or(("".into(), "".into()))
+        .1;
     let publisher = messaging::Pub::open(&id).unwrap();
     publisher.publish(&req.body.unwrap(), "room").unwrap();
     Ok(Response {
@@ -63,7 +67,12 @@ fn handle_send(req: Request) -> Result<Response, HttpError> {
 
 #[register_handler]
 fn handle_get(request: Request) -> Result<Response, HttpError> {
-    let id = request.params.into_iter().find(|x| x.0 == "id").unwrap_or(("".into(), "".into())).1;
+    let id = request
+        .params
+        .into_iter()
+        .find(|x| x.0 == "id")
+        .unwrap_or(("".into(), "".into()))
+        .1;
     let sub = messaging::Sub::open(&id).unwrap();
     let msg = sub.receive(&id).unwrap();
     Ok(Response {
