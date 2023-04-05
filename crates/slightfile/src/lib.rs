@@ -76,9 +76,8 @@ pub struct CapabilityV2 {
     pub configs: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ResourceName {
-    #[serde(rename = "*")]
     Any,
     Specific(String),
 }
@@ -97,11 +96,26 @@ impl<'de> Deserialize<'de> for ResourceName {
     where
         D: Deserializer<'de>,
     {
-        let s = String::deserialize(deserializer)?;
+        let s = match String::deserialize(deserializer) {
+            Ok(s) => s,
+            Err(e) => return Err(e),
+        };
         if s == "*" {
             Ok(Self::Any)
         } else {
             Ok(Self::Specific(s))
+        }
+    }
+}
+
+impl Serialize for ResourceName {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            ResourceName::Any => serializer.serialize_str("*"),
+            ResourceName::Specific(s) => serializer.serialize_str(s),
         }
     }
 }
