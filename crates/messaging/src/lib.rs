@@ -7,6 +7,7 @@ use async_trait::async_trait;
 
 use implementors::{PubImplementor, SubImplementor, *};
 use slight_common::{impl_resource, BasicState};
+use slight_file::capability_store::CapabilityStore;
 use slight_file::resource::MessagingResource::*;
 use slight_file::Resource;
 
@@ -122,8 +123,8 @@ struct MessagingState {
 }
 
 impl Messaging {
-    pub async fn new(name: &str, capability_store: HashMap<String, BasicState>) -> Result<Self> {
-        let state = capability_store.get(name).unwrap().clone();
+    pub async fn new(name: &str, capability_store: CapabilityStore<BasicState>) -> Result<Self> {
+        let state = capability_store.get(name, "messaging").unwrap().clone();
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 

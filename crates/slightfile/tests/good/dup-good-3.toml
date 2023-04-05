@@ -1,0 +1,9 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "messaging.filesystem"
+name = "same-name"
+
+[[capability]]
+resource = "keyvalue.filesystem"
+name = "same-name"

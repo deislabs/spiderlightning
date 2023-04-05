@@ -91,9 +91,10 @@ impl Display for MessagingResource {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash, Default)]
 pub enum HttpServerResource {
     #[serde(rename = "http")]
+    #[default]
     Server,
 }
 
@@ -188,6 +189,12 @@ pub enum Resource {
     Sql(SqlResource),
 }
 
+impl Default for Resource {
+    fn default() -> Self {
+        Resource::HttpServer(HttpServerResource::Server)
+    }
+}
+
 impl Resource {
     pub fn to_cap_name(&self) -> String {
         match self {
@@ -206,16 +213,16 @@ impl Resource {
 impl Display for Resource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Resource::Blob(blob) => write!(f, "{}", blob),
-            Resource::Keyvalue(keyvalue) => write!(f, "{}", keyvalue),
-            Resource::Messaging(messaging) => write!(f, "{}", messaging),
-            Resource::HttpServer(http_server) => write!(f, "{}", http_server),
-            Resource::HttpClient(http_client) => write!(f, "{}", http_client),
-            Resource::Configs(configs) => write!(f, "{}", configs),
+            Resource::Blob(blob) => write!(f, "{blob}"),
+            Resource::Keyvalue(keyvalue) => write!(f, "{keyvalue}"),
+            Resource::Messaging(messaging) => write!(f, "{messaging}"),
+            Resource::HttpServer(http_server) => write!(f, "{http_server}"),
+            Resource::HttpClient(http_client) => write!(f, "{http_client}"),
+            Resource::Configs(configs) => write!(f, "{configs}"),
             Resource::DistributedLocking(distributed_locking) => {
-                write!(f, "{}", distributed_locking)
+                write!(f, "{distributed_locking}")
             }
-            Resource::Sql(sql_postgres) => write!(f, "{}", sql_postgres),
+            Resource::Sql(sql_postgres) => write!(f, "{sql_postgres}"),
         }
     }
 }

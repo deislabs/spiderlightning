@@ -1,14 +1,16 @@
 mod implementors;
 pub mod providers;
 
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::Result;
 use async_trait::async_trait;
 
 use implementors::*;
 use slight_common::{impl_resource, BasicState};
-use slight_file::{resource::DistributedLockingResource::*, Resource};
+use slight_file::{
+    capability_store::CapabilityStore, resource::DistributedLockingResource::*, Resource,
+};
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -37,12 +39,12 @@ wit_error_rs::impl_from!(
 ///     and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct DistributedLocking {
-    implementor: String,
-    capability_store: HashMap<String, BasicState>,
+    implementor: Resource,
+    capability_store: CapabilityStore<BasicState>,
 }
 
 impl DistributedLocking {
-    pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
+    pub fn new(implementor: Resource, capability_store: CapabilityStore<BasicState>) -> Self {
         Self {
             implementor,
             capability_store,
@@ -68,14 +70,15 @@ impl distributed_locking::DistributedLocking for DistributedLocking {
         // populate our inner distributed_locking object w/ the state received from `slight`
         // (i.e., what type of distributed_locking implementor we are using), and the assigned
         // name of the object.
-        let state = if let Some(r) = self.capability_store.get(name) {
+        let s = &self.implementor.to_string();
+        let state = if let Some(r) = self.capability_store.get(name, "distributed_locking") {
             r.clone()
-        } else if let Some(r) = self.capability_store.get(&self.implementor) {
+        } else if let Some(r) = self.capability_store.get(s, "distributed_locking") {
             r.clone()
         } else {
             panic!(
                 "could not find capability under name '{}' for implementor '{}'",
-                name, &self.implementor
+                name, &s
             );
         };
 

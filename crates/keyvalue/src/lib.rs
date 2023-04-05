@@ -1,7 +1,7 @@
 mod implementors;
 pub mod providers;
 
-use std::{collections::HashMap, fmt::Debug, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -12,6 +12,7 @@ use implementors::*;
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use keyvalue::*;
 use slight_common::{impl_resource, BasicState};
+use slight_file::capability_store::CapabilityStore;
 use slight_file::resource::KeyvalueResource::*;
 use slight_file::Resource;
 wit_bindgen_wasmtime::export!({paths: ["../../wit/keyvalue.wit"], async: *});
@@ -30,12 +31,12 @@ wit_error_rs::impl_from!(anyhow::Error, keyvalue::KeyvalueError::UnexpectedError
 ///     and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct Keyvalue {
-    implementor: String,
-    capability_store: HashMap<String, BasicState>,
+    implementor: Resource,
+    capability_store: CapabilityStore<BasicState>,
 }
 
 impl Keyvalue {
-    pub fn new(implementor: String, keyvalue_store: HashMap<String, BasicState>) -> Self {
+    pub fn new(implementor: Resource, keyvalue_store: CapabilityStore<BasicState>) -> Self {
         Self {
             implementor,
             capability_store: keyvalue_store,
@@ -153,15 +154,15 @@ impl keyvalue::Keyvalue for Keyvalue {
         // populate our inner keyvalue object w/ the state received from `slight`
         // (i.e., what type of keyvalue implementor we are using), and the assigned
         // name of the object.
-
-        let state = if let Some(r) = self.capability_store.get(name) {
+        let s = self.implementor.to_string();
+        let state = if let Some(r) = self.capability_store.get(name, "keyvalue") {
             r.clone()
-        } else if let Some(r) = self.capability_store.get(&self.implementor) {
+        } else if let Some(r) = self.capability_store.get(&s, "keyvalue") {
             r.clone()
         } else {
             panic!(
                 "could not find capability under name '{}' for implementor '{}'",
-                name, &self.implementor
+                name, &s
             );
         };
 

@@ -1,6 +1,6 @@
 pub mod implementors;
 
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use async_trait::async_trait;
@@ -8,6 +8,7 @@ use regex::Regex;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
 use slight_common::{impl_resource, BasicState};
+use slight_file::capability_store::CapabilityStore;
 use slight_file::resource::ConfigsResource::{Azapp, Envvars, Usersecrets};
 use slight_file::{Resource, SecretStoreResource};
 
@@ -27,12 +28,12 @@ wit_error_rs::impl_from!(anyhow::Error, configs::ConfigsError::UnexpectedError);
 ///     and the `slightfile_path`).
 #[derive(Clone, Debug)]
 pub struct Configs {
-    implementor: String,
-    capability_store: HashMap<String, BasicState>,
+    implementor: Resource,
+    capability_store: CapabilityStore<BasicState>,
 }
 
 impl Configs {
-    pub fn new(implementor: String, capability_store: HashMap<String, BasicState>) -> Self {
+    pub fn new(implementor: Resource, capability_store: CapabilityStore<BasicState>) -> Self {
         Self {
             implementor,
             capability_store,
@@ -55,14 +56,15 @@ impl configs::Configs for Configs {
         // populate our inner configs object w/ the state received from `slight`
         // (i.e., what type of configs implementor we are using), and the assigned
         // name of the object.
-        let state = if let Some(r) = self.capability_store.get(name) {
+        let s = self.implementor.to_string();
+        let state = if let Some(r) = self.capability_store.get(name, "configs") {
             r.clone()
-        } else if let Some(r) = self.capability_store.get(&self.implementor) {
+        } else if let Some(r) = self.capability_store.get(&s, "configs") {
             r.clone()
         } else {
             panic!(
                 "could not find capability under name '{}' for implementor '{}'",
-                name, &self.implementor
+                name, &s
             );
         };
 

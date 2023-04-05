@@ -3,6 +3,7 @@ use std::{collections::HashMap, fmt::Display, path::Path};
 
 use serde::{Deserialize, Deserializer, Serialize};
 
+pub mod capability_store;
 pub mod resource;
 pub mod secret_store;
 pub mod slightfile;
@@ -49,9 +50,9 @@ impl Capability {
             Capability::V2(c) => c.resource,
         }
     }
-    pub fn name(&self) -> CapabilityName {
+    pub fn name(&self) -> ResourceName {
         match self {
-            Capability::V1(c) => CapabilityName::Specific(c.name.to_string()),
+            Capability::V1(c) => ResourceName::Specific(c.name.to_string()),
             Capability::V2(c) => c.name.clone(),
         }
     }
@@ -71,27 +72,27 @@ pub struct CapabilityV1 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CapabilityV2 {
     pub resource: Resource,
-    pub name: CapabilityName,
+    pub name: ResourceName,
     pub configs: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Hash)]
-pub enum CapabilityName {
+pub enum ResourceName {
     #[serde(rename = "*")]
     Any,
     Specific(String),
 }
 
-impl Display for CapabilityName {
+impl Display for ResourceName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CapabilityName::Any => write!(f, "*"),
-            CapabilityName::Specific(s) => write!(f, "{}", s),
+            ResourceName::Any => write!(f, "*"),
+            ResourceName::Specific(s) => write!(f, "{s}"),
         }
     }
 }
 
-impl<'de> Deserialize<'de> for CapabilityName {
+impl<'de> Deserialize<'de> for ResourceName {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -226,7 +227,7 @@ mod tests {
         let toml_file = builder.path(path)?.build()?;
         if let Some(capability) = &toml_file.as_ref().capability {
             assert!(capability.len() == 1);
-            assert!(matches!(capability[0].name(), CapabilityName::Any));
+            assert!(matches!(capability[0].name(), ResourceName::Any));
         }
 
         // serialize the struct to toml

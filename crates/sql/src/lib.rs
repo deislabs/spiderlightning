@@ -1,9 +1,9 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use implementors::SqlImplementor;
 use slight_common::{impl_resource, BasicState};
-use slight_file::{resource::SqlResource::*, Resource};
+use slight_file::{capability_store::CapabilityStore, resource::SqlResource::*, Resource};
 
 mod implementors;
 #[cfg(feature = "postgres")]
@@ -16,12 +16,12 @@ wit_error_rs::impl_from!(anyhow::Error, sql::SqlError::UnexpectedError);
 
 #[derive(Clone, Default)]
 pub struct Sql {
-    implementor: String,
-    capability_store: HashMap<String, BasicState>,
+    implementor: Resource,
+    capability_store: CapabilityStore<BasicState>,
 }
 
 impl Sql {
-    pub fn new(implementor: String, sql: HashMap<String, BasicState>) -> Self {
+    pub fn new(implementor: Resource, sql: CapabilityStore<BasicState>) -> Self {
         Self {
             implementor,
             capability_store: sql,
@@ -82,14 +82,15 @@ impl sql::Sql for Sql {
     type Statement = StatementInner;
 
     async fn sql_open(&mut self, name: &str) -> Result<Self::Sql, sql::SqlError> {
-        let state = if let Some(r) = self.capability_store.get(name) {
+        let s = self.implementor.to_string();
+        let state = if let Some(r) = self.capability_store.get(name, "sql") {
             r.clone()
-        } else if let Some(r) = self.capability_store.get(&self.implementor) {
+        } else if let Some(r) = self.capability_store.get(&s, "sql") {
             r.clone()
         } else {
             panic!(
                 "could not find capability under name '{}' for implementor '{}'",
-                name, &self.implementor
+                name, &s
             );
         };
 

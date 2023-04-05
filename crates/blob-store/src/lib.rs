@@ -2,17 +2,14 @@ mod container;
 mod implementors;
 mod read_stream;
 mod write_stream;
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Display},
-};
+use std::fmt::{Debug, Display};
 
 use async_trait::async_trait;
 
 use container::ContainerInner;
 use read_stream::ReadStreamInner;
 use slight_common::{impl_resource, BasicState};
-use slight_file::{resource::BlobResource::*, Resource};
+use slight_file::{capability_store::CapabilityStore, resource::BlobResource::*, Resource};
 
 use blob_store::*;
 use write_stream::WriteStreamInner;
@@ -33,15 +30,15 @@ pub use implementors::azblob::AZBLOB_CAPABILITY_NAME;
 /// [wasi-blob-store](https://github.com/WebAssembly/wasi-blob-store) interfaces,
 #[derive(Clone, Default)]
 pub struct BlobStore {
-    implementor: String,
-    capability_store: HashMap<String, BasicState>,
+    implementor: Resource,
+    capability_store: CapabilityStore<BasicState>,
 }
 
 impl BlobStore {
-    pub fn new(implementor: String, keyvalue_store: HashMap<String, BasicState>) -> Self {
+    pub fn new(implementor: Resource, capability_store: CapabilityStore<BasicState>) -> Self {
         Self {
             implementor,
-            capability_store: keyvalue_store,
+            capability_store,
         }
     }
 }
@@ -92,16 +89,13 @@ impl_resource!(
 
 impl BlobStore {
     fn fetch_state(&mut self, name: &str) -> BasicState {
-        let s: String = self.implementor.to_string();
-        let state = if let Some(r) = self.capability_store.get(name) {
+        let s = &self.implementor.to_string();
+        let state = if let Some(r) = self.capability_store.get(name, "blob") {
             r.clone()
-        } else if let Some(r) = self.capability_store.get(&s) {
+        } else if let Some(r) = self.capability_store.get(s, "blob") {
             r.clone()
         } else {
-            panic!(
-                "could not find capability under name '{}' for implementor '{}'",
-                name, &s
-            );
+            panic!("could not find capability under name '{name}' for implementor '{s}'");
         };
 
         state

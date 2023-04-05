@@ -1,5 +1,5 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     path::{Path, PathBuf},
 };
 
@@ -11,8 +11,8 @@ use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 #[cfg(feature = "distributed-locking")]
 use slight_distributed_locking::DistributedLocking;
 use slight_file::{
-    Capability as TomlCapability, Resource, SecretStoreResource, SlightFile, SlightFileBuilder,
-    SpecVersion,
+    capability_store::CapabilityStore, Capability as TomlCapability, Resource, SecretStoreResource,
+    SlightFile, SlightFileBuilder, SpecVersion,
 };
 #[cfg(feature = "http-client")]
 use slight_http_client::HttpClient;
@@ -161,7 +161,7 @@ async fn build_store_instance(
 ) -> Result<Builder> {
     let mut builder = Builder::from_module(module)?;
     let mut linked_capabilities: HashSet<String> = HashSet::new();
-    let mut capability_store: HashMap<String, BasicState> = HashMap::new();
+    let mut capability_store = CapabilityStore::<BasicState>::new();
 
     builder.link_wasi()?;
     for c in toml.capability.as_ref().unwrap() {
@@ -175,6 +175,7 @@ async fn build_store_instance(
                 &mut capability_store,
                 c.clone(),
                 &toml_file_path,
+                &resource_type,
             )?,
         }
 
@@ -185,10 +186,8 @@ async fn build_store_instance(
                     builder.link_capability::<BlobStore>()?;
                     linked_capabilities.insert(BLOB_STORE_SCHEME_NAME.to_string());
                 }
-                let resource = slight_blob_store::BlobStore::new(
-                    resource_type.to_string(),
-                    capability_store.clone(),
-                );
+                let resource =
+                    slight_blob_store::BlobStore::new(resource_type, capability_store.clone());
                 builder.add_to_builder(BLOB_STORE_SCHEME_NAME.to_string(), resource);
             }
             #[cfg(feature = "keyvalue")]
@@ -198,10 +197,8 @@ async fn build_store_instance(
                     linked_capabilities.insert("keyvalue".to_string());
                 }
 
-                let resource = slight_keyvalue::Keyvalue::new(
-                    resource_type.to_string(),
-                    capability_store.clone(),
-                );
+                let resource =
+                    slight_keyvalue::Keyvalue::new(resource_type, capability_store.clone());
                 builder.add_to_builder("keyvalue".to_string(), resource);
             }
             #[cfg(feature = "distributed-locking")]
@@ -212,7 +209,7 @@ async fn build_store_instance(
                 }
 
                 let resource = slight_distributed_locking::DistributedLocking::new(
-                    resource_type.to_string(),
+                    resource_type,
                     capability_store.clone(),
                 );
                 builder.add_to_builder("distributed_locking".to_string(), resource);
@@ -238,10 +235,8 @@ async fn build_store_instance(
                     linked_capabilities.insert("configs".to_string());
                 }
 
-                let resource = slight_runtime_configs::Configs::new(
-                    resource_type.to_string(),
-                    capability_store.clone(),
-                );
+                let resource =
+                    slight_runtime_configs::Configs::new(resource_type, capability_store.clone());
                 builder.add_to_builder("configs".to_string(), resource);
             }
             #[cfg(feature = "sql")]
@@ -251,8 +246,7 @@ async fn build_store_instance(
                     linked_capabilities.insert("sql".to_string());
                 }
 
-                let resource =
-                    slight_sql::Sql::new(resource_type.to_string(), capability_store.clone());
+                let resource = slight_sql::Sql::new(resource_type, capability_store.clone());
                 builder.add_to_builder("sql".to_string(), resource);
             }
             #[cfg(feature = "http-server")]
@@ -288,45 +282,28 @@ async fn build_store_instance(
 fn maybe_add_named_capability_to_store(
     specversion: SpecVersion,
     secret_store: Option<SecretStoreResource>,
-    capability_store: &mut HashMap<String, BasicState>,
+    capability_store: &mut CapabilityStore<BasicState>,
     c: TomlCapability,
     toml_file_path: impl AsRef<Path>,
+    resource_type: &Resource,
 ) -> Result<()> {
-    match specversion {
-        SpecVersion::V1 => {
-            if let std::collections::hash_map::Entry::Vacant(e) =
-                capability_store.entry(c.name().to_string())
-            {
-                e.insert(BasicState::new(
-                    secret_store,
-                    c.resource(),
-                    c.name().to_string(),
-                    c.configs(),
-                    toml_file_path,
-                ));
-            } else {
-                bail!("cannot add capabilities of the same name");
-            }
-        }
-        SpecVersion::V2 => {
-            if let std::collections::hash_map::Entry::Vacant(e) =
-                capability_store.entry(c.name().to_string())
-            {
-                let resource = c.resource();
-
-                e.insert(BasicState::new(
-                    None,
-                    resource,
-                    c.name().to_string(),
-                    c.configs(),
-                    toml_file_path,
-                ));
-            } else {
-                bail!("cannot add capabilities of the same name");
-            }
-        }
-    }
-
+    let state = match specversion {
+        SpecVersion::V1 => BasicState::new(
+            secret_store,
+            c.resource(),
+            c.name().to_string(),
+            c.configs(),
+            toml_file_path,
+        ),
+        SpecVersion::V2 => BasicState::new(
+            None,
+            *resource_type,
+            c.name().to_string(),
+            c.configs(),
+            toml_file_path,
+        ),
+    };
+    capability_store.insert(c.name(), &resource_type.to_cap_name(), state);
     Ok(())
 }
 

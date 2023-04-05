@@ -1,14 +1,14 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::{
-    resource::HttpServerResource, Capability, CapabilityName, Resource, SlightFile, SpecVersion,
+    resource::HttpServerResource, Capability, Resource, ResourceName, SlightFile, SpecVersion,
 };
 use anyhow::{bail, Result};
 
 #[derive(Debug, Clone, Default)]
 pub struct SlightFileInner {
     inner: SlightFile,
-    groups_by_resource: HashMap<String, HashSet<CapabilityName>>,
+    groups_by_resource: HashMap<String, HashSet<ResourceName>>,
 }
 
 impl AsRef<SlightFile> for SlightFileInner {
@@ -98,7 +98,7 @@ impl SlightFileInner {
                         .groups_by_resource
                         .get(&res)
                         .unwrap()
-                        .contains(&CapabilityName::Any)
+                        .contains(&ResourceName::Any)
                 {
                     bail!(
                         "Error: the namespace {} is already defined in the slightfile",
@@ -107,7 +107,7 @@ impl SlightFileInner {
                 } else {
                     // if current resource is Any, and if there are any other resources defined in the slightfile,
                     // this is an error.
-                    if cap.name() == CapabilityName::Any
+                    if cap.name() == ResourceName::Any
                         && !self.groups_by_resource.get(&res).unwrap().is_empty()
                     {
                         bail!(
