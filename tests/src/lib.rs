@@ -640,6 +640,7 @@ mod integration_tests {
     }
 
     #[cfg(test)]
+    #[cfg(unix)]
     mod wildcard_tests {
         use crate::{slight_path, spawn};
 
@@ -666,9 +667,9 @@ mod integration_tests {
             if !output.status.success() {
                 mosquitto_binary_path = "/usr/local/sbin/mosquitto";
             }
-            let _mosquitto_child = spawn(mosquitto_binary_path, vec![])?;
+            let mosquitto_child = spawn(mosquitto_binary_path, vec![])?;
 
-            let _http_child = spawn(
+            let http_child = spawn(
                 &slight_path(),
                 vec!["-c", file_config, "run", http_service_dir.to_str().unwrap()],
             )?;
@@ -677,11 +678,11 @@ mod integration_tests {
             let http_client = hyper::Client::new();
             let req = Request::builder()
                 .method(Method::PUT)
-                .uri("http://0.0.0.0:3000/register")
+                .uri("http://0.0.0.0:3001/register")
                 .body(Body::empty())
                 .expect("request builder");
 
-            // curl -X PUT http://0.0.0.0:3000/register
+            // curl -X PUT http://0.0.0.0:3001/register
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
             let token_a = String::from_utf8(
@@ -693,10 +694,10 @@ mod integration_tests {
 
             let req = Request::builder()
                 .method(Method::PUT)
-                .uri("http://0.0.0.0:3000/register")
+                .uri("http://0.0.0.0:3001/register")
                 .body(Body::empty())
                 .expect("request builder");
-            // curl -X PUT http://0.0.0.0:3000/register
+            // curl -X PUT http://0.0.0.0:3001/register
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
             let token_b = String::from_utf8(
@@ -708,19 +709,19 @@ mod integration_tests {
 
             let req = Request::builder()
                 .method(Method::PUT)
-                .uri("http://0.0.0.0:3000/send/sender".to_string())
+                .uri("http://0.0.0.0:3001/send/sender".to_string())
                 .body(Body::from("a message!"))
                 .expect("request builder");
-            // curl -X PUT http://0.0.0.0:3000/send/sender -x "a message!"
+            // curl -X PUT http://0.0.0.0:3001/send/sender -x "a message!"
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
 
             let req = Request::builder()
                 .method(Method::GET)
-                .uri(format!("http://0.0.0.0:3000/get/{token_a}"))
+                .uri(format!("http://0.0.0.0:3001/get/{token_a}"))
                 .body(Body::empty())
                 .expect("request builder");
-            // curl -X GET http://0.0.0.0:3000/get/{token_a}
+            // curl -X GET http://0.0.0.0:3001/get/{token_a}
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
             let body = res.into_body();
@@ -731,10 +732,10 @@ mod integration_tests {
 
             let req = Request::builder()
                 .method(Method::GET)
-                .uri(format!("http://0.0.0.0:3000/get/{token_b}"))
+                .uri(format!("http://0.0.0.0:3001/get/{token_b}"))
                 .body(Body::empty())
                 .expect("request builder");
-            // curl -X GET http://0.0.0.0:3000/get/{token_b}
+            // curl -X GET http://0.0.0.0:3001/get/{token_b}
             let res = http_client.request(req).await?;
             assert!(res.status().is_success());
             let body = res.into_body();
@@ -744,6 +745,8 @@ mod integration_tests {
             );
 
             sleep(Duration::from_secs(2)).await;
+            http_child();
+            mosquitto_child();
 
             Ok(())
         }

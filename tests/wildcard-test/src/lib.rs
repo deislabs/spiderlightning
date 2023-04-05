@@ -20,7 +20,7 @@ fn main() -> Result<()> {
         .get("/get/:id", "handle_get")?;
 
     println!("guest starting server");
-    let _ = Server::serve("0.0.0.0:3000", &router_with_route)?;
+    let _ = Server::serve("0.0.0.0:3001", &router_with_route)?;
     // server.stop().unwrap();
     println!("guest moving on");
 
