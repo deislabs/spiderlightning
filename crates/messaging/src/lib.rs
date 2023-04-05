@@ -1,6 +1,6 @@
 mod implementors;
 pub mod providers;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -15,6 +15,7 @@ use slight_file::Resource;
 /// That is because `impl_resource!` accesses the `crate`'s
 /// `add_to_linker`, and not the `<interface>::add_to_linker` directly.
 use messaging::*;
+use tracing::info;
 wit_bindgen_wasmtime::export!({paths: ["../../wit/messaging.wit"], async: *});
 wit_error_rs::impl_error!(messaging::MessagingError);
 wit_error_rs::impl_from!(anyhow::Error, messaging::MessagingError::UnexpectedError);
@@ -35,7 +36,7 @@ wit_error_rs::impl_from!(
 ///     and the `config_toml_file_path`).
 #[derive(Clone, Default)]
 pub struct Messaging {
-    store: HashMap<String, MessagingState>,
+    store: CapabilityStore<MessagingState>,
 }
 
 #[derive(Clone, Debug)]
@@ -131,20 +132,26 @@ impl Messaging {
         let p = PubInner::new(state.implementor.into(), &state, name).await?;
         let s = SubInner::new(state.implementor.into(), &state, name).await?;
 
-        let store = capability_store
+        let mut messaging_store: CapabilityStore<MessagingState> = CapabilityStore::new();
+        capability_store
+            .as_ref()
+            .get("messaging")
+            .unwrap()
             .iter()
-            .map(|c| {
-                (
+            .for_each(|c| {
+                messaging_store.insert(
                     c.0.clone(),
+                    "",
                     MessagingState {
                         pub_implementor: p.clone(),
                         sub_implementor: s.clone(),
                     },
-                )
-            })
-            .collect();
+                );
+            });
 
-        Ok(Self { store })
+        Ok(Self {
+            store: messaging_store,
+        })
     }
 }
 
@@ -161,8 +168,13 @@ impl messaging::Messaging for Messaging {
     type Sub = SubInner;
 
     async fn pub_open(&mut self, name: &str) -> Result<Self::Pub, MessagingError> {
-        let inner = self.store.get(name).unwrap().clone();
-        Ok(inner.pub_implementor)
+        match self.store.get(name, "") {
+            Some(inner) => Ok(inner.pub_implementor.clone()),
+            None => Err(MessagingError::UnexpectedError(format!(
+                "No messaging implementor found for {}",
+                name
+            ))),
+        }
     }
 
     async fn pub_publish(
@@ -176,8 +188,13 @@ impl messaging::Messaging for Messaging {
     }
 
     async fn sub_open(&mut self, name: &str) -> Result<Self::Sub, MessagingError> {
-        let inner = self.store.get(name).unwrap().clone();
-        Ok(inner.sub_implementor)
+        match self.store.get(name, "") {
+            Some(inner) => Ok(inner.sub_implementor.clone()),
+            None => Err(MessagingError::UnexpectedError(format!(
+                "No messaging implementor found for {}",
+                name
+            ))),
+        }
     }
 
     async fn sub_subscribe(
@@ -193,6 +210,7 @@ impl messaging::Messaging for Messaging {
         self_: &Self::Sub,
         sub_tok: SubscriptionTokenParam<'_>,
     ) -> Result<Vec<u8>, MessagingError> {
+        info!("token: {:?}", sub_tok);
         Ok(self_.sub_implementor.receive(sub_tok).await?)
     }
 }

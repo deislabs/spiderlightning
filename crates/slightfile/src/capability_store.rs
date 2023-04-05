@@ -29,9 +29,15 @@ type CapabilityName = String;
 /// assert_eq!(store.get("keyvalue.redis"), state);
 /// ```
 ///
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct CapabilityStore<T> {
     inner: HashMap<CapabilityName, HashMap<ResourceName, T>>,
+}
+
+impl<T> Default for CapabilityStore<T> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<T> CapabilityStore<T> {

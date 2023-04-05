@@ -638,4 +638,114 @@ mod integration_tests {
             Ok(())
         }
     }
+
+    #[cfg(test)]
+    mod wildcard_tests {
+        use crate::{slight_path, spawn};
+
+        use hyper::{Body, Method, Request};
+
+        use std::{path::PathBuf, time::Duration};
+        use tokio::{process::Command, time::sleep};
+
+        #[tokio::test]
+        async fn slight_add_wildcard() -> anyhow::Result<()> {
+            let out_dir = PathBuf::from(format!("{}/target/wasms", env!("CARGO_MANIFEST_DIR")));
+            let http_service_dir = out_dir.join("wasm32-wasi/debug/wildcard_test.wasm");
+            let file_config = &format!(
+                "{}/wildcard-test/slightfile.toml",
+                env!("CARGO_MANIFEST_DIR")
+            );
+            let mut mosquitto_binary_path = "mosquitto";
+            let output = Command::new("which")
+                .arg(mosquitto_binary_path)
+                .output()
+                .await
+                .expect("failed to execute process");
+
+            if !output.status.success() {
+                mosquitto_binary_path = "/usr/local/sbin/mosquitto";
+            }
+            let _mosquitto_child = spawn(mosquitto_binary_path, vec![])?;
+
+            let _http_child = spawn(
+                &slight_path(),
+                vec!["-c", file_config, "run", http_service_dir.to_str().unwrap()],
+            )?;
+            sleep(Duration::from_secs(2)).await;
+
+            let http_client = hyper::Client::new();
+            let req = Request::builder()
+                .method(Method::PUT)
+                .uri("http://0.0.0.0:3000/register")
+                .body(Body::empty())
+                .expect("request builder");
+
+            // curl -X PUT http://0.0.0.0:3000/register
+            let res = http_client.request(req).await?;
+            assert!(res.status().is_success());
+            let token_a = String::from_utf8(
+                hyper::body::to_bytes(res.into_body())
+                    .await?
+                    .into_iter()
+                    .collect(),
+            )?;
+
+            let req = Request::builder()
+                .method(Method::PUT)
+                .uri("http://0.0.0.0:3000/register")
+                .body(Body::empty())
+                .expect("request builder");
+            // curl -X PUT http://0.0.0.0:3000/register
+            let res = http_client.request(req).await?;
+            assert!(res.status().is_success());
+            let token_b = String::from_utf8(
+                hyper::body::to_bytes(res.into_body())
+                    .await?
+                    .into_iter()
+                    .collect(),
+            )?;
+
+            let req = Request::builder()
+                .method(Method::PUT)
+                .uri("http://0.0.0.0:3000/send/sender".to_string())
+                .body(Body::from("a message!"))
+                .expect("request builder");
+            // curl -X PUT http://0.0.0.0:3000/send/sender -x "a message!"
+            let res = http_client.request(req).await?;
+            assert!(res.status().is_success());
+
+            let req = Request::builder()
+                .method(Method::GET)
+                .uri(format!("http://0.0.0.0:3000/get/{token_a}"))
+                .body(Body::empty())
+                .expect("request builder");
+            // curl -X GET http://0.0.0.0:3000/get/{token_a}
+            let res = http_client.request(req).await?;
+            assert!(res.status().is_success());
+            let body = res.into_body();
+            assert_eq!(
+                hyper::body::to_bytes(body).await?,
+                "a message!".to_string().into_bytes()
+            );
+
+            let req = Request::builder()
+                .method(Method::GET)
+                .uri(format!("http://0.0.0.0:3000/get/{token_b}"))
+                .body(Body::empty())
+                .expect("request builder");
+            // curl -X GET http://0.0.0.0:3000/get/{token_b}
+            let res = http_client.request(req).await?;
+            assert!(res.status().is_success());
+            let body = res.into_body();
+            assert_eq!(
+                hyper::body::to_bytes(body).await?,
+                "a message!".to_string().into_bytes()
+            );
+
+            sleep(Duration::from_secs(2)).await;
+
+            Ok(())
+        }
+    }
 }
