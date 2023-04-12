@@ -16,17 +16,18 @@ type CapabilityName = String;
 /// Usage:
 ///
 /// ```rust
-/// use slight_file::slightfile::CapabilityStore;
-/// use slight_file::slightfile::ResourceName;
+/// use slight_file::capability_store::CapabilityStore;
+/// use slight_file::ResourceName;
 ///
+/// #[derive(Debug, Clone, Eq, PartialEq)]
 /// pub struct State;
 ///
 /// let mut store = CapabilityStore::new();
 /// let mut state = State;
-/// store.insert(ResourceName::Specific("keyvalue.redis"), "redis", state);
-/// store.insert(ResourceName::Any, "messaging", state);
+/// store.insert(ResourceName::Specific("my-container".to_owned()), "keyvalue", state.clone());
+/// store.insert(ResourceName::Any, "messaging", state.clone());
 ///
-/// assert_eq!(store.get("keyvalue.redis"), state);
+/// assert_eq!(store.get("my-container", "keyvalue"), Some(&state.clone()));
 /// ```
 ///
 #[derive(Debug, Clone)]
