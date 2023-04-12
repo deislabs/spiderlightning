@@ -2,12 +2,13 @@ pub mod implementors;
 
 use std::{collections::HashMap, path::Path};
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use async_trait::async_trait;
 use regex::Regex;
 
 use implementors::{azapp::AzApp, envvars::EnvVars, usersecrets::UserSecrets};
 use slight_common::{impl_resource, BasicState};
+use slight_file::{Resource, SecretStoreResource};
 
 wit_bindgen_wasmtime::export!({paths: ["../../wit/configs.wit"], async: *});
 wit_error_rs::impl_error!(configs::ConfigsError);
@@ -23,7 +24,7 @@ wit_error_rs::impl_from!(anyhow::Error, configs::ConfigsError::UnexpectedError);
 ///     - the `slight_state` (of type `BasicState`) that contains common
 ///     things received from the slight binary (i.e., the `config_type`
 ///     and the `slightfile_path`).
-#[derive(Clone, Default)]
+#[derive(Clone, Debug)]
 pub struct Configs {
     implementor: String,
     capability_store: HashMap<String, BasicState>,
@@ -66,7 +67,7 @@ impl configs::Configs for Configs {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Configs::new(&state.implementor, &state);
+        let inner = Self::Configs::new(state.implementor.clone(), &state);
 
         Ok(inner)
     }
@@ -77,7 +78,7 @@ impl configs::Configs for Configs {
         key: &str,
     ) -> Result<Vec<u8>, configs::ConfigsError> {
         Ok(get(
-            &String::from(&self_.configs_implementor),
+            self_.configs_implementor.clone(),
             key,
             &self_.slight_state.slightfile_path,
         )
@@ -91,7 +92,7 @@ impl configs::Configs for Configs {
         value: &[u8],
     ) -> Result<(), configs::ConfigsError> {
         set(
-            &String::from(&self_.configs_implementor),
+            self_.configs_implementor.clone(),
             key,
             value,
             &self_.slight_state.slightfile_path,
@@ -122,7 +123,7 @@ pub struct ConfigsInner {
 }
 
 impl ConfigsInner {
-    fn new(configs_implementor: &str, slight_state: &BasicState) -> Self {
+    fn new(configs_implementor: Resource, slight_state: &BasicState) -> Self {
         Self {
             configs_implementor: configs_implementor.into(),
             slight_state: slight_state.clone(),
@@ -142,13 +143,35 @@ pub enum ConfigsImplementor {
     AzApp,
 }
 
-impl From<&ConfigsImplementor> for String {
-    fn from(c: &ConfigsImplementor) -> String {
+impl From<ConfigsImplementor> for Resource {
+    fn from(c: ConfigsImplementor) -> Resource {
         match c {
-            ConfigsImplementor::UserSecrets => "configs.usersecrets".to_string(),
-            ConfigsImplementor::EnvVars => "configs.envvars".to_string(),
-            ConfigsImplementor::AzApp => "configs.azapp".to_string(),
+            ConfigsImplementor::UserSecrets => Resource::ConfigsUsersecrets,
+            ConfigsImplementor::EnvVars => Resource::ConfigsEnvvars,
+            ConfigsImplementor::AzApp => Resource::ConfigsAzapp,
             _ => panic!("unknown configuration type"),
+        }
+    }
+}
+
+impl From<Resource> for ConfigsImplementor {
+    fn from(from: Resource) -> Self {
+        match from {
+            Resource::ConfigsUsersecrets => ConfigsImplementor::UserSecrets,
+            Resource::ConfigsAzapp => ConfigsImplementor::AzApp,
+            Resource::ConfigsEnvvars => ConfigsImplementor::EnvVars,
+            _ => panic!("unknown configuration type '{from}'"),
+        }
+    }
+}
+
+impl From<SecretStoreResource> for ConfigsImplementor {
+    fn from(from: SecretStoreResource) -> Self {
+        match from {
+            SecretStoreResource::Usersecrets => ConfigsImplementor::UserSecrets,
+            SecretStoreResource::Azapp => ConfigsImplementor::AzApp,
+            SecretStoreResource::Envvars => ConfigsImplementor::EnvVars,
+            SecretStoreResource::Local => ConfigsImplementor::Local,
         }
     }
 }
@@ -165,13 +188,24 @@ impl From<&str> for ConfigsImplementor {
     }
 }
 
+impl From<ConfigsImplementor> for String {
+    fn from(val: ConfigsImplementor) -> Self {
+        match val {
+            ConfigsImplementor::Local => "configs.local".to_string(),
+            ConfigsImplementor::EnvVars => "configs.envvars".to_string(),
+            ConfigsImplementor::UserSecrets => "configs.usersecrets".to_string(),
+            ConfigsImplementor::AzApp => "configs.azapp".to_string(),
+        }
+    }
+}
+
 /// SDK-ish bit
 pub async fn get(
-    config_type: &str,
+    config_type: ConfigsImplementor,
     key: &str,
     toml_file_path: impl AsRef<Path>,
 ) -> Result<Vec<u8>> {
-    match config_type.into() {
+    match config_type {
         ConfigsImplementor::EnvVars => Ok(EnvVars::get(key)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::get(key, toml_file_path)?),
         ConfigsImplementor::AzApp => Ok(AzApp::get(key).await?),
@@ -180,25 +214,26 @@ pub async fn get(
 }
 
 pub async fn set(
-    config_type: &str,
+    config_type: ConfigsImplementor,
     key: &str,
     value: &[u8],
     toml_file_path: impl AsRef<Path>,
 ) -> Result<()> {
-    match config_type.into() {
+    match config_type {
         ConfigsImplementor::EnvVars => Ok(EnvVars::set(key, value)?),
         ConfigsImplementor::UserSecrets => Ok(UserSecrets::set(key, value, toml_file_path)?),
         ConfigsImplementor::AzApp => Ok(AzApp::set(key, value).await?),
-        _ => panic!("unknown configuration type"),
+        _ => bail!("unknown configuration type"),
     }
 }
 
 pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<String> {
     if let Some(ss) = &state.secret_store {
         let config = String::from_utf8(
-            get(ss, config_name, &state.slightfile_path)
+            get(ss.clone().into(), config_name, &state.slightfile_path)
                 .await
                 .with_context(|| {
+                    let ss: String = ss.clone().into();
                     format!("failed to get '{config_name}' secret using secret store type: {ss}")
                 })?,
         )?;
@@ -209,12 +244,12 @@ pub async fn get_from_state(config_name: &str, state: &BasicState) -> Result<Str
             .as_ref()
             .expect("this capability needs a [capability.configs] section...")
             .get(config_name)
-            .unwrap_or_else(|| panic!("failed to get config '{config_name}'"));
+            .with_context(|| format!("no config named '{config_name}' found"))?;
 
         let (store, name) = maybe_get_config_store_and_value(c)?;
 
         let config = String::from_utf8(
-            get(&store, &name, &state.slightfile_path)
+            get(store.as_str().into(), &name, &state.slightfile_path)
                 .await
                 .with_context(|| {
                     format!(
@@ -243,7 +278,7 @@ fn maybe_get_config_store_and_value(c: &str) -> Result<(String, String)> {
 #[cfg(test)]
 mod unittests {
     use anyhow::Result;
-    use slight_core::slightfile::TomlFile;
+    use slight_file::TomlFile;
 
     use crate::maybe_get_config_store_and_value;
 
@@ -262,7 +297,7 @@ mod unittests {
             ("configs.azapp".to_string(), "hello".to_string()),
             maybe_get_config_store_and_value(
                 toml.capability.as_ref().unwrap()[0]
-                    .configs
+                    .configs()
                     .as_ref()
                     .unwrap()
                     .get("a")
@@ -287,7 +322,7 @@ mod unittests {
         let toml = toml::from_str::<TomlFile>(toml_file_contents).unwrap();
         maybe_get_config_store_and_value(
             toml.capability.as_ref().unwrap()[0]
-                .configs
+                .configs()
                 .as_ref()
                 .unwrap()
                 .get("b")
@@ -311,7 +346,7 @@ mod unittests {
             ("configs.local".to_string(), "world".to_string()),
             maybe_get_config_store_and_value(
                 toml.capability.as_ref().unwrap()[0]
-                    .configs
+                    .configs()
                     .as_ref()
                     .unwrap()
                     .get("c")

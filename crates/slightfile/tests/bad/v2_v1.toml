@@ -1,0 +1,4 @@
+specversion = "0.2"
+
+[[capability]]
+name = "keyvalue.azblob"

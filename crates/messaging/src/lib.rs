@@ -7,6 +7,7 @@ use async_trait::async_trait;
 
 use implementors::{PubImplementor, SubImplementor, *};
 use slight_common::{impl_resource, BasicState};
+use slight_file::Resource;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -125,8 +126,8 @@ impl Messaging {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let p = PubInner::new(state.implementor.as_str().into(), &state, name).await?;
-        let s = SubInner::new(state.implementor.as_str().into(), &state, name).await?;
+        let p = PubInner::new(state.implementor.clone().into(), &state, name).await?;
+        let s = SubInner::new(state.implementor.clone().into(), &state, name).await?;
 
         let store = capability_store
             .iter()
@@ -211,19 +212,19 @@ pub enum MessagingImplementors {
     Nats,
 }
 
-impl From<&str> for MessagingImplementors {
-    fn from(s: &str) -> Self {
+impl From<Resource> for MessagingImplementors {
+    fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "apache_kafka")]
-            "messaging.confluent_apache_kafka" => Self::ConfluentApacheKafka,
+            Resource::MessagingConfluentApacheKafka => Self::ConfluentApacheKafka,
             #[cfg(feature = "mosquitto")]
-            "messaging.mosquitto" => Self::Mosquitto,
+            Resource::MessagingMosquitto => Self::Mosquitto,
             #[cfg(feature = "filesystem")]
-            "messaging.filesystem" | "mq.filesystem" => Self::Filesystem,
+            Resource::MessagingFilesystem | Resource::V1MessagingFilesystem => Self::Filesystem,
             #[cfg(feature = "azsbus")]
-            "messaging.azsbus" | "mq.azsbus" => Self::AzSbus,
+            Resource::MessagingAzsbus | Resource::V1MessagingAzsbus => Self::AzSbus,
             #[cfg(feature = "natsio")]
-            "messaging.nats" => Self::Nats,
+            Resource::MessagingNats => Self::Nats,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

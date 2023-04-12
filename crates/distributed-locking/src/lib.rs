@@ -8,6 +8,7 @@ use async_trait::async_trait;
 
 use implementors::*;
 use slight_common::{impl_resource, BasicState};
+use slight_file::Resource;
 
 /// It is mandatory to `use <interface>::*` due to `impl_resource!`.
 /// That is because `impl_resource!` accesses the `crate`'s
@@ -80,7 +81,7 @@ impl distributed_locking::DistributedLocking for DistributedLocking {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::DistributedLocking::new(state.implementor.as_str().into(), &state).await;
+        let inner = Self::DistributedLocking::new(state.implementor.clone().into(), &state).await;
 
         Ok(inner)
     }
@@ -162,11 +163,11 @@ enum DistributedLockingImplementors {
     Etcd,
 }
 
-impl From<&str> for DistributedLockingImplementors {
-    fn from(s: &str) -> Self {
+impl From<Resource> for DistributedLockingImplementors {
+    fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "etcd")]
-            "distributed_locking.etcd" | "lockd.etcd" => Self::Etcd,
+            Resource::DistributedLockingEtcd | Resource::V1DistributedLockingEtcd => Self::Etcd,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),

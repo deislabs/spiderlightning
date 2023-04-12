@@ -2,28 +2,28 @@ specversion = "0.2"
 
 [[capability]]
 resource = "keyvalue.azblob"
-name = "rand"
+name = "slight-keyvalue-test-1"
     [capability.configs]
     AZURE_STORAGE_ACCOUNT = "${azapp.AZURE_STORAGE_ACCOUNT}"
     AZURE_STORAGE_KEY = "${azapp.AZURE_STORAGE_KEY}"
 
 [[capability]]
 resource = "keyvalue.azblob"
-name = "random1"
+name = "slight-keyvalue-test-2"
     [capability.configs]
     AZURE_STORAGE_ACCOUNT = "${azapp.AZURE_STORAGE_ACCOUNT}"
     AZURE_STORAGE_KEY = "${azapp.AZURE_STORAGE_KEY}"
 
 [[capability]]
 resource = "keyvalue.azblob"
-name = "random2"
+name = "slight-keyvalue-test-3"
     [capability.configs]
     AZURE_STORAGE_ACCOUNT = "${azapp.AZURE_STORAGE_ACCOUNT}"
     AZURE_STORAGE_KEY = "${azapp.AZURE_STORAGE_KEY}"
 
 [[capability]]
 resource = "keyvalue.azblob"
-name = "random3"
+name = "slight-keyvalue-test-4"
     [capability.configs]
     AZURE_STORAGE_ACCOUNT = "${azapp.AZURE_STORAGE_ACCOUNT}"
     AZURE_STORAGE_KEY = "${azapp.AZURE_STORAGE_KEY}"            

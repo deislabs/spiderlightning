@@ -13,6 +13,7 @@ doctest = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+slight-file = { workspace = true }
 slight-http-api = { workspace = true }
 as-any = { workspace = true }
 wasmtime = { workspace = true, optional = true }
