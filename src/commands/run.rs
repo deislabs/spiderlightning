@@ -5,6 +5,10 @@ use std::{
 
 use anyhow::{bail, Result};
 use as_any::Downcast;
+use opentelemetry::{
+    global,
+    trace::Tracer,
+};
 use slight_common::{BasicState, Capability, Ctx as _, WasmtimeBuildable};
 use slight_core::slightfile::{Capability as TomlCapability, TomlFile};
 #[cfg(feature = "distributed-locking")]
@@ -69,63 +73,74 @@ pub struct RunArgs {
 }
 
 pub async fn handle_run(args: RunArgs) -> Result<()> {
-    let toml_file_contents =
-        std::fs::read_to_string(args.slightfile.clone()).expect("could not locate slightfile");
-    let toml =
-        toml::from_str::<TomlFile>(&toml_file_contents).expect("provided file is not a slightfile");
+    let tracer = global::tracer("spiderlightning");
 
-    tracing::info!("Starting slight");
+    tracer
+        .in_span("command handle_run", |_cx| async {
+            let toml_file_contents = std::fs::read_to_string(args.slightfile.clone())
+                .expect("could not locate slightfile");
+            let toml = toml::from_str::<TomlFile>(&toml_file_contents)
+                .expect("provided file is not a slightfile");
 
-    let mut host_builder = build_store_instance(&toml, &args.slightfile, &args.module).await?;
-    if let Some(io_redirects) = args.io_redirects.clone() {
-        tracing::info!("slight io redirects were specified");
-        host_builder = host_builder.set_io(io_redirects);
-    }
-    let (mut store, instance) = host_builder.build().await;
+            tracing::info!("starting slight");
 
-    let caps = toml.capability.as_ref().unwrap();
-    let http_enabled;
+            let mut host_builder = tracer
+                .in_span("handle_run build_store_instance", |_cx| async {
+                    build_store_instance(&toml, &args.slightfile, &args.module).await
+                })
+                .await?;
 
-    if toml.specversion == "0.1" {
-        http_enabled = caps.iter().any(|cap| cap.name == "http");
-    } else if toml.specversion == "0.2" {
-        http_enabled = caps
-            .iter()
-            .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
-    } else {
-        bail!("unsupported toml spec version");
-    }
-    // looking for the http capability.
-    if cfg!(feature = "http-server") && http_enabled {
-        log::debug!("Http capability enabled");
-        update_http_states(
-            toml,
-            args.slightfile,
-            args.module,
-            &mut store,
-            args.io_redirects,
-        )
-        .await?;
+            if let Some(io_redirects) = args.io_redirects.clone() {
+                tracing::info!("slight io redirects were specified");
+                host_builder = host_builder.set_io(io_redirects);
+            }
+            let (mut store, instance) = host_builder.build().await;
 
-        // invoke on_server_init
-        let http_server =
-            HttpServerInit::new(&mut store, &instance, |ctx| ctx.get_http_server_mut())?;
+            let caps = toml.capability.as_ref().unwrap();
+            let http_enabled;
 
-        let res = http_server.on_server_init(&mut store).await?;
-        match res {
-            Ok(_) => {}
-            Err(e) => bail!(e),
-        }
+            if toml.specversion == "0.1" {
+                http_enabled = caps.iter().any(|cap| cap.name == "http");
+            } else if toml.specversion == "0.2" {
+                http_enabled = caps
+                    .iter()
+                    .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
+            } else {
+                bail!("unsupported toml spec version");
+            }
+            // looking for the http capability.
+            if cfg!(feature = "http-server") && http_enabled {
+                log::debug!("HTTP capability enabled");
+                update_http_states(
+                    toml,
+                    args.slightfile,
+                    args.module,
+                    &mut store,
+                    args.io_redirects,
+                )
+                .await?;
 
-        log::info!("waiting for http to finish...");
-        close_http_server(store).await;
-    } else {
-        instance
-            .get_typed_func::<(), _>(&mut store, "_start")?
-            .call_async(&mut store, ())
-            .await?;
-    }
-    Ok(())
+                // invoke on_server_init
+                let http_server =
+                    HttpServerInit::new(&mut store, &instance, |ctx| ctx.get_http_server_mut())?;
+
+                let res = http_server.on_server_init(&mut store).await?;
+                match res {
+                    Ok(_) => {}
+                    Err(e) => bail!(e),
+                }
+
+                log::info!("waiting for http to finish...");
+                close_http_server(store).await;
+            } else {
+                instance
+                    .get_typed_func::<(), _>(&mut store, "_start")?
+                    .call_async(&mut store, ())
+                    .await?;
+            }
+            Ok(())
+        })
+        .await
 }
 
 #[cfg(not(feature = "http-server"))]
@@ -199,6 +214,7 @@ async fn build_store_instance(
     toml_file_path: impl AsRef<Path>,
     module: impl AsRef<Path>,
 ) -> Result<Builder> {
+    let tracer = global::tracer("spiderlightning");
     let mut builder = Builder::from_module(module)?;
     let mut linked_capabilities: HashSet<String> = HashSet::new();
     let mut capability_store: HashMap<String, BasicState> = HashMap::new();
@@ -230,16 +246,20 @@ async fn build_store_instance(
         match resource_type {
             #[cfg(feature = "keyvalue")]
             _ if KEYVALUE_HOST_IMPLEMENTORS.contains(&resource_type) => {
-                if !linked_capabilities.contains("keyvalue") {
-                    builder.link_capability::<Keyvalue>()?;
-                    linked_capabilities.insert("keyvalue".to_string());
-                }
+                tracer.in_span("build_store_instance link:keyvalue", |_cx| {
+                    if !linked_capabilities.contains("keyvalue") {
+                        builder.link_capability::<Keyvalue>()?;
+                        linked_capabilities.insert("keyvalue".to_string());
+                    }
 
-                let resource = slight_keyvalue::Keyvalue::new(
-                    resource_type.to_string(),
-                    capability_store.clone(),
-                );
-                builder.add_to_builder("keyvalue".to_string(), resource);
+                    let resource = slight_keyvalue::Keyvalue::new(
+                        resource_type.to_string(),
+                        capability_store.clone(),
+                    );
+                    builder.add_to_builder("keyvalue".to_string(), resource);
+
+                    Ok::<(), anyhow::Error>(())
+                })?;
             }
             #[cfg(feature = "distributed-locking")]
             _ if DISTRIBUTED_LOCKING_HOST_IMPLEMENTORS.contains(&resource_type) => {
