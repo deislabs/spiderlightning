@@ -38,6 +38,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = "0.11"
 flate2 = "1"
 tar = "0.4"
+opentelemetry = { workspace = true }
+opentelemetry-jaeger = { workspace = true }
 
 [dev-dependencies]
 tempdir = { workspace = true }
@@ -98,6 +100,8 @@ url = "2.2"
 semver = "1"
 clap = { version = "4", features = ["derive"] }
 rand = "0.8"
+opentelemetry = { version = "0.18.0", features = ["rt-tokio"] }
+opentelemetry-jaeger = { version = "0.17.0", features = ["rt-tokio" ] }
 
 [workspace]
 members = [

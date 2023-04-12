@@ -20,6 +20,8 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 async-trait = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry-jaeger = { workspace = true }
 # kv.azblob deps
 azure_storage_blobs = { version = "0.10", optional = true }
 azure_storage = { version = "0.10", optional = true }

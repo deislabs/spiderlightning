@@ -7,6 +7,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use implementors::*;
 
+use opentelemetry::{global, trace::Tracer};
 use slight_common::{impl_resource, BasicState};
 use slight_file::Resource;
 
@@ -148,6 +149,7 @@ impl keyvalue::Keyvalue for Keyvalue {
     type Keyvalue = KeyvalueInner;
 
     async fn keyvalue_open(&mut self, name: &str) -> Result<Self::Keyvalue, KeyvalueError> {
+        let tracer = global::tracer("spiderlightning");
         // populate our inner keyvalue object w/ the state received from `slight`
         // (i.e., what type of keyvalue implementor we are using), and the assigned
         // name of the object.
@@ -165,7 +167,14 @@ impl keyvalue::Keyvalue for Keyvalue {
 
         tracing::log::info!("Opening implementor {}", &state.implementor);
 
-        let inner = Self::Keyvalue::new(state.implementor.clone().into(), &state, name).await;
+        let inner = tracer
+            .in_span(
+                format!("opened implementer {}", &state.implementor),
+                |_cx| async {
+                    Self::Keyvalue::new(state.implementor.clone().into(), &state, name).await
+                },
+            )
+            .await;
 
         Ok(inner)
     }
