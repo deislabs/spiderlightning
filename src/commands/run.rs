@@ -51,8 +51,6 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
             let http_enabled = has_http_cap(&toml);
             tracing::info!("Starting slight");
 
-            tracing::info!("starting slight");
-
             let mut host_builder = tracer
                 .in_span("handle_run build_store_instance", |_cx| async {
                     build_store_instance(&toml, &args.slightfile, &args.module).await
@@ -65,18 +63,6 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
             }
             let (mut store, instance) = host_builder.build().await;
 
-            let caps = toml.capability.as_ref().unwrap();
-            let http_enabled;
-
-            if toml.specversion == "0.1" {
-                http_enabled = caps.iter().any(|cap| cap.name == "http");
-            } else if toml.specversion == "0.2" {
-                http_enabled = caps
-                    .iter()
-                    .any(|cap| cap.resource.as_ref().expect("missing resource field") == "http");
-            } else {
-                bail!("unsupported toml spec version");
-            }
             // looking for the http capability.
             if cfg!(feature = "http-server") && http_enabled {
                 log::debug!("HTTP capability enabled");

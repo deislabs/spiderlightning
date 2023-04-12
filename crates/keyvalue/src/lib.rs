@@ -171,7 +171,7 @@ impl keyvalue::Keyvalue for Keyvalue {
             .in_span(
                 format!("opened implementer {}", &state.implementor),
                 |_cx| async {
-                    Self::Keyvalue::new(state.implementor.as_str().into(), &state, name).await
+                    Self::Keyvalue::new(state.implementor.clone().into(), &state, name).await
                 },
             )
             .await;
