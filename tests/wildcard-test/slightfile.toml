@@ -1,0 +1,13 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "http"
+name = "my-rest-api"
+
+
+[[capability]]
+resource = "messaging.mosquitto"
+name = "*"
+    [capability.configs]
+    MOSQUITTO_HOST = "localhost"
+    MOSQUITTO_PORT = "1883"

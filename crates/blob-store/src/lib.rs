@@ -2,17 +2,14 @@ mod container;
 mod implementors;
 mod read_stream;
 mod write_stream;
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Display},
-};
+use std::fmt::{Debug, Display};
 
 use async_trait::async_trait;
 
 use container::ContainerInner;
 use read_stream::ReadStreamInner;
 use slight_common::{impl_resource, BasicState};
-use slight_file::Resource;
+use slight_file::{capability_store::CapabilityStore, resource::BlobResource::*, Resource};
 
 use blob_store::*;
 use write_stream::WriteStreamInner;
@@ -33,15 +30,15 @@ pub use implementors::azblob::AZBLOB_CAPABILITY_NAME;
 /// [wasi-blob-store](https://github.com/WebAssembly/wasi-blob-store) interfaces,
 #[derive(Clone, Default)]
 pub struct BlobStore {
-    implementor: String,
-    capability_store: HashMap<String, BasicState>,
+    implementor: Resource,
+    capability_store: CapabilityStore<BasicState>,
 }
 
 impl BlobStore {
-    pub fn new(implementor: String, keyvalue_store: HashMap<String, BasicState>) -> Self {
+    pub fn new(implementor: Resource, capability_store: CapabilityStore<BasicState>) -> Self {
         Self {
             implementor,
-            capability_store: keyvalue_store,
+            capability_store,
         }
     }
 }
@@ -61,9 +58,9 @@ impl From<Resource> for BlobStoreImplementors {
     fn from(s: Resource) -> Self {
         match s {
             #[cfg(feature = "aws_s3")]
-            Resource::BlobstoreAwsS3 => Self::S3,
+            Resource::Blob(AwsS3) => Self::S3,
             #[cfg(feature = "azblob")]
-            Resource::BlobstoreAzblob => Self::AzBlob,
+            Resource::Blob(Azblob) => Self::AzBlob,
             p => panic!(
                 "failed to match provided name (i.e., '{p}') to any known host implementations"
             ),
@@ -92,16 +89,13 @@ impl_resource!(
 
 impl BlobStore {
     fn fetch_state(&mut self, name: &str) -> BasicState {
-        let s: String = self.implementor.to_string();
-        let state = if let Some(r) = self.capability_store.get(name) {
+        let s = &self.implementor.to_string();
+        let state = if let Some(r) = self.capability_store.get(name, "blob") {
             r.clone()
-        } else if let Some(r) = self.capability_store.get(&s) {
+        } else if let Some(r) = self.capability_store.get(s, "blob") {
             r.clone()
         } else {
-            panic!(
-                "could not find capability under name '{}' for implementor '{}'",
-                name, &s
-            );
+            panic!("could not find capability under name '{name}' for implementor '{s}'");
         };
 
         state
@@ -118,7 +112,7 @@ impl blob_store::BlobStore for BlobStore {
     async fn container_open(&mut self, name: &str) -> Result<Self::Container, Error> {
         let state = self.fetch_state(name);
         tracing::log::info!("Opening implementor {}", &state.implementor);
-        let inner = Self::Container::new(state.implementor.clone().into(), &state, name).await?;
+        let inner = Self::Container::new(state.implementor.into(), &state, name).await?;
 
         Ok(inner)
     }

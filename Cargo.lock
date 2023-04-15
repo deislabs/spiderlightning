@@ -4313,6 +4313,7 @@ dependencies = [
  "anyhow",
  "serde",
  "toml 0.7.3",
+ "tracing",
 ]
 
 [[package]]

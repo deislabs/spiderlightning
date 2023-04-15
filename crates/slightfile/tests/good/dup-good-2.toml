@@ -1,0 +1,17 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "keyvalue.filesystem"
+name = "my-container2"
+
+[[capability]]
+resource = "keyvalue.azblob"
+name = "my-container1"
+    [capability.configs]
+    AZURE_STORAGE_ACCOUNT = "${azapp.AZURE_STORAGE_ACCOUNT}"
+    AZURE_STORAGE_KEY = "${azapp.AZURE_STORAGE_KEY}"
+
+
+[[capability]]
+resource = "messaging.mosquitto"
+name = "*"

@@ -3,7 +3,7 @@ use std::{fs::OpenOptions, path::Path};
 use anyhow::{bail, Result};
 use short_crypt::ShortCrypt;
 use slight_core::secret::{create_secret, get_key};
-use slight_file::TomlFile;
+use slight_file::SlightFileBuilder;
 
 pub struct UserSecrets;
 
@@ -18,14 +18,14 @@ impl UserSecrets {
 
         // serialize toml file to get key
         let toml_file_path = toml_file_path;
-        let toml_file_contents = std::fs::read_to_string(toml_file_path)?;
-        let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
-        if toml.secret_settings.is_none() {
+        let toml = SlightFileBuilder::new().path(toml_file_path)?.build()?;
+        if toml.as_ref().secret_settings.is_none() {
             bail!("failed because toml file has no secrets");
         }
 
         // get env var encryption key
         let pos = toml
+            .as_ref()
             .secret_settings
             .as_ref()
             .unwrap() // note: this unwrap will never fail, so it's ok
@@ -33,7 +33,7 @@ impl UserSecrets {
             .position(|s| s.name == key);
 
         let value = if let Some(value) = pos {
-            &toml.secret_settings.as_ref().unwrap()[value].value
+            &toml.as_ref().secret_settings.as_ref().unwrap()[value].value
             // ^^^ note: the unwrap cannot fail
         } else {
             // if it isn't, we will just create new
@@ -53,10 +53,14 @@ impl UserSecrets {
             .write(true)
             .create(true)
             .open(&toml_file_path)?;
-        let toml_file_contents = std::fs::read_to_string(&toml_file_path)?;
-        let mut toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
+        let mut toml = SlightFileBuilder::new().path(&toml_file_path)?.build()?;
         toml_file.set_len(0)?;
-        create_secret(key, std::str::from_utf8(value)?, &mut toml, &mut toml_file)
+        create_secret(
+            key,
+            std::str::from_utf8(value)?,
+            toml.as_mut(),
+            &mut toml_file,
+        )
     }
 }
 
@@ -65,7 +69,7 @@ mod unittests {
     use std::{fs::OpenOptions, io::Write};
 
     use anyhow::Result;
-    use slight_file::TomlFile;
+    use slight_file::SlightFile;
     use tempdir::TempDir;
 
     use super::UserSecrets;
@@ -76,7 +80,7 @@ mod unittests {
         let toml_file_pathpuf = dir.path().join("slightfile.toml");
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
-        let tmp_toml = toml::from_str::<TomlFile>("specversion = \"0.2\"")?;
+        let tmp_toml = toml::from_str::<SlightFile>("specversion = \"0.2\"")?;
         let mut toml_file = OpenOptions::new()
             .read(true)
             .write(true)

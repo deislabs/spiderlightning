@@ -11,6 +11,7 @@ const FILESYSTEM_ACCESS_TEST_PATH: &str = "./filesystem-access-test";
 const IO_TEST_PATH: &str = "./io-test";
 const BLOB_STORE_TEST_PATH: &str = "./blob-store-test";
 const MESSAGING_TEST_PATH: &str = "./messaging-test";
+const WILDCARD_TEST_PATH: &str = "./wildcard-test";
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
@@ -24,6 +25,7 @@ fn main() {
     println!("cargo:rerun-if-changed={MESSAGING_TEST_PATH}/src/main.rs");
     println!("cargo:rerun-if-changed={MESSAGING_TEST_PATH}/bin/consumer_a.rs");
     println!("cargo:rerun-if-changed={MESSAGING_TEST_PATH}/bin/consumer_b.rs");
+    println!("cargo:rerun-if-changed={WILDCARD_TEST_PATH}/src/main.rs");
 
     // Check if wasm32-wasi target is installed
 
@@ -47,6 +49,7 @@ fn main() {
         cargo_wasi_build(MESSAGING_TEST_PATH);
         cargo_wasi_build_with_bin_name(MESSAGING_TEST_PATH, "consumer_a");
         cargo_wasi_build_with_bin_name(MESSAGING_TEST_PATH, "consumer_b");
+        cargo_wasi_build(WILDCARD_TEST_PATH);
     }
 }
 

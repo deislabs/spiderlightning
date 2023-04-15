@@ -1,21 +1,29 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use std::{collections::HashMap, fmt::Display, path::Path};
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
+pub mod capability_store;
+pub mod resource;
+pub mod secret_store;
+pub mod slightfile;
+pub use resource::Resource;
+pub use secret_store::SecretStoreResource;
+pub use slightfile::SlightFileInner;
 /// slightfile version.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
 pub enum SpecVersion {
     /// Version 0.1 format.
     #[serde(rename = "0.1")]
     V1,
     /// Version 0.2 format.
     #[serde(rename = "0.2")]
+    #[default]
     V2,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TomlFile {
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+pub struct SlightFile {
     pub specversion: SpecVersion,
     pub secret_store: Option<SecretStoreResource>,
     pub secret_settings: Option<Vec<Config>>,
@@ -38,13 +46,13 @@ impl Capability {
     }
     pub fn resource(&self) -> Resource {
         match self {
-            Capability::V1(c) => c.name.clone(),
-            Capability::V2(c) => c.resource.clone(),
+            Capability::V1(c) => c.name,
+            Capability::V2(c) => c.resource,
         }
     }
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> ResourceName {
         match self {
-            Capability::V1(c) => c.name.to_string(),
+            Capability::V1(c) => ResourceName::Specific(c.name.to_string()),
             Capability::V2(c) => c.name.clone(),
         }
     }
@@ -64,8 +72,52 @@ pub struct CapabilityV1 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CapabilityV2 {
     pub resource: Resource,
-    pub name: String,
+    pub name: ResourceName,
     pub configs: Option<HashMap<String, String>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum ResourceName {
+    Any,
+    Specific(String),
+}
+
+impl Display for ResourceName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ResourceName::Any => write!(f, "*"),
+            ResourceName::Specific(s) => write!(f, "{s}"),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for ResourceName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = match String::deserialize(deserializer) {
+            Ok(s) => s,
+            Err(e) => return Err(e),
+        };
+        if s == "*" {
+            Ok(Self::Any)
+        } else {
+            Ok(Self::Specific(s))
+        }
+    }
+}
+
+impl Serialize for ResourceName {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            ResourceName::Any => serializer.serialize_str("*"),
+            ResourceName::Specific(s) => serializer.serialize_str(s),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -80,175 +132,27 @@ impl Config {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SecretStoreResource {
-    #[serde(rename = "configs.azapp")]
-    Azapp,
-    #[serde(rename = "configs.envvars")]
-    Envvars,
-    #[serde(rename = "configs.usersecrets")]
-    Usersecrets,
-    #[serde(rename = "configs.local")]
-    Local,
+#[derive(Debug, Clone, Default)]
+pub struct SlightFileBuilder {
+    file_content: String,
 }
 
-impl TryFrom<String> for SecretStoreResource {
-    type Error = anyhow::Error;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.as_str() {
-            "configs.azapp" => Ok(SecretStoreResource::Azapp),
-            "configs.envvars" => Ok(SecretStoreResource::Envvars),
-            "configs.usersecrets" => Ok(SecretStoreResource::Usersecrets),
-            "configs.local" => Ok(SecretStoreResource::Local),
-            _ => bail!("Unknown secret store resource: {}", value),
+impl SlightFileBuilder {
+    pub fn new() -> Self {
+        Self {
+            file_content: String::new(),
         }
     }
-}
-
-impl From<SecretStoreResource> for String {
-    fn from(value: SecretStoreResource) -> Self {
-        match value {
-            SecretStoreResource::Azapp => String::from("configs.azapp"),
-            SecretStoreResource::Envvars => String::from("configs.envvars"),
-            SecretStoreResource::Usersecrets => String::from("configs.usersecrets"),
-            SecretStoreResource::Local => String::from("configs.local"),
-        }
+    pub fn path(mut self, path: impl AsRef<Path>) -> Result<Self> {
+        let toml_file_contents = std::fs::read_to_string(path.as_ref())?;
+        self.file_content = toml_file_contents;
+        Ok(self)
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Resource {
-    #[serde(rename = "blobstore.aws_s3")]
-    BlobstoreAwsS3,
-    #[serde(rename = "blobstore.azblob")]
-    BlobstoreAzblob,
-    #[serde(rename = "keyvalue.awsdynamodb")]
-    KeyvalueAwsDynamoDb,
-    #[serde(rename = "keyvalue.azblob")]
-    KeyvalueAzblob,
-    #[serde(rename = "keyvalue.filesystem")]
-    KeyvalueFilesystem,
-    #[serde(rename = "keyvalue.redis")]
-    KeyvalueRedis,
-    #[serde(rename = "kv.awsdynamodb")]
-    V1KeyvalueAwsDynamoDb,
-    #[serde(rename = "kv.azblob")]
-    V1KeyvalueAzblob,
-    #[serde(rename = "kv.filesystem")]
-    V1KeyvalueFilesystem,
-    #[serde(rename = "kv.redis")]
-    V1KeyvalueRedis,
-    #[serde(rename = "keyvalue.dapr")]
-    KeyvalueDapr,
-    #[serde(rename = "messaging.azsbus")]
-    MessagingAzsbus,
-    #[serde(rename = "messaging.confluent_apache_kafka")]
-    MessagingConfluentApacheKafka,
-    #[serde(rename = "messaging.filesystem")]
-    MessagingFilesystem,
-    #[serde(rename = "messaging.mosquitto")]
-    MessagingMosquitto,
-    #[serde(rename = "mq.azsbus")]
-    V1MessagingAzsbus,
-    #[serde(rename = "mq.filesystem")]
-    V1MessagingFilesystem,
-    #[serde(rename = "messaging.nats")]
-    MessagingNats,
-    #[serde(rename = "http")] // TODO: change this to http-server and bump up slightfile version?
-    HttpServer,
-    #[serde(rename = "http-client")]
-    HttpClient,
-    #[serde(rename = "configs.azapp")]
-    ConfigsAzapp,
-    #[serde(rename = "configs.envvars")]
-    ConfigsEnvvars,
-    #[serde(rename = "configs.usersecrets")]
-    ConfigsUsersecrets,
-    #[serde(rename = "distributed_locking.etcd")]
-    DistributedLockingEtcd,
-    #[serde(rename = "lockd.etcd")]
-    V1DistributedLockingEtcd,
-    #[serde(rename = "sql.postgres")]
-    SqlPostgres,
-}
-
-impl Display for Resource {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Resource::BlobstoreAwsS3 => write!(f, "blobstore.aws_s3"),
-            Resource::BlobstoreAzblob => write!(f, "blobstore.azblob"),
-            Resource::KeyvalueAwsDynamoDb => write!(f, "keyvalue.awsdynamodb"),
-            Resource::KeyvalueAzblob => write!(f, "keyvalue.azblob"),
-            Resource::KeyvalueFilesystem => write!(f, "keyvalue.filesystem"),
-            Resource::KeyvalueRedis => write!(f, "keyvalue.redis"),
-            Resource::KeyvalueDapr => write!(f, "keyvalue.dapr"),
-            Resource::MessagingAzsbus => write!(f, "messaging.azsbus"),
-            Resource::MessagingConfluentApacheKafka => {
-                write!(f, "messaging.confluent_apache_kafka")
-            }
-            Resource::MessagingFilesystem => write!(f, "messaging.filesystem"),
-            Resource::MessagingMosquitto => write!(f, "messaging.mosquitto"),
-            Resource::MessagingNats => write!(f, "messaging.nats"),
-            Resource::HttpServer => write!(f, "http"),
-            Resource::HttpClient => write!(f, "http-client"),
-            Resource::ConfigsAzapp => write!(f, "configs.azapp"),
-            Resource::ConfigsEnvvars => write!(f, "configs.envvars"),
-            Resource::ConfigsUsersecrets => write!(f, "configs.usersecrets"),
-            Resource::DistributedLockingEtcd => write!(f, "distributed_locking.etcd"),
-            Resource::SqlPostgres => write!(f, "sql.postgres"),
-            Resource::V1KeyvalueAwsDynamoDb => write!(f, "kv.awsdynamodb"),
-            Resource::V1KeyvalueAzblob => write!(f, "kv.azblob"),
-            Resource::V1KeyvalueFilesystem => write!(f, "kv.filesystem"),
-            Resource::V1KeyvalueRedis => write!(f, "kv.redis"),
-            Resource::V1MessagingAzsbus => write!(f, "mq.azsbus"),
-            Resource::V1MessagingFilesystem => write!(f, "mq.filesystem"),
-            Resource::V1DistributedLockingEtcd => write!(f, "lockd.etcd"),
-        }
-    }
-}
-
-pub fn read_as_toml_file(path: impl AsRef<Path>) -> Result<TomlFile> {
-    let toml_file_contents = std::fs::read_to_string(path.as_ref())?;
-    let toml = toml::from_str::<TomlFile>(&toml_file_contents)?;
-    // check specversion
-    match &toml.specversion {
-        SpecVersion::V1 => {
-            if toml.capability.as_ref().is_some()
-                && toml
-                    .capability
-                    .as_ref()
-                    .unwrap()
-                    .iter()
-                    .any(|cap| cap.is_v2())
-            {
-                bail!("Error: you are using a 0.1 specversion, but you are using a 0.2 capability format");
-            }
-        }
-        SpecVersion::V2 => {
-            if toml.capability.as_ref().is_some()
-                && toml
-                    .capability
-                    .as_ref()
-                    .unwrap()
-                    .iter()
-                    .any(|cap| cap.is_v1())
-            {
-                bail!("Error: you are using a 0.2 specversion, but you are using a 0.1 capability format");
-            }
-        }
-    };
-    Ok(toml)
-}
-
-pub fn has_http_cap(toml: &TomlFile) -> bool {
-    if let Some(capability) = &toml.capability {
-        capability.iter().any(|cap| match cap {
-            Capability::V1(cap) => matches!(cap.name, Resource::HttpServer),
-            Capability::V2(cap) => matches!(cap.resource, Resource::HttpServer),
-        })
-    } else {
-        false
+    pub fn build(self) -> Result<SlightFileInner> {
+        let mut slight_file = SlightFileInner::from_toml_string(&self.file_content)?;
+        slight_file.check_version()?;
+        slight_file.validate_namespace()?;
+        Ok(slight_file)
     }
 }
 
@@ -267,7 +171,11 @@ mod tests {
             .filter_map(|entry| entry.ok())
             .filter(|entry| entry.path().extension().unwrap() == "toml")
             .map(|entry| entry.path())
-            .map(|path| (read_as_toml_file(path.clone()), path))
+            .map(|path| {
+                let toml_file = SlightFileBuilder::new().path(path.clone()).unwrap();
+                let toml_file = toml_file.build();
+                (toml_file, path)
+            })
             .collect::<Vec<_>>();
 
         // assert all files are valid
@@ -291,7 +199,11 @@ mod tests {
             .filter_map(|entry| entry.ok())
             .filter(|entry| entry.path().extension().unwrap() == "toml")
             .map(|entry| entry.path())
-            .map(|path| (read_as_toml_file(path.clone()), path))
+            .map(|path| {
+                let toml_file = SlightFileBuilder::new().path(path.clone()).unwrap();
+                let toml_file = toml_file.build();
+                (toml_file, path)
+            })
             .collect::<Vec<_>>();
 
         // all files should panic
@@ -316,7 +228,26 @@ mod tests {
 
     #[test]
     fn resource_to_str() {
-        let azblob = Resource::BlobstoreAzblob;
+        let azblob = Resource::Blob(resource::BlobResource::Azblob);
         assert_eq!(azblob.to_string(), "blobstore.azblob");
+    }
+
+    #[test]
+    fn deserialize_wildcard() -> Result<()> {
+        let path = format!("{}/tests/good/msg.toml", env!("CARGO_MANIFEST_DIR"));
+
+        // deserialize the toml file to struct
+        let builder = SlightFileBuilder::new();
+        let toml_file = builder.path(path)?.build()?;
+        if let Some(capability) = &toml_file.as_ref().capability {
+            assert!(capability.len() == 1);
+            assert!(matches!(capability[0].name(), ResourceName::Any));
+        }
+
+        // serialize the struct to toml
+        let toml = toml::to_string(toml_file.as_ref())?;
+        assert!(toml.contains("name = \"*\""));
+
+        Ok(())
     }
 }

@@ -13,7 +13,7 @@ use slight_file::{Resource, SecretStoreResource};
 ///     - a `name`,
 ///     - a `configs_map`, and
 ///     - the `slightfile_path`.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct BasicState {
     pub secret_store: Option<SecretStoreResource>,
     pub implementor: Resource,
