@@ -23,7 +23,10 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     match &args.command {
-        Commands::Run { module, link_all_capabilities } => {
+        Commands::Run {
+            module,
+            link_all_capabilities,
+        } => {
             let run_args = RunArgs {
                 module: PathBuf::from(&module.path),
                 slightfile: PathBuf::from(args.config.unwrap()),

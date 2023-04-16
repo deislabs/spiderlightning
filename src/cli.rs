@@ -24,7 +24,7 @@ pub enum Commands {
         #[clap(index = 1, value_parser = WasmModuleParser)]
         module: WasmModule,
         #[clap(short, long)]
-        link_all_capabilities: bool
+        link_all_capabilities: bool,
     },
     /// Add a secret to the application
     Secret {
