@@ -1845,16 +1845,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "filesystem-pubsub"
-version = "0.1.10"
-source = "git+https://github.com/danbugs/filesystem-pubsub?rev=45f369ea58d98a8b1d273a9a1fddbceb773fc607#45f369ea58d98a8b1d273a9a1fddbceb773fc607"
-dependencies = [
- "anyhow",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "filetime"
 version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4431,7 +4421,6 @@ dependencies = [
  "azure_core 0.10.0",
  "azure_messaging_servicebus",
  "crossbeam-channel",
- "filesystem-pubsub",
  "http",
  "mosquitto-rs",
  "nats",
