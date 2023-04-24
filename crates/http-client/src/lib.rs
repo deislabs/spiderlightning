@@ -28,6 +28,11 @@ impl http_client::HttpClient for HttpClient {
         for header in req.headers {
             builder = builder.header(header.0, header.1);
         }
+        builder = builder.body(if let Some(body) = req.body {
+            String::from_utf8(body.to_vec()).unwrap()
+        } else {
+            "".to_string()
+        });
         let res = builder.send().await?;
 
         let status = res.status().as_u16();
