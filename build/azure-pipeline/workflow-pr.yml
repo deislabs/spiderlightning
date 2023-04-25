@@ -97,9 +97,9 @@ stages:
           #
           - script: |
               rustup default stable
-              rustup update stable
               rustup target add wasm32-wasi
               rustup target add wasm32-unknown-unknown
+              rustup update stable
             displayName: rustup update default toolchain
 
           #
