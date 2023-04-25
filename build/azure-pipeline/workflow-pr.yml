@@ -127,6 +127,10 @@ stages:
               # choco list --local-only --exact openssl --trace
 
               Dir 'C:\Program Files\'
+
+              # print size
+
+              (gci 'C:\Program Files\OpenSSL' -Recurse -ErrorAction SilentlyContinue | measure Length -s).sum / 1Mb
             displayName: Print location
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
