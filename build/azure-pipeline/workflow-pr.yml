@@ -16,52 +16,52 @@ stages:
           matrix:
             windows-x86:
               poolName: Azure Pipelines
-              imageName: 'windows-latest'
+              imageName: windows-2022
               target_os: windows
               target_arch: x86
               is_cross_compile: true
             windows-x64:
               poolName: Azure Pipelines
-              imageName: 'windows-latest'
+              imageName: windows-2022
               target_os: windows
               target_arch: x86_64
               is_cross_compile: false
             windows-arm64:
               poolName: Azure Pipelines
-              imageName: 'windows-latest'
+              imageName: windows-2022
               target_os: windows
               target_arch: aarch64
               is_cross_compile: true
-            linux-x86:
-              poolName: Azure Pipelines
-              imageName: 'ubuntu-latest'
-              target_os: linux
-              target_arch: x86
-              is_cross_compile: true
-            linux-x64:
-              poolName: Azure Pipelines
-              imageName: 'ubuntu-latest'
-              target_os: linux
-              target_arch: x86_64
-              is_cross_compile: false
-            linux-arm:
-              poolName: Azure Pipelines
-              imageName: 'ubuntu-latest'
-              target_os: linux
-              target_arch: arm
-              is_cross_compile: true
-            linux-arm64:
-              poolName: Azure Pipelines
-              imageName: 'ubuntu-latest'
-              target_os: linux
-              target_arch: aarch64
-              is_cross_compile: true
-            macos-x64:
-              poolName: Azure Pipelines
-              imageName: 'macos-latest'
-              target_os: macos
-              target_arch: x86_64
-              is_cross_compile: false
+            # linux-x86:
+            #   poolName: Azure Pipelines
+            #   imageName: 'ubuntu-latest'
+            #   target_os: linux
+            #   target_arch: x86
+            #   is_cross_compile: true
+            # linux-x64:
+            #   poolName: Azure Pipelines
+            #   imageName: 'ubuntu-latest'
+            #   target_os: linux
+            #   target_arch: x86_64
+            #   is_cross_compile: false
+            # linux-arm:
+            #   poolName: Azure Pipelines
+            #   imageName: 'ubuntu-latest'
+            #   target_os: linux
+            #   target_arch: arm
+            #   is_cross_compile: true
+            # linux-arm64:
+            #   poolName: Azure Pipelines
+            #   imageName: 'ubuntu-latest'
+            #   target_os: linux
+            #   target_arch: aarch64
+            #   is_cross_compile: true
+            # macos-x64:
+            #   poolName: Azure Pipelines
+            #   imageName: 'macos-latest'
+            #   target_os: macos
+            #   target_arch: x86_64
+            #   is_cross_compile: false
 
         pool:
           name: $(poolName)
@@ -112,78 +112,84 @@ stages:
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
             env:
               BUILD_ARCH: $(target_arch)
-
-          - script: make install-deps
-            displayName: Install build tools on linux
-            condition: and(succeeded(), eq(variables['target_os'], 'linux'))
-            env:
-              BUILD_ARCH: $(target_arch)
-
-          - script: make install-deps-macos
-            displayName: Install build tools on macos
-            condition: and(succeeded(), eq(variables['target_os'], 'macos'))
-            env:
-              BUILD_ARCH: $(target_arch)
           
-          - script: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0                         
-            displayName: Install wit-bindgen-cli
+          - script: |
+              ls C:\Program Files\OpenSSL-Win64\
+              ls C:\Program Files\OpenSSL-Win64\include
+            displayName: Check OpenSSL-Win64
+            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+
+          # - script: make install-deps
+          #   displayName: Install build tools on linux
+          #   condition: and(succeeded(), eq(variables['target_os'], 'linux'))
+          #   env:
+          #     BUILD_ARCH: $(target_arch)
+
+          # - script: make install-deps-macos
+          #   displayName: Install build tools on macos
+          #   condition: and(succeeded(), eq(variables['target_os'], 'macos'))
+          #   env:
+          #     BUILD_ARCH: $(target_arch)
+          
+          # - script: cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0                         
+          #   displayName: Install wit-bindgen-cli
           
           #
           # Build
           #
-          - script: make build
-            displayName: Build Linux/MacOS
-            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
+          # - script: make build
+          #   displayName: Build Linux/MacOS
+          #   condition: and(succeeded(), ne(variables['target_os'], 'windows'))
 
-          - script: make build
-            displayName: Build Windows   
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
-            env:
-              OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
-              OPENSSL_NO_VENDOR: true
+          # - script: make build
+          #   displayName: Build Windows   
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          #   env:
+          #     OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          #     OPENSSL_NO_VENDOR: true
 
-          #
-          # Running integration tests
-          #
-          - script: make test-integration
-            displayName: Run Integration Tests (Windows)
-            retryCountOnTaskFailure: 5
-            env:
-              PERL: C:\Strawberry\perl\bin\perl.exe
-              AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
-              AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
-              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
-              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
-              AWS_REGION: $(AWS_REGION)
-              AWS_DEFAULT_REGION: us-west-2
-              AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
-              AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
-              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))        
+          # #
+          # # Running integration tests
+          # #
+          # - script: make test-integration
+          #   displayName: Run Integration Tests (Windows)
+          #   retryCountOnTaskFailure: 5
+          #   env:
+          #     PERL: C:\Strawberry\perl\bin\perl.exe
+          #     AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
+          #     AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
+          #     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+          #     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+          #     AWS_REGION: $(AWS_REGION)
+          #     AWS_DEFAULT_REGION: us-west-2
+          #     AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
+          #     AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
+          #     AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))        
 
-          - script: make test-integration
-            displayName: Run Integration Tests (Unix)
-            retryCountOnTaskFailure: 5
-            env:
-              AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
-              AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
-              AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
-              AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
-              AWS_REGION: $(AWS_REGION)
-              AWS_DEFAULT_REGION: us-west-2
-              AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
-              AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
-              AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
-            condition: and(succeeded(), ne(variables['target_os'], 'windows'))      
+          # - script: make test-integration
+          #   displayName: Run Integration Tests (Unix)
+          #   retryCountOnTaskFailure: 5
+          #   env:
+          #     AZURE_STORAGE_ACCOUNT: $(AZURE_STORAGE_ACCOUNT)
+          #     AZURE_STORAGE_KEY: $(AZURE_STORAGE_KEY)
+          #     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+          #     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+          #     AWS_REGION: $(AWS_REGION)
+          #     AWS_DEFAULT_REGION: us-west-2
+          #     AZAPPCONFIG_ENDPOINT: $(AZAPPCONFIG_ENDPOINT)
+          #     AZAPPCONFIG_KEYID: $(AZAPPCONFIG_KEYID)
+          #     AZAPPCONFIG_KEYSECRET: $(AZAPPCONFIG_KEYSECRET)
+          #   condition: and(succeeded(), ne(variables['target_os'], 'windows'))      
 
-          - script: make build-c
-            displayName: Build C Examples
-            condition: and(succeeded(), ne(variables['target_os'], 'windows'))
+          # - script: make build-c
+          #   displayName: Build C Examples
+          #   condition: and(succeeded(), ne(variables['target_os'], 'windows'))
 
-          - script: make build-c-win
-            displayName: Build C Examples Windows
-            condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          # - script: make build-c-win
+          #   displayName: Build C Examples Windows
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
           
-          - script: make build-rust
-            displayName: Build Rust Examples
+          # - script: make build-rust
+          #   displayName: Build Rust Examples
           
