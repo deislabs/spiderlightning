@@ -116,8 +116,8 @@ stages:
           - script: |
               refreshenv
               # print env var "OPENSSL_DIR"
-              echo $OPENSSL_DIR
-            displayName: Print env var
+              ls 'C:\Program Files (x86)\Microsoft\Edge\Application'
+            displayName: Print location
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
           # - script: make install-deps
