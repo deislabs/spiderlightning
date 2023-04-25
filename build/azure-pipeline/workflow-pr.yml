@@ -95,7 +95,7 @@ stages:
           #
           # Update build environment
           #
-          - bash: |
+          - script: |
               rustup default stable
               rustup update stable
               rustup target add wasm32-wasi
