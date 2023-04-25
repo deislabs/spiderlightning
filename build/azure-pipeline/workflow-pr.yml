@@ -114,9 +114,10 @@ stages:
               BUILD_ARCH: $(target_arch)
           
           - script: |
-              ls "C:\Program Files\OpenSSL-Win64\"
-              ls "C:\Program Files\OpenSSL-Win64\include"
-            displayName: Check OpenSSL-Win64
+              refreshenv
+              # print env var "OPENSSL_DIR"
+              echo $OPENSSL_DIR
+            displayName: Print env var
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
           # - script: make install-deps
