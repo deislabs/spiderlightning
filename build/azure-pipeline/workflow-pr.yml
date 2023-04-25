@@ -130,7 +130,7 @@ stages:
 
               # print size
 
-              (gci 'C:\Program Files\OpenSSL' -Recurse -ErrorAction SilentlyContinue | measure Length -s).sum / 1Mb
+              (gci 'C:\Program Files\OpenSSL' -Recurse -ErrorAction SilentlyContinue | measure Length -Sum).sum / 1Mb
             displayName: Print location
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
