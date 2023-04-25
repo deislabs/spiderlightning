@@ -139,7 +139,7 @@ stages:
             displayName: Build Windows   
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
             env:
-              OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+              OPENSSL_DIR: C:\Program Files\OpenSSL\
               OPENSSL_NO_VENDOR: true
 
           #
