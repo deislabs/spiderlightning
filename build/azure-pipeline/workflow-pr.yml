@@ -95,12 +95,12 @@ stages:
           #
           # Update build environment
           #
-          - bash: |
-              rustup default stable
-              rustup update stable
-              rustup target add wasm32-wasi
-              rustup target add wasm32-unknown-unknown
-            displayName: rustup update default toolchain
+          # - bash: |
+          #     rustup default stable
+          #     rustup update stable
+          #     rustup target add wasm32-wasi
+          #     rustup target add wasm32-unknown-unknown
+          #   displayName: rustup update default toolchain
 
           #
           # Install build tools
@@ -114,8 +114,8 @@ stages:
               BUILD_ARCH: $(target_arch)
           
           - script: |
-              ls C:\Program Files\OpenSSL-Win64\
-              ls C:\Program Files\OpenSSL-Win64\include
+              ls "C:\Program Files\OpenSSL-Win64\"
+              ls "C:\Program Files\OpenSSL-Win64\include"
             displayName: Check OpenSSL-Win64
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
