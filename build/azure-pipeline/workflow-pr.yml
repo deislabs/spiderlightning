@@ -105,9 +105,15 @@ stages:
           #
           # Install build tools
           #          
-          - script: |
-              choco install strawberryperl
-              make install-deps-win
+          # - script: |
+          #     choco install strawberryperl
+          #     make install-deps-win
+          #   displayName: Install build tools on windows
+          #   condition: and(succeeded(), eq(variables['target_os'], 'windows'))
+          #   env:
+          #     BUILD_ARCH: $(target_arch)
+          - pwsh: |
+              choco install openssl -y
             displayName: Install build tools on windows
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
             env:
@@ -120,7 +126,7 @@ stages:
 
               # choco list --local-only --exact openssl --trace
 
-              Dir 'C:\Program Files\OpenSSL\'
+              Dir 'C:\Program Files\'
             displayName: Print location
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
