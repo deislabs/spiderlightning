@@ -120,7 +120,7 @@ stages:
 
               # choco list --local-only --exact openssl --trace
 
-              Dir 'C:\Program Files'
+              Dir 'C:\Program Files\OpenSSL\'
             displayName: Print location
             condition: and(succeeded(), eq(variables['target_os'], 'windows'))
 
