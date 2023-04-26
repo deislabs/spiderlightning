@@ -38,6 +38,7 @@ pub struct RunArgs {
     pub module: PathBuf,
     pub slightfile: PathBuf,
     pub io_redirects: Option<IORedirects>,
+    pub link_all_capabilities: bool,
 }
 
 pub async fn handle_run(args: RunArgs) -> Result<()> {
@@ -46,9 +47,22 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
         .build()?;
     let http_enabled = toml.has_http_cap();
     tracing::info!("Starting slight");
+    let mut host_builder = Builder::from_module(&args.module)?;
+    let mut linked_capabilities: HashSet<String> = HashSet::new();
 
-    let mut host_builder =
-        build_store_instance(toml.as_ref(), &args.slightfile, &args.module).await?;
+    if args.link_all_capabilities {
+        tracing::info!("Linking all capabilities");
+        link_all_caps(&mut host_builder, &mut linked_capabilities)?;
+    }
+
+    build_store_instance(
+        toml.as_ref(),
+        &args.slightfile,
+        &mut host_builder,
+        &mut linked_capabilities,
+    )
+    .await?;
+
     if let Some(io_redirects) = args.io_redirects.clone() {
         tracing::info!("slight io redirects were specified");
         host_builder = host_builder.set_io(io_redirects);
@@ -61,9 +75,10 @@ pub async fn handle_run(args: RunArgs) -> Result<()> {
         update_http_states(
             toml.as_ref(),
             args.slightfile,
-            args.module,
+            &args.module,
             &mut store,
             args.io_redirects,
+            args.link_all_capabilities,
         )
         .await?;
 
@@ -106,8 +121,21 @@ async fn update_http_states(
     module: impl AsRef<Path>,
     store: &mut Store<slight_runtime::RuntimeContext>,
     maybe_stdio: Option<IORedirects>,
+    link_all: bool,
 ) -> Result<(), anyhow::Error> {
-    let mut guest_builder: Builder = build_store_instance(toml, &toml_file_path, &module).await?;
+    let mut guest_builder = Builder::from_module(module)?;
+    let mut linked_capabilities = HashSet::new();
+
+    if link_all {
+        link_all_caps(&mut guest_builder, &mut linked_capabilities)?;
+    }
+    build_store_instance(
+        toml,
+        &toml_file_path,
+        &mut guest_builder,
+        &mut linked_capabilities,
+    )
+    .await?;
     if let Some(ioredirects) = maybe_stdio {
         tracing::info!("setting HTTP guest builder io redirects");
         guest_builder = guest_builder.set_io(ioredirects);
@@ -154,13 +182,46 @@ async fn shutdown_signal() {
         .expect("failed to install CTRL+C signal handler");
 }
 
+fn link_all_caps(builder: &mut Builder, linked_capabilities: &mut HashSet<String>) -> Result<()> {
+    builder.link_capability::<BlobStore>()?;
+    linked_capabilities.insert(BLOB_STORE_SCHEME_NAME.to_string());
+
+    builder.link_capability::<Keyvalue>()?;
+    linked_capabilities.insert("keyvalue".to_string());
+
+    builder.link_capability::<DistributedLocking>()?;
+    linked_capabilities.insert("distributed_locking".to_string());
+
+    builder.link_capability::<Messaging>()?;
+    linked_capabilities.insert("messaging".to_string());
+
+    builder.link_capability::<Configs>()?;
+    linked_capabilities.insert("configs".to_string());
+
+    builder.link_capability::<Sql>()?;
+    linked_capabilities.insert("sql".to_string());
+
+    let http = slight_http_server::HttpServer::<Builder>::default();
+    builder
+        .link_capability::<HttpServer<Builder>>()?
+        .add_to_builder("http".to_string(), http);
+    linked_capabilities.insert("http".to_string());
+
+    let http_client = HttpClient::new();
+    builder
+        .link_capability::<HttpClient>()?
+        .add_to_builder("http-client".to_string(), http_client);
+    linked_capabilities.insert("http-client".to_string());
+
+    Ok(())
+}
+
 async fn build_store_instance(
     toml: &SlightFile,
     toml_file_path: impl AsRef<Path>,
-    module: impl AsRef<Path>,
-) -> Result<Builder> {
-    let mut builder = Builder::from_module(module)?;
-    let mut linked_capabilities: HashSet<String> = HashSet::new();
+    builder: &mut Builder,
+    linked_capabilities: &mut HashSet<String>,
+) -> Result<()> {
     let mut capability_store = CapabilityStore::<BasicState>::new();
 
     builder.link_wasi()?;
@@ -257,8 +318,6 @@ async fn build_store_instance(
                         .link_capability::<HttpServer<Builder>>()?
                         .add_to_builder("http".to_string(), http);
                     linked_capabilities.insert("http".to_string());
-                } else {
-                    bail!("the http capability was already linked");
                 }
             }
             #[cfg(feature = "http-client")]
@@ -269,14 +328,12 @@ async fn build_store_instance(
                         .link_capability::<HttpClient>()?
                         .add_to_builder("http-client".to_string(), http_client);
                     linked_capabilities.insert("http-client".to_string());
-                } else {
-                    bail!("the http-client capability was already linked");
                 }
             }
         }
     }
 
-    Ok(builder)
+    Ok(())
 }
 
 fn maybe_add_named_capability_to_store(
@@ -347,6 +404,7 @@ mod unittest {
                 stdout_path: Some(PathBuf::from(&stdout_path)),
                 stderr_path: Some(PathBuf::from(&stderr_path)),
             }),
+            link_all_capabilities: false,
         };
 
         handle_run(args).await?;
