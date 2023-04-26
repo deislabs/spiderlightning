@@ -1,7 +1,7 @@
 
 <div align="center">
   <h1><code>SpiderLightning</code></h1>
-  <img src="docs/images/tmp-logo.png" width="150px" />
+  <img src="docs/images/spiderlightning_logo_alt2.png" width="150px" />
   <p>
     <strong> A set of
     <a href="https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md">WIT</a> interfaces that abstract distributed application capabilities and a runtime CLI for running Wasm applications that use these capabilities. 
