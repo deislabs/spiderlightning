@@ -171,7 +171,7 @@ impl messaging::Messaging for Messaging {
         match self.store.get(name, "") {
             Some(inner) => Ok(inner.pub_implementor.clone()),
             None => Err(MessagingError::UnexpectedError(format!(
-                "No messaging implementor found for {name}"
+                "No messaging implementor found for {name}",
             ))),
         }
     }
