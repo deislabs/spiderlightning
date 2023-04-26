@@ -120,7 +120,7 @@ jobs:
         run: make build
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
         env:
-          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          OPENSSL_DIR: C:\Program Files\OpenSSL\
           OPENSSL_NO_VENDOR: true
 
       #
@@ -144,7 +144,7 @@ jobs:
         run: make test
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
         env:
-          OPENSSL_DIR: C:\Program Files\OpenSSL-Win64\
+          OPENSSL_DIR: C:\Program Files\OpenSSL\
           OPENSSL_NO_VENDOR: true
 
       #
