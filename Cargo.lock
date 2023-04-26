@@ -4217,11 +4217,7 @@ dependencies = [
  "clap",
  "flate2",
  "log",
-<<<<<<< Updated upstream
  "rand 0.8.5",
-=======
- "rand 0.7.3",
->>>>>>> Stashed changes
  "reqwest",
  "slight-blob-store",
  "slight-common",
