@@ -66,9 +66,7 @@ impl SubImplementor for NatsIoImplementor {
                     .get(sub_tok)
                     .with_context(|| "failed to get consumer from subscription token")?;
 
-                let msg = accessed_consumer
-                    .try_next()
-                    .ok_or(anyhow::anyhow!("failed to get message from consumer"))?;
+                let msg = accessed_consumer.next_timeout(Duration::from_millis(500))?;
 
                 Ok(msg.data)
             })
