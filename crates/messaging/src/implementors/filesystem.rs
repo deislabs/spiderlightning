@@ -1,6 +1,6 @@
+use crate::providers::fs::Pubsub;
 use anyhow::Result;
 use async_trait::async_trait;
-use filesystem_pubsub::Pubsub;
 
 use crate::PubImplementor;
 
