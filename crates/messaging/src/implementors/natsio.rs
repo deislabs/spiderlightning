@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use nats::{Connection, Subscription};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tokio::runtime::Handle;
 use tokio::task::block_in_place;
 
@@ -65,7 +66,7 @@ impl SubImplementor for NatsIoImplementor {
                     .get(sub_tok)
                     .with_context(|| "failed to get consumer from subscription token")?;
 
-                let msg = accessed_consumer.next().unwrap();
+                let msg = accessed_consumer.next_timeout(Duration::from_millis(500))?;
 
                 Ok(msg.data)
             })
