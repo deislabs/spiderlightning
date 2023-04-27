@@ -4200,14 +4200,14 @@ checksum = "03b634d87b960ab1a38c4fe143b508576f075e7c978bfad18217645ebfdfa2ec"
 
 [[package]]
 name = "slight"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "as-any",
  "clap",
  "flate2",
  "log",
- "rand 0.8.5",
+ "rand 0.4.6",
  "reqwest",
  "slight-blob-store",
  "slight-common",
@@ -4265,7 +4265,7 @@ dependencies = [
 
 [[package]]
 name = "slight-core"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -4375,7 +4375,7 @@ dependencies = [
 
 [[package]]
 name = "slight-integration-tests"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "hyper",
