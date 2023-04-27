@@ -19,4 +19,4 @@ semver = { workspace = true }
 slight-file = { workspace = true }
 
 [dev-dependencies]
-tempdir = { workspace = true }
+tempfile = { workspace = true }

@@ -70,13 +70,13 @@ mod unittests {
 
     use anyhow::Result;
     use slight_file::SlightFile;
-    use tempdir::TempDir;
+    use tempfile::tempdir;
 
     use super::UserSecrets;
 
     #[test]
     fn set_then_get_test() -> Result<()> {
-        let dir = TempDir::new("tmp")?;
+        let dir = tempdir()?;
         let toml_file_pathpuf = dir.path().join("slightfile.toml");
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 

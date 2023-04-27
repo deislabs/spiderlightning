@@ -500,7 +500,7 @@ mod integration_tests {
 
         #[test]
         fn slight_new_rust() -> anyhow::Result<()> {
-            let tmpdir = tempdir::TempDir::new("tests")?;
+            let tmpdir = tempfile::tempdir()?;
             let mut child = Command::new(slight_path())
                 .args(["new", "--name-at-release", "my-demo@v0.4.0", "rust"])
                 .current_dir(&tmpdir)
@@ -545,7 +545,7 @@ mod integration_tests {
             ];
             let version = "v0.4.0";
 
-            let tmpdir = tempdir::TempDir::new("tests")?;
+            let tmpdir = tempfile::tempdir()?;
             for cap in capabilities {
                 let output = Command::new(slight_path())
                     .args(["add", &format!("{cap}@{version}")])
@@ -574,7 +574,7 @@ mod integration_tests {
             wits.sort();
             let version = "v0.4.0";
 
-            let tmpdir = tempdir::TempDir::new("tests")?;
+            let tmpdir = tempfile::tempdir()?;
 
             let output = Command::new(slight_path())
                 .args(["add", &format!("{cap}@{version}", cap = "http-server")])

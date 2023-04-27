@@ -98,14 +98,14 @@ mod unittests {
     use std::{fs::OpenOptions, io::Write};
 
     use anyhow::Result;
-    use tempdir::TempDir;
+    use tempfile::tempdir;
 
     use super::create_secret;
     use slight_file::SlightFile;
 
     #[test]
     fn create_secret_test() -> Result<()> {
-        let dir = TempDir::new("tmp")?;
+        let dir = tempdir()?;
         let toml_file_pathpuf = dir.path().join("slightfile.toml");
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
@@ -123,7 +123,7 @@ mod unittests {
 
     #[test]
     fn add_new_secret() -> Result<()> {
-        let dir = TempDir::new("tmp")?;
+        let dir = tempdir()?;
         let toml_file_pathpuf = dir.path().join("slightfile.toml");
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
@@ -174,7 +174,7 @@ mod unittests {
 
     #[test]
     fn change_existing_secret() -> Result<()> {
-        let dir = TempDir::new("tmp")?;
+        let dir = tempdir()?;
         let toml_file_pathpuf = dir.path().join("slightfile.toml");
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
@@ -211,7 +211,7 @@ mod unittests {
 
     #[test]
     fn change_duplicate_secret() -> Result<()> {
-        let dir = TempDir::new("tmp")?;
+        let dir = tempdir()?;
         let toml_file_pathpuf = dir.path().join("slightfile.toml");
         let toml_file_pathstr = toml_file_pathpuf.to_str().unwrap();
 
