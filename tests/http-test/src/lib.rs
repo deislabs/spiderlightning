@@ -41,7 +41,11 @@ fn handle_hello(req: Request) -> Result<Response, HttpError> {
 
 #[register_handler]
 fn handle_person_with_name(req: Request) -> Result<Response, HttpError> {
-    let id = req.params.into_iter().find(|x| x.0 == "name").unwrap_or(("".into(), "".into()));
+    let id = req
+        .params
+        .into_iter()
+        .find(|x| x.0 == "name")
+        .unwrap_or(("".into(), "".into()));
     Ok(Response {
         headers: Some(req.headers),
         body: Some(format!("hello: {}", id.1).as_bytes().to_vec()),
@@ -78,7 +82,6 @@ fn delete_file_handler(request: Request) -> Result<Response, HttpError> {
     })
 }
 
-
 #[register_handler]
 fn upload(request: Request) -> Result<Response, HttpError> {
     assert_eq!(request.method, Method::Post);
@@ -92,13 +95,16 @@ fn upload(request: Request) -> Result<Response, HttpError> {
 #[register_handler]
 fn handle_request(_request: Request) -> Result<Response, HttpError> {
     let req = crate::http_client::Request {
-        method: crate::http_client::Method::Get,
-        uri: "https://some-random-api.ml/facts/cat",
-        headers: &[],
-        body: None,
+        method: crate::http_client::Method::Post,
+        uri: "https://httpbin.org/post",
+        headers: &[("Content-Type", "application/text")],
+        body: Some("hello, world".as_bytes()),
         params: &[],
     };
     let res = crate::http_client::request(req).unwrap();
+
+    assert!(res.body.as_ref().map_or(false, |body| String::from_utf8_lossy(body).contains("hello, world")));
+
     let res = Response {
         status: res.status,
         headers: res.headers,
