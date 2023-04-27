@@ -49,7 +49,7 @@ impl Pubsub {
     }
 
     pub fn publish(&self, message: &[u8], topic: &str) -> Result<()> {
-        let fixed_topic = topic.replace("-", "_");
+        let fixed_topic = topic.replace('-', "_");
         let topic_path = self.locale.as_ref().join(fixed_topic.clone());
 
         // If the topic file doesn't exist, create it
@@ -76,7 +76,7 @@ impl Pubsub {
             let file_name = path.file_name().unwrap().to_str().unwrap();
 
             // If the file is a subscriber file (i.e., "<topic-name>-<subscription-token>")
-            if file_name.starts_with(&fixed_topic) && file_name.contains("+") {
+            if file_name.starts_with(&fixed_topic) && file_name.contains('+') {
                 let mut sub_file = OpenOptions::new().write(true).append(true).open(&path)?;
 
                 // Add a newline character at the end of the message
@@ -101,7 +101,7 @@ impl Pubsub {
             let path = file.expect("Unable to topic").path();
             let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
             if file_name.contains(sub_tok) {
-                sub_file_name = file_name.clone();
+                sub_file_name = file_name;
                 break;
             }
         }
@@ -138,11 +138,11 @@ impl Pubsub {
         sub_file.set_len((sub_file_contents.len() - last_message.len()) as u64)?;
         tracing::debug!("truncated subscription file");
 
-        Ok(Vec::from(last_message))
+        Ok(last_message)
     }
 
     pub fn subscribe(&self, topic: &str) -> Result<String> {
-        let fixed_topic = topic.replace("-", "_");
+        let fixed_topic = topic.replace('-', "_");
 
         // Generate a random UUID to use as the subscription token
         let sub_token = uuid::Uuid::new_v4().to_string();
@@ -151,7 +151,7 @@ impl Pubsub {
         let sub_file_path = self
             .locale
             .as_ref()
-            .join(format!("{}+{}", fixed_topic, sub_token));
+            .join(format!("{fixed_topic}+{sub_token}"));
 
         let topic_path = self.locale.as_ref().join(fixed_topic);
 
