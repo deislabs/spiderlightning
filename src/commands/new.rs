@@ -17,8 +17,8 @@ pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templat
     let release = name_at_release.version.to_string();
 
     // check project_name is not C or Rust
-    if project_name == "c" || project_name == "rust" {
-        bail!("project name cannot be c or rust");
+    if project_name == "c" || project_name == "rust" || project_name == "js" {
+        bail!("project name cannot be c, js, or rust");
     }
 
     let resp = reqwest::get(format!(
@@ -36,6 +36,7 @@ pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templat
     match template {
         Templates::C => setup_c_template(&project_name, &release)?,
         Templates::Rust => setup_rust_template(&project_name, &release)?,
+        Templates::Js => setup_js_template(&project_name, &release)?,
     };
 
     handle_add(
@@ -43,6 +44,12 @@ pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templat
         Some(&format!("./{project_name}/wit/")),
     )
     .await?;
+
+    Ok(())
+}
+
+fn setup_js_template(project_name: &str, release: &str) -> Result<()> {
+    better_rename("js", project_name)?;
 
     Ok(())
 }

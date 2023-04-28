@@ -187,6 +187,7 @@ prepare-release:
 	tar -C target/ -czvf slight-linux-x86_64.tar.gz release/slight
 	tar -C templates/ -czvf rust-template.tar.gz rust
 	tar -C templates/ -czvf c-template.tar.gz c
+	tar -C templates/ -czvf js-template.tar.gz js
 
 .PHONY: prepare-release-win
 prepare-release-win:

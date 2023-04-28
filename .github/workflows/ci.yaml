@@ -178,6 +178,14 @@ jobs:
           retention-days: 5
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
 
+      - name: upload js template tar
+        uses: actions/upload-artifact@v3
+        with:
+          name: js-template.tar.gz
+          path: ./js-template.tar.gz
+          retention-days: 5
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}        
+
       - run: make prepare-release-win
         if: ${{ fromJSON(matrix.config.os == 'windows-latest') }}
 

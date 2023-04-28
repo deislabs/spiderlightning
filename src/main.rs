@@ -9,7 +9,7 @@ use slight_lib::{
         add::handle_add,
         new::handle_new,
         run::{handle_run, RunArgs},
-        secret::handle_secret,
+        secret::handle_secret, build::handle_build,
     },
 };
 
@@ -43,5 +43,10 @@ async fn main() -> Result<()> {
             command,
             name_at_release,
         } => handle_new(name_at_release, command).await,
+        Commands::Build {
+            engine_file,
+            main_file,
+            output_file,
+        } => handle_build(engine_file, main_file, output_file)
     }
 }

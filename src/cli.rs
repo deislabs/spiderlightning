@@ -46,6 +46,16 @@ pub enum Commands {
         #[clap(short, long, value_parser = InterfaceParser)]
         name_at_release: InterfaceAtRelease,
     },
+
+    /// Build a JS Slight project
+    Build {
+        #[clap(short, long, value_parser)]
+        engine_file: String,
+        #[clap(short, long, value_parser)]
+        main_file: String,
+        #[clap(short, long, value_parser)]
+        output_file: String,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -54,6 +64,8 @@ pub enum Templates {
     C,
     /// Start a new Rust Slight Project
     Rust,
+    /// Start a new Js Slight Project
+    Js,
 }
 
 impl std::fmt::Display for Templates {
@@ -64,6 +76,7 @@ impl std::fmt::Display for Templates {
             match self {
                 Templates::C => "c",
                 Templates::Rust => "rust",
+                Templates::Js => "js",
             }
         )
     }
