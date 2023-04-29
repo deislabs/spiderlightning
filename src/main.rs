@@ -7,9 +7,10 @@ use slight_lib::{
     cli::{Args, Commands},
     commands::{
         add::handle_add,
+        build::handle_build,
         new::handle_new,
         run::{handle_run, RunArgs},
-        secret::handle_secret, build::handle_build,
+        secret::handle_secret,
     },
 };
 
@@ -47,6 +48,6 @@ async fn main() -> Result<()> {
             engine_file,
             main_file,
             output_file,
-        } => handle_build(engine_file, main_file, output_file)
+        } => handle_build(engine_file, main_file, output_file),
     }
 }

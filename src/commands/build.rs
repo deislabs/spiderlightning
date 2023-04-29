@@ -1,4 +1,8 @@
-use std::{env, fs::{self, File}, process::Command};
+use std::{
+    env,
+    fs::{self, File},
+    process::Command,
+};
 use wizer::Wizer;
 
 use anyhow::Result;
