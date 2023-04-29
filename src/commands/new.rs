@@ -36,7 +36,7 @@ pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templat
     match template {
         Templates::C => setup_c_template(&project_name, &release)?,
         Templates::Rust => setup_rust_template(&project_name, &release)?,
-        Templates::Js => setup_js_template(&project_name, &release)?,
+        Templates::Js => setup_js_template(&project_name)?,
     };
 
     handle_add(
@@ -48,7 +48,7 @@ pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templat
     Ok(())
 }
 
-fn setup_js_template(project_name: &str, release: &str) -> Result<()> {
+fn setup_js_template(project_name: &str) -> Result<()> {
     better_rename("js", project_name)?;
 
     Ok(())
