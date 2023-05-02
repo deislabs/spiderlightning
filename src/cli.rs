@@ -48,7 +48,7 @@ pub enum Commands {
     },
 
     /// Build a JS Slight project
-    Build {
+    BuildJs {
         #[clap(short, long, value_parser)]
         engine_file: String,
         #[clap(short, long, value_parser)]

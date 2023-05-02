@@ -7,7 +7,7 @@ use wizer::Wizer;
 
 use anyhow::Result;
 
-pub fn handle_build(engine_path: &str, js_path: &str, output_file: &str) -> Result<()> {
+pub fn handle_buildjs(engine_path: &str, js_path: &str, output_file: &str) -> Result<()> {
     if env::var("JS_COMPILED").eq(&Ok("1".into())) {
         env::remove_var("JS_COMPILED");
 
