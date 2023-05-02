@@ -55,6 +55,11 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
+          name: js-template.tar.gz
+        if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
+
+      - uses: actions/download-artifact@v3
+        with:
           name: slight-linux-x86_64.tar.gz
         if: ${{ fromJSON(matrix.config.os == 'ubuntu-latest') }}
 
