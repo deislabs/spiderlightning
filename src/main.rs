@@ -7,6 +7,7 @@ use slight_lib::{
     cli::{Args, Commands},
     commands::{
         add::handle_add,
+        buildjs::handle_buildjs,
         new::handle_new,
         run::{handle_run, RunArgs},
         secret::handle_secret,
@@ -43,5 +44,10 @@ async fn main() -> Result<()> {
             command,
             name_at_release,
         } => handle_new(name_at_release, command).await,
+        Commands::BuildJs {
+            engine_file,
+            main_file,
+            output_file,
+        } => handle_buildjs(engine_file, main_file, output_file),
     }
 }

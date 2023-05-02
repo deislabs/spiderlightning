@@ -38,6 +38,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = "0.11"
 flate2 = "1"
 tar = "0.4"
+wizer = { git = "https://github.com/bytecodealliance/wizer", rev = "3acc39cc561e7f985f163a2c8e89259a0dfc2f2f"}
 
 [dev-dependencies]
 tempfile = { workspace = true }
@@ -77,10 +78,10 @@ slight-http-client = { path = "./crates/http-client" }
 slight-http-api = { path = "./crates/http-api" }
 wit-bindgen-wasmtime = { git = "https://github.com/fermyon/wit-bindgen-backport", features = ["async"] }
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
-wasmtime = "7.0.0"
-wasmtime-wasi = "7.0.0"
-wasi-common = "7.0.0"
-wasi-cap-std-sync = "7.0.0"
+wasmtime = "8.0.1"
+wasmtime-wasi = "8.0.1"
+wasi-common = "8.0.1"
+wasi-cap-std-sync = "8.0.1"
 anyhow = "1"
 async-trait = "0.1"
 tokio = { version = "1", features = ["full"] }

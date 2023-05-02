@@ -1,0 +1,6 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "keyvalue.filesystem"
+name = "placeholder-name"
+    # This capability does not require any configs
