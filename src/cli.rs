@@ -48,13 +48,13 @@ pub enum Commands {
     },
 
     /// Build a JS Slight project
-    BuildJs {
-        #[clap(short, long, value_parser)]
-        engine_file: String,
-        #[clap(short, long, value_parser)]
-        main_file: String,
-        #[clap(short, long, value_parser)]
-        output_file: String,
+    Buildjs {
+        #[clap(value_parser)]
+        src: String,
+        #[clap(short, long, value_parser = WasmModuleParser)]
+        engine: WasmModule,
+        #[clap(short, long, value_parser = WasmModuleParser)]
+        output: WasmModule,
     },
 }
 

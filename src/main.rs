@@ -16,7 +16,7 @@ use slight_lib::{
 
 /// The entry point for slight CLI
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<()> {    
     tracing_subscriber::fmt()
         .with_writer(std::io::stderr)
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
@@ -44,10 +44,10 @@ async fn main() -> Result<()> {
             command,
             name_at_release,
         } => handle_new(name_at_release, command).await,
-        Commands::BuildJs {
-            engine_file,
-            main_file,
-            output_file,
-        } => handle_buildjs(engine_file, main_file, output_file),
+        Commands::Buildjs {
+            src,
+            engine,
+            output,
+        } => handle_buildjs(&engine.path, src, &output.path),
     }
 }

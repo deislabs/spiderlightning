@@ -31,9 +31,12 @@ pub fn handle_buildjs(engine_path: &str, js_path: &str, output_file: &str) -> Re
 
     let self_cmd = std::env::current_exe()?;
     let status = Command::new(self_cmd)
+        .arg("buildjs")
+        .arg("--engine")
         .arg(engine_path)
-        .arg(js_path)
+        .arg("--output")
         .arg(output_file)
+        .arg(js_path)
         .stdin(script)
         .status()?;
     if !status.success() {
