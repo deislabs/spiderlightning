@@ -34,7 +34,7 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 
 ## Getting Started
 
-`slight` relies on a WIT bindings generator [wit-bindgen v0.2.0](https://github.com/bytecodealliance/wit-bindgen), and currently only supports C, Rust, Go and JS applications.
+`slight` relies [wit-bindgen v0.2.0](https://github.com/bytecodealliance/wit-bindgen), and currently only supports their offerings for guest applications (e.g., Rust, C, etc.), plus JavaScript.
 
 ### JS
 
