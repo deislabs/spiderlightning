@@ -39,13 +39,13 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 ### JS
 
 ```sh
-slight new -n spidey@v0.5.0 js
+slight new -n spidey@v0.5.0 js && cd spidey
 # ^^^ starts a new js project under SpiderLightning's v0.5.0 spec
 
 slight buildjs -e slightjs_engine.wasm -o main.wasm src/main.js
 # ^^^ builds the js application
 
-slight -c slightfile.toml run -m main.wasm -l
+slight -c slightfile.toml run main.wasm -l
 # At this point, you should see: "Hello, JS Wasm!"
 ```
 
@@ -54,7 +54,7 @@ slight -c slightfile.toml run -m main.wasm -l
 ### C
 
 ```sh
-slight new -n spidey@v0.5.0 c
+slight new -n spidey@v0.5.0 c && cd spidey
 # ^^^ starts a new c project under SpiderLightning's v0.5.0 spec
 
 # you might want to install wasi-sdk dependencies...
@@ -69,7 +69,7 @@ slight new -n spidey@v0.5.0 c
 # on windows, run:
 # make bindings && make build-win
 
-slight -c slightfile.toml run -m spidey.wasm
+slight -c slightfile.toml run spidey.wasm
 # At this point, you should see: "Hello, SpiderLightning!"
 ```
 
