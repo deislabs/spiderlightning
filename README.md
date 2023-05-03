@@ -34,29 +34,54 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 
 ## Getting Started
 
-`slight` relies on a WIT bindings generator [wit-bindgen v0.2.0](https://github.com/bytecodealliance/wit-bindgen), and currently only supports C and Rust applications. We are planning to add more language supports, such as Go and JavaScript/TypeScript.
+`slight` relies on a WIT bindings generator [wit-bindgen v0.2.0](https://github.com/bytecodealliance/wit-bindgen), and currently only supports C, Rust, Go and JS applications.
+
+### JS
 
 ```sh
-slight new -n spidey@v0.5.0 rust && cd spidey
-# ^^^ starts a new rust project under SpiderLightning's v0.1.0 spec
-# use: `slight new -n spidey@v0.5.0 c` to start a new c project
+slight new -n spidey@v0.5.0 js
+# ^^^ starts a new js project under SpiderLightning's v0.5.0 spec
 
-cargo build --target wasm32-wasi
-# ^^^ for c...
+slight buildjs -e slightjs_engine.wasm -o main.wasm src/main.js
+# ^^^ builds the js application
+
+slight -c slightfile.toml run -m main.wasm -l
+# At this point, you should see: "Hello, JS Wasm!"
+```
+
+> Note: All SpiderLightning dependencies are being injected directly into JavaScript's context. This allows you to write SDK-less applications, but, at the same time, it's a can be a bit less clear what functionalities are available to you. For a comprehensive list of examples on how to use SpiderLightning's capabilities in JS, see [here](https://github.com/danbugs/slightjs).
+
+### C
+
+```sh
+slight new -n spidey@v0.5.0 c
+# ^^^ starts a new c project under SpiderLightning's v0.5.0 spec
+
 # you might want to install wasi-sdk dependencies...
 # on unix, run: 
 # make install-deps
 # on windows, run:
 # make install-deps-win
+
+# next, to build...
 # on unix, run:
 # make bindings && make build
 # on windows, run:
 # make bindings && make build-win
 
-slight -c slightfile.toml run target/wasm32-wasi/debug/spidey.wasm
-# ^^^ for c, run:
-# slight -c slightfile.toml run -m spidey.wasm
+slight -c slightfile.toml run -m spidey.wasm
+# At this point, you should see: "Hello, SpiderLightning!"
+```
 
+### Rust
+
+```sh
+slight new -n spidey@v0.5.0 rust && cd spidey
+# ^^^ starts a new rust project under SpiderLightning's v0.5.0 spec
+
+cargo build --target wasm32-wasi
+
+slight -c slightfile.toml run target/wasm32-wasi/debug/spidey.wasm
 # At this point, you should see: "Hello, SpiderLightning!"
 ```
 
