@@ -39,11 +39,13 @@ pub async fn handle_new(name_at_release: &InterfaceAtRelease, template: &Templat
         Templates::Js => setup_js_template(&project_name)?,
     };
 
-    handle_add(
-        InterfaceAtRelease::new("keyvalue", &release),
-        Some(&format!("./{project_name}/wit/")),
-    )
-    .await?;
+    if template != &Templates::Js { 
+        handle_add(
+            InterfaceAtRelease::new("keyvalue", &release),
+            Some(&format!("./{project_name}/wit/")),
+        )
+        .await?;
+    }
 
     Ok(())
 }
