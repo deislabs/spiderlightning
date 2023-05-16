@@ -58,7 +58,7 @@ pub enum Commands {
     },
 }
 
-#[derive(Debug, Subcommand)]
+#[derive(Debug, Subcommand, PartialEq)]
 pub enum Templates {
     /// Start a new C Slight project
     C,
