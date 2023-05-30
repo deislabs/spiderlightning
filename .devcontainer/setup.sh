@@ -12,14 +12,19 @@ apt-get install -y \
     build-essential \
     cmake \
     libssl-dev \
-    openssl \    
+    openssl \
     unzip
+
+## Add package directories to PATH
+export PATH="/usr/bin:/usr/local/bin:$PATH"
 
 ## update and install 2nd level of packages
 apt-get install -y pkg-config
 
 ## install rustup and common components
 curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+source $HOME/.cargo/env
 
 rustup install nightly
 rustup component add rustfmt
@@ -29,7 +34,7 @@ rustup component add clippy --toolchain nightly
 
 cargo install cargo-expand
 cargo install cargo-edit
-cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0                         
+cargo install --git https://github.com/bytecodealliance/wit-bindgen wit-bindgen-cli --tag v0.2.0
 rustup target add wasm32-wasi
 
 ## setup git
