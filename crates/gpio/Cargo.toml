@@ -1,0 +1,21 @@
+[package]
+name = "slight-gpio"
+version = "0.1.0"
+edition = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { workspace = true }
+rppal = { version = "0.14.1", optional = true }
+slight-common = { workspace = true }
+slight-file = { workspace = true }
+wit-bindgen-wasmtime = { workspace = true }
+wit-error-rs = { workspace = true }
+
+[features]
+default = ["raspberry-pi"]
+raspberry-pi = ["dep:rppal"]

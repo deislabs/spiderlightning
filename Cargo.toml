@@ -26,6 +26,7 @@ slight-common = { workspace = true }
 slight-sql = { workspace = true, features = ["postgres"], optional = true }
 slight-http-server = { workspace = true, optional = true }
 slight-http-client = { workspace = true, optional = true }
+slight-gpio = { workspace = true, optional = true }
 anyhow = { workspace = true }
 log = { workspace = true }
 tokio = { workspace = true }
@@ -54,6 +55,7 @@ runtime-configs = ["dep:slight-runtime-configs"]
 sql = ["dep:slight-sql"]
 http-server = ["dep:slight-http-server"]
 http-client = ["dep:slight-http-client"]
+gpio = ["dep:slight-gpio"]
 
 [workspace.package]
 version = "0.5.0"
@@ -76,6 +78,7 @@ slight-sql = { path = "./crates/sql" }
 slight-http-server = { path = "./crates/http-server" }
 slight-http-client = { path = "./crates/http-client" }
 slight-http-api = { path = "./crates/http-api" }
+slight-gpio = { path = "./crates/gpio" }
 wit-bindgen-wasmtime = { git = "https://github.com/fermyon/wit-bindgen-backport", features = ["async"] }
 wit-error-rs = { git = "https://github.com/danbugs/wit-error-rs", rev = "05362f1a4a3a9dc6a1de39195e06d2d5d6491a5e" }
 wasmtime = "8.0.1"
