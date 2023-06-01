@@ -81,4 +81,8 @@ impl gpio::Gpio for Gpio {
     fn pin_read(&mut self, self_: &Self::Pin) -> gpio::LogicLevel {
         self.pin_implementor.read(*self_)
     }
+
+    fn drop_pin(&mut self, state: Self::Pin) {
+        drop(state);
+    }
 }

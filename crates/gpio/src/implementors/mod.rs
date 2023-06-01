@@ -14,6 +14,8 @@ pub trait PinImplementor: Send + Sync {
 
     fn is_input(&self, pin: u8) -> bool;
     fn read(&self, pin: u8) -> LogicLevel;
+
+    fn drop(&self, pin: u8);
 }
 
 impl std::fmt::Debug for dyn PinImplementor {
