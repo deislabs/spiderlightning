@@ -1,18 +1,14 @@
 use std::collections::hash_map::{Entry, HashMap};
 use std::sync::Mutex;
 
-use rppal::gpio::{Gpio, IoPin, Mode, Pin, PullUpDown};
+use rppal::gpio::{Gpio, IoPin, Mode, PullUpDown};
 
 use super::PinImplementor;
 use crate::gpio;
 
 pub struct RaspberryPiImplementor {
     gpio: Result<Gpio, rppal::gpio::Error>,
-    inner: Mutex<RaspberryPiImplementorInner>,
-}
-
-struct RaspberryPiImplementorInner {
-    pins: HashMap<u8, IoPin>,
+    pins: Mutex<HashMap<u8, IoPin>>,
 }
 
 /// Map a WIT mode to an rppal mode
@@ -29,21 +25,19 @@ impl RaspberryPiImplementor {
     pub fn new() -> Self {
         Self {
             gpio: Gpio::new(),
-            inner: Mutex::new(RaspberryPiImplementorInner {
-                pins: HashMap::new(),
-            }),
+            pins: Mutex::new(HashMap::new()),
         }
     }
 }
 
 impl PinImplementor for RaspberryPiImplementor {
     fn new(&self, pin: u8, mode: gpio::Mode) -> Result<u8, gpio::PinError> {
-        let mut inner = self
-            .inner
+        let mut pins = self
+            .pins
             .lock()
             .map_err(|e| gpio::PinError::UnexpectedError(e.to_string()))?;
 
-        match inner.pins.entry(pin) {
+        match pins.entry(pin) {
             Entry::Occupied(_) => Err(gpio::PinError::UnexpectedError(String::from(
                 "pin already allocated",
             ))),
