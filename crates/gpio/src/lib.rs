@@ -83,6 +83,6 @@ impl gpio::Gpio for Gpio {
     }
 
     fn drop_pin(&mut self, state: Self::Pin) {
-        drop(state);
+        (*self.pin_implementor).drop(state)
     }
 }
