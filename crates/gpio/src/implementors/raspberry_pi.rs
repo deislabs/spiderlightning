@@ -11,7 +11,7 @@ pub struct PiGpioImplementor {
 }
 
 impl PiGpioImplementor {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             gpio: Gpio::new().map_err(|e| gpio::GpioError::HardwareError(e.to_string())),
         }

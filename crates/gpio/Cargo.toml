@@ -17,5 +17,5 @@ wit-bindgen-wasmtime = { workspace = true }
 wit-error-rs = { workspace = true }
 
 [features]
-default = ["raspberry-pi"]
-raspberry-pi = ["dep:rppal"]
+default = ["raspberry_pi"]
+raspberry_pi = ["dep:rppal"]

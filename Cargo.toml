@@ -46,7 +46,7 @@ tempfile = { workspace = true }
 rand = { worspace = true }
 
 [features]
-default = ["blob-store", "keyvalue", "distributed-locking", "messaging", "runtime-configs", "sql", "http-server", "http-client"]
+default = ["blob-store", "keyvalue", "distributed-locking", "messaging", "runtime-configs", "sql", "http-server", "http-client", "gpio"]
 blob-store = ["dep:slight-blob-store"]
 keyvalue = ["dep:slight-keyvalue"]
 distributed-locking = ["dep:slight-distributed-locking"]

@@ -1,4 +1,5 @@
 variant gpio-error {
+  configuration-error(string),
   pin-usage-error(string),
   hardware-error(string),
   unexpected-error(string),

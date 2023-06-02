@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::gpio;
 
-#[cfg(feature = "raspberry-pi")]
+#[cfg(feature = "raspberry_pi")]
 pub mod raspberry_pi;
 
 pub trait GpioImplementor {
