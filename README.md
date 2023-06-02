@@ -39,8 +39,8 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 ### JS
 
 ```sh
-slight new -n spidey@v0.5.0 js && cd spidey
-# ^^^ starts a new js project under SpiderLightning's v0.5.0 spec
+slight new -n spidey@v0.5.1 js && cd spidey
+# ^^^ starts a new js project under SpiderLightning's v0.5.1 spec
 
 slight buildjs -e slightjs_engine.wasm -o main.wasm src/main.js
 # ^^^ builds the js application
@@ -54,8 +54,8 @@ slight -c slightfile.toml run main.wasm -l
 ### C
 
 ```sh
-slight new -n spidey@v0.5.0 c && cd spidey
-# ^^^ starts a new c project under SpiderLightning's v0.5.0 spec
+slight new -n spidey@v0.5.1 c && cd spidey
+# ^^^ starts a new c project under SpiderLightning's v0.5.1 spec
 
 # you might want to install wasi-sdk dependencies...
 # on unix, run: 
@@ -76,8 +76,8 @@ slight -c slightfile.toml run spidey.wasm
 ### Rust
 
 ```sh
-slight new -n spidey@v0.5.0 rust && cd spidey
-# ^^^ starts a new rust project under SpiderLightning's v0.5.0 spec
+slight new -n spidey@v0.5.1 rust && cd spidey
+# ^^^ starts a new rust project under SpiderLightning's v0.5.1 spec
 
 cargo build --target wasm32-wasi
 
