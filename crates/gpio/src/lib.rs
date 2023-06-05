@@ -59,10 +59,36 @@ impl Gpio {
 
                                 match config_iter.next() {
                                     Some("input") => {
-                                        Ok(Pin::Input(implementor.new_input_pin(pin_number)?))
+                                        let pull = if let Some(pull) = config_iter.next() {
+                                            Some(match pull {
+                                                "pullup" => Pull::Up,
+                                                "pulldown" => Pull::Down,
+                                                _ => Err(gpio::GpioError::ConfigurationError(
+                                                    format!("unknown pull setting '{pull}'"),
+                                                ))?,
+                                            })
+                                        } else {
+                                            None
+                                        };
+                                        Ok(Pin::Input(implementor.new_input_pin(pin_number, pull)?))
                                     }
                                     Some("output") => {
-                                        Ok(Pin::Output(implementor.new_output_pin(pin_number)?))
+                                        let init_level = if let Some(init_level) =
+                                            config_iter.next()
+                                        {
+                                            Some(match init_level {
+                                                "low" => gpio::LogicLevel::Low,
+                                                "high" => gpio::LogicLevel::High,
+                                                _ => Err(gpio::GpioError::ConfigurationError(
+                                                    format!("unknown initial level '{init_level}'"),
+                                                ))?,
+                                            })
+                                        } else {
+                                            None
+                                        };
+                                        Ok(Pin::Output(
+                                            implementor.new_output_pin(pin_number, init_level)?,
+                                        ))
                                     }
                                     Some(unknown_type) => Err(gpio::GpioError::ConfigurationError(
                                         format!("unknown pin type '{unknown_type}'"),
@@ -80,6 +106,11 @@ impl Gpio {
 
         Self { pins }
     }
+}
+
+enum Pull {
+    Up,
+    Down,
 }
 
 #[derive(Debug, Clone)]

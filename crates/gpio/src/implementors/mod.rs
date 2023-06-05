@@ -1,15 +1,23 @@
 use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 
-use crate::gpio;
+use crate::{gpio, Pull};
 
 #[cfg(feature = "raspberry_pi")]
 pub mod raspberry_pi;
 
-pub trait GpioImplementor {
+pub(crate) trait GpioImplementor {
     // TODO: allow specifying pullup/pulldown in new_input_pin
-    fn new_input_pin(&mut self, pin: u8) -> Result<Arc<dyn InputPinImplementor>, gpio::GpioError>;
-    fn new_output_pin(&mut self, pin: u8) -> Result<Arc<dyn OutputPinImplementor>, gpio::GpioError>;
+    fn new_input_pin(
+        &mut self,
+        pin: u8,
+        pull: Option<Pull>,
+    ) -> Result<Arc<dyn InputPinImplementor>, gpio::GpioError>;
+    fn new_output_pin(
+        &mut self,
+        pin: u8,
+        init_level: Option<gpio::LogicLevel>,
+    ) -> Result<Arc<dyn OutputPinImplementor>, gpio::GpioError>;
 }
 
 pub trait InputPinImplementor: Send + Sync {

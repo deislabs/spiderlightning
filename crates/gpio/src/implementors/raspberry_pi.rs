@@ -4,14 +4,14 @@ use std::sync::Mutex;
 use rppal::gpio::{Gpio, InputPin, Level, OutputPin};
 
 use super::*;
-use crate::gpio;
+use crate::{gpio, Pull};
 
-pub struct PiGpioImplementor {
+pub(crate) struct PiGpioImplementor {
     gpio: Result<Gpio, gpio::GpioError>,
 }
 
 impl PiGpioImplementor {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             gpio: Gpio::new().map_err(|e| gpio::GpioError::HardwareError(e.to_string())),
         }
@@ -19,24 +19,38 @@ impl PiGpioImplementor {
 }
 
 impl GpioImplementor for PiGpioImplementor {
-    fn new_input_pin(&mut self, pin: u8) -> Result<Arc<dyn InputPinImplementor>, gpio::GpioError> {
+    fn new_input_pin(
+        &mut self,
+        pin: u8,
+        pull: Option<Pull>,
+    ) -> Result<Arc<dyn InputPinImplementor>, gpio::GpioError> {
         let gpio = self.gpio.as_mut().map_err(|e| e.clone())?;
-        let input_pin = gpio
+        let pin = gpio
             .get(pin)
-            .map_err(|e| gpio::GpioError::HardwareError(e.to_string()))?
-            .into_input();
+            .map_err(|e| gpio::GpioError::HardwareError(e.to_string()))?;
+        let input_pin = match pull {
+            Some(Pull::Up) => pin.into_input_pullup(),
+            Some(Pull::Down) => pin.into_input_pulldown(),
+            None => pin.into_input(),
+        };
         Ok(Arc::new(PiInputPinImplementor { input_pin }))
     }
 
     fn new_output_pin(
         &mut self,
         pin: u8,
+        init_level: Option<gpio::LogicLevel>,
     ) -> Result<Arc<dyn OutputPinImplementor>, gpio::GpioError> {
         let gpio = self.gpio.as_mut().map_err(|e| e.clone())?;
-        let output_pin = gpio
+        let mut output_pin = gpio
             .get(pin)
             .map_err(|e| gpio::GpioError::HardwareError(e.to_string()))?
             .into_output();
+        match init_level {
+            Some(gpio::LogicLevel::Low) => output_pin.set_low(),
+            Some(gpio::LogicLevel::High) => output_pin.set_high(),
+            None => (),
+        }
         let output_pin = Mutex::new(output_pin);
         Ok(Arc::new(PiOutputPinImplementor { output_pin }))
     }
