@@ -1,5 +1,4 @@
 use std::collections::hash_map::HashMap;
-use std::str::FromStr;
 use std::sync::Arc;
 
 use implementors::*;
@@ -10,6 +9,8 @@ use slight_file::resource::GpioResource::*;
 use slight_file::Resource;
 
 mod implementors;
+#[cfg(test)]
+mod tests;
 
 wit_bindgen_wasmtime::export!("../../wit/gpio.wit");
 wit_error_rs::impl_error!(gpio::GpioError);
@@ -20,7 +21,7 @@ pub struct Gpio {
     pins: HashMap<String, Result<Pin, gpio::GpioError>>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 enum Pin {
     Input(Arc<dyn InputPinImplementor>),
     Output(Arc<dyn OutputPinImplementor>),
@@ -40,66 +41,7 @@ impl Gpio {
             .map(|configs| {
                 configs
                     .iter()
-                    .map(|(name, config)| {
-                        (
-                            name.clone(),
-                            (|| {
-                                let mut config_iter = config.split('/');
-
-                                let pin_number = config_iter.next().ok_or_else(|| {
-                                    gpio::GpioError::ConfigurationError(String::from(
-                                        "no pin number",
-                                    ))
-                                })?;
-                                let pin_number = u8::from_str(pin_number).map_err(|e| {
-                                    gpio::GpioError::ConfigurationError(format!(
-                                        "invalid pin number: {e}"
-                                    ))
-                                })?;
-
-                                match config_iter.next() {
-                                    Some("input") => {
-                                        let pull = if let Some(pull) = config_iter.next() {
-                                            Some(match pull {
-                                                "pullup" => Pull::Up,
-                                                "pulldown" => Pull::Down,
-                                                _ => Err(gpio::GpioError::ConfigurationError(
-                                                    format!("unknown pull setting '{pull}'"),
-                                                ))?,
-                                            })
-                                        } else {
-                                            None
-                                        };
-                                        Ok(Pin::Input(implementor.new_input_pin(pin_number, pull)?))
-                                    }
-                                    Some("output") => {
-                                        let init_level = if let Some(init_level) =
-                                            config_iter.next()
-                                        {
-                                            Some(match init_level {
-                                                "low" => gpio::LogicLevel::Low,
-                                                "high" => gpio::LogicLevel::High,
-                                                _ => Err(gpio::GpioError::ConfigurationError(
-                                                    format!("unknown initial level '{init_level}'"),
-                                                ))?,
-                                            })
-                                        } else {
-                                            None
-                                        };
-                                        Ok(Pin::Output(
-                                            implementor.new_output_pin(pin_number, init_level)?,
-                                        ))
-                                    }
-                                    Some(unknown_type) => Err(gpio::GpioError::ConfigurationError(
-                                        format!("unknown pin type '{unknown_type}'"),
-                                    )),
-                                    None => Err(gpio::GpioError::ConfigurationError(String::from(
-                                        "no pin type",
-                                    ))),
-                                }
-                            })(),
-                        )
-                    })
+                    .map(|(name, config)| (name.clone(), implementor.parse_pin_config(config)))
                     .collect()
             })
             .unwrap_or_else(HashMap::new);
@@ -108,6 +50,7 @@ impl Gpio {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Pull {
     Up,
     Down,
