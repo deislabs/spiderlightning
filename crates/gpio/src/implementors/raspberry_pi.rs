@@ -1,4 +1,3 @@
-// use std::collections::hash_map::{Entry, HashMap};
 use std::sync::Mutex;
 
 use rppal::gpio::{Gpio, InputPin, Level, OutputPin};
@@ -6,11 +5,15 @@ use rppal::gpio::{Gpio, InputPin, Level, OutputPin};
 use super::*;
 use crate::{gpio, Pull};
 
+/// A GPIO implementation backed by the [rppal] crate.
 pub(crate) struct PiGpioImplementor {
     gpio: Result<Gpio, gpio::GpioError>,
 }
 
 impl PiGpioImplementor {
+    /// Construct a new [PiGpioImplementor].
+    ///
+    /// If constructing the underlying [Gpio] object fails, the error will be stored for reporting to the application code.
     pub(crate) fn new() -> Self {
         Self {
             gpio: Gpio::new().map_err(|e| gpio::GpioError::HardwareError(e.to_string())),
@@ -56,6 +59,7 @@ impl GpioImplementor for PiGpioImplementor {
     }
 }
 
+/// An input pin resource backed by [rppal]'s [InputPin].
 pub struct PiInputPinImplementor {
     input_pin: InputPin,
 }
@@ -69,6 +73,7 @@ impl InputPinImplementor for PiInputPinImplementor {
     }
 }
 
+/// An output pin resource backed by [rppal]'s [OutputPin].
 pub struct PiOutputPinImplementor {
     output_pin: Mutex<OutputPin>,
 }

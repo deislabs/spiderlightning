@@ -3,10 +3,12 @@ use std::sync::Arc;
 use crate::implementors::*;
 use crate::{gpio, Pull};
 
-
-///used for storing the pin used for the testing.
+/// A no-op GPIO implementation used for testing.
+///
+/// It stores the last [MockPin] it constructed to compare against what is expected for a given configuration.
 #[derive(Default)]
 struct MockGpioImplementor {
+    /// The last [MockPin] constructed, if any.
     last_construction: Option<MockPin>,
 }
 ///defines functions for new test gpioImplementor to be used in testing. Creates input/output pins
@@ -32,7 +34,9 @@ impl GpioImplementor for MockGpioImplementor {
     }
 }
 
-//test pin defined
+/// A no-op implementation of every pin type, used for testing.
+///
+/// It stores its type and the parameters it was constructed with to compare against what is expected for a given configuration.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum MockPin {
     Input {
@@ -45,19 +49,18 @@ enum MockPin {
     },
 }
 
-///defines read for inputPins
+/// Defines read for inputPins
 impl InputPinImplementor for MockPin {
     fn read(&self) -> gpio::LogicLevel {
         gpio::LogicLevel::Low
     }
 }
-///defines write for outputPins
+/// Defines write for outputPins
 impl OutputPinImplementor for MockPin {
     fn write(&self, _: gpio::LogicLevel) {}
 }
 
-
-///first test checks that the format pinNum/type/subType is followed
+/// First test checks that the format pinNum/type\[/subType\] is followed
 #[test]
 fn good_pin_configs() {
     let mut gpio = MockGpioImplementor::default();
@@ -99,7 +102,7 @@ fn good_pin_configs() {
             },
         ),
     ] {
-        ///parse through pin configs and checks if it is valid. This goes through the slight file config.
+        // parse through pin configs and checks if it is valid. This goes through the slight file config.
         let result = (&mut gpio as &mut dyn GpioImplementor).parse_pin_config(config);
         assert!(result.is_ok(), "good config '{config}' returned {result:?}");
         match gpio.last_construction {
@@ -112,8 +115,7 @@ fn good_pin_configs() {
     }
 }
 
-
-///tests for bad pin inputs that do not follow pinNum/type/subType
+/// Tests for bad pin inputs that do not follow pinNum/type\[/subType\]
 #[test]
 fn bad_pin_configs() {
     let mut gpio = MockGpioImplementor::default();
