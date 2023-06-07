@@ -173,6 +173,20 @@ impl Display for SqlResource {
     }
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Hash)]
+pub enum GpioResource {
+    #[serde(rename = "gpio.raspberry_pi")]
+    RaspberryPi,
+}
+
+impl Display for GpioResource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GpioResource::RaspberryPi => write!(f, "gpio.raspberry_pi"),
+        }
+    }
+}
+
 /// All the resources that slightfile supports. This is used in the
 /// `Capability` section in slightfile to specify what resource a
 /// capability is for.
@@ -187,6 +201,7 @@ pub enum Resource {
     Configs(ConfigsResource),
     DistributedLocking(DistributedLockingResource),
     Sql(SqlResource),
+    Gpio(GpioResource),
 }
 
 impl Default for Resource {
@@ -206,6 +221,7 @@ impl Resource {
             Resource::Configs(_) => "configs".into(),
             Resource::DistributedLocking(_) => "distributed_locking".into(),
             Resource::Sql(_) => "sql".into(),
+            Resource::Gpio(_) => "gpio".into(),
         }
     }
 }
@@ -223,6 +239,7 @@ impl Display for Resource {
                 write!(f, "{distributed_locking}")
             }
             Resource::Sql(sql_postgres) => write!(f, "{sql_postgres}"),
+            Resource::Gpio(gpio) => write!(f, "{gpio}"),
         }
     }
 }

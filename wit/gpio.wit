@@ -1,12 +1,8 @@
-variant pin-error {
+variant gpio-error {
+  configuration-error(string),
+  pin-usage-error(string),
+  hardware-error(string),
   unexpected-error(string),
-}
-
-enum mode {
-  output,
-  input,
-  input-pullup,
-  input-pulldown,
 }
 
 enum logic-level {
@@ -14,23 +10,14 @@ enum logic-level {
   high,
 }
 
-/// A numbered pin that can be used for input or output.
-resource pin {
-  /// Configure the pin with the specified number for the specified mode.
-  static new: func(number: u8, mode: mode) -> expected<pin, pin-error>
+resource input-pin {
+  static get-named: func(name: string) -> expected<input-pin, gpio-error>
 
-  /// Get the current mode.
-  mode: func() -> mode
-  /// Reconfigure the mode.
-  set-mode: func(mode: mode) -> unit
-
-  /// Whether the pin is configured for output.
-  is-output: func() -> bool
-  /// Output the given logic level. Does nothing unless the pin is configured for output.
-  write: func(level: logic-level) -> unit
-
-  /// Whether the pin is configured for input.
-  is-input: func() -> bool
-  /// Read the level from the pin. The result is unspecified unless the pin is configured for input.
   read: func() -> logic-level
+}
+
+resource output-pin {
+  static get-named: func(name: string) -> expected<output-pin, gpio-error>
+
+  write: func(level: logic-level) -> unit
 }
