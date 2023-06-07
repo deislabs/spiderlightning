@@ -121,6 +121,11 @@ fn bad_pin_configs() {
         "1/output/low/me",
         "-1/input",
         "420/output",
+        "3.1415/input",
+        "///",
+        "2.71828/Eureka!",
+        "1/2/3",
+        "input/input/input",
     ] {
         match gpio.parse_pin_config(config) {
             Err(gpio::GpioError::ConfigurationError(_)) => (),
