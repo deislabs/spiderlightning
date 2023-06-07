@@ -49,7 +49,7 @@ impl Gpio {
         Self { pins }
     }
 }
-
+//enum for pullUp/pullDown
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Pull {
     Up,
@@ -81,10 +81,12 @@ impl_resource!(
     "gpio".to_string()
 );
 
+///converts between the wit and slight file config to be used
 impl gpio::Gpio for Gpio {
     type InputPin = Arc<dyn InputPinImplementor>;
     type OutputPin = Arc<dyn OutputPinImplementor>;
 
+    ///for input pins, gives the pin number
     fn input_pin_get_named(&mut self, name: &str) -> Result<Self::InputPin, gpio::GpioError> {
         match self.pins.get(name) {
             Some(Ok(Pin::Input(pin))) => Ok(pin.clone()),
@@ -97,11 +99,12 @@ impl gpio::Gpio for Gpio {
             ))),
         }
     }
-
+    ///read the LogicLevel from pin (high/low)
     fn input_pin_read(&mut self, self_: &Self::InputPin) -> gpio::LogicLevel {
         self_.read()
     }
-
+    
+    ///for output pins, gives the pin number
     fn output_pin_get_named(&mut self, name: &str) -> Result<Self::OutputPin, gpio::GpioError> {
         match self.pins.get(name) {
             Some(Ok(Pin::Output(pin))) => Ok(pin.clone()),
@@ -114,7 +117,7 @@ impl gpio::Gpio for Gpio {
             ))),
         }
     }
-
+    ///for output pins, stores the logic level
     fn output_pin_write(&mut self, self_: &Self::OutputPin, level: gpio::LogicLevel) -> () {
         self_.write(level)
     }
