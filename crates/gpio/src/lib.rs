@@ -15,12 +15,19 @@ mod tests;
 wit_bindgen_wasmtime::export!("../../wit/gpio.wit");
 wit_error_rs::impl_error!(gpio::GpioError);
 
-// needs to be Send + Sync
+/// Implements the GPIO interface defined by gpio.wit.
+///
+/// This structure is responsible for constructing the pin resources described in the slightfile and providing them to the application upon request.
+/// 
+/// It must be [Send], [Sync], and [Clone].
 #[derive(Clone)]
 pub struct Gpio {
     pins: HashMap<String, Result<Pin, gpio::GpioError>>,
 }
 
+/// A type for storing constructed pin resources.
+/// 
+/// There should be one variant for each pin type, holding an [Arc] reference to the implementor trait object.
 #[derive(Debug, Clone)]
 enum Pin {
     Input(Arc<dyn InputPinImplementor>),
@@ -28,6 +35,9 @@ enum Pin {
 }
 
 impl Gpio {
+    /// Construct a new [Gpio] object.
+    /// 
+    /// This function reads in the pin descriptors from the named state in `capability_store`.
     pub fn new(name: &str, capability_store: CapabilityStore<BasicState>) -> Self {
         let state = capability_store.get(name, "gpio").unwrap().clone();
         let mut implementor: Box<dyn GpioImplementor> =
@@ -50,12 +60,14 @@ impl Gpio {
     }
 }
 
+/// Directions that internal resistors can be configured to pull a floating wire.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Pull {
     Up,
     Down,
 }
 
+/// A list of GPIO implementations that the slightfile can refer to.
 #[derive(Debug, Clone)]
 pub enum GpioImplementors {
     #[cfg(feature = "raspberry_pi")]

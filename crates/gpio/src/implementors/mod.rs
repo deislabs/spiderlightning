@@ -7,13 +7,17 @@ use crate::{gpio, Pin, Pull};
 #[cfg(feature = "raspberry_pi")]
 pub mod raspberry_pi;
 
+/// A GPIO implementation.
+/// 
+/// This trait is not referred to directly by the linked capability, but is used to construct pin resources implementing the other traits in this module.
 pub(crate) trait GpioImplementor {
-    // TODO: allow specifying pullup/pulldown in new_input_pin
+    /// Constructs an input pin resource.
     fn new_input_pin(
         &mut self,
         pin: u8,
         pull: Option<Pull>,
     ) -> Result<Arc<dyn InputPinImplementor>, gpio::GpioError>;
+    /// Constructs an output pin resource.
     fn new_output_pin(
         &mut self,
         pin: u8,
@@ -22,6 +26,7 @@ pub(crate) trait GpioImplementor {
 }
 
 impl dyn GpioImplementor {
+    /// Parse the provided configuration string and construct the appropriate pin resource.
     pub(crate) fn parse_pin_config(&mut self, config: &str) -> Result<Pin, gpio::GpioError> {
         let mut config_iter = config.split('/');
 
@@ -81,7 +86,9 @@ impl dyn GpioImplementor {
     }
 }
 
+/// An implementation of an input pin resource.
 pub trait InputPinImplementor: Send + Sync {
+    /// Read the current logic level to the pin.
     fn read(&self) -> gpio::LogicLevel;
 }
 
@@ -92,7 +99,10 @@ impl Debug for dyn InputPinImplementor {
     }
 }
 
+
+/// An implementation of an output pin resource.
 pub trait OutputPinImplementor: Send + Sync {
+    /// Write the given logic level to the pin.
     fn write(&self, level: gpio::LogicLevel);
 }
 

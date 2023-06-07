@@ -3,8 +3,12 @@ use std::sync::Arc;
 use crate::implementors::*;
 use crate::{gpio, Pull};
 
+/// A no-op GPIO implementation used for testing.
+/// 
+/// It stores the last [MockPin] it constructed to compare against what is expected for a given configuration.
 #[derive(Default)]
 struct MockGpioImplementor {
+    /// The last [MockPin] constructed, if any.
     last_construction: Option<MockPin>,
 }
 
@@ -30,6 +34,9 @@ impl GpioImplementor for MockGpioImplementor {
     }
 }
 
+/// A no-op implementation of every pin type.
+/// 
+/// It stores its type and the parameters it was constructed with to compare against what is expected for a given configuration.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum MockPin {
     Input {
@@ -52,6 +59,7 @@ impl OutputPinImplementor for MockPin {
     fn write(&self, _: gpio::LogicLevel) {}
 }
 
+/// Test various valid configuration strings to make sure the results are correct.
 #[test]
 fn good_pin_configs() {
     let mut gpio = MockGpioImplementor::default();
@@ -105,6 +113,7 @@ fn good_pin_configs() {
     }
 }
 
+/// Test various invalid configuration strings to make sure the correct error is returned.
 #[test]
 fn bad_pin_configs() {
     let mut gpio = MockGpioImplementor::default();
