@@ -52,6 +52,7 @@ fn main() -> Result<()> {
                 LogicLevel::High => LogicLevel::Low,
             };
             output_pin.write(blink_current);
+            blink_progress = 0;
         }
 
         pwm_duty_cycle += match pwm_control_pin.read() {
