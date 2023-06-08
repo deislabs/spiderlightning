@@ -55,10 +55,12 @@ fn main() -> Result<()> {
             blink_progress = 0;
         }
 
-        pwm_duty_cycle += match pwm_control_pin.read() {
-            LogicLevel::Low => -0.001,
-            LogicLevel::High => 0.001,
-        };
+        pwm_duty_cycle = (pwm_duty_cycle
+            + match pwm_control_pin.read() {
+                LogicLevel::Low => -0.001,
+                LogicLevel::High => 0.001,
+            } as f32)
+            .clamp(0.0, 1.0);
         pwm_output_pin.set_duty_cycle(pwm_duty_cycle);
 
         thread::sleep(Duration::from_millis(1));
