@@ -34,7 +34,7 @@ fn main() -> Result<()> {
 
     let mut blink_progress = 0;
     let mut blink_current = LogicLevel::High;
-    let mut pwm_duty_cycle = 0.0;
+    let mut pwm_duty_cycle: f32 = 0.0;
 
     output_pin.write(LogicLevel::High);
     pwm_output_pin.set_duty_cycle(0.0);
@@ -59,8 +59,8 @@ fn main() -> Result<()> {
             + match pwm_control_pin.read() {
                 LogicLevel::Low => -0.001,
                 LogicLevel::High => 0.001,
-            } as f32)
-            .clamp(0.0, 1.0);
+            })
+        .clamp(0.0, 1.0);
         pwm_output_pin.set_duty_cycle(pwm_duty_cycle);
 
         thread::sleep(Duration::from_millis(1));
