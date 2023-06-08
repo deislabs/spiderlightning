@@ -58,7 +58,7 @@ http-client = ["dep:slight-http-client"]
 gpio = ["dep:slight-gpio"]
 
 [workspace.package]
-version = "0.5.0"
+version = "0.5.1"
 authors = ["DeisLabs Engineering Team"]
 edition = "2021"
 license = "MIT"
