@@ -4388,6 +4388,7 @@ dependencies = [
  "rppal",
  "slight-common",
  "slight-file",
+ "tracing",
  "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/fermyon/wit-bindgen-backport)",
  "wit-error-rs",
 ]
