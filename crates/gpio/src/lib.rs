@@ -32,6 +32,7 @@ pub struct Gpio {
 enum Pin {
     Input(Arc<dyn InputPinImplementor>),
     Output(Arc<dyn OutputPinImplementor>),
+    PwmOutput(Arc<dyn PwmOutputPinImplementor>),
 }
 
 impl Gpio {
@@ -97,6 +98,7 @@ impl_resource!(
 impl gpio::Gpio for Gpio {
     type InputPin = Arc<dyn InputPinImplementor>;
     type OutputPin = Arc<dyn OutputPinImplementor>;
+    type PwmOutputPin = Arc<dyn PwmOutputPinImplementor>;
 
     ///for input pins, gives the pin number
     fn input_pin_get_named(&mut self, name: &str) -> Result<Self::InputPin, gpio::GpioError> {
@@ -111,6 +113,7 @@ impl gpio::Gpio for Gpio {
             ))),
         }
     }
+
     ///read the LogicLevel from pin (high/low)
     fn input_pin_read(&mut self, self_: &Self::InputPin) -> gpio::LogicLevel {
         self_.read()
@@ -129,8 +132,41 @@ impl gpio::Gpio for Gpio {
             ))),
         }
     }
+
     ///for output pins, stores the logic level
     fn output_pin_write(&mut self, self_: &Self::OutputPin, level: gpio::LogicLevel) -> () {
         self_.write(level)
+    }
+
+    fn pwm_output_pin_get_named(
+        &mut self,
+        name: &str,
+    ) -> Result<Self::PwmOutputPin, gpio::GpioError> {
+        match self.pins.get(name) {
+            Some(Ok(Pin::PwmOutput(pin))) => Ok(pin.clone()),
+            Some(Ok(_)) => Err(gpio::GpioError::PinUsageError(format!(
+                "'{name}' is not a PWM output pin"
+            ))),
+            Some(Err(e)) => Err(e.clone()),
+            None => Err(gpio::GpioError::PinUsageError(format!(
+                "'{name}' is not a named pin"
+            ))),
+        }
+    }
+
+    fn pwm_output_pin_set_duty_cycle(&mut self, self_: &Self::PwmOutputPin, duty_cycle: f32) -> () {
+        self_.set_duty_cycle(if duty_cycle.is_nan() {
+            0.0
+        } else {
+            duty_cycle.clamp(0.0, 1.0)
+        })
+    }
+
+    fn pwm_output_pin_enable(&mut self, self_: &Self::PwmOutputPin) -> () {
+        self_.enable()
+    }
+
+    fn pwm_output_pin_disable(&mut self, self_: &Self::PwmOutputPin) -> () {
+        self_.disable()
     }
 }

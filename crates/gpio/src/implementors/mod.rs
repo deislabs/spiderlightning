@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Formatter};
+use std::fmt::{self, Debug, Formatter};
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -23,6 +23,12 @@ pub(crate) trait GpioImplementor {
         pin: u8,
         init_level: Option<gpio::LogicLevel>,
     ) -> Result<Arc<dyn OutputPinImplementor>, gpio::GpioError>;
+    /// Constructs a PWM output pin resource.
+    fn new_pwm_output_pin(
+        &mut self,
+        pin: u8,
+        period_microseconds: Option<u32>,
+    ) -> Result<Arc<dyn PwmOutputPinImplementor>, gpio::GpioError>;
 }
 
 impl dyn GpioImplementor {
@@ -76,6 +82,24 @@ impl dyn GpioImplementor {
                 }
                 self.new_output_pin(pin_number, init_level).map(Pin::Output)
             }
+            Some("pwm_output") => {
+                let period_microseconds = if let Some(period_microseconds) = config_iter.next() {
+                    u32::from_str(period_microseconds).map(Some).map_err(|e| {
+                        gpio::GpioError::ConfigurationError(format!(
+                            "invalid period length '{period_microseconds}': {e}"
+                        ))
+                    })?
+                } else {
+                    None
+                };
+                if config_iter.next().is_some() {
+                    return Err(gpio::GpioError::ConfigurationError(String::from(
+                        "too many fields for PWM output pin",
+                    )));
+                }
+                self.new_pwm_output_pin(pin_number, period_microseconds)
+                    .map(Pin::PwmOutput)
+            }
             Some(unknown_type) => Err(gpio::GpioError::ConfigurationError(format!(
                 "unknown pin type '{unknown_type}'"
             ))),
@@ -93,7 +117,7 @@ pub trait InputPinImplementor: Send + Sync {
 }
 
 impl Debug for dyn InputPinImplementor {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("InputPinImplementor")
             .finish_non_exhaustive()
     }
@@ -106,8 +130,25 @@ pub trait OutputPinImplementor: Send + Sync {
 }
 
 impl Debug for dyn OutputPinImplementor {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("OutputPinImplementor")
+            .finish_non_exhaustive()
+    }
+}
+
+/// An implementation of a PWM output pin resource.
+pub trait PwmOutputPinImplementor: Send + Sync {
+    /// Configure the pin with the given parameters. This does not enable it if it is disabled.
+    fn set_duty_cycle(&self, duty_cycle: f32);
+    /// Enable the pin's output.
+    fn enable(&self);
+    /// Disable the pin's output.
+    fn disable(&self);
+}
+
+impl Debug for dyn PwmOutputPinImplementor {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PwmOutputPinImplementor")
             .finish_non_exhaustive()
     }
 }

@@ -32,6 +32,19 @@ impl GpioImplementor for MockGpioImplementor {
         self.last_construction.replace(pin);
         Ok(Arc::new(pin))
     }
+
+    fn new_pwm_output_pin(
+        &mut self,
+        pin: u8,
+        period_microseconds: Option<u32>,
+    ) -> Result<Arc<dyn PwmOutputPinImplementor>, gpio::GpioError> {
+        let pin = MockPin::PwmOutput {
+            pin,
+            period_microseconds,
+        };
+        self.last_construction.replace(pin);
+        Ok(Arc::new(pin))
+    }
 }
 
 /// A no-op implementation of every pin type, used for testing.
@@ -47,6 +60,10 @@ enum MockPin {
         pin: u8,
         init_level: Option<gpio::LogicLevel>,
     },
+    PwmOutput {
+        pin: u8,
+        period_microseconds: Option<u32>,
+    },
 }
 
 /// Defines read for inputPins
@@ -58,6 +75,12 @@ impl InputPinImplementor for MockPin {
 /// Defines write for outputPins
 impl OutputPinImplementor for MockPin {
     fn write(&self, _: gpio::LogicLevel) {}
+}
+
+impl PwmOutputPinImplementor for MockPin {
+    fn set_duty_cycle(&self, _: f32) {}
+    fn enable(&self) {}
+    fn disable(&self) {}
 }
 
 /// First test checks that the format pinNum/type\[/subType\] is followed
@@ -101,6 +124,20 @@ fn good_pin_configs() {
                 init_level: Some(gpio::LogicLevel::High),
             },
         ),
+        (
+            "7/pwm_output",
+            MockPin::PwmOutput {
+                pin: 7,
+                period_microseconds: None,
+            },
+        ),
+        (
+            "8/pwm_output/250",
+            MockPin::PwmOutput {
+                pin: 8,
+                period_microseconds: Some(250),
+            },
+        ),
     ] {
         // parse through pin configs and checks if it is valid. This goes through the slight file config.
         let result = (&mut gpio as &mut dyn GpioImplementor).parse_pin_config(config);
@@ -137,6 +174,9 @@ fn bad_pin_configs() {
         "2.71828/Eureka!",
         "1/2/3",
         "input/input/input",
+        "1/pwm_output/high",
+        "1/pwm_output/-4",
+        "1/pwm_output/99999999999999999999999999999",
     ] {
         match gpio.parse_pin_config(config) {
             Err(gpio::GpioError::ConfigurationError(_)) => (),

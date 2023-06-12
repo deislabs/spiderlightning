@@ -21,3 +21,18 @@ resource output-pin {
 
   write: func(level: logic-level) -> unit
 }
+
+/// A pin that can output a PWM signal.
+resource pwm-output-pin {
+  /// Acquire a handle to the pin named in the slightfile.
+  static get-named: func(name: string) -> expected<pwm-output-pin, gpio-error>
+
+  /// Configure the pin's duty cycle, which should be and will be clamped between 0.0 and 1.0.
+  /// This does not enable the pin if it is currently disabled.
+  set-duty-cycle: func(duty-cycle: float32) -> unit
+
+  /// Enable the output signal.
+  enable: func() -> unit
+  /// Disable the output signal.
+  disable: func() -> unit
+}
