@@ -1,12 +1,11 @@
-/// GPIO demo
-/// Authors: Kai Page, Brendan Burmeister, Joey Vongphasouk
-///
-/// Expected Output: Have an LED blink, LED blinks faster when
-/// a button input is received
-///
-/// Tested Output: LED blinks on startup and blinks faster when
-/// button input received. Demo works when multiple inputs to GPIO
-/// given. LED turns off at the end when demo ends
+//! GPIO demo
+//! Authors: Kai Page, Brendan Burmeister, Joey Vongphasouk
+//!
+//! Expected result: One LED blinks, and blinks faster while its
+//! corresponding input is high. The other LED gets brighter while
+//! its corresponding input is high and darker while its
+//! corresponding input is low.
+
 use anyhow::Result;
 use gpio::*;
 use std::thread;
@@ -15,15 +14,6 @@ wit_bindgen_rust::import!("../../wit/gpio.wit");
 wit_error_rs::impl_error!(GpioError);
 
 const BLINK_THRESHOLD: u32 = 500;
-
-// /// Helper function; sleeps for a set amount
-// /// of time depending on logic level parameter
-// fn sleep(input: LogicLevel) {
-//     thread::sleep(Duration::from_millis(match input {
-//         LogicLevel::Low => 500,
-//         LogicLevel::High => 250,
-//     }))
-// }
 
 fn main() -> Result<()> {
     // Define variables based on configurations in demo slightfile

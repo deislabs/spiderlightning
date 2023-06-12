@@ -113,6 +113,7 @@ impl gpio::Gpio for Gpio {
             ))),
         }
     }
+
     ///read the LogicLevel from pin (high/low)
     fn input_pin_read(&mut self, self_: &Self::InputPin) -> gpio::LogicLevel {
         self_.read()
@@ -131,6 +132,7 @@ impl gpio::Gpio for Gpio {
             ))),
         }
     }
+
     ///for output pins, stores the logic level
     fn output_pin_write(&mut self, self_: &Self::OutputPin, level: gpio::LogicLevel) -> () {
         self_.write(level)
