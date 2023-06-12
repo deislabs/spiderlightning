@@ -138,7 +138,7 @@ impl PwmOutputPinImplementor for PiPwmOutputPinImplementor {
         *pulse_width = period.mul_f32(duty_cycle);
         if *enabled {
             if let Err(e) = output_pin.set_pwm(*period, *pulse_width) {
-                tracing::error!("error enabling Raspberry Pi PWM: {e}");
+                tracing::warn!("error enabling Raspberry Pi PWM: {e}");
             }
         }
     }
@@ -153,7 +153,7 @@ impl PwmOutputPinImplementor for PiPwmOutputPinImplementor {
         } = inner.deref_mut();
         *enabled = true;
         if let Err(e) = output_pin.set_pwm(*period, *pulse_width) {
-            tracing::error!("error enabling Raspberry Pi PWM: {e}");
+            tracing::warn!("error enabling Raspberry Pi PWM: {e}");
         }
     }
 
@@ -166,7 +166,7 @@ impl PwmOutputPinImplementor for PiPwmOutputPinImplementor {
         } = inner.deref_mut();
         *enabled = false;
         if let Err(e) = output_pin.clear_pwm() {
-            tracing::error!("error disabling Raspberry Pi PWM: {e}");
+            tracing::warn!("error disabling Raspberry Pi PWM: {e}");
         }
     }
 }
