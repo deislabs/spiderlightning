@@ -1,19 +1,19 @@
-/// GPIO demo
-/// Authors: Kai Page, Brendan Burmeister, Joey Vongphasouk
-///
-/// Expected Output:
-///     - Have a red LED blink, LED blinks faster when
-///       a button input is received
-///     - Have a blue LED get brighter when a button is held down
-///       and dimmer when button is released
-///
-/// Tested Output:
-///     - Red LED blinks on startup and blinks faster when
-///       button input received. Demo works when multiple inputs to GPIO
-///       given. Red LED turns off at the end when demo ends.
-///     - Blue LED is initially off when demo is run. When button is pushed
-///       down, blue LED gets brighter. LED immediately starts getting dimmer
-///       when button is let go.
+//! GPIO demo
+//! Authors: Kai Page, Brendan Burmeister, Joey Vongphasouk
+//!
+//! Expected Output:
+//!     - Have a red LED blink, LED blinks faster when
+//!       a button input is received
+//!     - Have a blue LED get brighter when a button is held down
+//!       and dimmer when button is released
+//!
+//! Tested Output:
+//!     - Red LED blinks on startup and blinks faster when
+//!       button input received. Demo works when multiple inputs to GPIO
+//!       given. Red LED turns off at the end when demo ends.
+//!     - Blue LED is initially off when demo is run. When button is pushed
+//!       down, blue LED gets brighter. LED immediately starts getting dimmer
+//!       when button is let go.
 
 use anyhow::Result;
 use gpio::*;
