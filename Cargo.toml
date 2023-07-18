@@ -38,7 +38,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = "0.11"
 flate2 = "1"
 tar = "0.4"
-wizer = { git = "https://github.com/bytecodealliance/wizer", rev = "a0125eb591a77bbf61af15d4f8675243a5651229"}
+wizer = { git = "https://github.com/bytecodealliance/wizer", rev = "c7e07054d04c27e7f1bfe72e16dae6d73b3f3023"}
 
 [dev-dependencies]
 tempfile = { workspace = true }

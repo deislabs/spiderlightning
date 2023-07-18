@@ -11,7 +11,7 @@ doctest = false
 
 [dependencies]
 wasmtime = { workspace = true }
-wit-bindgen-wasmtime = { git = "https://github.com/danbugs/wit-bindgen", branch = "backport-http-server", features = ["async"]}
+wit-bindgen-wasmtime = { git = "https://github.com/mossaka/wit-bindgen", branch = "backport-http-server", features = ["async"]}
 wit-error-rs = { workspace = true }
 hyper = { workspace = true }
 anyhow = { workspace = true }
