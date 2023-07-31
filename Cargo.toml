@@ -42,7 +42,7 @@ wizer = { git = "https://github.com/bytecodealliance/wizer", rev = "c7e07054d04c
 
 [dev-dependencies]
 tempfile = { workspace = true }
-rand = { worspace = true }
+rand = { workspace = true }
 
 [features]
 default = ["blob-store", "keyvalue", "distributed-locking", "messaging", "runtime-configs", "sql", "http-server", "http-client"]
