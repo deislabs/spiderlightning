@@ -18,14 +18,13 @@ tar -xf "$INSTALL_DIR\$TAR" -C $INSTALL_DIR
 mv -Force "$INSTALL_DIR\release\$BINARY_NAME" $INSTALL_DIR
 ">>> EXTRACTED BINARY TAR."
 
-Update-SessionEnvironment
 $PATH_CONTENT = [Environment]::GetEnvironmentVariable('path', 'User')
 if ($PATH_CONTENT -ne $null)
 {
   if ($PATH_CONTENT -split ';'  -NotContains  $INSTALL_DIR)
   {
     [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable('Path', 'User') + ";$INSTALL_DIR" , [System.EnvironmentVariableTarget]::User)
-    Update-SessionEnvironment
+    $env:Path += ";$INSTALL_DIR"
   }
 }
 ">>> INSTALLED BINARY."
