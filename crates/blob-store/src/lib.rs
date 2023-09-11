@@ -1,3 +1,5 @@
+#![allow(clippy::diverging_sub_expression)]
+
 mod container;
 mod implementors;
 mod read_stream;
