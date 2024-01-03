@@ -146,13 +146,13 @@ Check out this talk from the [Cloud Native Rejekts](https://youtu.be/zEPeMN0ZlBM
 
 ### What is the difference between SpiderLightning and WebAssembly System Interface (WASI)?
 
-WASI is a set of standardized APIs for Wasm. Its first preview version is a set of POSIX-lie APIs to enable Wasm applications to run on a variety of operating systems. WASI Preveiw 2 is much more modular, adds the Wasm Component Model type system and introduces the concept of "worlds" with the [WIT IDL](https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md) to WASI. SpiderLightning could be seen as a WASI World that provides state management, event-driven patterns, and distributed locking.
+WASI is a set of standardized APIs for Wasm. Its first preview version is a set of POSIX-like APIs to enable Wasm applications to run on a variety of operating systems. WASI Preveiw 2 is much more modular, adds the Wasm Component Model type system and introduces the concept of "worlds" with the [WIT IDL](https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md) to WASI. SpiderLightning could be seen as a WASI World that provides state management, event-driven patterns, and distributed locking.
 
 SpiderLightning has evolved to `wasi-cloud-core` and is now being standardized under the WASI Subgroup. See [here](https://github.com/WebAssembly/wasi-cloud-core)
 
 ### What is the difference between SpiderLightning and Dapr?
 
-SpiderLightning and Dapr share the same goal of providing capabilities to distributed applications, but each project's approach to achieving this goal is very different. For example, while Dapr runs as a sidecar container and provides an HTTP/gRPC interface for applications, `slight` links applications directly to generated WASM bindings, which do not depend on a particular network transport protocol, then executes them directly.
+SpiderLightning and Dapr share the same goal of providing capabilities to distributed applications, but each project's approach to achieving this goal is very different. For example, while Dapr runs as either a sidecar container or one-per-node container and provides an HTTP/gRPC interface for applications, `slight` links applications directly to generated WASM bindings, which means calls executed in-process do not depend on a particular network transport protocol.
 
 ### Why the name "SpiderLightning"?
 
