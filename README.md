@@ -152,7 +152,7 @@ SpiderLightning has evolved to `wasi-cloud-core` and is now being standardized u
 
 ### What is the difference between SpiderLightning and Dapr?
 
-SpiderLightning and Dapr share the same goal of providing capabilities to distributed applications, but each project's approach to achieving this goal is very different. For example, while Dapr runs as either a sidecar container or one-per-node container and provides an HTTP/gRPC interface for applications, `slight` links applications directly to generated WASM bindings, which means calls executed in-process do not depend on a particular network transport protocol.
+SpiderLightning and Dapr share the same goal of providing capabilities to distributed applications, but each project's approach to achieving this goal is very different. For example, while Dapr runs as either a sidecar container or one-per-node container and provides an HTTP/gRPC interface for applications, `slight` links applications directly to generated WASM bindings, which means akk calls are executed in-process.
 
 ### Why the name "SpiderLightning"?
 
