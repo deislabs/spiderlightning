@@ -1,0 +1,10 @@
+specversion = "0.2"
+
+[[capability]]
+resource = "gpio.raspberry_pi"
+name = "my-gpio"
+    [capability.configs]
+    push_down_button = "17/input/pulldown"
+    led = "5/output"
+    pwm_control_button = "18/input/pullup"
+    pwm_led = "6/pwm_output"

@@ -3830,6 +3830,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rppal"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "612e1a22e21f08a246657c6433fe52b773ae43d07c9ef88ccfc433cc8683caba"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4299,6 +4308,7 @@ dependencies = [
  "slight-core",
  "slight-distributed-locking",
  "slight-file",
+ "slight-gpio",
  "slight-http-client",
  "slight-http-server",
  "slight-keyvalue",
@@ -4388,6 +4398,19 @@ dependencies = [
  "serde",
  "toml 0.7.3",
  "tracing",
+]
+
+[[package]]
+name = "slight-gpio"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "rppal",
+ "slight-common",
+ "slight-file",
+ "tracing",
+ "wit-bindgen-wasmtime 0.2.0 (git+https://github.com/fermyon/wit-bindgen-backport)",
+ "wit-error-rs",
 ]
 
 [[package]]

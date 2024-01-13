@@ -20,6 +20,8 @@ use slight_http_client::HttpClient;
 #[cfg(feature = "http-server")]
 use slight_http_server::{HttpServer, HttpServerInit};
 
+#[cfg(feature = "gpio")]
+use slight_gpio::Gpio;
 #[cfg(feature = "keyvalue")]
 use slight_keyvalue::Keyvalue;
 #[cfg(feature = "messaging")]
@@ -213,6 +215,9 @@ fn link_all_caps(builder: &mut Builder, linked_capabilities: &mut HashSet<String
         .add_to_builder("http-client".to_string(), http_client);
     linked_capabilities.insert("http-client".to_string());
 
+    builder.link_capability::<Gpio>()?;
+    linked_capabilities.insert("gpio".to_string());
+
     Ok(())
 }
 
@@ -328,6 +333,16 @@ async fn build_store_instance(
                         .link_capability::<HttpClient>()?
                         .add_to_builder("http-client".to_string(), http_client);
                     linked_capabilities.insert("http-client".to_string());
+                }
+            }
+            #[cfg(feature = "gpio")]
+            Resource::Gpio(_) => {
+                if !linked_capabilities.contains("gpio") {
+                    let gpio = Gpio::new(&c.name().to_string(), capability_store.clone());
+                    builder
+                        .link_capability::<Gpio>()?
+                        .add_to_builder("gpio".to_string(), gpio);
+                    linked_capabilities.insert("gpio".to_string());
                 }
             }
         }
